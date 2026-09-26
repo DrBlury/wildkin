@@ -287,7 +287,7 @@ typedef struct {
     s8 vrot, grav;
 } P3;
 
-#define P3_MAX 28
+#define P3_MAX 24
 EWRAM_BSS static P3 p3s[P3_MAX];   /* (IWRAM is kept for the stack) */
 
 static int anim_frozen;         /* 1 while a hit-stop holds the animation frame */
@@ -337,10 +337,12 @@ static int anim_nodraw;
  * take a shared matrix from anim3d.c. Goes to the back layer when open.
  */
 static int fx_coarse;            /* 1: round transforms harder (more sprites share a matrix) */
+static int fx_flags;             /* OR-ed into every particle: ATTR0_BLEND for see-through wind, mist */
 
 static void fx_draw(int x, int y, int fx, int bank, int sx, int sy, int rot, int flags)
 {
     if (anim_nodraw) return;
+    flags |= fx_flags;
     x += shake_x - 8;
     y += shake_y - 8;
     int tile = OT_FX + fx * 4;
@@ -482,12 +484,13 @@ static void big3(int x, int y, int z, int fxb, int bank, int mul, int rot, int r
 static void ring3(int x, int y, int z, int r, int fxb, int bank, int spin, int back)
 {
     if (anim_nodraw || r <= 0) return;
+    if (y < 16) y += w3_floor(z);
     int px, py, s = w3_proj(x, y, z, &px, &py);
     int rs = (r * s) >> 8;                           /* screen radius */
     int sq = w3_ground_squash(z);
     if (back) a3_back_begin();
     int k = atleast((rs > 26 ? 26 : rs) * 256 / 13, 16);
-    big_draw(px, py, fxb, bank, k, atleast((k * sq) >> 8, 8), spin, 1, 0);
+    big_draw(px, py, fxb, bank, k, atleast((k * sq) >> 8, 8), spin, 1, back ? ATTR0_BLEND : 0);   /* on the ground: a glow */
     if (back) a3_back_end();
 }
 
@@ -497,7 +500,8 @@ static void bead_ring3(int x, int y, int z, int r, int n, int phase, int fx, int
 {
     for (int i = 0; i < n; i++) {
         int a = phase + i * 256 / n;
-        fx3(x + ((a3_cos(a) * r) >> 8), y, z + ((a3_sin(a) * r) >> 8), fx, bank, mul, a, ref);
+        int zz = z + ((a3_sin(a) * r) >> 8);
+        fx3(x + ((a3_cos(a) * r) >> 8), y < 16 ? y + w3_floor(zz) : y, zz, fx, bank, mul, a, ref);
     }
 }
 
@@ -505,7 +509,7 @@ static void bead_ring3(int x, int y, int z, int r, int n, int phase, int fx, int
 static void shadow3(int x, int z, int size, int h)
 {
     if (anim_nodraw) return;
-    int px, py, s = w3_proj(x, 0, z, &px, &py);
+    int px, py, s = w3_proj(x, w3_floor(z), z, &px, &py);
     int k = (size * s) >> 8;
     k = (k * (256 - (h > 160 ? 160 : h))) >> 8;      /* smaller the higher it is */
     if (k < 24) return;
@@ -996,7 +1000,7 @@ static void anim_move_frame(void)
         int travel = fx == FX_SHARD || fx == FX_NEEDLE ? 12 : fx == FX_GLOB ? 22 : 18;
         int gap = fx == FX_PEBBLE ? 3 : 5;
         int windup = 6;
-        int arc = fx == FX_GLOB ? 90 : fx == FX_BUBBLE || fx == FX_WIND ? 0 : fx == FX_FIREBALL ? 40 :
+        int arc = fx == FX_GLOB ? 50 : fx == FX_BUBBLE || fx == FX_WIND ? 0 : fx == FX_FIREBALL ? 40 :
                   fx == FX_PEBBLE ? 30 : 12;
         if (t < windup) {
             anim.mon_dx[side] = -dir * t / 2;
@@ -2079,8 +2083,10 @@ static void anim_move_frame(void)
             }
             int sc = 320 + soft_sin(pt * 8 + i * 40) / 2;
             if (pt > 44) sc -= (pt - 44) * 24;
+            fx_flags = (i & 1) ? ATTR0_BLEND : 0;        /* thin and thick fog */
             fx3(x, y, z, fx, (i & 1) ? OBANK_FX_B : OBANK_FX_A, sc, 0, foe);
         }
+        fx_flags = 0;
         if (t > 30 && t < 54 && (t & 3) == 0)
             p3_add(bx + fx_rand(40) - 20, bh + 20, bz + fx_rand(30) - 15, 0, -5, 0, fx2, OBANK_FX_B, 16, 0, 5, P3_TUMBLE);
         impact_when(30, st, dx, dy);
@@ -2103,7 +2109,11 @@ static void anim_move_frame(void)
             fx3(ax + (a3_cos(a) * r >> 8), 2 + pt * 3 / 2, az + (a3_sin(a) * r >> 8), (pt & 8) ? fx : fx2,
                 (i & 1) ? OBANK_FX_B : OBANK_FX_A, 224 + pt * 3, 0, side);
         }
-        if (t > 24 && t < 50 && (t & 1)) fx_spr_aff(sx, sy - 4, fx2, OBANK_FX_A, 448 + soft_sin(t * 8) / 2, 0);
+        if (t > 24 && t < 50) {                          /* the veil of mist over it */
+            fx_flags = ATTR0_BLEND;
+            fx_spr_aff(sx, sy - 4, fx2, OBANK_FX_A, 448 + soft_sin(t * 8) / 2, 0);
+            fx_flags = 0;
+        }
         anim.tint_amount = t < 40 ? t / 4 : t < 52 ? (52 - t) * 10 / 12 : 0;
         anim.bg_amount = t < 54 ? tint_amt / 2 : 0;
         self_pulse_when(36);
@@ -2519,7 +2529,7 @@ static void anim_move_frame(void)
         int pt = t - t0;
         if (pt >= 0 && pt < travel) {
             int k = pt * 256 / travel, x, y, z;
-            w3_path(side, foe, k, 150, &x, &y, &z);
+            w3_path(side, foe, k, 62, &x, &y, &z);
             int wob = a3_sin(pt * 28) >> 3;
             fx3t(x, y, z, fx, OBANK_FX_A, 300 + wob, 300 - wob, pt * 6, -1);
             if (pt & 1) p3_add(x, y, z, 0, 0, 0, fx2 == FX_SPLAT ? FX_GLOB : fx2, OBANK_FX_B, 6, 0, 0, P3_SHRINK);
@@ -2616,11 +2626,11 @@ static void anim_move_frame(void)
          * column of flame roars up and embers rain down */
         int k = t < 12 ? t * 21 : t > 60 ? (72 - t) * 21 : 256;
         if (k > 0) ring3(bx, 0, bz, (k * 24) >> 8, FXB_VORTEX, OBANK_FX_A, t * 10, 1);
-        for (int i = 0; i < n + 4; i++) {
-            int pt = (t * 3 + i * 17) % 64;
+        for (int i = 0; i < n + 4; i++) {            /* two strands, each climbing */
+            int pt = (t * 3 + (i >> 1) * 11) & 63;
             if (t > 58 && pt < 20) continue;
-            int a = t * 14 + i * 256 / (n + 4) * ((i & 1) ? 1 : -1);
-            int r = 14 + pt / 3;
+            int a = t * 8 + pt * 7 + (i & 1) * 128;
+            int r = 12 + pt / 3;
             int f = (i & 2) ? FX_EMBER : fx_frame(fx, fx2, t + i);
             fx3(bx + (a3_cos(a) * r >> 8), pt, bz + (a3_sin(a) * r >> 8), f, (i & 1) ? OBANK_FX_B : OBANK_FX_A,
                 224 - pt, 0, foe);
@@ -2643,27 +2653,28 @@ static void anim_move_frame(void)
         break;
     }
     case AK_WHIRLPOOL: {
-        /* a whirlpool opens on the ground under the foe and turns ever
-         * faster; the foe spins round and is dragged down, spray arms whirl
-         * round it; then it bursts up in spray */
+        /* the water rises round the foe's middle and starts to turn: a
+         * whirlpool spinning ever faster, the foe turning round in it and
+         * dragged down, spray arms whirling round; then it bursts up */
+        int wl = 16;                                    /* the water line (world units up) */
         int grow = t < 14 ? t * 18 : t > 58 ? (70 - t) * 20 : 256;
         if (grow > 0) {
             int spin = -(t * t) / 6;
-            ring3(bx, 0, bz, (grow * 26) >> 8, FXB_VORTEX, OBANK_FX_A, spin, 1);
-            ring3(bx, 0, bz, (grow * 14) >> 8, FXB_VORTEX, OBANK_FX_B, spin * 2 + 40, 1);
+            ring3(bx, wl, bz, (grow * 30) >> 8, FXB_VORTEX, OBANK_FX_A, spin, 0);
+            ring3(bx, wl + 1, bz, (grow * 15) >> 8, FXB_VORTEX, OBANK_FX_B, spin * 2 + 40, 0);
         }
         if (t >= 10 && t < 56)
             for (int i = 0; i < n + 2; i++) {
                 int a = -t * (8 + t / 8) + i * 256 / (n + 2);
-                int r = 30 - ((t - 10) >> 2);
-                fx3t(bx + (a3_cos(a) * r >> 8), 4 + ((i * 7) & 7), bz + (a3_sin(a) * r >> 8), (i & 1) ? fx2 : FX_SWIRL,
-                     (i & 1) ? OBANK_FX_B : OBANK_FX_A, 240, 180, a + 64, foe);
+                int r = 34 - ((t - 10) >> 2);
+                fx3t(bx + (a3_cos(a) * r >> 8), wl + 2 + ((i * 7) & 7), bz + (a3_sin(a) * r >> 8),
+                     (i & 1) ? fx2 : FX_SWIRL, (i & 1) ? OBANK_FX_B : OBANK_FX_A, 256, 200, a + 64, foe);
             }
         if (t >= 16 && t < 56) {
             int c = a3_cos((t - 16) * (8 + (t - 16) / 3));   /* spinning round, faster */
             anim.scale_x[foe] = absi(c) < 40 ? (c < 0 ? -40 : 40) : c;
             anim.mon_dy[foe] = (t - 16) * 10 / 40;
-            if ((t & 3) == 0) p3_add(bx + fx_rand(30) - 15, 2, bz + fx_rand(20) - 10, 0, 12, 0, FX_BUBBLE, OBANK_FX_B,
+            if ((t & 3) == 0) p3_add(bx + fx_rand(30) - 15, wl, bz + fx_rand(20) - 10, 0, 12, 0, FX_BUBBLE, OBANK_FX_B,
                                      14, 0, 0, P3_SHRINK);
         }
         if (impact_when(56, st, dx, dy)) burst3(foe, 0, 8, 0, 8, 34, 30, FX_DROP, OBANK_FX_A, 26, 4, P3_BOUNCE);
@@ -2690,11 +2701,11 @@ static void anim_move_frame(void)
                 z += side_k * bow * ux / 169;
                 y += side_k * (a3_sin(k / 2) * 14 >> 8);
                 int spin = pt * 28 * side_k;
-                fx3t(x, y, z, fx, OBANK_FX_A, 300, 180 + (a3_sin(pt * 12) >> 3), spin, -1);
+                fx3t(x, y, z, fx, OBANK_FX_A, 400, 240 + (a3_sin(pt * 12) >> 3), spin, -1);
                 if (pt > 1) {
                     int x2, y2, z2;
                     w3_path(side, foe, k - 24 < 0 ? 0 : k - 24, 10, &x2, &y2, &z2);
-                    fx3t(x2 - side_k * bow * uz / 169, y2, z2 + side_k * bow * ux / 169, fx, OBANK_FX_B, 240, 150,
+                    fx3t(x2 - side_k * bow * uz / 169, y2, z2 + side_k * bow * ux / 169, fx, OBANK_FX_B, 320, 200,
                          spin - 28 * side_k, -1);
                 }
             } else {
@@ -2710,7 +2721,8 @@ static void anim_move_frame(void)
             }
         }
         if (anim.type == T_GALE && t > 6 && t < 30 && (t & 3) == 0)
-            p3_add(ax, ah + 10, az, ux / 10, 0, uz / 10, FX_WIND, OBANK_FX_B, 14, 0, 0, P3_SHRINK);
+            p3_add(ax + (ux >> 3), ah + 6 + (t & 12), az + (uz >> 3), ux * 16 / 14, 0, uz * 16 / 14, FX_WIND, OBANK_FX_B, 12,
+                   0, 0, P3_SHRINK);
         break;
     }
     case AK_SHIELD: {
@@ -2918,16 +2930,19 @@ static void anim_move_frame(void)
         }
         int grow = t < 10 ? t * 26 : t > 50 ? (60 - t) * 26 : 256;
         int levels = 5;
+        fx_flags = ATTR0_BLEND;                         /* see-through air */
         for (int lv = 0; lv < levels; lv++) {
-            int y = 4 + lv * 16;
-            int r = ((10 + lv * 7) * grow) >> 8;
+            int y = 4 + lv * 15;
+            int r = ((8 + lv * 7) * grow) >> 8;
             for (int i = 0; i < 3; i++) {
                 int a = t * (22 - lv * 2) + i * 85 + lv * 30;
                 int f = (lv + i) % 3 == 0 ? fx2 : fx;
                 fx3t(cx + (a3_cos(a) * r >> 8), y + (a3_sin(a) >> 6), cz + (a3_sin(a) * r >> 8), f,
-                     (lv & 1) ? OBANK_FX_B : OBANK_FX_A, a3_sin(a) > 0 ? -224 : 224, 224, 0, tgt);
+                     (lv & 1) ? OBANK_FX_B : OBANK_FX_A, a3_sin(a) > 0 ? -176 - lv * 12 : 176 + lv * 12, 176, a >> 3,
+                     tgt);
             }
         }
+        fx_flags = 0;
         if (grow > 0) ring3(cx, 0, cz, (grow * 18) >> 8, FXB_VORTEX, OBANK_FX_B, t * 20, 1);
         if (t & 1) p3_add(cx + fx_rand(30) - 15, 2, cz + fx_rand(20) - 10, 0, 6, 0, FX_DUST, OBANK_FX_B, 10, 0, 0, P3_SHRINK);
         if (self) {
@@ -2965,12 +2980,12 @@ static void anim_move_frame(void)
             for (int r = 0; r < 3; r++) {
                 int tx = dx + (r - 1) * fan * 2, ty = dy + (r - 1) * fan;
                 int head = a3_atan2(ty - py0, tx - px0);
-                for (int s = 1; s <= 6; s++) {
-                    int k = s * 256 / 6;
+                for (int s = 1; s <= 8; s++) {
+                    int k = s * 32;
                     if (k > len) break;
                     int px = px0 + ((tx - px0) * k >> 8), py = py0 + ((ty - py0) * k >> 8);
-                    fx_spr_aff2(px, py, FX_BEAM, r == 1 ? OBANK_FX_HIT : (r ? OBANK_FX_B : OBANK_FX_A), 256,
-                                176 - s * 10, head);
+                    fx_spr_aff2(px, py, FX_BEAM, r == 1 ? OBANK_FX_HIT : (r ? OBANK_FX_B : OBANK_FX_A), 272,
+                                176 - s * 8, head);
                 }
             }
         }
@@ -3168,8 +3183,9 @@ static void parts_update(int frozen)
         p->z = (s16)(p->z + p->vz);
         p->vy = (s16)(p->vy - p->grav);
         p->rot = (u8)(p->rot + p->vrot);
-        if (p->y < 0 && (p->flags & P3_BOUNCE)) {
-            p->y = 0;
+        int floor = w3_floor(p->z >> 4) << 4;
+        if (p->y < floor && (p->flags & P3_BOUNCE)) {
+            p->y = (s16)floor;
             if (p->vy < -10) {
                 p->vy = (s16)(-p->vy * 2 / 5);
                 p->vrot = (s8)(p->vrot / 2);

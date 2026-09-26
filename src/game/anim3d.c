@@ -27,6 +27,8 @@
  *                                   (projectiles grow or shrink in flight)
  *   w3_ground_squash(z)             vertical squash (8.8) of a circle lying on
  *                                   the ground at depth z
+ *   w3_floor(z)                     the drawn ground height there (lifted near
+ *                                   the foe, whose feet the ally's HUD hides)
  *   a3_sin / a3_cos                 true sine, amplitude 256, 256 steps a turn
  *   a3_affine(sx, sy, rot)          OBJ matrix "scale, then rotate" from a
  *                                   per-frame cache: particles with the same
@@ -159,6 +161,15 @@ static void w3_path(int from, int to, int k, int arc, int *x, int *y, int *z)
     *y = y0 + (((y1 - y0) * k) >> 8) + ((arc * k * (256 - k)) >> 14);
 }
 
+/* The drawn ground height at depth z. The ally's HUD box covers the foe's
+ * feet, so near the foe things lying on the ground (rings, shadows,
+ * bouncing debris) are drawn up to 12 units higher, where they show. */
+static int w3_floor(int z)
+{
+    int f = ((z - 300) * 186) >> 10;
+    return f < 0 ? 0 : f > 12 ? 12 : f;
+}
+
 /* A circle on the ground at depth z looks squashed by about HC / z (drawn a
  * little rounder than true, it reads better at 240x160). */
 static int w3_ground_squash(int z) { return (w3_scale(z) * 166) >> 8; }   /* HC * 1.25 / z */
@@ -177,7 +188,7 @@ static int w3_ground_squash(int z) { return (w3_scale(z) * 166) >> 8; }   /* HC 
  */
 #define A3_AFF_CAP 24
 #define A3_HASH 32
-static struct { u32 key; s16 pa, pd; s8 idx; u8 epoch; } a3_aff[A3_HASH];
+EWRAM_BSS static struct { u32 key; s16 pa, pd; s8 idx; u8 epoch; } a3_aff[A3_HASH];   /* IWRAM is kept for the stack */
 static u8 a3_used[A3_AFF_CAP];   /* the slots filled this frame */
 static int a3_aff_n;             /* matrices the animations took this frame */
 static u8 a3_epoch = 1;
@@ -342,12 +353,15 @@ static void a3_flush_back(void)
 /* BG0 offsets for screen line y under the camera. */
 static void a3_cam_line(int y, int *hx, int *vy)
 {
+    static int zoom_of = 256, zoom_inv = 256;    /* 65536 / zoom, worked out once a frame */
     if (!a3_cam_moved()) return;
     int s = y < 24 ? 72 : a3_line_scale(y);      /* the sky is far away */
     *hx -= (a3_cam_x * s) >> 8;
     *vy -= (a3_cam_y * s) >> 8;
-    if (a3_cam_zoom != 256)                      /* vertical punch-in */
-        *vy += (((y - A3_FOCUS_Y) << 8) / a3_cam_zoom) - (y - A3_FOCUS_Y);
+    if (a3_cam_zoom != 256) {                    /* vertical punch-in */
+        if (zoom_of != a3_cam_zoom) zoom_of = a3_cam_zoom, zoom_inv = 65536 / a3_cam_zoom;
+        *vy += (((y - A3_FOCUS_Y) * zoom_inv) >> 8) - (y - A3_FOCUS_Y);
+    }
 }
 
 /* A battler under the camera: x, y = top-left of its 64x64 sprite (before
