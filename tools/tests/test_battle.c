@@ -497,6 +497,7 @@ static int timed_turn(int speed)
     }
     battle.ev_count = 0;
     battle.state = BST_ACTION;
+    rng_seed(99);   /* the same turn at both speeds, whatever bout() drew */
     battle_player_move(0);
     battle_play();
     int f = 0;
