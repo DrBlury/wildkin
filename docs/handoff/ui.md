@@ -1,87 +1,156 @@
 # UI and QoL handoff (docs/EXPANSION.md 7.6)
 
+`make art && make && make test` are green, with zero ROM warnings. Every
+screen below was checked in the real ROM with `build/shot`.
+`tools/tests/test_ui.c` has 91 checks.
+
 ## Done
 
-- **Key item icons**: `tools/icons/icons_ui.py` paints BIKE, WATERING CAN, HOE,
-  FARM DEED, FERRY PASS, TOWN MAP, CREST CASE, RECIPE BOOK and ENERGY FLASK
-  (24x24, index 1 white). `src/gfx_battle.h` is regenerated and
-  `src/game/items/key.inc` points each key item at its `ICON_*`.
-- **UI art** (`tools/gen_ui_gfx.py`, regenerated `src/gfx_ui.h`):
-  - rarity gems as 8x8 OBJ tiles `gem_obj_gfx[5]` + `gem_obj_pal` (grey
-    common, green uncommon, blue rare, gold star legend, purple spiral fusion);
-  - Hall crest medallions `crest_gfx[6]` (VOLT TIDE ANVIL RIME LANTERN DREAM)
-    drawn in their type's badge bank (`crest_bank`, `crest_paper`) plus
-    `crest_empty_gfx` (bank 15). `--preview DIR` writes `gems_crests.png`.
-- **Options struct** (`options.h`): still 16 bytes; two pad bytes became
-  `opt.registered` (bag item + 1 registered to SELECT) and `opt.shelf_box`
-  (box last viewed; new kin go there first).
-- **Shelf boxes in party.c** (storage stays packed; `BoxMon` pad bytes now
-  hold `box` and an arrival stamp `order`, so boxes persist in the save with
-  no format change): `storage_boxes_sync`, `storage_box_count/start`,
-  `storage_add_box`, `storage_add` (active box, then next with room),
-  `storage_take`, `storage_move`, `storage_sort_box/all` (SORT_NUMBER, LEVEL,
-  TYPE, RARITY, NEWEST), `storage_sort_type_boxes`, `storage_find_type`.
-- **Field use of the new supplies** in `item_use_field`: IK_HEAL_CURE,
-  IK_TEA_ALL, IK_REVIVE.
-- **SELECT register**: `registered_item()` / `registered_item_use()` in
-  party.c, hooked into `field_update` (one line in script.c). With nothing
-  registered SELECT still opens the Lorebook.
+### Earlier groundwork
 
-`make`, `make test` are green with all of the above.
+- Key-item icons, rarity gems (`gem_obj_gfx`, OBJ tiles 120-124, bank 7)
+  and crest art (`crest_gfx`) in `tools/gen_ui_gfx.py`.
+- `opt.registered` / `opt.shelf_box`.
+- Shelf boxes in party.c (`storage_*`), field use of the new brews and
+  the SELECT register.
 
-## In progress
+### START menu (menu.c)
 
-Nothing half-written is committed: every change above compiles and the
-existing tests pass. The screens that use the new plumbing are not built yet.
+- Entries: ALMANAC, LOREBOOK, KIN, BAG, SHELF, MAP, FIELD, QUESTS, CARD,
+  OPTIONS, SAVE, EXIT.
+  - MAP needs the TOWN MAP.
+  - KIN and FIELD need a kin.
+  - SHELF needs the TWIN CRYSTAL.
+- The list shows 8 rows and scrolls, with arrows.
+- A clock window uses `time_text()`.
+- MAP, FIELD and QUESTS call `worldmap_open(0)`, `travel_field_menu_open()`
+  and `quest_log_open()`. When a module answers with a message instead of
+  opening a screen, the message runs over the field and the menu comes
+  back (`start_menu_after_module`).
+- The WARDEN CARD is a bigger window with the six crest medallions (it
+  loads bank 9 itself, since the card sits over the field).
 
-## Not started
+### CREST CASE
 
-- START menu: MAP / FIELD / QUESTS entries, DAY n HH:MM clock (from
-  `gtime.day/minute`), scrolling, running a module's dialog in the menu.
-- Bag: pocket tabs (the 7 pocket dots currently overflow the left panel),
-  SORT, REGISTER action, per-pocket cursor memory, routing key/farm/lure
-  items to direct use and food to the kin picker. **Bug to fix first:**
-  `draw_item_icon` (gfx.c) indexes `item_icon_gfx/pal` by item id instead of
-  `ITEMS[item].icon` and reads out of bounds for items >= 26.
-- Lantern Shelf screen (TEAM page + 8 box pages, icons for visible rows in
-  OBJ banks 1-6, gems in bank 7, WITHDRAW/DEPOSIT/MOVE/RELEASE with double
-  confirm, SUMMARY of stored kin, SORT/BOXES BY TYPE/FIND BY TYPE menus).
-- Almanac filters (all/seen/owned, type, rarity, region by map id range),
-  gems in the list, fusion signature "Woven from X + Y energy", habitats with
-  day/night marks and legend lairs, SEEN/OWNED header.
-- Quest log screen (quest.c, via `ext_open`; test with an injected table
-  since no region defines quests yet).
-- Summary: rarity + field abilities line, stored-kin source, B back to the
-  Shelf (B currently does nothing unless opened from the team).
-- Options screen rows MUSIC, MUSIC VOLUME, HUD CLOCK, BOUT SPEED, BIKE AUTO
-  with scrolling and two-line help.
-- Lorebook chapter scrolling (14 chapters overflow the list), visible unread
-  markers (the small font has no N/E/W, so "NEW" is invisible today), `lb.ids`
-  sized to LORE_COUNT (it is capped at 40 per chapter now).
-- Crest case screen, crests on the WARDEN CARD, `tools/tests/test_ui.c`.
+`crest_case_open()` (ext screen): the six crests, and for each one what it
+gives and which Hall awards it. `modules.c` routes KEY_CREST_CASE to it.
+It goes back to the bag, the START menu or the field.
 
-## APIs other owners should call
+### Options
 
-- `storage_add(&mon)` / `storage_add_box(&mon, box)` / `storage_take(i)` /
-  `storage_get(i)`: always go through these so box counts stay right; call
-  `storage_boxes_sync()` if you ever edit `storage[]` directly.
-- `registered_item_use()`: SELECT in the field (already wired).
-- `quest_get/quest_set/quest_done` (quest.c, unchanged); `quest_log_open()`
-  is still the stub.
-- `shop_open_stock(items, count)`, `pc_open(deposit)`, `ext_open(...)`
-  unchanged.
+- A table (`OPT_ROWS_DEF`) that scrolls, with two lines of help per row.
+- Rows: TEXT SPEED, BOUT ANIMATIONS, SOUND, BOUT SPEED, KIN FOLLOWS, HUD
+  CLOCK, BIKE AUTO, AUTOSAVE.
+- **The music session adds MUSIC / MUSIC VOLUME as two table rows after
+  SOUND.** They are not added here.
 
-## Notes
+### Bag
 
-- Edit outside my files: `src/game/script.c` `field_update`, one line before
-  the Lorebook shortcut:
-  `if (key_hit(KEY_SELECT) && !player.moving && registered_item_use()) return;`
-- `src/gfx_battle.h` is generated: whoever merges icon modules should rerun
-  `python3 tools/gen_battle_gfx.py` after merging (icon names are ICON_BIKE,
-  ICON_WATERING_CAN, ... and must stay unique across tools/icons/*).
-- Palette plan for the screens still to build: gems are OBJ sprites (tiles
-  at 120-124, OBJ bank 7) so they never fight BG palettes; kin icons reuse
-  OT_ICON(i) / OBJ banks 1-6 like the team screen; bank 9 (menu backdrop)
-  must be loaded (any `screen_begin` does it) before drawing METAL/HOLLOW
-  badges or the ANVIL crest.
-- The music engine reads `opt.music_vol` as 0 full, 1 low, 2 mid.
+- Seven pockets, with a tab strip (LEFT/RIGHT or L/R).
+- The cursor and scroll are remembered per pocket.
+- SELECT changes the order: AS FOUND, A TO Z, MOST FIRST.
+- Key items get REGISTER / UNREGISTER, and the registered one is marked
+  SEL in the list.
+- Routing:
+  - Supplies, shards and food open the team picker.
+  - Key items, seeds, fertiliser, lures, waystones and the HUSH BELL are
+    used directly. After a successful direct use (not the bell), the bag
+    goes back to the field.
+  - Materials explain themselves.
+  - In a bout, unusable items are greyed out and refused.
+- `item_battle_usable()` calls `battle_item_kind_usable()`, so
+  IK_HEAL_CURE, IK_TEA_ALL and IK_REVIVE now work in bouts.
+- **Fixed:** `draw_item_icon` now uses `ITEMS[item].icon` (via
+  `item_icon_index`), so it no longer reads out of bounds.
+
+### LANTERN SHELF (`pc_*` in menu.c, still MODE_PC)
+
+- Page 0 is the TEAM; pages 1-8 are the boxes. Use LEFT/RIGHT or L/R.
+- Each row shows a 32x32 icon (OBJ banks 1-5), the name, a rarity gem and
+  the level. The left panel shows the portrait, the types and HP.
+- A opens a menu:
+  - on a box kin: SUMMARY / WITHDRAW / MOVE / RELEASE (asked twice);
+  - on a team kin: SUMMARY / DEPOSIT (goes to the box last viewed).
+- MOVE carries the kin, with a floating icon. There is a "PUT AT THE END"
+  row, and a full box refuses the kin.
+- START opens the tools:
+  - SORT THIS BOX / SORT ALL BOXES (NUMBER, LEVEL, TYPE, RARITY, NEWEST);
+  - BOXES BY TYPE;
+  - FIND BY TYPE: while a search is on, matches show in green and SELECT
+    jumps to the next one. B ends the search.
+- Every `storage_*` helper is now used.
+
+### Summary
+
+- It can show a stored kin (`summary_open_shelf`). UP/DOWN walk through
+  the box, and B goes back to the Shelf on that kin.
+- The INFO page has a rarity gem and name, and a FIELD line (field
+  abilities). The STATUS row was dropped: the left panel already shows it.
+- It says "Grows with a strong bond" for EVO_BOND.
+
+### Almanac (dex.c)
+
+- START/SELECT opens a FILTER panel:
+  - SHOW: ALL / MET / FRIENDS;
+  - TYPE: any of the 18;
+  - RARITY;
+  - PLACE: 7 regions, taken from wild zones (land and water) and
+    OBJ_LEGEND lairs by map id range, and inherited along growth chains.
+- The list shows the filtered count and gems for kin you have met.
+- The detail page shows:
+  - a gem by the name and a RARITY line;
+  - for fusion kin: "Woven from the energy" + "X + Y" once met;
+  - in the habitats: DAY/NIGHT marks, legend LAIRs and "The FUSION LOOM".
+
+### Quest log (quest.c)
+
+- An ext screen with open quests first and DONE ones greyed. A shows the
+  goal on the scrolling panel.
+- Its table is read through `quest_defs` / `quest_def_count`, so tests can
+  inject quests. No region defines a quest yet.
+
+### Lorebook
+
+- The chapter list scrolls (8 rows).
+- NEW now shows, in red with the big font.
+- `lb.ids` is sized LORE_COUNT.
+
+### Kin viewer (debug.c)
+
+The help text was shortened, and the badges moved to rows 15-16 on the
+right, so they no longer overlap.
+
+## Left
+
+- **`time_text()` is a placeholder in time.c.** The farm owner's version
+  replaces it. Keep the signature `time_text(char *buf)`.
+- **Town map / FLY picker:** traversal owns `worldmap_open`. The START menu
+  just calls it.
+- **No quests exist yet.** Regions add them in `world/<region>/quests.inc`.
+- **A HUD clock drawn in the field** (farm owner). The option exists.
+- **Bike auto and bout speed** only store the option. Traversal and bouts
+  read `opt.bike_auto` and `opt.battle_speed`.
+- **Shelf icons:** 32x32 kin icons in 24 px rows overlap a little for tall
+  art.
+- **Crests on the Hall Master banner, and a crest-award animation**
+  (traversal / bouts).
+
+## APIs
+
+- `crest_case_open()`
+- `quest_log_open()`
+- `summary_open_shelf(i)`
+- `gems_load()` / `gem_push(x, y, rarity)`
+- `item_icon_index(item)`
+- `storage_*` (as before)
+
+## Edits outside my files
+
+- `src/game/time.c`: added a placeholder `time_text()`. **It conflicts with
+  the farm owner's version: keep theirs.**
+- `src/game/modules.c`: one line,
+  `case KEY_CREST_CASE: crest_case_open(); return 1;`.
+- `tools/test_field.c`: the Shelf block uses pages and the DEPOSIT /
+  WITHDRAW menu, instead of `pc.deposit` and SELECT.
+- `src/game/script.c` (earlier): the SELECT register line in
+  `field_update`.

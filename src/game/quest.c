@@ -27,8 +27,174 @@ MAYBE_UNUSED static int quest_get(int q) { return q > 0 && q < QUEST_COUNT ? que
 MAYBE_UNUSED static void quest_set(int q, int stage) { if (q > 0 && q < QUEST_COUNT) quest.stage[q] = (u8)stage; }
 MAYBE_UNUSED static int quest_done(int q) { return quest_get(q) == 255; }
 
-/* The quest log screen (UI owner). */
-MAYBE_UNUSED static void quest_log_open(void)
+/* ================================================================ */
+/*  The quest log                                                   */
+/* ================================================================ */
+
+/*
+ * Quests you have started, the ones still open first; A shows what to do
+ * next (the QuestDef goal) on the Almanac's scrolling panel. The table is
+ * read through a pointer so the tests can inject quests before any region
+ * defines one.
+ */
+
+static const QuestDef *quest_defs = QUESTS;
+static int quest_def_count = QUEST_COUNT;
+
+#define QLOG_ROWS 7
+
+static struct {
+    int state;               /* 0 list, 1 details */
+    int cursor, scroll;
+    int ids[QUEST_MAX], count, open;
+    int back_mode;           /* MODE_START_MENU or MODE_FIELD */
+} qlog;
+
+static int quest_stage_of(int q)
 {
-    dlg_say("QUEST LOG: nothing yet.");
+    return q > 0 && q < quest_def_count && q < QUEST_MAX ? quest.stage[q] : 0;
+}
+
+static void qlog_collect(void)
+{
+    qlog.count = qlog.open = 0;
+    for (int pass = 0; pass < 2; pass++)
+        for (int q = 1; q < quest_def_count && q < QUEST_MAX; q++) {
+            int st = quest_stage_of(q);
+            if (!st || (st == 255) != pass) continue;
+            qlog.ids[qlog.count++] = q;
+            if (!pass) qlog.open++;
+        }
+    if (qlog.cursor >= qlog.count) qlog.cursor = qlog.count ? qlog.count - 1 : 0;
+    if (qlog.cursor < qlog.scroll) qlog.scroll = qlog.cursor;
+    if (qlog.cursor >= qlog.scroll + QLOG_ROWS) qlog.scroll = qlog.cursor - QLOG_ROWS + 1;
+}
+
+static void qlog_header(void)
+{
+    char buf[32];
+    canvas_window(0, 0, CANVAS_COLS, 3, WIN_STD);
+    text_draw_col(16, 8, "QUEST LOG", INK_BLUE, INK_BLUE_SH);
+    buf[0] = 0;
+    str_put_int(buf, qlog.open);
+    str_put(buf, " OPEN  ");
+    str_put_int(buf, qlog.count - qlog.open);
+    str_put(buf, " DONE");
+    text_draw_right(228, 8, buf);
+}
+
+static void qlog_list_redraw(void)
+{
+    screen_begin(1);
+    qlog_collect();
+    qlog_header();
+    canvas_window(0, 3, CANVAS_COLS, 17, WIN_STD);
+    if (!qlog.count) {
+        text_draw(24, 36, "No quests yet.");
+        text_draw_col(24, 60, "People around the Vale may\nask for your help.", INK_SHADOW, INK_SHADOW);
+        return;
+    }
+    for (int r = 0; r < QLOG_ROWS && qlog.scroll + r < qlog.count; r++) {
+        int k = qlog.scroll + r, q = qlog.ids[k];
+        int y = 30 + r * 16;
+        if (k == qlog.cursor) {
+            canvas_fill(14, y - 2, 212, 14, 7);
+            text_draw(15, y - 2, "{");
+        }
+        if (quest_stage_of(q) == 255) {
+            text_draw_col(26, y - 2, quest_defs[q].name, INK_SHADOW, INK_SHADOW);
+            text_draw_col(188, y - 2, "DONE", INK_GREEN, INK_GREEN_SH);
+        } else {
+            text_draw(26, y - 2, quest_defs[q].name);
+            text_draw_col(188, y - 2, "OPEN", INK_RED, INK_RED_SH);
+        }
+    }
+    if (qlog.scroll > 0) text_draw_col(214, 22, "^", INK_BLUE, INK_BLUE_SH);
+    if (qlog.scroll + QLOG_ROWS < qlog.count) text_draw_col(214, 144, "}", INK_BLUE, INK_BLUE_SH);
+}
+
+static void qlog_detail_redraw(void)
+{
+    int q = qlog.ids[qlog.cursor];
+    screen_begin(1);
+    qlog_header();
+    canvas_window(0, 3, CANVAS_COLS, 17, WIN_STD);
+    panel_wide(1);
+    dex.content_lines = 0;
+    pl_add(PL_HEADER, quest_defs[q].name);
+    pl_add(quest_stage_of(q) == 255 ? PL_GOOD : PL_BAD, quest_stage_of(q) == 255 ? "DONE" : "IN PROGRESS");
+    pl_add(PL_BLANK, 0);
+    pl_add_wrapped(quest_defs[q].goal, PL_TEXT);
+    dex.scroll_px = dex.target_px = 0;
+    panel_setup_map();
+    panel_draw_scrollbar();
+    panel_enable(1);
+}
+
+static void qlog_present(void)
+{
+    if (qlog.state == 1) panel_present();
+}
+
+static void qlog_close(void)
+{
+    sfx_play(SFX_CANCEL);
+    panel_enable(0);
+    panel_wide(0);
+    canvas_clear();
+    if (qlog.back_mode == MODE_START_MENU) {
+        start_menu_open();
+        return;
+    }
+    field_setup_bg();
+    game_mode = MODE_FIELD;
+}
+
+static void qlog_update(void)
+{
+    if (qlog.state == 1) {
+        int max = panel_max_scroll();
+        if (key_down(KEY_DOWN)) dex.target_px = clampi(dex.target_px + 3, 0, max);
+        if (key_down(KEY_UP)) dex.target_px = clampi(dex.target_px - 3, 0, max);
+        if (dex.scroll_px != dex.target_px) {
+            int d = dex.target_px - dex.scroll_px;
+            dex.scroll_px += d > 0 ? (d > 3 ? 3 : d) : (d < -3 ? -3 : d);
+            panel_draw_scrollbar();
+        }
+        if (key_hit(KEY_B) || key_hit(KEY_A)) {
+            sfx_play(SFX_CANCEL);
+            panel_enable(0);
+            panel_wide(0);
+            qlog.state = 0;
+            qlog_list_redraw();
+        }
+        return;
+    }
+    int old = qlog.cursor;
+    if (qlog.count) {
+        if (key_rep(KEY_UP)) qlog.cursor = (qlog.cursor + qlog.count - 1) % qlog.count;
+        if (key_rep(KEY_DOWN)) qlog.cursor = (qlog.cursor + 1) % qlog.count;
+    }
+    if (old != qlog.cursor) {
+        sfx_play(SFX_CURSOR);
+        qlog_list_redraw();
+    }
+    if (key_hit(KEY_B) || key_hit(KEY_START)) {
+        qlog_close();
+    } else if (key_hit(KEY_A) && qlog.count) {
+        sfx_play(SFX_CONFIRM);
+        qlog.state = 1;
+        qlog_detail_redraw();
+    }
+}
+
+/* The quest log screen (START > QUESTS). */
+static void quest_log_open(void)
+{
+    qlog.back_mode = game_mode == MODE_START_MENU ? MODE_START_MENU : MODE_FIELD;
+    qlog.state = 0;
+    qlog.cursor = qlog.scroll = 0;
+    dialog_clear();
+    qlog_list_redraw();
+    ext_open(qlog_update, 0, qlog_present);
 }

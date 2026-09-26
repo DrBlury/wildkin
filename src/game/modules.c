@@ -32,6 +32,7 @@ static int key_item_use(int key)
     case KEY_WATERING_CAN: case KEY_HOE: case KEY_FARM_DEED: return farm_key_use(key);
     case KEY_RECIPE_BOOK: return craft_key_use(key);
     case KEY_ENERGY_FLASK: return fusion_key_use(key);
+    case KEY_CREST_CASE: crest_case_open(); return 1;   /* menu.c */
     default: return travel_key_use(key);
     }
 }

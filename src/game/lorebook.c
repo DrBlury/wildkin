@@ -94,13 +94,15 @@ static int lore_reveal(int src, const char *idle)
 static struct {
     int state;          /* 0 chapters, 1 entries, 2 reader */
     int chapter, cursor, scroll;
-    int ids[40];
+    int ch_scroll;      /* first chapter shown (the chapter list scrolls) */
+    u16 ids[LORE_COUNT];
     int count;
     int entry;
     int from_field;     /* opened with SELECT: B goes straight back to the field */
 } lb;
 
 #define LB_ROWS 7
+#define LB_CH_ROWS 8    /* chapters shown at once */
 
 static void start_menu_open(void);
 
@@ -142,8 +144,11 @@ static void lb_chapters_redraw(void)
     screen_begin(1);
     lb_header("LOREBOOK");
     canvas_window(0, 3, CANVAS_COLS, 17, WIN_STD);
-    for (int c = 0; c < LORE_CHAPTER_COUNT; c++) {
-        int y = 30 + c * 14, total;
+    if (lb.chapter < lb.ch_scroll) lb.ch_scroll = lb.chapter;
+    if (lb.chapter >= lb.ch_scroll + LB_CH_ROWS) lb.ch_scroll = lb.chapter - LB_CH_ROWS + 1;
+    for (int r = 0; r < LB_CH_ROWS && lb.ch_scroll + r < LORE_CHAPTER_COUNT; r++) {
+        int c = lb.ch_scroll + r;
+        int y = 32 + r * 14, total;
         int known = lore_chapter_known(c, &total);
         if (c == lb.chapter) {
             canvas_fill(14, y - 2, 212, 14, 7);
@@ -151,19 +156,21 @@ static void lb_chapters_redraw(void)
         }
         if (known) text_draw(26, y - 2, LORE_CHAPTER_NAMES[c]);
         else text_draw_col(26, y - 2, LORE_CHAPTER_NAMES[c], INK_SHADOW, INK_SHADOW);
-        if (lore_chapter_unread(c)) small_text_draw(140, y + 1, "NEW");
+        if (lore_chapter_unread(c)) text_draw_col(150, y - 2, "NEW", INK_RED, INK_RED_SH);
         buf[0] = 0;
         str_put_int(buf, known);
         str_put(buf, "/");
         str_put_int(buf, total);
-        text_draw_right(224, y - 2, buf);
+        text_draw_right(212, y - 2, buf);
     }
+    if (lb.ch_scroll > 0) text_draw_col(216, 22, "^", INK_RED, INK_RED_SH);
+    if (lb.ch_scroll + LB_CH_ROWS < LORE_CHAPTER_COUNT) text_draw_col(216, 144, "}", INK_RED, INK_RED_SH);
 }
 
 static void lb_collect(void)
 {
     lb.count = 0;
-    for (int i = 0; i < LORE_COUNT && lb.count < 40; i++)
+    for (int i = 0; i < LORE_COUNT; i++)
         if (LORE[i].chapter == lb.chapter) lb.ids[lb.count++] = i;
 }
 
@@ -181,7 +188,7 @@ static void lb_entries_redraw(void)
         }
         if (lore_is_known(id)) {
             text_draw(26, y - 2, LORE[id].title);
-            if (lore_is_unread(id)) small_text_draw(196, y + 1, "NEW");
+            if (lore_is_unread(id)) text_draw_col(182, y - 2, "NEW", INK_RED, INK_RED_SH);
         } else {
             text_draw_col(26, y - 2, "- - - - -", INK_SHADOW, INK_SHADOW);
         }

@@ -148,10 +148,12 @@ static void dbg_kin_redraw(void)
     canvas_fill(80, 24, 80, 88, 6);
     canvas_fill(160, 24, 80, 88, 4);
     canvas_window(0, 14, CANVAS_COLS, 6, WIN_STD);
-    text_draw(12, 118, "LEFT/RIGHT: kin   A: lustrous");
-    text_draw(12, 134, "L/R: 10 at a time   B: back");
-    draw_type_badge(20, 17, SPECIES[dbg.sp].type1);
-    if (SPECIES[dbg.sp].type2 != TYPE_NONE) draw_type_badge(25, 17, SPECIES[dbg.sp].type2);
+    /* help on the left, the type badges on their own on the right */
+    text_draw(12, 118, "LEFT/RIGHT: kin");
+    text_draw(12, 134, "L/R: 10   A: lustrous");
+    draw_type_badge(19, 15, SPECIES[dbg.sp].type1);
+    if (SPECIES[dbg.sp].type2 != TYPE_NONE) draw_type_badge(24, 15, SPECIES[dbg.sp].type2);
+    text_draw_col(160, 136, "B: back", INK_SHADOW, INK_SHADOW);
     load_monster_gfx_ex(0, dbg.sp, 0, dbg.lustrous);
     load_monster_gfx_ex(1, dbg.sp, 1, dbg.lustrous);
     load_monster_icon_ex(0, dbg.sp, dbg.lustrous);
