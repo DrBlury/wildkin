@@ -9,5 +9,6 @@
 #include "craft/npcs.inc"
 #include "fusion/npcs.inc"
 #include "travel/npcs.inc"
+#include "elev/npcs.inc"
 #include "ui/npcs.inc"
 #include "debug/npcs.inc"

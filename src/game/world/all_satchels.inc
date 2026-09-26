@@ -9,5 +9,6 @@
 #include "craft/satchels.inc"
 #include "fusion/satchels.inc"
 #include "travel/satchels.inc"
+#include "elev/satchels.inc"
 #include "ui/satchels.inc"
 #include "debug/satchels.inc"

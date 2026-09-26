@@ -1,5 +1,5 @@
 /* world/east/signs.inc -- Signs: { MAP_X, x, y, "text" },. Owner: W-EAST. */
-    { MAP_TOWN, 23, 25, "LAND OFFICE\fDeeds, surveys and plots for sale. REEVE, land agent." },
+    { MAP_TOWN, 25, 25, "LAND OFFICE\fDeeds, surveys and plots for sale. REEVE, land agent." },
     { MAP_COPPERLINE, 3, 16, "COPPERLINE ROAD\fWEST: BRAMBLEWOOD. EAST: LUMEN CITY." },
     { MAP_COPPERLINE, 23, 33, "SOUTH: ASHEN FIELDS\fThe grass turns grey past here. Carry a lantern." },
     { MAP_COPPERLINE, 40, 19, "EAST: LUMEN CITY\fThe lamp-lit city. Home of the VOLT HALL." },

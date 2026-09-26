@@ -9,5 +9,6 @@
 #include "craft/quests.inc"
 #include "fusion/quests.inc"
 #include "travel/quests.inc"
+#include "elev/quests.inc"
 #include "ui/quests.inc"
 #include "debug/quests.inc"

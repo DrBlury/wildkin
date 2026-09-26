@@ -462,12 +462,12 @@ static void test_people(void)
     CHECK(told == total, "people keep telling new lore until they run out");
 
     /* satchels are picked up once */
-    field_enter_map(MAP_TOWN, 36, 3, DIR_RIGHT);
+    field_enter_map(MAP_TOWN, 37, 6, DIR_UP);
     int t = bag[ITEM_TONIC];
     tap(KEY_A);
     run_dialog(400);
     CHECK(bag[ITEM_TONIC] == t + 2 && item_taken(0), "a satchel gives its item");
-    CHECK(cell_walkable(37, 3), "an opened satchel no longer blocks the way");
+    CHECK(cell_walkable(37, 5), "an opened satchel no longer blocks the way");
 
     /* the tender across the counter */
     party[0].hp = 1;

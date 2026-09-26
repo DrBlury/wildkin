@@ -229,17 +229,21 @@ static int grass_push_sprites(FieldSprite *list, int n, int max)
         if (s->kind != 0 && s->kind != 1) continue;
         int fx = floor_div16(s->x + 8), fy = floor_div16(s->y + 12);
         if (fx < 0 || fy < 0 || fx >= map_w || fy >= map_h) continue;
-        if ((cell_attr(fx, fy) & A_WATER) || grass_cell_kind(fx, fy) >= 0) continue;
+        /* on a bridge deck (elev.c) the shadow falls on the deck, above its layer */
+        int deck = s->prio == 1 && ec_walkable(EV_COVER(elev_at(fx, fy)));
+        if (!deck && ((cell_attr(fx, fy) & A_WATER) || grass_cell_kind(fx, fy) >= 0)) continue;
         int ph = (s->x + s->y) & 1;
         if (s->kind == 0)
-            list[n++] = (FieldSprite){ s->y - 1, s->x, 4, OT_SHADOW(ph), OBANK_PLAYER, 0, 1, SQ16 };
+            list[n++] = (FieldSprite){ s->y - 1, s->x, 4, OT_SHADOW(ph), OBANK_PLAYER, 0, 1, SQ16, s->prio };
         else
-            list[n++] = (FieldSprite){ s->y - 1, s->x - 8, 4, OT_SHADOW_KIN(ph), OBANK_PLAYER, 0, 1, WIDE32x16 };
+            list[n++] = (FieldSprite){ s->y - 1, s->x - 8, 4, OT_SHADOW_KIN(ph), OBANK_PLAYER, 0, 1, WIDE32x16,
+                                       s->prio };
     }
     if (!grass.set) return n;
     for (int i = 0; i < GRASS_RUSTLE_MAX; i++)
         if (rustle[i].active && ++rustle[i].t >= GRASS_RUSTLE_TIME) rustle[i].active = 0;
     s16 cx[GRASS_OVER_MAX], cy[GRASS_OVER_MAX];
+    u8 cp[GRASS_OVER_MAX];
     int nc = 0;
     for (int i = 0; i < n; i++) {
         const FieldSprite *s = &list[i];
@@ -251,12 +255,17 @@ static int grass_push_sprites(FieldSprite *list, int n, int max)
         for (int y = ytop; y <= ybot; y++)
             for (int x = floor_div16(x0); x <= floor_div16(x1); x++) {
                 if (grass_cell_kind(x, y) < 0) continue;
-                int dup = 0;
+                /* up on a deck over the grass (elev.c): no blades over them */
+                if (s->prio == 1 && ec_walkable(EV_COVER(elev_at(x, y)))) continue;
+                int dup = -1;
                 for (int k = 0; k < nc; k++)
-                    if (cx[k] == x && cy[k] == y) dup = 1;
-                if (!dup && nc < GRASS_OVER_MAX) {
+                    if (cx[k] == x && cy[k] == y) dup = k;
+                if (dup >= 0) {
+                    if (s->prio == 1) cp[dup] = 1;
+                } else if (nc < GRASS_OVER_MAX) {
                     cx[nc] = (s16)x;
                     cy[nc] = (s16)y;
+                    cp[nc] = s->prio == 1;
                     nc++;
                 }
             }
@@ -268,7 +277,7 @@ static int grass_push_sprites(FieldSprite *list, int n, int max)
         int bank = grass.obank[grass_def(kind)->bank];
         if (!bank) continue;
         /* sorted just in front of anyone standing in the cell */
-        list[n++] = (FieldSprite){ cy[k] * 16 + 1, cx[k] * 16, 4, tile, bank, 0, -1, SQ16 };
+        list[n++] = (FieldSprite){ cy[k] * 16 + 1, cx[k] * 16, 4, tile, bank, 0, -1, SQ16, cp[k] ? 1 : 0 };
     }
     for (int i = 0; i < GRASS_RUSTLE_MAX && n + 3 <= max; i++) {
         if (!rustle[i].active) continue;

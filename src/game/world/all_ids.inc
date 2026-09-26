@@ -9,5 +9,6 @@
 #include "craft/ids.inc"
 #include "fusion/ids.inc"
 #include "travel/ids.inc"
+#include "elev/ids.inc"
 #include "ui/ids.inc"
 #include "debug/ids.inc"

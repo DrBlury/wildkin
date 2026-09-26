@@ -122,8 +122,8 @@ mGBA lets you change any of these under *Settings → Controllers*.
 4. Leave the village north, east or west. Wild kin roam the tall grass:
    brimming ones run at you and want a bout. Calm, tired kin can be
    befriended with a **lantern**.
-5. When you feel ready, take on **Warden Marlo** at the Bout Ring in the
-   middle of the village.
+5. When you feel ready, take on **Warden Marlo** down in the sunken Bout
+   Ring, across the Maple Run bridge.
 6. After the storm, the Vale opens up: the road east to **Lumen City**, the
    coast in the west, the frozen north beyond the Rise, and **Willow Acre**,
    the farm south of the village.
@@ -174,7 +174,7 @@ RIME crest.
 
 | Area | What you find there |
 | --- | --- |
-| **Maple Village** | Home, the Old Hearth plaza, the market, the Almanac House, the Hearth Hall, the shop, the Bout Ring and the Garden House |
+| **Maple Village** | Home, the raised Old Hearth plaza, the market, the Almanac House on its knoll, the Hearth Hall, the shop, the sunken Bout Ring, the Garden House and the Maple Run bridge |
 | **Whisper Meadow** (north) | Open grass, flower beds, ledges to hop down, the kite flyer and a shepherd with a PUFFLEECE. Wild kin Lv 2-9 |
 | **Bramblewood** (east) | Dense forest, a creek with bridges, mushrooms, a hermit's cabin. Wild kin Lv 4-11 |
 | **Mirror Lake** (west) | A shore with reeds, a dock and rowboat, and Dr. Vass's field station. Wild kin Lv 5-11 |
@@ -474,6 +474,10 @@ At Lumen's **Resonance Works**, Engineer Nell shows you four machines:
   and your lead kin follows you (and reacts when you talk to it).
 - **Wardens with sight lines**: step into a warden's view and they spot you,
   walk up and challenge you.
+- **Height**: terraces, cliffs and ledges, stairs, bridges you cross on top
+  and walk under the other way, tunnels and hidden passages
+  ([docs/ELEVATION.md](docs/ELEVATION.md)). Maple Village sits on two
+  terraces either side of a creek ravine.
 - **A storm you can end**: until DRAKORA is answered the Vale is dark, rain
   falls and lightning flashes. Afterwards the sky clears.
 - **78 maps across twelve tilesets** (village, wild, interior, city, coast,
