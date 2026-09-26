@@ -278,6 +278,7 @@ static const DecorPlace WOOD_DECOR[] = {
     DP(WOODPILE, 39, 9), DP(BARREL, 33, 6), DP(LANTERN_POST, 38, 9),
     /* forest floor */
     DP(LOG, 19, 9), DP(LOG, 34, 24), DP(STUMP, 25, 21), DP(STUMP, 5, 7),
+    DP(STUMP, 30, 34),   /* narrows the Elderwood gap: one STRENGTH boulder guards it */
     DP(MUSHROOMS, 11, 16), DP(MUSHROOMS, 20, 26), DP(MUSHROOMS, 38, 28), DP(MUSHROOMS, 4, 28),
     DP(MUSHROOMS, 27, 9), DP(BERRY_BUSH, 13, 22), DP(BERRY_BUSH, 40, 15), DP(BERRY_BUSH, 3, 27),
     DP(FALLEN_LEAVES, 12, 7), DP(FALLEN_LEAVES, 26, 23), DP(FALLEN_LEAVES, 34, 30),

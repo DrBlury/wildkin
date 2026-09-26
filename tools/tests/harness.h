@@ -78,7 +78,11 @@ static u8 seen_cells[MAP_MAX_W * MAP_MAX_H];
 
 /* Flood modes (OR them):
  *   FLOOD_SOLVED  every puzzle solved: gates and barriers open, boulders
- *                 pushed aside, teleport pads followed to their partner
+ *                 pushed aside, teleport pads followed to their partner.
+ *                 An optimistic shortcut for quick local checks only: it
+ *                 proves nothing about whether a puzzle can be solved.
+ *                 tools/tests/test_puzzles.c searches the real game state
+ *                 (pushes, slides, switches, pads) for that.
  *   FLOOD_SURF    surfable water (A_WATER without A_DEEP) is open */
 enum { FLOOD_WALK = 0, FLOOD_SOLVED = 1, FLOOD_SURF = 2 };
 

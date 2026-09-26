@@ -177,34 +177,40 @@ static const char *const ANVIL_HALL_ROWS[] = {
     "H+++++++++++++++H", /*  5 */
     "HHHHHHHH+HHHHHHHH", /*  6 */
     "Hhhhhhhh+hhhhhhhH", /*  7 */
-    "H+++++++++++++++H", /*  8 */
-    "H+++++++++++++++H", /*  9 */
-    "H+++++++v+++++++H", /* 10 */
-    "H+++++++++++++++H", /* 11 */
-    "H+++v+++++++v+++H", /* 12 */
+    "HH++++H+++H++++HH", /*  8 */
+    "HH+++++++++++++HH", /*  9 */
+    "HH++++H+v+H++++HH", /* 10 */
+    "HH++++H+++H++++HH", /* 11 */
+    "HHHHHHH+++HHHHHHH", /* 12 */
     "HHHHHHHH+HHHHHHHH", /* 13 */
     "Hhhhhhhh+hhhhhhhH", /* 14 */
-    "H+++++++++++++++H", /* 15 */
-    "H+++++++++++++++H", /* 16 */
-    "H+++++++++++++++H", /* 17 */
-    "H+++++++++++++++H", /* 18 */
-    "H+v+++++++++++v+H", /* 19 */
-    "H+++++++++++++++H", /* 20 */
+    "HHHHHHH+++HHHHHHH", /* 15 */
+    "HH++++H+++H++++HH", /* 16 */
+    "HH++++H+++H++++HH", /* 17 */
+    "HH+++++++++++++HH", /* 18 */
+    "HH++++H+v+H++++HH", /* 19 */
+    "HHHHHHH+++HHHHHHH", /* 20 */
     "H+++++++X+++++++H", /* 21 */
 };
 static const DecorPlace ANVIL_HALL_DECOR[] = {
     DP(HALL_BANNER, 4, 0), DP(HALL_BANNER, 12, 0), DP(BRAZIER, 1, 2), DP(BRAZIER, 15, 2),
-    DP(FORGE_ANVIL, 8, 9), DP(BRAZIER, 1, 12), DP(BRAZIER, 15, 12), DP(COAL_PILE, 15, 15),
-    DP(BRAZIER, 1, 15),
+    DP(FORGE_ANVIL, 8, 9), DP(COAL_PILE, 15, 21), DP(BRAZIER, 1, 21),
+    /* a brazier in each pen, two cells in from its door: a boulder can never
+     * be pushed out through the door (you would have to stand in the fire) */
+    DP(BRAZIER, 4, 9), DP(BRAZIER, 12, 9), DP(BRAZIER, 4, 18), DP(BRAZIER, 12, 18),
 };
 /* Pumice boulders (arg 1: light enough to push before you hold the ANVIL
  * CREST) onto plates; a gate opens once every plate of its group is
- * covered. Chamber 1: plates 4,16 / 12,16, boulders 5,18 / 11,18.
- * Chamber 2: plates 2,8 / 14,8, boulders 5,10 / 11,10. */
+ * covered. Each chamber has two walled pens, one boulder and one plate
+ * each, off a central aisle (x 7-9) that boulders can never reach, so a
+ * jammed boulder only ever costs a trip outside (which resets them), never
+ * a way out (tools/tests/test_puzzles.c proves it).
+ * Chamber 1: plates 4,16 / 12,16, boulders 3,18 / 13,18 (up twice, then in).
+ * Chamber 2: plates 2,8 / 14,8, boulders 3,10 / 13,10 (up twice, then out). */
 static const MapObj ANVIL_HALL_OBJS[] = {
-    OBJ(BOULDER, 5, 18, 1), OBJ(BOULDER, 11, 18, 1), OBJ(PLATE, 4, 16, 1), OBJ(PLATE, 12, 16, 1),
+    OBJ(BOULDER, 3, 18, 1), OBJ(BOULDER, 13, 18, 1), OBJ(PLATE, 4, 16, 1), OBJ(PLATE, 12, 16, 1),
     OBJ(GATE, 8, 14, 1),
-    OBJ(BOULDER, 5, 10, 1), OBJ(BOULDER, 11, 10, 1), OBJ(PLATE, 2, 8, 2), OBJ(PLATE, 14, 8, 2),
+    OBJ(BOULDER, 3, 10, 1), OBJ(BOULDER, 13, 10, 1), OBJ(PLATE, 2, 8, 2), OBJ(PLATE, 14, 8, 2),
     OBJ(GATE, 8, 7, 2),
 };
 

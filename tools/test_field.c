@@ -65,6 +65,21 @@ static void map_entry(int map, int *ex, int *ey)
             }
 }
 
+/* Boulders, plates, gates, switches, barriers, pads, ice or currents: the
+ * map's reachability is test_puzzles.c's job. */
+static int map_has_puzzle(int m)
+{
+    for (int i = 0; i < MAPS[m].obj_count; i++) {
+        int k = MAPS[m].objs[i].kind;
+        if (k == OBJ_BOULDER || k == OBJ_PLATE || k == OBJ_GATE || k == OBJ_SWITCH || k == OBJ_BARRIER || k == OBJ_PAD)
+            return 1;
+    }
+    for (int y = 0; y < map_h; y++)
+        for (int x = 0; x < map_w; x++)
+            if (cell_attr(x, y) & (A_ICE | A_CURRENT)) return 1;
+    return 0;
+}
+
 static void test_maps(void)
 {
     int rows_ok = 1, stamps_ok = 1, decor_ok = 1, budget_ok = 1;
@@ -156,10 +171,36 @@ static void test_maps(void)
         map_load(m);
         int ex, ey;
         map_entry(m, &ex, &ey);
-        /* puzzles solved (Halls behind gates, barriers and pads); water is
-         * open on maps with water kin (surf routes) */
-        flood_ex(ex, ey, FLOOD_SOLVED | (MAPS[m].water_zone ? FLOOD_SURF : 0));
-        for (int i = 0; i < NPC_COUNT; i++) {
+        /* the map as it is (gates shut, boulders in place); water is open on
+         * maps with water kin (surf routes). On puzzle maps people, satchels,
+         * doors and exits are proven by tools/tests/test_puzzles.c, which
+         * plays the real pushes, slides, switches and pads; a flood that
+         * assumed every gate open would prove nothing. */
+        int puzzle = map_has_puzzle(m);
+        int fmode = MAPS[m].water_zone ? FLOOD_SURF : FLOOD_WALK;
+        flood_ex(ex, ey, fmode);
+        if (puzzle) {
+            /* a boulder may cut one entrance off: union every way in */
+            static u8 all[MAP_MAX_W * MAP_MAX_H];
+            memcpy(all, seen_cells, sizeof(all));
+            for (int i = 0; i < WARP_COUNT; i++)
+                if (WARPS[i].dest == m) {
+                    flood_ex(WARPS[i].dx, WARPS[i].dy, fmode);
+                    for (int c = 0; c < map_w * map_h; c++) all[c] |= seen_cells[c];
+                }
+            for (int l = 0; l < 4; l++) {
+                if (MAPS[m].link[l] == MAP_NONE) continue;
+                for (int k = 0; k < (l < 2 ? map_w : map_h); k++) {
+                    int x = l < 2 ? k : (l == LINK_W ? 0 : map_w - 1);
+                    int y = l < 2 ? (l == LINK_N ? 0 : map_h - 1) : k;
+                    if (!cell_walkable(x, y) || all[y * map_w + x]) continue;
+                    flood_ex(x, y, fmode);
+                    for (int c = 0; c < map_w * map_h; c++) all[c] |= seen_cells[c];
+                }
+            }
+            memcpy(seen_cells, all, sizeof(all));
+        }
+        for (int i = 0; i < NPC_COUNT && !puzzle; i++) {
             if (NPCS[i].map != m) continue;
             int ok = reached_beside(NPCS[i].x, NPCS[i].y);
             for (int d = 0; d < 4 && !ok; d++) {
@@ -172,7 +213,7 @@ static void test_maps(void)
                        NPCS[i].x, NPCS[i].y);
             }
         }
-        for (int i = 0; i < ITEM_BALL_COUNT; i++)
+        for (int i = 0; i < ITEM_BALL_COUNT && !puzzle; i++)
             if (ITEM_BALLS[i].map == m && !reached_beside(ITEM_BALLS[i].x, ITEM_BALLS[i].y)) {
                 reach_ok = 0;
                 printf("  %s: satchel %d at %d,%d unreachable\n", MAPS[m].name, i, ITEM_BALLS[i].x, ITEM_BALLS[i].y);
@@ -183,12 +224,12 @@ static void test_maps(void)
                 reach_ok = 0;
                 printf("  %s: sign at %d,%d not solid/reachable\n", MAPS[m].name, SIGNS[i].x, SIGNS[i].y);
             }
-        for (int i = 0; i < WARP_COUNT; i++)
+        for (int i = 0; i < WARP_COUNT && !puzzle; i++)
             if (WARPS[i].map == m && !reached(WARPS[i].x, WARPS[i].y + 1)) {
                 reach_ok = 0;
                 printf("  %s: door at %d,%d unreachable\n", MAPS[m].name, WARPS[i].x, WARPS[i].y);
             }
-        for (int l = 0; l < 4; l++) {
+        for (int l = 0; l < 4 && !puzzle; l++) {
             if (MAPS[m].link[l] == MAP_NONE) continue;
             int found = 0;
             for (int k = 0; k < (l < 2 ? map_w : map_h); k++) {

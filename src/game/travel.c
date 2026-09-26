@@ -429,7 +429,7 @@ static int boulder_push(int i, int dir)
     if (!can_push(o) || o->ox || o->oy) return 0;
     int bx = o->x + DIR_DX[dir], by = o->y + DIR_DY[dir];
     if (!obj_in_map(bx, by)) return 0;
-    if (cell_attr(bx, by) & (A_SOLID | A_LEDGE | A_WATER | A_DOOR)) return 0;
+    if (cell_attr(bx, by) & (A_SOLID | A_LEDGE | A_WATER | A_DOOR | A_EXIT)) return 0;   /* never onto an exit mat */
     int j = obj_index_at(bx, by);
     if (j >= 0 && tobj[j].kind != OBJ_PLATE && !(tobj[j].kind == OBJ_GATE && tobj[j].state == 2)) return 0;
     if (npc_at(bx, by) >= 0 || npc_kin_at(bx, by) >= 0 || wild_at(bx, by) >= 0 || item_ball_at(bx, by) >= 0)

@@ -179,10 +179,13 @@ int main(void)
     CHECK(solved, "riding the currents from the door reaches MASTER MAREN");
     int nx, ny;
     CHECK(hall_step(7, 14, DIR_UP, &nx, &ny) && nx == 9 && ny == 15, "the middle channel loops back to the start");
-    int dais_direct = 0;
-    for (int x = 3; x <= 11; x++)
-        if (!(cell_attr(x, 4) & A_SOLID) && cur_dir(x, 4) != DIR_UP) dais_direct = 1;
+    int dais_direct = 0, way_back = 0;
+    for (int x = 3; x <= 11; x++) {
+        if (!(cell_attr(x, 4) & A_SOLID) && cur_dir(x, 4) != DIR_UP && cur_dir(x, 4) != DIR_DOWN) dais_direct = 1;
+        if (cur_dir(x, 4) == DIR_DOWN) way_back = 1;
+    }
     CHECK(!dais_direct, "the dais is only reached by the up-current");
+    CHECK(way_back, "a down-current carries you off the dais again (no soft-lock, test_puzzles)");
 
     /* objects */
     map_load(MAP_DROWNED_BELL);
