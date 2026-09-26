@@ -7,41 +7,103 @@
 /*  MAPLE VILLAGE                                                   */
 /* ================================================================ */
 
+/*
+ * Maple Village sits on two terraces (height 1) either side of the Maple
+ * Run, a creek in a ravine (height 0) with the lane beside it: the lane is
+ * the north-south road (edges x 19-20 to WHISPER MEADOW and WILLOW ACRE)
+ * and passes UNDER the Maple Run bridge (rows 17-18), which carries the
+ * east-west road (edges y 17-18 to MIRROR LAKE and BRAMBLEWOOD) OVER the
+ * ravine. Side stairs climb from the lane to the west terrace (19,9) and
+ * (19,23). Height 2: the wooded ridge along the north, the NW bluff, the
+ * Almanac knoll (stairs at 30,8) and the Hearth mound (the plaza, stairs
+ * at 16,10 and 16,16). The Bout Ring is a sunken pit (height 0, steps at
+ * 29,10). South of the terraces the dell with the lily pond (stairs 7,27
+ * and 15,28) and the south-east field (stairs 28,28, ledges 33-35,28);
+ * a hidden gap in the thicket (33-34,33) leads to a satchel.
+ * docs/ELEVATION.md explains the height layer below the rows.
+ */
 static const char *const TOWN_ROWS[] = {
-    "TTTTTTTTTTTTTTTTTTT==TTTTTTTTTTTTTTTTTTT", /*  0 */
-    "ttttttttttttttttttt==ttttttttttttttttttt", /*  1 */
-    "TT.................==......XXXXXXX....TT", /*  2 */
-    "tt..XXXXX..XXXXX...==.rrr..XXXXXXX....tt", /*  3 */
-    "TT..XXXXX..XXXXX...==.rrr..XXXXXXX....TT", /*  4 */
-    "tt..XXXXX..XXXXX...==.rrr..XXXXXXX....tt", /*  5 */
-    "TT..XXXXX..XXXXX...==......XXXXXXX....TT", /*  6 */
-    "tt....========.....==.........=.......tt", /*  7 */
-    "TT....===============.........=.......TT", /*  8 */
-    "tt....=............============....yy.tt", /*  9 */
-    "TT....=............============....yy.TT", /* 10 */
-    "tt....=......######==##..vccccccccv...tt", /* 11 */
-    "TTrr..=..yy..######==##..vccccccccv...TT", /* 12 */
-    "ttrr..=..yy..######==##..vccccccccv...tt", /* 13 */
-    "TT....=......######==##..vccccccccv...TT", /* 14 */
-    "tt....=......######==##..vccccccccv...tt", /* 15 */
-    "TT....=............==.................TT", /* 16 */
-    "========================================", /* 17 */
-    "========================================", /* 18 */
-    "tt.................==.................tt", /* 19 */
-    "TT.................==...yyyy..........TT", /* 20 */
-    "tt.................==...yyyy...XXXXX..tt", /* 21 */
-    "TT..XXXXX..XXXXX...==..........XXXXX..TT", /* 22 */
-    "tt..XXXXX..XXXXX...==..........XXXXX..tt", /* 23 */
-    "TT..XXXXX..XXXXX...==..........XXXXX..TT", /* 24 */
-    "tt..XXXXX..XXXXX...==............=....tt", /* 25 */
-    "TT..==============================....TT", /* 26 */
-    "tt.................==.................tt", /* 27 */
-    "TT..~~~~~...rrrrr..==..,,,,,,,,..yyyy.TT", /* 28 */
-    "tt.~~~~~~~..rrrrr..==..,,,,,,,,..yyyy.tt", /* 29 */
-    "TT.~~~~~~~..yyyyy..==..,,,,,,,,..rrrr.TT", /* 30 */
-    "tt..~~~~~...yyyyy..==..,,,,,,,,.......tt", /* 31 */
-    "TTTTTTTTTTTTTTTTTTT==TTTTTTTTTTTTTTTTTTT", /* 32 */
-    "ttttttttttttttttttt==ttttttttttttttttttt", /* 33 */
+    "TTTTTTTTTTTTTTTTTTT==~~TTTTTTTTTTTTTTTTT", /*  0 */
+    "ttttttttttttttttttt==~~ttttttttttttttttt", /*  1 */
+    "TTTT.....TT.....TTT==~~TT............TTT", /*  2 */
+    "tttt...............==~~..............ttt", /*  3 */
+    "TTTT...............==~~...............TT", /*  4 */
+    "tttt...............==~~...............tt", /*  5 */
+    "TTTT...............==~~...............TT", /*  6 */
+    "tttt..=......=.....==~~.......=.......tt", /*  7 */
+    "TTT...===========..==~~.......=.......TT", /*  8 */
+    "ttt.......=.....=..==~~.============..tt", /*  9 */
+    "..........=.....=..==~~.=....=........TT", /* 10 */
+    "TTrr......=..######==~~.=vccccccccv.yytt", /* 11 */
+    "ttrr......=..######==~~.=vccccccccv.yyTT", /* 12 */
+    "TTT.......=..######==~~.=vccccccccv...tt", /* 13 */
+    "tttyy.....=..######==~~.=vccccccccv...TT", /* 14 */
+    "TT.yy.....=..######==~~.=vccccccccv...tt", /* 15 */
+    "tt........=.....=..==~~.=.............TT", /* 16 */
+    "=====================~~=================", /* 17 */
+    "=====================~~=================", /* 18 */
+    "TT.yy.....=........==~~......=.rr.....TT", /* 19 */
+    "tt........=........==~~......=......yytt", /* 20 */
+    "TT........=........==~~......=......yyTT", /* 21 */
+    "tt........=........==~~......=........tt", /* 22 */
+    "TT........=.....rr===~~......=........TT", /* 23 */
+    "tt........=.....rr===~~......=........tt", /* 24 */
+    "TT........=.......===~~......=...=....TT", /* 25 */
+    "tt....===============~~...========....tt", /* 26 */
+    ".......=.......=...==~~.....==...=....TT", /* 27 */
+    "~~~....=.......=...==~~.....=...........", /* 28 */
+    "~~~~~..=.......=...==~~.....=.........TT", /* 29 */
+    "~~~~~~.==============~~..,,,=,,,.TTTTTtt", /* 30 */
+    "~~~~~~......yy.....==~~..,,,,,,,.tttttTT", /* 31 */
+    "~~~~~.....rryy.rr..==~~..,,,,,,,.TT...tt", /* 32 */
+    "~~~~.....TTT.......==~~TT.......=tt...TT", /* 33 */
+    "TTTTTTTTTTTTTTTTTTT==~~TTTTTTTTTTTTTTTTT", /* 34 */
+    "ttttttttttttttttttt==~~ttttttttttttttttt", /* 35 */
+};
+
+/* heights (0-3), stairs (^ v < >) and ledges (_): docs/ELEVATION.md */
+static const char *const TOWN_ELEV[] = {
+    "2222222222222222222000022222222222222222", /*  0 */
+    "2222222222222222222000022222222222222222", /*  1 */
+    "2222111112211111222000022222222222222222", /*  2 */
+    "2222111111111111111000011222222222222222", /*  3 */
+    "2222111111111111111000011222222222222111", /*  4 */
+    "2222111111111111111000011222222222222111", /*  5 */
+    "2222111111111111111000011222222222222111", /*  6 */
+    "2222111111111111111000011222222222222111", /*  7 */
+    "222111111111111111100001111111^111111111", /*  8 */
+    "2221111111111111111<00011111111111111111", /*  9 */
+    "1111111111111111v110000110000^0000011111", /* 10 */
+    "1111111111111222222000011000000000011111", /* 11 */
+    "1111111111111222222000011000000000011111", /* 12 */
+    "1111111111111222222000011000000000011111", /* 13 */
+    "1111111111111222222000011000000000011111", /* 14 */
+    "1111111111111222222000011000000000011111", /* 15 */
+    "1111111111111111^11000011111111111111111", /* 16 */
+    "1111111111111111111000011111111111111111", /* 17 */
+    "1111111111111111111000011111111111111111", /* 18 */
+    "1111111111111111111000011111111111111111", /* 19 */
+    "1111111111111111111000011111111111111111", /* 20 */
+    "1111111111111111111000011111111111111111", /* 21 */
+    "1111111111111111111000011111111111111111", /* 22 */
+    "1111111111111111111<00011111111111111111", /* 23 */
+    "1111111111111111111000011111111111111111", /* 24 */
+    "1111111111111111111000011111111111111111", /* 25 */
+    "1111111111111111111000011111111111111111", /* 26 */
+    "0000000^00111111111000011111111111111111", /* 27 */
+    "000000000000000^000000000000^0000___0000", /* 28 */
+    "0000000000000000000000000000000000000000", /* 29 */
+    "0000000000000000000000000000000000000000", /* 30 */
+    "0000000000000000000000000000000000000000", /* 31 */
+    "0000000000000000000000000000000000000000", /* 32 */
+    "0000000000000000000000000000000000000000", /* 33 */
+    "0000000000000000000000000000000000000000", /* 34 */
+    "0000000000000000000000000000000000000000", /* 35 */
+};
+
+static const ElevFeat TOWN_FEATS[] = {
+    EF(BRIDGE_H, 19, 17, 4, 2),  /* the Maple Run bridge: the road over, the lane under */
+    EF(HIDDEN, 33, 33, 2, 1),  /* a gap in the thicket to the SUNSEED */
 };
 
 static const char *const MEADOW_ROWS[] = {
@@ -195,43 +257,43 @@ static const char *const LAKE_ROWS[] = {
 static const Stamp TOWN_STAMPS[] = {
     STAMP(T, HOUSE_RED, 4, 3),    /* home */
     STAMP(T, HOUSE_BLUE, 11, 3),  /* bakery */
-    STAMP(T, LAB, 27, 2),         /* almanac house */
+    STAMP(T, LAB, 27, 2),         /* almanac house, up on the knoll */
     STAMP(T, HEAL, 4, 22),        /* hearth hall */
     STAMP(T, SHOP, 11, 22),       /* shop */
     STAMP(T, HOUSE_BLUE, 31, 21), /* garden house */
     STAMP(T, COURT_CIRCLE, 29, 12),
-    STAMP(T, HOUSE_RED, 22, 22),  /* LAND OFFICE (W-EAST: world/east/warps.inc) */
+    STAMP(T, HOUSE_RED, 24, 22),  /* LAND OFFICE (W-EAST: world/east/warps.inc) */
 };
 
 static const DecorPlace TOWN_DECOR[] = {
     /* the plaza and the Old Hearth */
     DP(OLD_HEARTH, 15, 12), DP(BENCH, 13, 15), DP(BENCH, 17, 11),
-    DP(STONE_LANTERN, 12, 11), DP(STONE_LANTERN, 22, 11),
+    DP(STONE_LANTERN, 12, 11), DP(STONE_LANTERN, 18, 15),
     /* market */
-    DP(MARKET_STALL, 8, 10), DP(BARREL, 11, 10), DP(CRATE, 11, 11), DP(SACKS, 7, 11),
-    DP(MARKET_STALL, 15, 20), DP(SACKS, 14, 21), DP(BARREL, 18, 21), DP(CRATE_STACK, 18, 19),
+    DP(MARKET_STALL, 6, 10), DP(BARREL, 9, 10), DP(CRATE, 9, 11), DP(SACKS, 5, 11),
     /* homes */
-    DP(MAILBOX, 4, 7), DP(FLOWER_POT, 3, 7), DP(FLOWER_POT, 16, 6), DP(PLANTER, 27, 7),
-    DP(PLANTER, 32, 7), DP(WELL, 2, 22), DP(FLOWER_POT, 10, 25), DP(FLOWER_POT, 3, 25),
+    DP(MAILBOX, 4, 7), DP(FLOWER_POT, 5, 7), DP(FLOWER_POT, 16, 6), DP(PLANTER, 26, 7),
+    DP(PLANTER, 33, 7), DP(WELL, 2, 22), DP(FLOWER_POT, 9, 25), DP(FLOWER_POT, 3, 25),
     /* signs */
-    DP(SIGNPOST, 16, 7), DP(SIGNPOST, 26, 7), DP(SIGNPOST, 21, 19), DP(SIGNPOST, 21, 2),
-    DP(SIGNPOST, 2, 16), DP(SIGNPOST, 37, 16), DP(SIGNPOST, 9, 27), DP(SIGNPOST, 16, 25),
-    DP(SIGNPOST, 24, 16),
+    DP(SIGNPOST, 16, 7), DP(SIGNPOST, 28, 7), DP(SIGNPOST, 17, 19), DP(SIGNPOST, 18, 4),
+    DP(SIGNPOST, 2, 16), DP(SIGNPOST, 37, 16), DP(SIGNPOST, 8, 26), DP(SIGNPOST, 16, 25),
+    DP(SIGNPOST, 23, 16),
     /* lights */
-    DP(LAMP, 10, 15), DP(LAMP, 23, 15), DP(LAMP, 17, 19), DP(LAMP, 29, 19),
-    DP(LANTERN_POST, 24, 11), DP(LANTERN_POST, 35, 11), DP(FLAG, 35, 13),
+    DP(LAMP, 9, 15), DP(LAMP, 23, 14), DP(LAMP, 15, 19), DP(LAMP, 30, 19),
+    DP(LANTERN_POST, 23, 11), DP(LANTERN_POST, 35, 11), DP(FLAG, 35, 13),
     /* the bout ring fence */
     DP(FENCE, 25, 16), DP(FENCE, 26, 16), DP(FENCE, 27, 16), DP(FENCE, 28, 16),
     DP(FENCE, 29, 16), DP(FENCE, 30, 16), DP(FENCE, 31, 16), DP(FENCE, 32, 16),
     DP(FENCE, 33, 16), DP(FENCE_END, 34, 16),
-    /* the farm corner */
-    DP(HAY_BALE, 37, 24), DP(HAY_BALE, 36, 23), DP(WATER_TROUGH, 35, 26), DP(WOODPILE, 29, 25),
+    /* the farm corner, down in the south-east field */
+    DP(HAY_BALE, 37, 24), DP(HAY_BALE, 36, 23), DP(WATER_TROUGH, 24, 29), DP(WOODPILE, 30, 29),
+    DP(HAY_BALE, 32, 29),
     /* green bits */
-    DP(BIG_TREE, 19, 28), DP(BUSH, 2, 9), DP(BUSH, 2, 19), DP(BUSH, 37, 21), DP(BUSH, 9, 20),
-    DP(BUSH, 17, 27), DP(BUSH, 36, 2), DP(BUSH, 2, 2), DP(BENCH, 4, 27),
-    DP(LILY_PADS, 5, 29), DP(LILY_PADS, 7, 30), DP(ROCK, 36, 27), DP(ROCK, 11, 27),
-    DP(SMALL_FLOWERS, 22, 7), DP(SMALL_FLOWERS, 34, 4), DP(SMALL_FLOWERS, 9, 16),
-    DP(PEBBLES, 28, 25), DP(SMALL_FLOWERS, 30, 20),
+    DP(BIG_TREE, 17, 31), DP(BUSH, 4, 10), DP(BUSH, 2, 20), DP(BUSH, 37, 23), DP(BUSH, 9, 20),
+    DP(BUSH, 17, 27), DP(BENCH, 5, 28),
+    DP(LILY_PADS, 2, 30), DP(LILY_PADS, 3, 32), DP(ROCK, 24, 32), DP(ROCK, 11, 27),
+    DP(SMALL_FLOWERS, 23, 6), DP(SMALL_FLOWERS, 34, 4), DP(SMALL_FLOWERS, 9, 16),
+    DP(PEBBLES, 28, 24), DP(SMALL_FLOWERS, 31, 20), DP(PEBBLES, 31, 33),
 };
 
 /* ================================================================ */

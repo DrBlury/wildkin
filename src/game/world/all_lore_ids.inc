@@ -9,5 +9,6 @@
 #include "craft/lore_ids.inc"
 #include "fusion/lore_ids.inc"
 #include "travel/lore_ids.inc"
+#include "elev/lore_ids.inc"
 #include "ui/lore_ids.inc"
 #include "debug/lore_ids.inc"

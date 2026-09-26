@@ -1,5 +1,5 @@
 /* world/east/warps.inc -- Doors / cave mouths: { MAP_FROM, x, y, MAP_TO, dx, dy },. Owner: W-EAST. */
-    { MAP_TOWN, 24, 25, MAP_LAND_OFFICE, 5, 8 },       /* Maple Village: the LAND OFFICE */
+    { MAP_TOWN, 26, 25, MAP_LAND_OFFICE, 5, 8 },       /* Maple Village: the LAND OFFICE */
     { MAP_LUMEN, 7, 8, MAP_VOLT_HALL, 7, 16 },
     { MAP_LUMEN, 7, 16, MAP_LUMEN_HEARTH, 5, 8 },
     { MAP_LUMEN, 20, 7, MAP_BIKE_SHOP, 5, 8 },

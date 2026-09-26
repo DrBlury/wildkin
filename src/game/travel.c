@@ -1703,7 +1703,10 @@ static int field_menu_build(void)
     int x, y;
     fm_n = 0;
     if (bag[ITEM_BIKE] > 0 && map_outdoor() && !travel.surfing) fm_add(FM_BIKE, travel.biking ? "WALK" : "BIKE");
-    if (!travel.surfing && travel_surf_cell(fx, fy) && travel_ability_kin(AB_SURF) >= 0) fm_add(FM_SURF, "SURF");
+    int nl;   /* not down a cliff or off a bridge (elev.c) */
+    if (!travel.surfing && travel_surf_cell(fx, fy) && travel_ability_kin(AB_SURF) >= 0 &&
+        elev_enter(player.x, player.y, player.level, player.facing, &nl) == ELEV_FLOOR)
+        fm_add(FM_SURF, "SURF");
     if (!tv.strength_on && map_has(OBJ_BOULDER) && travel_ability_kin(AB_STRENGTH) >= 0) fm_add(FM_STRENGTH, "STRENGTH");
     if (!tv.light_on && (m->flags & MF_DARK) && travel_ability_kin(AB_LIGHT) >= 0) fm_add(FM_LIGHT, "LIGHT");
     if (map_outdoor() && !(m->flags & (MF_NOFLY | MF_DEBUG)) && travel_ability_kin(AB_FLY) >= 0) fm_add(FM_FLY, "FLY");

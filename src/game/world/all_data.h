@@ -9,5 +9,6 @@
 #include "craft/data.h"
 #include "fusion/data.h"
 #include "travel/data.h"
+#include "elev/data.h"
 #include "ui/data.h"
 #include "debug/data.h"

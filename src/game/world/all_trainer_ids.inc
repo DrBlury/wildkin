@@ -9,5 +9,6 @@
 #include "craft/trainer_ids.inc"
 #include "fusion/trainer_ids.inc"
 #include "travel/trainer_ids.inc"
+#include "elev/trainer_ids.inc"
 #include "ui/trainer_ids.inc"
 #include "debug/trainer_ids.inc"

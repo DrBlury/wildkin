@@ -9,5 +9,6 @@
 #include "craft/lsrc_ids.inc"
 #include "fusion/lsrc_ids.inc"
 #include "travel/lsrc_ids.inc"
+#include "elev/lsrc_ids.inc"
 #include "ui/lsrc_ids.inc"
 #include "debug/lsrc_ids.inc"

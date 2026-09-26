@@ -9,5 +9,6 @@
 #include "craft/zones.inc"
 #include "fusion/zones.inc"
 #include "travel/zones.inc"
+#include "elev/zones.inc"
 #include "ui/zones.inc"
 #include "debug/zones.inc"
