@@ -948,7 +948,10 @@ static const u8 SHOP_STOCK[] = {
     ITEM_BRAVE_CHILI, ITEM_IRONBARK,
     ITEM_BLOOM_SHARD, ITEM_SPARK_SHARD, ITEM_FROST_SHARD,
 };
-#define SHOP_COUNT ((int)sizeof(SHOP_STOCK))
+/* What the open shop sells (every town has its own list: shop_open_stock). */
+static const u8 *shop_stock = SHOP_STOCK;
+static int shop_stock_count = (int)sizeof(SHOP_STOCK);
+#define SHOP_COUNT shop_stock_count
 
 static struct { int cursor, scroll, state, qty; } shop;
 
@@ -962,7 +965,7 @@ static void shop_redraw(void)
     text_draw_right(80, 22, buf);
     canvas_window(0, 5, 11, 9, WIN_STD);
     text_draw(12, 48, "IN BAG");
-    int sel = shop.cursor < SHOP_COUNT ? SHOP_STOCK[shop.cursor] : -1;
+    int sel = shop.cursor < SHOP_COUNT ? shop_stock[shop.cursor] : -1;
     if (sel >= 0) {
         buf[0] = 0;
         str_put_int(buf, bag[sel]);
@@ -976,7 +979,7 @@ static void shop_redraw(void)
             text_draw(104, y, "QUIT");
             continue;
         }
-        int item = SHOP_STOCK[idx];
+        int item = shop_stock[idx];
         text_draw(104, y, ITEMS[item].name);
         money_text(buf, ITEMS[item].price);
         text_draw_right(228, y, buf);
@@ -1001,8 +1004,20 @@ static void shop_redraw(void)
     }
 }
 
+MAYBE_UNUSED static void shop_open_stock(const u8 *items, int count)
+{
+    shop_stock = items;
+    shop_stock_count = count;
+    shop.cursor = shop.scroll = 0;
+    shop.state = 0;
+    game_mode = MODE_SHOP;
+    shop_redraw();
+}
+
 static void shop_open(void)
 {
+    shop_stock = SHOP_STOCK;
+    shop_stock_count = (int)sizeof(SHOP_STOCK);
     shop.cursor = shop.scroll = 0;
     shop.state = 0;
     game_mode = MODE_SHOP;
@@ -1026,7 +1041,7 @@ static void shop_update(void)
         }
         return;
     }
-    int item = shop.cursor < SHOP_COUNT ? SHOP_STOCK[shop.cursor] : -1;
+    int item = shop.cursor < SHOP_COUNT ? shop_stock[shop.cursor] : -1;
     if (shop.state == 1) {
         int max = ITEMS[item].price ? money / ITEMS[item].price : 0;
         if (max > 99) max = 99;

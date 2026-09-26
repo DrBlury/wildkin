@@ -5,7 +5,7 @@
  */
 
 typedef struct {
-    u8 visited[8];      /* MF_TOWN maps you have been to (fly points), bit per map */
+    u8 visited[16];     /* maps you have been to (fly points), bit per map */
     u8 crests;          /* bit per Hall crest (CREST_*) */
     u8 biking, surfing;
     u8 last_hearth;     /* map of the last Hearth Hall (teleport / WAYSTONE) */
