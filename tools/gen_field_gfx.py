@@ -1138,6 +1138,7 @@ def all_decor():
     items = items + __import__('decor_north').NORTH_DECOR  # W-NORTH (snow, cave)
     items = items + __import__('decor_fusion').FUSION_DECOR  # FUSION (Resonance Works machines)
     items = items + __import__('decor_craft').CRAFT_DECOR  # CRAFT (stations)
+    items = items + __import__('decor_grim').DECOR  # W-GRIM (grim, crypt)
     seen = set()
     for d in items:
         if d.name in seen:

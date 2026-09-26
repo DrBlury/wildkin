@@ -511,16 +511,24 @@ static u16 storm_tint(u16 c)
  * time.c owns it. Returns the colour unchanged when there is no tint. */
 static u16 field_tint(u16 c);
 
+/* The Ashen March haze and ash-fall (MF_ASH) until OSSUREX is answered:
+ * world/grim/scripts.c. */
+static int grim_ash_active(int map);
+static u16 grim_ash_tint(u16 c);
+static void grim_draw_ash(void);
+
 static void field_load_palettes(void)
 {
     const u16 (*pal)[16] = tset()->palettes;
-    int storm = storm_active();
+    int storm = storm_active(), ash = grim_ash_active(cur_map);
     for (int b = 0; b < 8; b++)
         for (int i = 0; i < 16; i++) {
             u16 c = storm ? storm_tint(pal[b][i]) : pal[b][i];
+            if (ash) c = grim_ash_tint(c);
             bg_palette[b * 16 + i] = field_tint(c);
         }
     u16 bd = tset()->backdrop;
+    if (ash) bd = grim_ash_tint(bd);
     bg_palette[0] = field_tint(storm ? storm_tint(bd) : bd);
 }
 
@@ -795,6 +803,7 @@ static void field_emote(int npc, int kind, int frames)
 /* Rain streaks while the storm brims (outdoors). */
 static void draw_weather(void)
 {
+    grim_draw_ash();
     if (!storm_active()) return;
     for (int i = 0; i < 10; i++) {
         int speed = 5 + (i % 3);
