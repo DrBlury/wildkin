@@ -17,9 +17,14 @@
  * the actors) with the matching front blades over them, and two particles
  * fly off.
  *
+ * Everyone standing on open ground (not in grass or water) also gets a
+ * small ordered-dither shadow (the people palettes' outline colour; two
+ * checker phases, picked by world position so it does not shimmer as they
+ * walk). Hopping actors keep theirs on the ground.
+ *
  * VRAM: object tiles OT_GRASS.. (the party-icon area, unused in the field)
  * hold every variant's front blades at the current wind frame, the rustle
- * slots' frames and the particles; they are refreshed in vblank from
+ * slots' frames, the particles and the shadows; they are refreshed in vblank from
  * field_animate_tiles. Palettes: the grass sprites use copies of the BG
  * banks the grass is drawn with (already tinted for time of day / storm),
  * in object banks 7 (and 6), so on maps with tall grass there are 6 (5)
@@ -29,16 +34,18 @@
 #define OT_GRASS          132
 #define GRASS_DEF_MAX     4                         /* varieties per tileset */
 #define OT_GRASS_IDLE(k)  (OT_GRASS + (k) * 4)      /* k = def * 3 + variant: 48 tiles */
-#define GRASS_RUSTLE_MAX  6
-#define OT_GRASS_RUSTLE(s) (OT_GRASS + 48 + (s) * 8) /* back 4 + front 4: 48 tiles */
-#define OT_GRASS_PART(d)  (OT_GRASS + 96 + (d) * 2)  /* 8 tiles */
+#define GRASS_RUSTLE_MAX  5
+#define OT_GRASS_RUSTLE(s) (OT_GRASS + 48 + (s) * 8) /* back 4 + front 4: 40 tiles */
+#define OT_GRASS_PART(d)  (OT_GRASS + 88 + (d) * 2)  /* 8 tiles */
+#define OT_SHADOW(p)      (OT_GRASS + 96 + (p) * 4)  /* person 16x16, 2 phases: 8 tiles */
+#define OT_SHADOW_KIN(p)  (OT_GRASS + 104 + (p) * 8) /* kin 32x16, 2 phases: 16 tiles */
 #define GRASS_RUSTLE_STEP 5                         /* frames per rustle frame */
 #define GRASS_RUSTLE_TIME (GRASS_RUSTLE * GRASS_RUSTLE_STEP)
 #define GRASS_OVER_MAX    16                        /* overlay sprites per frame */
 
 static unsigned frame_count;                        /* battle_ui.c: frames since boot */
 
-typedef char GrassTilesFit[OT_GRASS + 96 + GRASS_DEF_MAX * 2 <= 256 ? 1 : -1];
+typedef char GrassTilesFit[OT_GRASS + 120 <= 256 && OT_GRASS_PART(GRASS_DEF_MAX) <= OT_SHADOW(0) ? 1 : -1];
 
 static struct {
     int tileset;                   /* tileset the tables below are for (-1: none) */
@@ -141,13 +148,44 @@ static int grass_wind_frame(const GrassDef *d)
     return field_anim_frame / d->period % GRASS_WIND;
 }
 
-/* Vblank: sprite tiles for the wind frame, the rustles and the palettes. */
+/* Shadow tiles: a w x 16 sprite (w 16 or 32) with a dithered ellipse
+ * (colour 1) around (w / 2, 14.5); phase flips the checker. */
+static void shadow_build(u32 *dst, int w, int rx4, int phase)
+{
+    static const u8 BAYER[4][4] = { { 0, 8, 2, 10 }, { 12, 4, 14, 6 }, { 3, 11, 1, 9 }, { 15, 7, 13, 5 } };
+    int tw = w / 8;
+    for (int t = 0; t < tw * 2; t++)
+        for (int y = 0; y < 8; y++) {
+            u32 row = 0;
+            for (int x = 0; x < 8; x++) {
+                int px = (t % tw) * 8 + x, py = (t / tw) * 8 + y;
+                /* in quarter pixels: ((dx / rx)^2 + (dy / 2.25)^2) scaled by 256 */
+                int dx = (px * 4 + 2) - w * 2, dy = (py * 4 + 2) - 58;
+                int r = dx * dx * 256 / (rx4 * rx4) + dy * dy * 256 / (9 * 9);
+                if (r > 256) continue;
+                int thr = r < 110 ? 12 : 7;   /* denser in the middle */
+                if (BAYER[py & 3][(px + phase) & 3] < thr) row |= 1u << (x * 4);
+            }
+            dst[t * 8 + y] = row;
+        }
+}
+
+/* Vblank: sprite tiles for the wind frame, the rustles, the shadows and
+ * the palettes. */
 static void grass_present(void)
 {
-    if (!grass.set) return;
     /* a menu may have used the object tiles / palettes in between */
     if (frame_count != grass.last_frame + 1) grass.dirty = 1;
     grass.last_frame = frame_count;
+    if (grass.dirty)
+        for (int p = 0; p < 2; p++) {
+            shadow_build(VRAM_OBJ_TILES + OT_SHADOW(p) * 8, 16, 22, p);
+            shadow_build(VRAM_OBJ_TILES + OT_SHADOW_KIN(p) * 8, 32, 38, p);
+        }
+    if (!grass.set) {
+        grass.dirty = 0;
+        return;
+    }
     for (int b = 0; b < 8; b++)
         if (grass.obank[b]) {
             u16 *dst = obj_palette + grass.obank[b] * 16;
@@ -185,12 +223,25 @@ static void grass_present(void)
  * Called by field_draw_sprites before sorting; returns the new count. */
 static int grass_push_sprites(FieldSprite *list, int n, int max)
 {
+    /* shadows under everyone on open ground */
+    for (int i = 0, actors = n; i < actors && n < max; i++) {
+        const FieldSprite *s = &list[i];
+        if (s->kind != 0 && s->kind != 1) continue;
+        int fx = floor_div16(s->x + 8), fy = floor_div16(s->y + 12);
+        if (fx < 0 || fy < 0 || fx >= map_w || fy >= map_h) continue;
+        if ((cell_attr(fx, fy) & A_WATER) || grass_cell_kind(fx, fy) >= 0) continue;
+        int ph = (s->x + s->y) & 1;
+        if (s->kind == 0)
+            list[n++] = (FieldSprite){ s->y - 1, s->x, 4, OT_SHADOW(ph), OBANK_PLAYER, 0, 1, SQ16 };
+        else
+            list[n++] = (FieldSprite){ s->y - 1, s->x - 8, 4, OT_SHADOW_KIN(ph), OBANK_PLAYER, 0, 1, WIDE32x16 };
+    }
     if (!grass.set) return n;
     for (int i = 0; i < GRASS_RUSTLE_MAX; i++)
         if (rustle[i].active && ++rustle[i].t >= GRASS_RUSTLE_TIME) rustle[i].active = 0;
     s16 cx[GRASS_OVER_MAX], cy[GRASS_OVER_MAX];
-    int nc = 0, actors = n;
-    for (int i = 0; i < actors; i++) {
+    int nc = 0;
+    for (int i = 0; i < n; i++) {
         const FieldSprite *s = &list[i];
         if (s->kind != 0 && s->kind != 1) continue;
         if (s->a >> 16) continue;   /* hopping, surfing: above the grass */

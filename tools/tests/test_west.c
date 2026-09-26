@@ -106,7 +106,8 @@ int main(void)
     setvbuf(stdout, NULL, _IONBF, 0);
     game_init();
 
-    CHECK(TILESETS[TS_COAST].tile_count <= 385, "the coast tileset stays under ~380 tiles");
+    /* ~380 + the animated tall grass (tools/grass.py: 3 variants x 2 varieties) */
+    CHECK(TILESETS[TS_COAST].tile_count <= 410, "the coast tileset stays under ~410 tiles");
 
     /* budget, people and characters on every west map */
     int budget_ok = 1, people_ok = 1;

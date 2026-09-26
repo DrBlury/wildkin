@@ -315,8 +315,22 @@ def quad_sdf(v, px, py, E, R, Rn, wob):
     raise ValueError(v)
 
 
-def autotile(color_at, E, R, Rn, wob=lambda t: 0.0):
-    """color_at(d, X, Y, c, v) -> color name. Returns quads[c][v] = Img 8x8."""
+# Ordered dither (4x4 Bayer) shared by the terrain generators: every band
+# boundary of an autotile (grass -> rim -> path, shore -> shallows -> deep)
+# is broken into a checker so transitions read soft, the GBA way.
+BAYER4 = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]
+DITHER = 1.1   # px of distance the ordered dither spreads each boundary over
+
+
+def bayer(x, y):
+    """Threshold in [-0.5, 0.5) at absolute pixel (x, y)."""
+    return (BAYER4[y & 3][x & 3] + 0.5) / 16.0 - 0.5
+
+
+def autotile(color_at, E, R, Rn, wob=lambda t: 0.0, dither=DITHER):
+    """color_at(d, X, Y, c, v) -> color name. Returns quads[c][v] = Img 8x8.
+    d is jittered by an ordered dither (dither px, 0 = hard edges); the
+    full-inside variant (v 0) is never dithered."""
     quads = []
     for c in range(4):
         row = []
@@ -329,6 +343,8 @@ def autotile(color_at, E, R, Rn, wob=lambda t: 0.0):
                     lx = x if (c & 1) == 0 else 7 - x
                     ly = y if (c >> 1) == 0 else 7 - y
                     d = quad_sdf(v, lx + 0.5, ly + 0.5, E, R, Rn, wob)
+                    if v:
+                        d += bayer(X, Y) * dither
                     img.p[y][x] = color_at(d, X, Y, c, v, lx, ly)
             row.append(img)
         quads.append(row)
@@ -360,16 +376,18 @@ def path_quads():
         return 0.0
 
     def color_at(d, X, Y, c, v, lx, ly):
-        if d < -1.0:
+        # grass, its shaded lip, a trodden sandy rim, then the path; the
+        # ordered dither mixes each pair of bands over about two pixels
+        if d < -1.5:
             return GRASS_A.p[Y][X]
-        if d < 0:
-            return 'g_base'
-        if d < 1.0:
+        if d < -0.5:
+            return 'g_mid'
+        if d < 0.5:
             return 's_mid'
-        if d < 2.0:
+        if d < 1.5:
             return 's_base'
         return PATH_TEX.p[Y][X]
-    return autotile(color_at, E=2.0, R=5.0, Rn=2.0, wob=wob)
+    return autotile(color_at, E=2.0, R=5.0, Rn=2.0, wob=wob, dither=1.9)
 
 
 WAVES = [(1, 1, 3), (12, 2, 3), (7, 5, 3), (3, 9, 2), (13, 9, 3), (10, 12, 3)]
