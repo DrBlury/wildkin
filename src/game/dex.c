@@ -26,13 +26,114 @@ typedef struct { u8 kind, a; s16 b; char text[48]; } PanelLine;
 #define PANEL_MAX_LINES 112
 
 static struct {
-    int state, cursor, scroll, back;
+    int state, cursor, scroll, back;   /* cursor: species; scroll: list row */
+    int pos;                           /* cursor's row in the filtered list */
+    int frow;                          /* FILTER panel row */
     int scroll_px, target_px, content_lines;
     int ring_line[8];
     PanelLine lines[PANEL_MAX_LINES];
 } dex EWRAM_BSS;
 
 EWRAM_BSS static u32 panel_strip[PANEL_COLS_MAX * 2 * 8];
+
+/* ---------------- filters ---------------- */
+
+/* Regions of the Vale, by map id range (docs/EXPANSION.md 9). */
+enum { REG_VALE, REG_EAST, REG_WEST, REG_NORTH, REG_ASHEN, REG_FAR, REG_FARM, REG_COUNT };
+static const char *const REGION_NAMES[REG_COUNT] = {
+    "THE VALE", "EAST", "THE COAST", "THE NORTH", "ASHEN MARCH", "FAR REACHES", "WILLOW ACRE",
+};
+enum { DF_ALL, DF_MET, DF_FRIENDS, DF_OWN_COUNT };
+static const char *const DF_OWN_NAMES[DF_OWN_COUNT] = { "ALL", "MET", "FRIENDS" };
+
+/* 0 = any; otherwise the TYPE / R_ / REG_ value + 1. */
+static struct { u8 own, type, rarity, region; } dexf;
+
+EWRAM_BSS static u8 dex_list[SP_COUNT];
+static int dex_list_n;
+static u8 dex_region_mask[SP_COUNT];
+static int dex_regions_ready;
+
+static int map_region(int map)
+{
+    if (map < 0 || map >= MAP_COUNT || (MAPS[map].flags & MF_DEBUG)) return -1;
+    if (map >= MAP_WILLOW_ACRE) return REG_FARM;
+    if (map >= MAP_CINDER_ROAD) return REG_FAR;
+    if (map >= MAP_ASHEN_FIELDS) return REG_ASHEN;
+    if (map >= MAP_FROSTPINE) return REG_NORTH;
+    if (map >= MAP_SALTWIND) return REG_WEST;
+    if (map >= MAP_COPPERLINE) return REG_EAST;
+    return REG_VALE;
+}
+
+static void zone_mark_region(int zone, int reg)
+{
+    if (zone <= ZONE_NONE || zone >= ZONE_COUNT) return;
+    const WildZone *z = &WILD_ZONES[zone];
+    for (int i = 0; i < z->count; i++)
+        if (z->slots[i].species < SP_COUNT) dex_region_mask[z->slots[i].species] |= (u8)(1u << reg);
+}
+
+/* Where each kin can be met: wild zones (land and water) and legend lairs. */
+static void dex_regions_build(void)
+{
+    if (dex_regions_ready) return;
+    for (int sp = 0; sp < SP_COUNT; sp++) dex_region_mask[sp] = 0;
+    for (int m = 0; m < MAP_COUNT; m++) {
+        int reg = map_region(m);
+        if (reg < 0) continue;
+        zone_mark_region(MAPS[m].zone, reg);
+        zone_mark_region(MAPS[m].water_zone, reg);
+        for (int i = 0; i < MAPS[m].obj_count; i++)
+            if (MAPS[m].objs[i].kind == OBJ_LEGEND && MAPS[m].objs[i].arg < SP_COUNT)
+                dex_region_mask[MAPS[m].objs[i].arg] |= (u8)(1u << reg);
+    }
+    for (int i = 0; i < 3; i++) dex_region_mask[STARTER_SPECIES[i]] |= 1u << REG_VALE;
+    dex_region_mask[SP_DRAKORA] |= 1u << REG_VALE;
+    /* kin that only grow out of another share its places */
+    for (int pass = 0; pass < 3; pass++)
+        for (int sp = 0; sp < SP_COUNT; sp++) {
+            int p = species_prevo(sp);
+            if (p >= 0) dex_region_mask[sp] |= dex_region_mask[p];
+        }
+    dex_regions_ready = 1;
+}
+
+static int dex_filter_active(void)
+{
+    return dexf.own || dexf.type || dexf.rarity || dexf.region;
+}
+
+static int dex_passes(int sp)
+{
+    const Species *s = &SPECIES[sp];
+    if (dexf.own == DF_MET && !dex_seen[sp] && !dex_caught[sp]) return 0;
+    if (dexf.own == DF_FRIENDS && !dex_caught[sp]) return 0;
+    if (dexf.type && s->type1 != dexf.type - 1 && s->type2 != dexf.type - 1) return 0;
+    if (dexf.rarity && s->rarity != dexf.rarity - 1) return 0;
+    if (dexf.region) {
+        dex_regions_build();
+        if (!(dex_region_mask[sp] & (1u << (dexf.region - 1)))) return 0;
+    }
+    return 1;
+}
+
+/* Rebuilds the filtered list and keeps the cursor on the same kin if it
+ * is still listed (otherwise on the first one). */
+static void dex_build_list(void)
+{
+    dex_list_n = 0;
+    dex.pos = 0;
+    for (int sp = 0; sp < SP_COUNT; sp++)
+        if (dex_passes(sp)) {
+            if (sp == dex.cursor) dex.pos = dex_list_n;
+            dex_list[dex_list_n++] = (u8)sp;
+        }
+    if (dex_list_n) dex.cursor = dex_list[dex.pos];
+    if (dex.pos < dex.scroll) dex.scroll = dex.pos;
+    if (dex.pos >= dex.scroll + DEX_ROWS) dex.scroll = dex.pos - DEX_ROWS + 1;
+    if (dex.scroll > dex_list_n - DEX_ROWS) dex.scroll = dex_list_n > DEX_ROWS ? dex_list_n - DEX_ROWS : 0;
+}
 
 /* ---------------- content ---------------- */
 
@@ -81,13 +182,14 @@ static void dex_habitat(int sp)
     char buf[40];
     for (int z = 0; z < WILD_ZONE_COUNT; z++) {
         const WildZone *zone = &WILD_ZONES[z];
-        int total = 0, w = 0, lo = 0, hi = 0;
+        int total = 0, w = 0, lo = 0, hi = 0, when = 0;
         for (int i = 0; i < zone->count; i++) {
             total += zone->slots[i].weight;
             if (zone->slots[i].species == sp) {
-                w = zone->slots[i].weight;
+                w += zone->slots[i].weight;
                 lo = zone->slots[i].min_level;
                 hi = zone->slots[i].max_level;
+                when |= 1 << zone->slots[i].when;
             }
         }
         if (!w) continue;
@@ -97,7 +199,24 @@ static void dex_habitat(int sp)
         str_put(buf, "-");
         str_put_int(buf, hi);
         str_put(buf, w * 100 / total >= 15 ? "  common" : w * 100 / total >= 8 ? "  uncommon" : "  rare");
+        if (!(when & (1 << WHEN_ANY)) && when == (1 << WHEN_DAY)) str_put(buf, "  DAY");
+        if (!(when & (1 << WHEN_ANY)) && when == (1 << WHEN_NIGHT)) str_put(buf, "  NIGHT");
         pl_add(PL_TEXT, buf);
+        any = 1;
+    }
+    for (int m = 0; m < MAP_COUNT; m++) {
+        if (MAPS[m].flags & MF_DEBUG) continue;
+        for (int i = 0; i < MAPS[m].obj_count; i++)
+            if (MAPS[m].objs[i].kind == OBJ_LEGEND && MAPS[m].objs[i].arg == sp) {
+                pl_add(PL_GOOD, "LAIR");
+                str_copy(buf, "  ");
+                str_put(buf, MAPS[m].name);
+                pl_add(PL_TEXT, buf);
+                any = 1;
+            }
+    }
+    if (SPECIES[sp].rarity == R_FUSION) {
+        pl_add(PL_TEXT, "The FUSION LOOM");
         any = 1;
     }
     for (int i = 0; i < 3; i++)
@@ -135,6 +254,25 @@ static void dex_build_content(int sp)
 
     pl_add(PL_HEADER, "DESCRIPTION");
     pl_add_wrapped(s->desc, PL_TEXT);
+    pl_add(PL_BLANK, 0);
+
+    str_copy(buf, "RARITY: ");
+    str_put(buf, RARITY_NAMES[s->rarity % RARITY_COUNT]);
+    pl_add(PL_TEXT, buf);
+    if (s->rarity == R_FUSION) {
+        if (dex_seen[sp] || dex_caught[sp]) {
+            pl_add(PL_TEXT, "Woven from the energy");
+            buf[0] = 0;
+            for (int i = 0; i < 2; i++) {
+                if (s->fusion[i] >= TYPE_COUNT) continue;
+                if (i && s->fusion[0] < TYPE_COUNT) str_put(buf, " + ");
+                str_put(buf, TYPE_NAMES[s->fusion[i]]);
+            }
+            pl_add(PL_GOOD, buf);
+        } else {
+            pl_add(PL_TEXT, "Weave not known yet");
+        }
+    }
     pl_add(PL_BLANK, 0);
 
     pl_add(PL_HEADER, "BASE STATS");
@@ -326,13 +464,23 @@ static void dex_list_redraw(void)
     canvas_window(0, 3, 11, 11, WIN_STD);
     canvas_window(0, 14, 11, 6, WIN_STD);
     int sp = dex.cursor;
-    draw_type_badge(1, 15, SPECIES[sp].type1);
-    if (SPECIES[sp].type2 != TYPE_NONE) draw_type_badge(5, 15, SPECIES[sp].type2);
-    text_draw_col(10, 135, "A: DETAILS", INK_BLUE, INK_BLUE_SH);
+    if (dex_list_n) {
+        draw_type_badge(1, 15, SPECIES[sp].type1);
+        if (SPECIES[sp].type2 != TYPE_NONE) draw_type_badge(5, 15, SPECIES[sp].type2);
+    }
+    if (dex_filter_active()) {
+        buf[0] = 0;
+        str_put_int(buf, dex_list_n);
+        str_put(buf, " SHOWN");
+        text_draw_col(10, 136, buf, INK_GREEN, INK_GREEN_SH);
+    } else {
+        text_draw_col(10, 136, "START: FILTER", INK_BLUE, INK_BLUE_SH);
+    }
 
     canvas_window(11, 3, 19, 17, WIN_STD);
-    for (int r = 0; r < DEX_ROWS && dex.scroll + r < SP_COUNT; r++) {
-        int s = dex.scroll + r;
+    if (!dex_list_n) text_draw(100, 32, "No kin match.\nSTART: change\nthe filter.");
+    for (int r = 0; r < DEX_ROWS && dex.scroll + r < dex_list_n; r++) {
+        int s = dex_list[dex.scroll + r];
         int y = 32 + r * LINE_H;
         if (s == dex.cursor) {
             canvas_fill(96, y - 2, 128, 14, 7);
@@ -341,12 +489,39 @@ static void dex_list_redraw(void)
         canvas_tile(13, y / 8, dex_caught[s] ? ui_icon_caught : ui_icon_empty, s == dex.cursor ? 7 : 1);
         str_copy(buf, "No.");
         str_put_int3(buf, s + 1);
-        text_draw(115, y - 2, buf);
-        text_draw(160, y - 2, SPECIES[s].name);
+        text_draw(125, y - 2, buf);
+        text_draw_fit(166, y - 2, SPECIES[s].name, 58);
     }
     if (dex.scroll > 0) text_draw_col(214, 22, "^", INK_RED, INK_RED_SH);
-    if (dex.scroll + DEX_ROWS < SP_COUNT) text_draw_col(214, 144, "}", INK_RED, INK_RED_SH);
-    load_monster_gfx(0, sp, 0);
+    if (dex.scroll + DEX_ROWS < dex_list_n) text_draw_col(214, 144, "}", INK_RED, INK_RED_SH);
+    if (dex_list_n) load_monster_gfx(0, sp, 0);
+    if (dex.state == 2) {
+        static const char *const LABEL[4] = { "SHOW", "TYPE", "RARITY", "PLACE" };
+        canvas_window(3, 4, 24, 13, WIN_STD);
+        text_draw_col(40, 40, "FILTER THE ALMANAC", INK_BLUE, INK_BLUE_SH);
+        for (int r = 0; r < 4; r++) {
+            int y = 60 + r * 16;
+            const char *v;
+            switch (r) {
+            case 0: v = DF_OWN_NAMES[dexf.own]; break;
+            case 1: v = dexf.type ? TYPE_NAMES[dexf.type - 1] : "ANY"; break;
+            case 2: v = dexf.rarity ? RARITY_NAMES[dexf.rarity - 1] : "ANY"; break;
+            default: v = dexf.region ? REGION_NAMES[dexf.region - 1] : "ANY"; break;
+            }
+            if (r == dex.frow) {
+                canvas_fill(36, y - 2, 172, 14, 7);
+                text_draw(37, y - 2, "{");
+            }
+            text_draw(48, y - 2, LABEL[r]);
+            text_draw_col(108, y - 2, "<", INK_BLUE, INK_BLUE_SH);
+            text_draw_center(154, y - 2, v);
+            text_draw_col(198, y - 2, ">", INK_BLUE, INK_BLUE_SH);
+        }
+        buf[0] = 0;
+        str_put_int(buf, dex_list_n);
+        str_put(buf, " KIN   A: DONE");
+        text_draw_col(48, 122, buf, INK_SHADOW, INK_SHADOW);
+    }
 }
 
 static void dex_detail_redraw(void)
@@ -392,24 +567,70 @@ static void dex_open(void)
     game_mode = MODE_DEX;
     dex.state = 0;
     if (dex.cursor < 0 || dex.cursor >= SP_COUNT) dex.cursor = 0;
+    gems_load();
+    dex_build_list();
     dex_list_redraw();
+}
+
+/* Moves the list cursor to row `pos` of the filtered list. */
+static void dex_goto(int pos)
+{
+    if (!dex_list_n) return;
+    dex.pos = clampi(pos, 0, dex_list_n - 1);
+    dex.cursor = dex_list[dex.pos];
+    if (dex.pos < dex.scroll) dex.scroll = dex.pos;
+    if (dex.pos >= dex.scroll + DEX_ROWS) dex.scroll = dex.pos - DEX_ROWS + 1;
+}
+
+static void dex_filter_update(void)
+{
+    int old_row = dex.frow, change = 0;
+    if (key_rep(KEY_UP)) dex.frow = (dex.frow + 3) % 4;
+    if (key_rep(KEY_DOWN)) dex.frow = (dex.frow + 1) % 4;
+    if (key_rep(KEY_LEFT)) change = -1;
+    if (key_rep(KEY_RIGHT)) change = 1;
+    if (change) {
+        switch (dex.frow) {
+        case 0: dexf.own = (u8)((dexf.own + DF_OWN_COUNT + change) % DF_OWN_COUNT); break;
+        case 1: dexf.type = (u8)((dexf.type + TYPE_COUNT + 1 + change) % (TYPE_COUNT + 1)); break;
+        case 2: dexf.rarity = (u8)((dexf.rarity + RARITY_COUNT + 1 + change) % (RARITY_COUNT + 1)); break;
+        default: dexf.region = (u8)((dexf.region + REG_COUNT + 1 + change) % (REG_COUNT + 1)); break;
+        }
+        dex_build_list();
+    }
+    if (old_row != dex.frow || change) {
+        sfx_play(SFX_CURSOR);
+        dex_list_redraw();
+    }
+    if (key_hit(KEY_A) || key_hit(KEY_B) || key_hit(KEY_START)) {
+        sfx_play(SFX_CONFIRM);
+        dex.state = 0;
+        dex_list_redraw();
+    }
 }
 
 static void dex_update(void)
 {
+    if (dex.state == 2) {
+        dex_filter_update();
+        return;
+    }
     if (dex.state == 0) {
         int old = dex.cursor;
-        if (key_rep(KEY_UP) && dex.cursor > 0) dex.cursor--;
-        if (key_rep(KEY_DOWN) && dex.cursor < SP_COUNT - 1) dex.cursor++;
-        if (key_rep(KEY_LEFT) || key_rep(KEY_L)) dex.cursor = clampi(dex.cursor - DEX_ROWS, 0, SP_COUNT - 1);
-        if (key_rep(KEY_RIGHT) || key_rep(KEY_R)) dex.cursor = clampi(dex.cursor + DEX_ROWS, 0, SP_COUNT - 1);
-        if (dex.cursor < dex.scroll) dex.scroll = dex.cursor;
-        if (dex.cursor >= dex.scroll + DEX_ROWS) dex.scroll = dex.cursor - DEX_ROWS + 1;
+        if (key_rep(KEY_UP) && dex.pos > 0) dex_goto(dex.pos - 1);
+        if (key_rep(KEY_DOWN)) dex_goto(dex.pos + 1);
+        if (key_rep(KEY_LEFT) || key_rep(KEY_L)) dex_goto(dex.pos - DEX_ROWS);
+        if (key_rep(KEY_RIGHT) || key_rep(KEY_R)) dex_goto(dex.pos + DEX_ROWS);
         if (old != dex.cursor) dex_list_redraw();
         if (key_hit(KEY_B)) {
             canvas_clear();
             start_menu_open();
-        } else if (key_hit(KEY_A)) {
+        } else if (key_hit(KEY_START) || key_hit(KEY_SELECT)) {
+            sfx_play(SFX_CONFIRM);
+            dex.state = 2;
+            dex.frow = 0;
+            dex_list_redraw();
+        } else if (key_hit(KEY_A) && dex_list_n) {
             dex.state = 1;
             dex.back = 0;
             dex_detail_redraw();
@@ -430,10 +651,8 @@ static void dex_update(void)
     int change = 0;
     if (key_rep(KEY_LEFT)) change = -1;
     if (key_rep(KEY_RIGHT)) change = 1;
-    if (change) {
-        dex.cursor = (dex.cursor + change + SP_COUNT) % SP_COUNT;
-        if (dex.cursor < dex.scroll) dex.scroll = dex.cursor;
-        if (dex.cursor >= dex.scroll + DEX_ROWS) dex.scroll = dex.cursor - DEX_ROWS + 1;
+    if (change && dex_list_n) {
+        dex_goto((dex.pos + change + dex_list_n) % dex_list_n);
         dex_detail_redraw();
     }
     if (key_hit(KEY_A)) {
@@ -449,6 +668,16 @@ static void dex_update(void)
 
 static void dex_draw(void)
 {
-    if (dex.state == 0) spr_push(12, 36, OT_MON_A, SQ64, OBANK_MON_A, 0, 0);
-    else spr_push(8, 40, OT_MON_A, SQ64, OBANK_MON_A, 0, 0);
+    if (dex.state == 1) {
+        spr_push(8, 40, OT_MON_A, SQ64, OBANK_MON_A, 0, 0);
+        gem_push(60 + text_width(SPECIES[dex.cursor].name) + 4, 14, SPECIES[dex.cursor].rarity);
+        return;
+    }
+    if (dex.state == 2) return;   /* the FILTER panel covers the list */
+    if (dex_list_n) spr_push(12, 36, OT_MON_A, SQ64, OBANK_MON_A, 0, 0);
+    /* rarity gems of the kin you have met */
+    for (int r = 0; r < DEX_ROWS && dex.scroll + r < dex_list_n; r++) {
+        int sp = dex_list[dex.scroll + r];
+        if (dex_seen[sp] || dex_caught[sp]) gem_push(114, 32 + r * LINE_H + 1, SPECIES[sp].rarity);
+    }
 }
