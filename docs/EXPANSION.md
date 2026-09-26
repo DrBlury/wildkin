@@ -768,6 +768,20 @@ Each region owner documents their other exits in their region header.
 OBJ palettes: 0 player, 1-7 NPC characters, 8 satchel and misc, 9-14 kin,
 15 emotes.
 
+In a bout:
+
+| tiles | use |
+| --- | --- |
+| 0-215 | RUNE move art (src/gfx_rune.h), loaded when a RUNE move starts |
+| 256-383 | the two kin (64 x 64) |
+| 384-399 | lantern capsule |
+| 400-679 | move particles (16 x 16) |
+| 680-745 | big particles, lantern marks |
+| 746-1023 | free |
+
+OBJ palettes in a bout: 2-6 RUNE moves (element at three depths, arcane
+full and dim), 9 capsule, 10-11 kin, 12-14 particles, 15 lantern light.
+
 ### 10.4 Save (version 4)
 
 - Two slots of up to 16 KB each, at SRAM offsets 0 and 16384, each

@@ -578,7 +578,7 @@ static const Move MOVES[MOVE_TABLE_SIZE] = {
         AK_SOWILO_BEAM, FX_BEAM, FX_SUNRAY, 1, RGB15(29, 20, 4), RGB15(31, 30, 22),
         "The sun rune opens and fires a beam. May burn."),
     [M_RUNE_SIPHON] = MV("RUNE SIPHON", T_ASTRAL, CAT_SPEC, 75, 100, 10, 0, EF_DRAIN, 100, 0, 0,
-        AK_RUNE_SIPHON, FX_MOTE, FX_SPARKLE, 1, RGB15(10, 23, 15), RGB15(22, 16, 31),
+        AK_RUNE_SIPHON, FX_MOTE, FX_SPARKLE, 1, RGB15(22, 12, 30), RGB15(14, 30, 28),
         "Draws the foe's glow out rune by rune. Heals half."),
 
     [M_LAST_GASP] = MV("LAST GASP", T_BEAST, CAT_PHYS, 50, 0, 1, 0, EF_RECOIL, 100, 0, 0,

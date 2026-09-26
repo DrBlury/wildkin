@@ -44,13 +44,13 @@ typedef struct {
     u8 kind, bank, prio, spin, tilt;
 } RnItem;
 
-#define RN_MAX 56
-static RnItem rn_list[RN_MAX];
+#define RN_MAX 72
+EWRAM_BSS static RnItem rn_list[RN_MAX];
 static int rn_count;
 
 typedef struct { s16 x, y, vx, vy; u8 life, max, kind, bank; s8 grav; } RnPart;   /* 1/16 px */
 #define RN_PARTS 28
-static RnPart rn_parts[RN_PARTS];
+EWRAM_BSS static RnPart rn_parts[RN_PARTS];
 
 /* ---------------- maths ---------------- */
 
@@ -69,6 +69,17 @@ static int rn_angle_of(int vx, int vy)
 }
 
 static int rn_lerp(int a, int b, int u) { return a + (b - a) * u / 256; }
+
+/* A quadratic curve p0 -> p2 bent toward p1 (u 0..256). */
+static int rn_bez(int p0, int p1, int p2, int u)
+{
+    int v = 256 - u;
+    return (p0 * v * v + 2 * p1 * u * v + p2 * u * u) / 65536;
+}
+
+/* Where effects meet the ground by a side: the ally's feet are under the
+ * message box, the foe's under the ally's panel, so both sit a little up. */
+static int rn_gy(int side) { return side == SIDE_ALLY ? 104 : 60; }
 
 /* 0..256 smooth in and out over n frames */
 static int rn_smooth(int t, int n)
@@ -92,17 +103,17 @@ static void rn_bank(int bank, const u16 *src, int fade)
 {
     u16 *p = obj_palette + bank * 16;
     p[0] = 0;
-    for (int i = 1; i < 16; i++) p[i] = fade ? mix15(src[i], RGB15(2, 1, 7), fade, 100) : src[i];
+    for (int i = 1; i < 16; i++) p[i] = fade ? mix15(src[i], RGB15(12, 10, 20), fade, 100) : src[i];
 }
 
 static void rn_palettes(int kind)
 {
     const u16 *el = rune_palettes[RUNE_PAL_OF[kind - AK_RUNE_BOLT]];
     rn_bank(RB_EL, el, 0);
-    rn_bank(RB_EL_MID, el, 42);
-    rn_bank(RB_EL_FAR, el, 68);
+    rn_bank(RB_EL_MID, el, 26);
+    rn_bank(RB_EL_FAR, el, 50);
     rn_bank(RB_ARC, rune_palettes[RP_ARCANE], 0);
-    rn_bank(RB_ARC_DIM, rune_palettes[RP_ARCANE], 50);
+    rn_bank(RB_ARC_DIM, rune_palettes[RP_ARCANE], 30);
 }
 
 /* ---------------- the draw list ---------------- */
@@ -165,6 +176,9 @@ static void rn_flush(void)
         }
         rn_list[j + 1] = k;
     }
+    typedef struct { s16 sx, sy; u8 spin, tilt; s8 aff; } RnMat;
+    RnMat mk[32];
+    int nm = 0;
     if (!anim_nodraw)
         for (int i = 0; i < rn_count; i++) {
             const RnItem *it = &rn_list[i];
@@ -173,12 +187,25 @@ static void rn_flush(void)
             else if (it->kind == RN_SPARK8) shape = SQ8, w = h = 8;
             else if (it->kind == RN_TALL) shape = TALL16x32, h = 32;
             int x = it->x - w / 2 + shake_x, y = it->y - h / 2 + shake_y;
+            int flags = it->flags;
+            /* things behind (the faded banks) are also see-through */
+            if (it->bank == RB_EL_MID || it->bank == RB_EL_FAR || it->bank == RB_ARC_DIM) flags |= ATTR0_BLEND;
             if (it->sx == 256 && it->sy == 256 && !it->spin && !it->tilt) {
-                spr_push(x, y, it->tile, shape, it->bank, it->prio, it->flags);
+                spr_push(x, y, it->tile, shape, it->bank, it->prio, flags);
                 continue;
             }
-            int aff = rn_mat(it->sx, it->sy, it->spin, it->tilt);
-            spr_push_affine(x, y, it->tile, shape, it->bank, it->prio, it->flags, aff, 1);
+            /* pieces with the same transform share one matrix */
+            int aff = -1;
+            for (int k = 0; k < nm; k++)
+                if (mk[k].sx == it->sx && mk[k].sy == it->sy && mk[k].spin == it->spin && mk[k].tilt == it->tilt) {
+                    aff = mk[k].aff;
+                    break;
+                }
+            if (aff < 0) {
+                aff = rn_mat(it->sx, it->sy, it->spin, it->tilt);
+                if (aff >= 0 && nm < 32) mk[nm++] = (RnMat){ it->sx, it->sy, it->spin, it->tilt, (s8)aff };
+            }
+            spr_push_affine(x, y, it->tile, shape, it->bank, it->prio, flags, aff, 1);
         }
     rn_count = 0;
 }
@@ -202,6 +229,7 @@ static RnItem *rn_hero(int x, int y, int h, int bank, int prio, int depth)
 static RnItem *rn_ground(int x, int y, int tile, int bank, int sc, int sq, int spin, int blend)
 {
     RnItem *it = rn_add(RN_G32, x, y, RN_OT + tile, bank, 2, -2000);
+    if (sc > 508) sc = 508;
     rn_xf(it, sc, sc * sq / 256, spin, 0);
     if (it && blend) it->flags = ATTR0_BLEND;
     return it;
@@ -291,7 +319,7 @@ static void rn_parts_step(int frozen)
 
 static int anim_rune_duration(int kind)
 {
-    static const u8 DUR[] = { 62, 74, 72, 76, 94, 68, 58, 74, 68, 78 };
+    static const u8 DUR[] = { 62, 76, 72, 78, 96, 70, 58, 74, 68, 80 };
     int k = kind - AK_RUNE_BOLT;
     return k >= 0 && k < (int)sizeof DUR ? DUR[k] : 40;
 }
@@ -306,96 +334,112 @@ typedef struct {
     int path;                 /* angle from the user to the foe */
 } RnCtx;
 
+/* A seal standing across the path at (x, y): thin along the path, turning
+ * in its own plane. */
+static RnItem *rn_gate(const RnCtx *c, int x, int y, int tile, int bank, int sc, int spin)
+{
+    RnItem *it = rn_add(RN_G32, x, y, RN_OT + tile, bank, 1, -50);
+    rn_xf(it, sc * 150 / 256, sc * 290 / 256, spin, c->path);
+    return it;
+}
+
 /* RUNE BOLT: a casting seal stands across the path, TIWAZ (the spear
- * rune) forms in it spinning on its axis, flies at the foe shrinking or
- * growing with distance, a trail of fading copies behind, then bursts. */
+ * rune) forms in it, flies at the foe point first, rocking on its axis and
+ * shrinking or growing with distance, a trail of ghosts behind; it bursts
+ * in a ring on the foe. */
 static void rn_bolt(const RnCtx *c)
 {
     int t = c->t;
-    int gx = c->sx + c->dir * 18, gy = c->sy - 10;
+    int gx = c->sx + c->dir * 20, gy = c->sy - 14;
+    int big = rn_persp(c->side) * 3 / 2;
     if (t < 30) {
         int g = t < 18 ? ease_out(t, 12) : 256 - ease_in(t - 18, 12);
-        int sc = rn_persp(c->side) * g / 256;
-        RnItem *it = rn_add(RN_G32, gx, gy, RN_OT + RT_SEAL, RB_ARC, 1, -100);
-        rn_xf(it, sc * 150 / 256, sc * 280 / 256, t * 7, c->path);
-        if (it) it->flags = ATTR0_BLEND;
+        rn_gate(c, gx, gy, RT_SEAL, RB_ARC, rn_persp(c->side) * 5 / 4 * g / 256, t * 7);
     }
     if (t < 16) {
-        int s = rn_persp(c->side) * ease_out(t - 3, 12) / 256;
-        if (t >= 3) rn_xf(rn_glyph(gx, gy, RG_TIWAZ, RB_EL, 1, 0), s * rc(t * 18) / 256, s, 0, 0);
+        int s = big * ease_out(t - 3, 12) / 256;
+        if (t >= 3)
+            rn_xf(rn_glyph(gx, gy, RG_TIWAZ, RB_EL, 1, 0), s * (150 + absi(rc(t * 16)) * 106 / 256) / 256, s, 0,
+                  c->path + 64);
         if (t == 3) sfx_play(SFX_SPARKLE);
+        if (t > 4 && (t & 1)) {
+            int a = fx_rand(256);
+            rn_part(RNP_SPARK, gx + rc(a) * 26 / 256, gy + rs(a) * 26 / 256, -rc(a) / 24, -rs(a) / 24, 10, 0, RB_EL);
+        }
         return;
     }
     if (t < 34) {
-        for (int k = 4; k >= 0; k--) {
+        for (int k = 5; k >= 0; k--) {
             int tt = t - k * 2;
             if (tt < 16) continue;
             int u = ease_in(tt - 16, 18);
-            int x = rn_lerp(gx, c->dx, u), y = rn_lerp(gy, c->dy - 4, u) - rs(u / 2) * 16 / 256;
-            int s = rn_lerp(rn_persp(c->side), rn_persp(c->foe), u) * (256 - k * 34) / 256;
+            int x = rn_lerp(gx, c->dx, u), y = rn_lerp(gy, c->dy - 4, u) - rs(u / 2) * 14 / 256;
+            int s = rn_lerp(big, rn_persp(c->foe) * 3 / 2, u) * (256 - k * 30) / 256;
             if (k == 0) {
-                rn_xf(rn_glyph(x, y, RG_TIWAZ, RB_EL, 1, 10), s * rc(t * 26) / 256, s, 0,
-                      c->path + 64 + rs(t * 12) / 32);
-                if (t & 1) rn_part(RNP_SPARK, x, y, -c->dir * 8, -4 + fx_rand(8), 10, 0, RB_EL);
-            } else if ((t + k) & 1) {
+                rn_xf(rn_glyph(x, y, RG_TIWAZ, RB_EL, 1, 10), s * (150 + absi(rc(t * 22)) * 106 / 256) / 256, s, 0,
+                      c->path + 64);
+                rn_part(RNP_SPARK, x - c->dir * 6, y + fx_rand(9) - 4, -c->dir * 10, fx_rand(9) - 4, 10, 0, RB_EL);
+            } else {
                 rn_xf(rn_glyph(x, y, RG_TIWAZ, k < 3 ? RB_EL_MID : RB_EL_FAR, 1, -k), s, s, 0, c->path + 64);
             }
         }
         return;
     }
-    if (impact_when(34, c->st, c->dx, c->dy)) {
-        rn_burst(c->dx, c->dy - 4, 10, 30, 1, 2);
-        anim.bright = 6;
-    }
+    if (impact_when(34, c->st, c->dx, c->dy)) rn_burst(c->dx, c->dy - 4, 10, 30, 1, 2);
     int bt = t - 34;
     anim.tint_amount = bt < 16 ? 10 - bt * 10 / 16 : 0;
     if (bt < 20 && (bt < 14 || (bt & 1))) {
-        int sc = 96 + ease_out(bt, 16) * 380 / 256;
-        RnItem *it = rn_add(RN_G32, c->dx, c->dy - 4, RN_OT + RT_RING, RB_EL, 1, 5);
-        rn_xf(it, sc, sc, bt * 3, 0);
-        rn_ground(c->dx, c->fgy - 4, RT_RING, RB_ARC, 180 + bt * 18, 100, bt * 4, bt > 10);
+        int sc = 96 + ease_out(bt, 16) * 400 / 256;
+        rn_xf(rn_add(RN_G32, c->dx, c->dy - 4, RN_OT + RT_RING, RB_EL, 1, 5), sc, sc, bt * 3, 0);
+        rn_ground(c->dx, c->fgy, RT_RING, RB_ARC, 200 + bt * 16, 100, bt * 4, bt > 10);
     }
-    if (bt < 8) rn_xf(rn_hero(c->dx, c->dy - 4, RH_ANSUZ, RB_EL, 1, 20), 300 - bt * 24, 300 - bt * 24, 0, 0);
+    if (bt < 10) rn_xf(rn_hero(c->dx, c->dy - 4, RH_ANSUZ, RB_EL, 1, 20), 320 - bt * 20, 320 - bt * 20, 0, 0);
 }
 
 /* SIGIL SNARE: a seal opens on the ground under the foe, runes climb out
- * of its rim and circle, then clamp down on the foe's feet. */
+ * of its rim and circle, then clamp down on the foe's feet with chains of
+ * light. */
 static void rn_snare(const RnCtx *c)
 {
     int t = c->t, foe = c->foe;
     int cx = c->dx, gy = c->fgy - 2;
     anim.tint_side = foe;
-    anim.bg_amount = t < 64 ? 5 : 0;
-    /* the caster's glow */
-    if (t < 16 && (t & 3) == 0) rn_rise(c->sx, c->ugy - 2, 18, 2, RB_ARC);
+    anim.bg_amount = t < 66 ? 5 : 0;
+    /* the caster's glyph lights up first */
+    if (t < 20) {
+        int s = rn_persp(c->side) * ease_out(t, 10) / 256;
+        rn_xf(rn_glyph(c->sx + c->dir * 6, c->sy - 20, RG_INGWAZ, RB_EL, 1, 0), s * rc(t * 12) / 256, s, 0, 0);
+        if ((t & 3) == 0) rn_rise(c->sx, c->ugy, 20, 2, RB_EL);
+    }
     if (t >= 6) {
         int op = ease_out(t - 6, 14);
-        int fade = t > 62 ? (t - 62) * 20 : 0;
-        int sc = 480 * op / 256 - fade;
+        int fade = t > 64 ? (t - 64) * 30 : 0;
+        int sc = 500 * op / 256 - fade;
         if (sc > 16) {
-            rn_ground(cx, gy, RT_SEAL, RB_EL, sc, 96, t * 2 + (t > 44 ? (t - 44) * (t - 44) / 3 : 0), t > 66);
-            if (t < 60) rn_ground(cx, gy, RT_CIRCLE, RB_ARC_DIM, sc * 5 / 4, 96, -t * 3, 1);
+            rn_ground(cx, gy, RT_SEAL, RB_EL, sc, 100, t * 2 + (t > 44 ? (t - 44) * (t - 44) / 3 : 0), t > 66);
+            if (t < 62) rn_ground(cx, gy, RT_CIRCLE, RB_ARC_DIM, sc * 3 / 4, 100, -t * 3, 1);
         }
         if (t == 8) sfx_play(SFX_DREAM);
     }
     /* runes rise out of the rim, circle, then snap in */
     if (t >= 14 && t < 60) {
         int clamp = t < 44 ? 0 : ease_in(t - 44, 8);
-        int rx = 40 - 28 * clamp / 256, ry = 13 - 8 * clamp / 256;
+        int rx = 44 - 30 * clamp / 256, ry = 12 - 7 * clamp / 256;
         for (int i = 0; i < 6; i++) {
             int rt = t - 14 - i * 3;
             if (rt < 0) continue;
             int a = t * 3 + (t > 44 ? (t - 44) * 10 : 0) + i * 256 / 6;
-            int h = t < 44 ? 26 * ease_out(rt, 12) / 256 : 26 - 20 * clamp / 256;
+            int h = t < 44 ? 30 * ease_out(rt, 12) / 256 : 30 - 24 * clamp / 256;
             int depth = rs(a);
             int x = cx + rc(a) * rx / 256, y = gy + rs(a) * ry / 256 - h;
-            int s = 230 * (256 + depth / 4) / 256;
-            rn_xf(rn_glyph(x, y, i * 2 + 1, rn_el_bank(depth), rn_prio(depth), depth), s * rs(a) / 256 / 2 + s / 2, s,
+            int s = 300 * (256 + depth / 4) / 256;
+            rn_xf(rn_glyph(x, y, i * 2 + 1, rn_el_bank(depth), rn_prio(depth), depth), s * (128 + rs(a) / 2) / 256, s,
                   0, 0);
-            /* the chains: dots to the centre as it clamps */
-            if (clamp > 0 && (t & 1))
-                for (int k = 1; k < 3; k++)
-                    rn_spark(rn_lerp(x, cx, k * 85), rn_lerp(y, gy - 8, k * 85), 3, RB_EL, rn_prio(depth));
+            /* the chains: beads of light to the centre as it clamps */
+            if (clamp > 0)
+                for (int k = 1; k < 4; k++)
+                    rn_spark(rn_lerp(x, cx, k * 64), rn_lerp(y, gy - 10, k * 64), (k + t / 2) & 1 ? RS_SMALL : RS_LILAC,
+                             depth >= 0 ? RB_EL : RB_EL_MID, rn_prio(depth));
         }
     }
     if (impact_when(52, 0, cx, c->dy)) {
@@ -403,63 +447,61 @@ static void rn_snare(const RnCtx *c)
         rn_rise(cx, gy, 26, 8, RB_EL);
     }
     if (t >= 52) {
-        anim.scale_y[foe] = 256 - (t < 66 ? 22 : 22 - (t - 66) * 3);
+        anim.scale_y[foe] = 256 - (t < 66 ? 22 : 22 - (t - 66) * 2);
         anim.scale_x[foe] = 256 + (t < 66 ? 12 : 0);
         anim.mon_dx[foe] = t < 64 ? ((t & 2) ? 1 : -1) : 0;
         anim.tint_amount = t < 66 ? 9 : 4;
-        if (t < 68 && (t & 1)) rn_ring(cx, gy - 5, 12, 5, 0, t * 12, 6, 6, 1, 150, 0);
+        if (t < 70 && (t < 62 || (t & 1))) rn_ring(cx, gy - 5, 14, 5, 0, t * 12, 6, 6, 1, 200, 0);
     }
 }
 
 /* ALGIZ WARD: two rings of runes, leaned opposite ways, spin round the user
- * like an armillary; the ALGIZ rune rises and a warding shell flashes. */
+ * like an armillary; the ALGIZ rune rises and a warding shell closes. */
 static void rn_ward(const RnCtx *c)
 {
     int t = c->t, side = c->side;
-    int cx = c->sx, cy = c->sy - 4, gy = c->ugy - 2;
-    int base = rn_persp(side) * 200 / 256;
+    int cx = c->sx, cy = c->sy - 6, gy = c->ugy;
+    int base = rn_persp(side) * 240 / 256;
     anim.tint_side = side;
-    anim.tint_color = RGB15(10, 28, 26);
-    if (t < 20) rn_ground(cx, gy, RT_RING, RB_EL, 520 * ease_out(t, 16) / 256, 90, t * 3, 1);
-    else if (t < 66) rn_ground(cx, gy, RT_SEAL, RB_EL_MID, 440 + rs(t * 8) * 16 / 256, 90, t * 3, 1);
+    anim.tint_color = RGB15(31, 28, 16);
+    if (t < 20) rn_ground(cx, gy, RT_RING, RB_EL, 500 * ease_out(t, 16) / 256, 90, t * 3, 1);
+    else if (t < 66) rn_ground(cx, gy, RT_SEAL, RB_EL, 480 + rs(t * 8) * 16 / 256, 90, t * 3, 1);
     if (t == 4) sfx_play(SFX_SPARKLE);
     if (t < 60) {
         int shown = clampi((t - 4) / 3, 0, 5);
-        int r = t < 42 ? 38 : 38 - (t - 42) * 12 / 18;
-        int spd = t * 5 + t * t / 36;
+        int r = t < 42 ? 40 : 40 - (t - 42) * 12 / 18;
+        int spd = t * 4 + t * t / 40;
         rn_ring(cx, cy, r, r * 5 / 16, 26, spd, 5, shown, RG_ALGIZ, base, 1);
         rn_ring(cx, cy, r, r * 5 / 16, -26, -spd + 20, 5, shown, RG_OTHALA, base, 1);
     }
-    if (t >= 16 && t < 66) {
-        int rt = t - 16;
-        int s = 60 + ease_out(rt, 20) * 200 / 256;
-        int y = cy - 30 - ease_out(rt, 24) * 8 / 256 + rs(t * 6) * 2 / 256;
+    if (t >= 14 && t < 66) {
+        int rt = t - 14;
+        int s = 60 + ease_out(rt, 20) * 220 / 256;
+        int y = cy - 6 - ease_out(rt, 24) * 14 / 256 + rs(t * 6) * 2 / 256;
         rn_xf(rn_hero(cx, y, RH_ALGIZ, RB_EL, 1, 40), s * rc(rs(t * 3) / 5) / 256, s, 0, 0);
-        if ((t & 3) == 0) rn_rise(cx, gy, 20, 1, RB_EL);
+        if ((t & 3) == 0) rn_rise(cx, gy, 22, 1, RB_EL);
     }
-    if (self_pulse_when(46)) {
-        anim.bright = 6;
-        sfx_play(SFX_STAT_UP);
-    }
+    if (self_pulse_when(46)) sfx_play(SFX_STAT_UP);
     if (t >= 44 && t < 70 && (t < 62 || (t & 1))) {
-        int s = 330 + ease_out(t - 44, 10) * 110 / 256;
+        int s = 380 + ease_out(t - 44, 10) * 110 / 256;
         RnItem *it = rn_add(RN_G32, cx, cy - 2, RN_OT + RT_RING, RB_EL, 1, 60);
         rn_xf(it, s, s * 15 / 16, t * 2, 0);
         if (it) it->flags = ATTR0_BLEND;
     }
-    anim.tint_amount = t < 44 ? t / 6 : t < 56 ? 10 : 10 - (t - 56) * 2 / 3;
+    anim.tint_amount = t < 44 ? t / 11 : t < 52 ? 7 : 7 - (t - 52) / 3;
 }
 
 /* KENAZ FLARE: the torch rune forms over the user turning on its axis,
- * flies over the foe, stamps into the ground and a pillar of flame and a
+ * flies over the foe, stamps into the ground; a pillar of flame and a
  * helix of embers roar up out of a fire circle. */
 static void rn_kenaz(const RnCtx *c)
 {
     int t = c->t, foe = c->foe;
-    int hx = c->sx, hy = c->sy - 30;
-    int tx = c->dx, ty = c->dy - 34;
+    int hx = c->sx + c->dir * 6, hy = c->sy - 26;
+    int tx = c->dx, ty = c->dy - 18;
+    int hs = rn_persp(c->side) * 280 / 300;
     if (t < 18) {
-        int s = rn_persp(c->side) * 220 / 300 * ease_out(t, 14) / 256;
+        int s = hs * ease_out(t, 14) / 256;
         rn_xf(rn_hero(hx, hy, RH_KENAZ, RB_EL, 1, 20), s * rc(t * 14) / 256, s, 0, 0);
         if (t & 1) rn_part(RNP_SPARK, hx + fx_rand(40) - 20, hy + 16, 0, -10 - fx_rand(10), 12, 0, RB_EL);
         if (t == 2) sfx_play(SFX_FIRE);
@@ -467,55 +509,56 @@ static void rn_kenaz(const RnCtx *c)
     }
     if (t < 34) {
         int u = rn_smooth(t - 18, 16);
-        int x = rn_lerp(hx, tx, u), y = rn_lerp(hy, ty, u) - rs(u / 2) * 20 / 256;
-        int s = rn_lerp(rn_persp(c->side) * 220 / 300, rn_persp(foe) * 250 / 210, u);
+        int x = rn_lerp(hx, tx, u), y = rn_lerp(hy, ty, u) - rs(u / 2) * 12 / 256;
+        int s = rn_lerp(hs, rn_persp(foe) * 300 / 210, u);
         rn_xf(rn_hero(x, y, RH_KENAZ, RB_EL, 1, 20), s * rc(t * 20) / 256, s, 0, rs(t * 9) / 24);
         rn_part(RNP_SPARK, x, y + 6, -c->dir * 6, 4, 10, 1, RB_EL);
         return;
     }
-    /* the stamp: falls and lies flat on the ground */
+    /* the stamp: drops and lies down flat on the ground */
     if (t < 40) {
         int u = ease_in(t - 34, 6);
-        int s = 300;
-        rn_xf(rn_hero(tx, rn_lerp(ty, c->fgy - 6, u), RH_KENAZ, RB_EL, 1, 20), s, s - 180 * u / 256, 0, 0);
+        rn_xf(rn_hero(tx, rn_lerp(ty, c->fgy - 4, u), RH_KENAZ, RB_EL, 1, 20), 300, 300 - 190 * u / 256, 0, 0);
         return;
     }
     if (impact_when(40, c->st, tx, c->dy)) {
         sfx_play(SFX_FIRE);
         shake(64, 1);
-        anim.bright = 8;
         rn_burst(tx, c->fgy - 8, 8, 34, 0, 3);
     }
     int ft = t - 40;
-    anim.bg_amount = ft < 30 ? 9 : 4;
-    anim.bg_color = RGB15(31, 12, 4);
+    anim.bg_amount = ft < 30 ? 5 : 2;
+    anim.bg_color = RGB15(24, 6, 2);
     anim.tint_side = foe;
     anim.tint_amount = ft < 24 ? 10 + (ft & 2) * 2 : 6;
     /* the fire circle and the burnt-in rune */
-    int cs = 300 + ease_out(ft, 8) * 220 / 256;
-    rn_ground(tx, c->fgy - 2, RT_CIRCLE, RB_EL, cs, 90, t * 9, ft > 26);
-    if (ft < 30) rn_xf(rn_hero(tx, c->fgy - 3, RH_KENAZ, RB_EL, 2, -1500), 300, 110, 0, 0);
-    /* the pillar: tiled beam segments, rising then thinning */
-    int h = ease_out(ft, 6) * 120 / 256;
-    int w = ft < 22 ? 300 + rs(t * 40) * 40 / 256 : 300 - (ft - 22) * 24;
+    int cs = 300 + ease_out(ft, 8) * 200 / 256;
+    rn_ground(tx, c->fgy, RT_CIRCLE, RB_EL, cs, 100, t * 9, ft > 26);
+    if (ft < 30) rn_xf(rn_hero(tx, c->fgy - 1, RH_KENAZ, RB_EL, 2, -1500), 300, 110, 0, 0);
+    /* the pillar: a bright core and a wider see-through glow, tiled up */
+    int h = ease_out(ft, 6) * 130 / 256;
+    int w = ft < 22 ? 380 + rs(t * 40) * 50 / 256 : 380 - (ft - 22) * 30;
     if (w > 24)
-        for (int y = c->fgy - 16; y > c->fgy - 16 - h; y -= 30) {
-            RnItem *it = rn_add(RN_TALL, tx, y, RN_OT + RT_BEAM, RB_EL, 1, 0);
-            rn_xf(it, w, 256 + ((ft & 2) ? 16 : 0), 0, 0);
-            if (it) it->flags = ATTR0_BLEND;
+        for (int y = c->fgy - 14; y > c->fgy - 14 - h; y -= 30) {
+            RnItem *core = rn_add(RN_TALL, tx, y, RN_OT + RT_BEAM, RB_EL, 1, 0);
+            rn_xf(core, w * 5 / 4, 256 + ((ft & 2) ? 16 : 0), 0, 0);
+            if (core && ft > 3) core->flags = ATTR0_BLEND;
+            for (int k = -1; k <= 1; k += 2)
+                rn_xf(rn_add(RN_TALL, tx + k * 11, y + 8 + k * 6, RN_OT + RT_BEAM, RB_EL_MID, 1, -1), w, 256, 0, 0);
         }
     /* a helix of embers round the foe */
-    for (int k = 0; k < 10; k++) {
-        int et = (ft * 2 + k * 12) % 64;
+    for (int k = 0; k < 12; k++) {
+        int et = (ft * 2 + k * 11) % 64;
         if (ft > 30 && et < ft - 30) continue;
-        int a = et * 10 + k * 26;
+        int a = et * 10 + k * 22;
         int depth = rs(a);
-        int x = tx + rc(a) * (26 - et / 5) / 256, y = c->fgy - 8 - et + depth * 6 / 256;
-        rn_add(RN_SPARK8, x, y, RN_OT + RT_SPARK + RS_EMBER - (et > 40), depth >= 0 ? RB_EL : RB_EL_MID,
+        int x = tx + rc(a) * (30 - et / 5) / 256, y = c->fgy - 6 - et + depth * 6 / 256;
+        rn_add(RN_SPARK8, x, y, RN_OT + RT_SPARK + (et > 40 ? RS_SMALL : RS_EMBER), depth >= 0 ? RB_EL : RB_EL_MID,
                rn_prio(depth), depth);
     }
-    if (ft < 24 && (ft & 1)) fx_spr(tx + fx_rand(30) - 15, c->fgy - 20 - fx_rand(30), fx_frame(FX_FLAME_A, FX_FLAME_B, t),
-                                    OBANK_FX_A);
+    if (ft < 28)
+        for (int k = 0; k < 2; k++)
+            fx_spr(tx + fx_rand(36) - 18, c->fgy - 12 - fx_rand(40), fx_frame(FX_FLAME_A, FX_FLAME_B, t + k * 4), OBANK_FX_A);
 }
 
 /* RUNE ORBIT: eight runes gather round the foe on a ring that leans and
@@ -524,35 +567,35 @@ static void rn_orbit(const RnCtx *c)
 {
     int t = c->t;
     int cx = c->dx, gy = c->fgy - 2;
-    int spin = 2 * t + t * t * t / 2200;
-    anim.bg_amount = t < 84 ? 10 : 0;
+    int spin = 2 * t + t * t * t / 2400;
+    anim.bg_amount = t < 86 ? 10 : 0;
     anim.bg_color = RGB15(4, 2, 12);
     /* the circle on the ground */
     if (t < 80) {
-        int sc = 460 * ease_out(t, 16) / 256 - (t > 70 ? (t - 70) * 30 : 0);
-        rn_ground(cx, gy, RT_CIRCLE, RB_ARC, sc, 96, spin / 2, 0);
-        if (t > 10 && (t % 3) == 0) rn_rise(cx, gy, 26, 1, RB_ARC);
+        int sc = 480 * ease_out(t, 16) / 256 - (t > 70 ? (t - 70) * 40 : 0);
+        if (sc > 16) rn_ground(cx, gy, RT_CIRCLE, RB_ARC, sc, 100, spin / 2, 0);
+        if (t > 10 && (t % 3) == 0) rn_rise(cx, gy, 28, 1, RB_ARC);
     }
     if (t == 6) sfx_play(SFX_ASTRAL);
     if (t == 44) sfx_play(SFX_CHARGE);
     if (t < 76) {
         int p = rn_smooth(t - 8, 64);
-        int rx = 46 - 36 * p / 256;
-        int lean = rs(t * 3) * 22 / 256;
-        int incl = 72 + rs(t * 2 + 40) * 30 / 256;          /* ring seen from 72/256 up */
-        int cy = rn_lerp(gy - 8, c->dy - 6, ease_out(t, 30));
+        int rx = 58 - 46 * p / 256;
+        int lean = rs(t * 3) * 24 / 256;
+        int incl = 80 + rs(t * 2 + 40) * 34 / 256;          /* how far the ring is tipped toward us */
+        int cy = rn_lerp(gy - 6, c->dy - 8, ease_out(t, 30));
         int shown = clampi(t / 3 - 1, 0, 8);
-        int s = 220 - 70 * p / 256;
+        int s = 330 - 110 * p / 256;
         rn_ring(cx, cy, rx, rx * incl / 256, lean, spin, 8, shown, 0, s, 0);
         /* a counter-ring of motes on the other slant */
         if (t > 20)
             for (int k = 0; k < 6; k++) {
                 int a = -spin * 3 / 2 + k * 43, depth = rc(a);
                 int x = cx + rs(a) * rx / 3 / 256, y = cy + rc(a) * rx * 3 / 4 / 256 + rs(a) * 6 / 256;
-                rn_add(RN_SPARK8, x, y, RN_OT + RT_SPARK + (k & 1 ? RS_MOTE : RS_SMALL),
+                rn_add(RN_SPARK8, x, y, RN_OT + RT_SPARK + (k & 1 ? RS_MOTE : RS_STAR),
                        depth >= 0 ? RB_ARC : RB_ARC_DIM, rn_prio(depth), depth);
             }
-        if (t > 66) anim.bright = (t - 66) * 12 / 10;
+        if (t > 64) anim.bright = (t - 64) * 14 / 12;
         anim.tint_side = c->foe;
         anim.tint_amount = t / 10;
         return;
@@ -562,16 +605,16 @@ static void rn_orbit(const RnCtx *c)
         rn_burst(cx, c->dy - 6, 12, 36, 1, 1);
     }
     int bt = t - 76;
-    anim.bright = bt < 3 ? 14 : 0;
+    anim.bright = bt < 4 ? 14 - bt * 3 : 0;
     for (int k = 0; k < 2; k++) {
         int kt = bt - k * 4;
         if (kt < 0 || kt >= 16) continue;
-        int sc = 80 + ease_out(kt, 14) * 440 / 256;
+        int sc = 80 + ease_out(kt, 14) * 420 / 256;
         RnItem *it = rn_add(RN_G32, cx, c->dy - 6, RN_OT + RT_RING, k ? RB_ARC : RB_EL, 1, 10 - k);
         rn_xf(it, sc, sc, kt * 5, 0);
         if (it && kt > 9) it->flags = ATTR0_BLEND;
     }
-    if (bt < 18) rn_ground(cx, gy, RT_RING, RB_ARC, 200 + ease_out(bt, 16) * 400 / 256, 90, bt * 6, bt > 8);
+    if (bt < 18) rn_ground(cx, gy, RT_RING, RB_ARC, 200 + ease_out(bt, 16) * 300 / 256, 100, bt * 6, bt > 8);
 }
 
 /* THURS SPIKE: the user stamps, thorn runes race flat along the ground,
@@ -587,22 +630,24 @@ static void rn_thurs(const RnCtx *c)
         shake(40, 1);
         sfx_play(SFX_ROCK);
     }
-    if (t >= 5 && t < 22) rn_ground(c->sx, c->ugy - 2, RT_SEAL, RB_EL, 200 + (t - 5) * 18, 96, t * 6, t > 14);
-    /* three thorn runes lying flat, racing to the foe */
+    int x0 = c->sx + c->dir * 22, y0 = c->ugy;
+    if (t >= 5 && t < 22) rn_ground(x0, y0, RT_SEAL, RB_EL, 220 + (t - 5) * 18, 96, t * 6, t > 14);
+    /* three thorn runes lying flat, racing to the foe round the panels */
+    int bx = ALLY_X + 52, by = rn_gy(SIDE_ENEMY) + 4;
     for (int k = 0; k < 3; k++) {
         int rt = t - 8 - k * 5;
-        if (rt < 0 || rt >= 20) continue;
-        int u = rn_smooth(rt, 20);
-        int x = rn_lerp(c->sx + c->dir * 12, c->dx, u), y = rn_lerp(c->ugy - 3, c->fgy - 3, u);
-        int s = rn_lerp(rn_persp(side), rn_persp(foe), u);
-        rn_xf(rn_glyph(x, y, RG_THURISAZ, RB_EL, 2, -1000 + k), s, s * 110 / 256, 0, 0);
-        if ((rt & 3) == 0) rn_part(RNP_SPARK, x, y, 0, -8, 10, 1, RB_EL_MID);
+        if (rt < 0 || rt >= 22) continue;
+        int u = rn_smooth(rt, 22);
+        int x = rn_bez(x0, bx, c->dx, u), y = rn_bez(y0, by, c->fgy, u);
+        int s = rn_lerp(rn_persp(side), rn_persp(foe), u) * 5 / 4;
+        rn_xf(rn_glyph(x, y, RG_THURISAZ, RB_EL, 2, -1000 + k), s, s * 120 / 256, 0, 0);
+        if ((rt & 1) == 0) rn_part(RNP_SPARK, x, y, 0, -10, 10, 1, RB_EL);
     }
-    int gx = c->dx, gy = c->fgy - 1;
-    if (t >= 26 && t < 40) {
-        int s = 260 * ease_out(t - 26, 8) / 256;
-        rn_xf(rn_hero(gx, gy - 2, RH_THURISAZ, RB_EL, 2, -1500), s, s * 100 / 256, 0, 0);
-        rn_ground(gx, gy, RT_SEAL, RB_ARC, 200 + (t - 26) * 16, 96, t * 5, 1);
+    int gx = c->dx, gy = c->fgy;
+    if (t >= 28 && t < 40) {
+        int s = 280 * ease_out(t - 28, 8) / 256;
+        rn_xf(rn_hero(gx, gy - 1, RH_THURISAZ, RB_EL, 2, -1500), s, s * 100 / 256, 0, 0);
+        rn_ground(gx, gy, RT_SEAL, RB_ARC, 220 + (t - 28) * 18, 100, t * 5, 1);
     }
     if (impact_when(36, c->st, gx, c->dy)) {
         shake(80, 1);
@@ -611,42 +656,43 @@ static void rn_thurs(const RnCtx *c)
     }
     if (t >= 36) {
         int et = t - 36;
-        int h = et < 5 ? et * 330 / 5 : et < 9 ? 330 - (et - 5) * 18 : et < 14 ? 256 : 256 - (et - 14) * 20;
+        int h = et < 5 ? et * 330 / 5 : et < 9 ? 330 - (et - 5) * 18 : et < 16 ? 256 : 256 - (et - 16) * 20;
         if (h > 16) {
             for (int i = 0; i < 7; i++) {
                 int a = i * 256 / 7 + 18;
                 int depth = rs(a);
-                int bx = gx + rc(a) * 34 / 256, by = gy + rs(a) * 11 / 256;
-                int ls = rn_persp(foe) * (224 + depth / 5) / 256;
+                int px = gx + rc(a) * 36 / 256, py = gy + rs(a) * 10 / 256;
+                int ls = rn_persp(foe) * (240 + depth / 5) / 256;
                 int hh = h * ls / 256 * (i & 1 ? 200 : 256) / 256;
-                int lean = -rc(a) * 26 / 256;
+                int lean = -rc(a) * 28 / 256;
                 int d = 16 * hh / 256;
-                RnItem *it = rn_add(RN_TALL, bx + (rs(lean) * d >> 8), by - (rc(lean) * d >> 8), RN_OT + RT_SPIKE,
-                                    rn_el_bank(depth), rn_prio(depth), depth);
-                rn_xf(it, ls * 200 / 256, hh, 0, lean);
+                RnItem *it = rn_add(RN_TALL, px + (rs(lean) * d >> 8), py - (rc(lean) * d >> 8), RN_OT + RT_SPIKE,
+                                    depth >= 0 ? RB_EL : RB_EL_MID, rn_prio(depth), depth);
+                rn_xf(it, ls * 220 / 256, hh, 0, lean);
             }
             /* the great thorn behind the foe */
-            int hh = h * 400 / 256, d = 16 * hh / 256;
-            rn_xf(rn_add(RN_TALL, gx, gy - 4 - d, RN_OT + RT_SPIKE, RB_EL, 2, -300), 380, hh, 0, 0);
+            int hh = h * 420 / 256, d = 16 * hh / 256;
+            rn_xf(rn_add(RN_TALL, gx, gy - 2 - d, RN_OT + RT_SPIKE, RB_EL, 2, -300), 400, clampi(hh, 0, 500), 0, 0);
         }
         anim.mon_dy[foe] = et < 6 ? -et * 3 : et < 16 ? -18 + (et - 6) * 18 / 10 : 0;
         if (et < 20) anim.scale_y[foe] = 256 + (et < 6 ? 20 : 0);
-        if (et == 26) {
+        if (et == 28) {
             rn_burst(gx, gy - 10, 10, 26, 0, 4);
             sfx_play(SFX_ROCK);
         }
     }
 }
 
-/* RAIDO RUSH: a rune gate stands up across the path, the user dashes
- * through it (afterimages, the gate flares) and slams into the foe. */
+/* RAIDO RUSH: a rune gate stands up across the path, runes riding its rim;
+ * the user dashes through it (afterimages, the gate flares) and slams into
+ * the foe, where a second gate bursts. */
 static void rn_raido(const RnCtx *c)
 {
     int t = c->t, side = c->side;
-    int gx = c->sx + c->dir * 26, gy = c->sy - 8 - (c->dir > 0 ? 8 : -4);
-    int thin = 140, tall = rn_persp(side) * 300 / 256;
+    int gx = c->sx + c->dir * 28, gy = c->sy - 12;
+    int thin = 150, tall = rn_persp(side) * 290 / 256;
     int grow = t < 26 ? ease_out(t, 10) : 256 - ease_in(t - 26, 14);
-    int flare = (t >= 13 && t < 22) ? 256 + (22 - t) * 16 : 256;
+    int flare = (t >= 13 && t < 22) ? 256 + (22 - t) * 14 : 256;
     if (grow > 8) {
         int sx = thin * grow / 256 * flare / 256, sy = tall * grow / 256 * flare / 256;
         RnItem *it = rn_add(RN_G32, gx, gy, RN_OT + RT_SEAL, RB_EL, 1, 0);
@@ -657,7 +703,8 @@ static void rn_raido(const RnCtx *c)
             int a = t * 6 + i * 256 / 6, ox, oy;
             rn_map(rc(a) * 15 / 256, rs(a) * 15 / 256, sx, sy, 0, c->path, &ox, &oy);
             int depth = -rc(a) * c->dir;
-            rn_xf(rn_glyph(gx + ox, gy + oy, RG_RAIDO, rn_el_bank(depth), rn_prio(depth), depth), 180, 180, 0, 0);
+            rn_xf(rn_glyph(gx + ox, gy + oy, RG_RAIDO, depth >= 0 ? RB_EL : RB_EL_MID, rn_prio(depth), depth), 200,
+                  200, 0, 0);
         }
     }
     if (t == 2) sfx_play(SFX_SPARKLE);
@@ -670,7 +717,6 @@ static void rn_raido(const RnCtx *c)
         anim.scale_x[side] = 296;
         anim.scale_y[side] = 222;
         if (t == 13) {
-            anim.bright = 5;
             sfx_play(SFX_WIND);
             rn_burst(gx, gy, 8, 26, 0, 0);
         }
@@ -678,12 +724,12 @@ static void rn_raido(const RnCtx *c)
         for (int k = 0; k < 3; k++) {
             int u = ((t - 12) * 40 + k * 70) % 256;
             int x = rn_lerp(gx, c->dx, u), y = rn_lerp(gy, c->dy, u) + (k - 1) * 10;
-            rn_xf(rn_glyph(x, y, RG_RAIDO, RB_EL_MID, 1, 0), 256, 256, 0, c->path + 64);
+            rn_xf(rn_glyph(x, y, RG_RAIDO, RB_EL, 1, 0), 300, 180, 0, c->path + 64);
         }
     }
     if (impact_when(19, c->st, c->dx, c->dy)) rn_burst(c->dx - c->dir * 8, c->dy, 8, 30, 1, 1);
     if (t >= 19 && t < 34 && (t < 28 || (t & 1))) {
-        int sc = 120 + ease_out(t - 19, 12) * 300 / 256;
+        int sc = 140 + ease_out(t - 19, 12) * 300 / 256;
         rn_xf(rn_add(RN_G32, c->dx - c->dir * 6, c->dy, RN_OT + RT_RING, RB_EL, 1, 10), sc * 160 / 256, sc, t * 4,
               c->path);
     }
@@ -694,10 +740,10 @@ static void rn_raido(const RnCtx *c)
 static void rn_isa(const RnCtx *c)
 {
     int t = c->t, foe = c->foe;
-    int cx = c->dx - c->dir * 4, cy = c->dy - 6;
+    int cx = c->dx - c->dir * 4, cy = c->dy - 8;
     anim.bg_amount = t < 62 ? 6 : 0;
     anim.bg_color = RGB15(8, 16, 30);
-    if (t < 12 && (t & 1)) {
+    if (t < 14 && (t & 1)) {
         int a = fx_rand(256);
         rn_part(RNP_SPARK, cx + rc(a) * 40 / 256, cy + rs(a) * 30 / 256, -rc(a) * 3 / 64, -rs(a) * 3 / 64, 12, 0,
                 RB_EL);
@@ -705,8 +751,8 @@ static void rn_isa(const RnCtx *c)
     if (t == 4) sfx_play(SFX_ICE);
     if (t >= 4 && t < 36) {
         int rt = t - 4;
-        int s = rn_persp(foe) * 330 / 210 * ease_out(rt, 12) / 256;
-        if (t >= 30) s = s + (t - 30) * 50;
+        int s = rn_persp(foe) * 360 / 210 * ease_out(rt, 12) / 256;
+        if (t >= 30) s = clampi(s + (t - 30) * 36, 0, 500);
         /* the yaw slows from a blur to face-on at rt = 26 */
         int left = rt < 26 ? 26 - rt : 0;
         int yaw = left * left * 3 / 2;
@@ -717,44 +763,40 @@ static void rn_isa(const RnCtx *c)
         if (it && t >= 30) it->flags = ATTR0_BLEND;
         if (t < 32) rn_xf(rn_hero(cx, cy, RH_ISA, bank, 1, 5), sx * 200 / 256, s * 200 / 256, 0, 0);
     }
-    if (impact_when(32, c->st, c->dx, c->dy)) {
-        anim.bright = 8;
-        sfx_play(SFX_ICE);
-    }
+    if (impact_when(32, c->st, c->dx, c->dy)) sfx_play(SFX_ICE);
     if (t >= 32) {
         int ft = t - 32;
         anim.tint_side = foe;
         anim.tint_color = RGB15(22, 28, 31);
         anim.tint_amount = ft < 26 ? 13 : 13 - (ft - 26);
         anim.scale_x[foe] = ft < 26 ? 262 : 256;
-        if (ft < 20) rn_ground(c->dx, c->fgy - 2, RT_RING, RB_EL, 200 + ft * 16, 96, ft * 2, ft > 12);
+        if (ft < 20) rn_ground(c->dx, c->fgy, RT_RING, RB_EL, 220 + ft * 16, 100, ft * 2, ft > 12);
         if (ft < 26) {
             for (int i = 0; i < 8; i++) {
                 int a = i * 32 + 12 + (i & 1) * 6;
                 int depth = (i & 2) ? 60 : -60;
-                int len = (i & 1) ? 180 : 250;
+                int len = (i & 1) ? 200 : 270;
                 int hh = len * ease_out(ft - (i & 3), 8) / 256;
                 if (hh < 16) continue;
-                /* a spike grows out from the centre along angle a */
+                /* a crystal grows out of the centre along angle a */
                 int d = 16 * hh / 256;
-                int tilt = a + 64;          /* its point aims outward */
-                RnItem *it = rn_add(RN_TALL, c->dx + (rc(a) * d >> 8), c->dy - 4 + (rs(a) * d >> 8),
-                                    RN_OT + RT_SPIKE, rn_el_bank(depth), rn_prio(depth), depth);
-                rn_xf(it, 170, hh, 0, tilt);
+                RnItem *it = rn_add(RN_TALL, c->dx + (rc(a) * d >> 8), c->dy - 6 + (rs(a) * d >> 8), RN_OT + RT_SPIKE,
+                                    depth >= 0 ? RB_EL : RB_EL_MID, rn_prio(depth), depth);
+                rn_xf(it, 180, hh, 0, a + 64);
             }
         }
         if (ft == 26) {
             sfx_play(SFX_ICE);
             for (int k = 0; k < 12; k++) {
                 int a = k * 21 + fx_rand(10), sp = 24 + fx_rand(16);
-                rn_part(RNP_SPARK, c->dx + rc(a) * 16 / 256, c->dy - 4 + rs(a) * 16 / 256, rc(a) * sp / 256,
+                rn_part(RNP_SPARK, c->dx + rc(a) * 16 / 256, c->dy - 6 + rs(a) * 16 / 256, rc(a) * sp / 256,
                         rs(a) * sp / 256 - 10, 16 + fx_rand(8), 3, RB_EL);
             }
         }
         if (ft >= 26 && ft < 40 && (ft & 1))
-            for (int k = 0; k < 4; k++)
-                rn_add(RN_SPARK8, c->dx + rc(k * 64 + ft * 9) * (ft - 20) / 256, c->dy - 4 + rs(k * 64 + ft * 9) * (ft - 20) / 256,
-                       RN_OT + RT_SPARK + RS_SHARD, RB_EL, 1, 0);
+            for (int k = 0; k < 5; k++)
+                rn_add(RN_SPARK8, c->dx + rc(k * 51 + ft * 9) * (ft - 18) / 256,
+                       c->dy - 6 + rs(k * 51 + ft * 9) * (ft - 18) / 256, RN_OT + RT_SPARK + RS_SHARD, RB_EL, 1, 0);
     }
 }
 
@@ -763,17 +805,16 @@ static void rn_isa(const RnCtx *c)
 static void rn_sowilo(const RnCtx *c)
 {
     int t = c->t, side = c->side, foe = c->foe;
-    int ox = c->sx + c->dir * 22, oy = c->sy - 12;
+    int ox = c->sx + c->dir * 22, oy = c->sy - 14;
     int grow = t < 48 ? ease_out(t, 12) : 256 - ease_in(t - 48, 14);
-    anim.bg_amount = t < 52 ? 8 : 0;
+    anim.bg_amount = t < 52 ? 6 : 0;
     anim.bg_color = RGB15(31, 22, 6);
     if (t == 2) sfx_play(SFX_CHARGE);
     if (grow > 8) {
-        int s = rn_persp(side) * grow / 256;
-        RnItem *it = rn_add(RN_G32, ox, oy, RN_OT + RT_SEAL, RB_EL, 1, -10);
-        rn_xf(it, s * 150 / 256, s * 290 / 256, t * (t < 16 ? t / 2 : 8), c->path);
+        int s = rn_persp(side) * 5 / 4 * grow / 256;
+        rn_gate(c, ox, oy, RT_SEAL, RB_EL, s, t * (t < 16 ? t / 2 : 8));
         rn_xf(rn_hero(ox, oy, RH_SOWILO, RB_EL, 1, 0), s * 140 / 256, s * 200 / 256, 0, rs(t * 4) / 40);
-        rn_ground(c->sx, c->ugy - 2, RT_CIRCLE, RB_ARC, s * 3 / 2, 90, -t * 4, 1);
+        rn_ground(c->sx, c->ugy, RT_CIRCLE, RB_ARC, s * 3 / 2, 90, -t * 4, 1);
     }
     if (t < 16 && (t & 1)) {
         int a = fx_rand(256);
@@ -782,90 +823,101 @@ static void rn_sowilo(const RnCtx *c)
     if (t >= 16 && t < 50) {
         int bt = t - 16;
         int reach = ease_out(bt, 6);
-        int w = bt < 26 ? 240 + rs(t * 36) * 40 / 256 : 240 - (bt - 26) * 30;
-        int ang = rn_angle_of(c->dy - oy, -(c->dx - ox));
-        int len = 0;
-        {
-            int ddx = c->dx - ox, ddy = c->dy - 4 - oy;
-            len = 0;
-            while (len * len < ddx * ddx + ddy * ddy) len++;
-        }
+        int w = bt < 26 ? 260 + rs(t * 36) * 40 / 256 : 260 - (bt - 26) * 32;
+        int ex = c->dx, ey = c->dy - 4;
+        int ang = rn_angle_of(ey - oy, -(ex - ox));
+        int ddx = ex - ox, ddy = ey - oy, len = 0;
+        while (len * len < ddx * ddx + ddy * ddy) len++;
         int segs = len / 24 + 1;
         if (w > 20)
             for (int k = 0; k < segs; k++) {
                 int u = (k * 256 + 128) / segs;
                 if (u > reach) break;
-                int x = rn_lerp(ox, c->dx, u), y = rn_lerp(oy, c->dy - 4, u);
                 int ps = rn_lerp(rn_persp(side), rn_persp(foe), u);
-                RnItem *it = rn_add(RN_TALL, x, y, RN_OT + RT_BEAM, RB_EL, 1, -5);
+                RnItem *it = rn_add(RN_TALL, rn_lerp(ox, ex, u), rn_lerp(oy, ey, u), RN_OT + RT_BEAM, RB_EL, 1, -5);
                 rn_xf(it, w * ps / 256, len * 8 / segs + 12, 0, ang);
             }
         /* bright nodes running down the beam */
         if (reach >= 256 && bt < 30)
             for (int k = 0; k < 3; k++) {
                 int u = (bt * 24 + k * 85) & 255;
-                rn_spark(rn_lerp(ox, c->dx, u), rn_lerp(oy, c->dy - 4, u), RS_STAR, RB_EL, 1);
+                rn_spark(rn_lerp(ox, ex, u), rn_lerp(oy, ey, u), RS_STAR, RB_EL, 1);
             }
-        anim.bright = bt < 4 ? 6 : (bt & 4) ? 2 : 0;
     }
     if (impact_when(22, c->st, c->dx, c->dy)) rn_burst(c->dx, c->dy - 4, 8, 28, 0, 1);
     if (t >= 22 && t < 50) {
         int ft = t - 22;
-        int sc = 200 + rs(t * 20) * 40 / 256;
+        int sc = 220 + rs(t * 20) * 40 / 256;
         rn_xf(rn_add(RN_G32, c->dx, c->dy - 4, RN_OT + RT_RING, RB_EL, 1, 20), sc * 170 / 256, sc, ft * 9, c->path);
         anim.tint_side = foe;
         anim.tint_amount = ft < 20 ? 11 : 4;
-        if ((ft & 3) == 0) rn_rise(c->dx, c->fgy - 2, 22, 1, RB_EL);
+        if ((ft & 3) == 0) rn_rise(c->dx, c->fgy, 22, 1, RB_EL);
     }
 }
 
-/* RUNE SIPHON: circles open under both kin; motes and runes are drawn out
- * of the foe on spiralling paths (helix round the flight line, in depth)
- * and sink into the user, who glows. */
+/* RUNE SIPHON: circles open under both kin; a ribbon of motes and runes is
+ * drawn out of the foe along a helix round the flight line (in depth: in
+ * front bright, behind see-through) and sinks into the user, who glows. */
 static void rn_siphon(const RnCtx *c)
 {
     int t = c->t, side = c->side, foe = c->foe;
-    int op = t < 64 ? ease_out(t, 12) : 256 - (t - 64) * 18;
+    int op = t < 66 ? ease_out(t, 12) : 256 - (t - 66) * 18;
     if (op > 10) {
-        rn_ground(c->dx, c->fgy - 2, RT_CIRCLE, RB_ARC, 440 * op / 256, 96, t * 4, 1);
-        rn_ground(c->sx, c->ugy - 2, RT_SEAL, RB_EL, 520 * op / 256, 96, -t * 3, 1);
+        rn_ground(c->dx, c->fgy, RT_CIRCLE, RB_ARC, 460 * op / 256, 100, t * 4, 1);
+        rn_ground(c->sx, c->ugy, RT_SEAL, RB_EL, 500 * op / 256, 96, -t * 3, 1);
     }
     if (t == 4) sfx_play(SFX_DRAIN);
-    if (impact_when(14, c->st, c->dx, c->dy)) rn_rise(c->dx, c->fgy - 2, 24, 4, RB_EL);
-    if (t >= 12 && t < 50) {
+    if (impact_when(14, c->st, c->dx, c->dy)) rn_rise(c->dx, c->fgy, 24, 4, RB_EL);
+    if (t >= 12 && t < 52) {
         anim.tint_side = foe;
         anim.tint_amount = 7 + ((t >> 2) & 1) * 3;
     }
-    for (int i = 0; i < 11; i++) {
-        int rt = t - 12 - i * 4;
-        if (rt < 0 || rt >= 26) continue;
-        int u = rn_smooth(rt, 26);
-        int bx = rn_lerp(c->dx, c->sx, u), by = rn_lerp(c->dy - 4, c->sy - 6, u) - rs(u / 2) * 28 / 256;
-        int ph = rt * 14 + i * 70, r = rs(u / 2) * 16 / 256;
+    /* the ribbon itself: see-through light along the arc */
+    if (t >= 14 && t < 60) {
+        int w = (t < 22 ? (t - 14) * 26 : t < 52 ? 200 : 200 - (t - 52) * 24) + rs(t * 24) * 30 / 256;
+        int reach = ease_out(t - 14, 10);
+        int px = c->dx, py = c->dy - 4;
+        for (int k = 1; k <= 6; k++) {
+            int u = k * 256 / 6;
+            if (u - 43 > reach) break;
+            int qx = rn_lerp(c->dx, c->sx, u), qy = rn_lerp(c->dy - 4, c->sy - 8, u) - rs(u / 2) * 30 / 256;
+            int ddx = qx - px, ddy = qy - py, len = 0;
+            while (len * len < ddx * ddx + ddy * ddy) len++;
+            RnItem *it = rn_add(RN_TALL, (px + qx) / 2, (py + qy) / 2, RN_OT + RT_BEAM, RB_EL, 1, -20);
+            rn_xf(it, w * rn_lerp(rn_persp(foe), rn_persp(side), u) / 256, len * 8 + 16, 0, rn_angle_of(ddy, -ddx));
+            if (it) it->flags = ATTR0_BLEND;
+            px = qx, py = qy;
+        }
+    }
+    for (int i = 0; i < 22; i++) {
+        int rt = t - 12 - i * 2;
+        if (rt < 0 || rt >= 28) continue;
+        int u = rn_smooth(rt, 28);
+        int bx = rn_lerp(c->dx, c->sx, u), by = rn_lerp(c->dy - 4, c->sy - 8, u) - rs(u / 2) * 30 / 256;
+        int ph = rt * 14 + i * 40, r = 3 + rs(u / 2) * 12 / 256;
         int depth = rs(ph);
-        int x = bx + rc(ph) * r / 256 * 1, y = by + rc(ph) * r / 512 + depth * r / 1024;
+        int x = bx + rc(ph) * r / 256, y = by + rc(ph) * r / 512 - depth * r / 1024;
         int s = rn_lerp(rn_persp(foe), rn_persp(side), u) * (256 + depth / 4) / 256;
+        int bank = depth >= 0 ? RB_EL : RB_EL_MID;
         if (i % 3 == 1)
-            rn_xf(rn_glyph(x, y, RG_ANSUZ + i, rn_el_bank(depth), rn_prio(depth), depth), s * 200 / 256 * rc(rt * 12) / 256,
-                  s * 200 / 256, 0, 0);
+            rn_xf(rn_glyph(x, y, RG_ANSUZ + i, bank, rn_prio(depth), depth), s * rc(rt * 10) / 256, s, 0, 0);
         else
-            rn_add(RN_SPARK8, x, y, RN_OT + RT_SPARK + (i & 1 ? RS_MOTE : RS_STAR), rn_el_bank(depth), rn_prio(depth),
-                   depth);
+            rn_add(RN_SPARK8, x, y, RN_OT + RT_SPARK + (i & 1 ? RS_MOTE : RS_STAR), bank, rn_prio(depth), depth);
     }
-    if (t >= 36) {
-        int gt = t - 36;
+    if (t >= 38) {
+        int gt = t - 38;
         anim.tint_side = side;
-        anim.tint_color = RGB15(14, 30, 18);
-        anim.tint_amount = gt < 26 ? 4 + gt / 3 : 12 - (gt - 26);
-        if ((gt & 3) == 0) rn_rise(c->sx, c->ugy - 2, 22, 2, RB_EL);
+        anim.tint_color = RGB15(28, 24, 31);
+        anim.tint_amount = gt < 24 ? 3 + gt / 4 : 9 - (gt - 24) / 2;
+        if ((gt & 3) == 0) rn_rise(c->sx, c->ugy, 24, 2, RB_EL);
     }
-    if (t >= 56 && t < 74 && (t < 68 || (t & 1))) {
-        int sc = 460 - ease_in(t - 56, 16) * 300 / 256;
-        RnItem *it = rn_add(RN_G32, c->sx, c->sy - 6, RN_OT + RT_RING, RB_EL, 1, 30);
+    if (t >= 56 && t < 76 && (t < 70 || (t & 1))) {
+        int sc = 480 - ease_in(t - 56, 18) * 320 / 256;
+        RnItem *it = rn_add(RN_G32, c->sx, c->sy - 8, RN_OT + RT_RING, RB_EL, 1, 30);
         rn_xf(it, sc, sc, -t * 5, 0);
         if (it) it->flags = ATTR0_BLEND;
     }
-    if (t == 60) {
+    if (t == 62) {
         squash(side, 276, 236);
         sfx_play(SFX_HEAL);
     }
@@ -891,8 +943,8 @@ static void anim_rune_frame(void)
     c.sy = side_cy(c.side);
     c.dx = side_cx(c.foe);
     c.dy = side_cy(c.foe);
-    c.ugy = side_gy(c.side);
-    c.fgy = side_gy(c.foe);
+    c.ugy = rn_gy(c.side);
+    c.fgy = rn_gy(c.foe);
     c.path = rn_angle_of(c.dx - c.sx, c.dy - c.sy);
     rn_parts_step(feel.hitstop > 0);
     switch (anim.kind) {
