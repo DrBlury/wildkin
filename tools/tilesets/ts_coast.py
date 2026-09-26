@@ -1,17 +1,23 @@
-"""The 'coast' tileset (W-WEST: Saltwind Trail, Port Brine, the Current
-Hall, the Sea Route, Gull Isle and the Drowned Bell).
+"""The 'coast' tileset (W-WEST: Saltwind Trail, Port Brine, the Sea Route,
+Gull Isle) and the 'tide' tileset (the Current Hall and the Drowned Bell,
+build_tide; tools/tilesets/ts_tide.py registers it).
 
-One tileset serves the whole region, so it holds outdoor ground (grass,
-dunes, beach, sea cliffs, rock shelves, salt pans, harbour paving), the
-CURRENT HALL's floor, walls and flowing channels, and the DROWNED BELL's
-glowing grotto. Buildings are stamps; props live in tools/decor_west.py.
+'coast' holds the outdoor ground (grass, dunes, beach, rock shelves, salt
+pans, harbour paving) and the elevation art (cliffs, stairs and bridges are
+the maps' height layers, docs/ELEVATION.md); 'tide' holds the CURRENT HALL's
+floor, walls and flowing channels and the DROWNED BELL's glowing grotto.
+They were one tileset until the elevation art pushed it to 478 tiles, which
+left Port Brine 34 tiles for its props (the rest were skipped and drawn as
+garbage). Both share the palette banks, so the west props fit either.
+Buildings are stamps; props live in tools/decor_west.py. The CAVE stamp is a
+1x1 door cell to put on a TUNNEL mouth (Gull Isle's sea cave).
 
 Palette banks (8 x 15 colours):
 
   0 ground   grass, tall grass, marram dunes, flowers, paths, grass ledges
   1 sea      water autotile (sand shore, foam), sand, shelf rock, tide
              pools, salt pans, plaza slabs, the Hall's currents and pools
-  2 green    pines, palms, sea cliffs (rock + grass lip), the cave mouth
+  2 green    pines, palms
   3 props    the village decor bank (reused props), thatch, lighthouse
   4 red roof roof_bank(ROOF_RED): Hearth Hall, Harbor Office, houses
   5 blue roof roof_bank(ROOF_BLUE): shop, inn, Current Hall, houses
@@ -23,9 +29,9 @@ Map legend (documented again in src/game/world/west/data.h):
   outdoor  . grass   , tall grass (kin)   ; marram dune grass (kin)
            s sand    = path   ~ sea (surfable, autotiled sand shore)
            # plaza slabs   q quay setts   k rock shelf   o tide pool
-           % salt pan   C cliff (grass lip)   c cliff face
-           L ledge  [ ] ledge ends   l dune ledge (sand, hop south)
+           % salt pan   l dune ledge (sand, hop south)
            r y flowers   P/p pine top/bottom   A/a palm top/bottom
+  ('tide') the Hall and the grotto:
   hall     H wall top   h wall   n porthole   _ floor   M exit mat
            v ^ < > currents (A_CURRENT, see below)   O still pool (deep)
   grotto   G rock top   g rock wall   : wet floor   ' glowing floor

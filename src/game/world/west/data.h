@@ -3,16 +3,23 @@
  * W-WEST: SALTWIND TRAIL, PORT BRINE (+ interiors, the CURRENT HALL), the
  * SEA ROUTE, GULL ISLE and the DROWNED BELL. Owner: W-WEST.
  *
- * Outdoor maps, the Current Hall and the grotto use the 'coast' tileset
- * (tools/tilesets/ts_coast.py); props come from tools/decor_west.py and the
- * village props listed in ts_coast.USES_DECOR. Legend:
+ * Outdoor maps use the 'coast' tileset, the Current Hall and the grotto the
+ * 'tide' tileset (both in tools/tilesets/ts_coast.py); props come from
+ * tools/decor_west.py and the village props listed in ts_coast.USES_DECOR.
+ * A coast map loads its tileset (~407 tiles) plus every decor kind it uses
+ * into 512 scene tiles: a town has ~100 tiles for props (test_west checks
+ * every kind fits; one that doesn't is skipped and drawn as garbage).
+ * Legend:
  *
  *   outdoor  . grass   , tall grass (kin)   ; marram dune grass (kin)
  *            s sand    = path   ~ sea (surf; sand shore autotile)
  *            # plaza slabs   q quay setts   k rock shelf   o tide pool
- *            % salt pan   C cliff (grass lip)   c cliff face
- *            L ledge  [ ] ledge ends   l dune ledge (hop south)
+ *            % salt pan   l dune ledge (hop south)
  *            r y flowers   P/p pine top/bottom   A/a palm top/bottom
+ *            Cliffs, stairs, ledges, bridges, tunnels and hidden passages
+ *            are the height layer (*_ELEV, *_FEATS; docs/ELEVATION.md).
+ *            SALTWIND, PORT BRINE and GULL ISLE have one
+ *            (docs/handoff/towns_west.md).
  *   hall     H wall top   h wall   n porthole   _ floor   M exit mat
  *            v ^ < > currents   O still pool (deep, solid)
  *   grotto   G rock   g rock face   : wet floor   ' glowing moss
@@ -140,19 +147,19 @@ static const char *const PORT_BRINE_ROWS[] = {
     "p.p.....y.=.r.............p..r........p...p.pp.p", /*  5 */
     "P.......r.=.y.#........###.........yy......P..PP", /*  6 */
     "p.........=..#############......=..........p..pp", /*  7 */
-    "P....=======###############==============P..P..P", /*  8 */
-    "p....=.......#############.=......r..y..=p..p..p", /*  9 */
+    "P....=======###############=======.......P..P..P", /*  8 */
+    "p....=.......#############.=....==r==y===p..p..p", /*  9 */
     "P.ry.=.......###.....=....................P...PP", /* 10 */
     "p....=.......###.....=......r.............p...pp", /* 11 */
     "~P...=.......###.....=..................=...P..P", /* 12 */
-    "~p...=y..ssss........=.~~~qqy...........=...p..p", /* 13 */
-    "~.P..=...ssss........=.~~~qq............=..P.P.P", /* 14 */
-    "~.p..=...ssssry......=.~~~qq............=..p.p.p", /* 15 */
-    "~s...=.P.ssss...=======~~~qq......=======r.....P", /* 16 */
-    "~s...=.p.....==========~~~qq=============......p", /* 17 */
-    "~s.P.=...yr...ry...=...~~~qq=======....==.......", /* 18 */
-    "~~.p.=......y...r..=...~~~qq..=....yr..=========", /* 19 */
-    "~P...=.r...............~~~qq..=..ry....=========", /* 20 */
+    "~p..==y..ssss........=.~~~qqy...........=...p..p", /* 13 */
+    "~.P.=....ssss........=.~~~qq............=..P.P.P", /* 14 */
+    "~.p.=....ssssry......=.~~~qq............=..p.p.p", /* 15 */
+    "~s..=..P.ssss...=======~~~qq......=======r.....P", /* 16 */
+    "~s..=..p.....==========~~~qq=============......p", /* 17 */
+    "~s.P=....yr...ry...=...~~~qq=======....==.......", /* 18 */
+    "~~.p=.......y...r..=...~~~qq..=....yr..=========", /* 19 */
+    "~P..==.r...............~~~qq..=..ry....=========", /* 20 */
     "~p...=...qqqqqqqqqqqqqq~~~qq..=.....y.....ry...P", /* 21 */
     "~.P..====qqqqqqqqqqqqqq~~~qq..=................p", /* 22 */
     "~.p..=...qqqqqqqqqqqqqq~~~qqqqqqqq..............", /* 23 */
