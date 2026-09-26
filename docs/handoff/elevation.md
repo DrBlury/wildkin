@@ -91,4 +91,4 @@ every map through the game renderer.
   bridges have no support pillars; no tall grass under decks (a rustle
   would still play for someone walking over it).
 - Wandering people may take stairs inside their two-cell range; wild kin
-  roam only grass on their own level (they never climb to chase you).
+  wander only grass on their own level (a chasing one may take stairs).
