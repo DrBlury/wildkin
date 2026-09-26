@@ -203,12 +203,14 @@ def block_img():
     for y in range(10):
         for x in range(16):
             if y == 0 or x == 0:
+                c = 'cry_wl'
+            elif y == 1 or x == 1:
                 c = 'cry_wl_md'
             elif x == 15:
-                c = 'cry_wl_dkr'
+                c = 'cry_void'
             else:
                 h = hash2(x, y, 23) & 15
-                c = 'cry_wl_dk' if h else 'cry_wl_md'
+                c = 'cry_wl_dkr' if h > 2 else 'cry_wl_dk'
             img.p[y][x] = c
     img.p[0][0] = 'cry_wl'
     # front face (rows 10-15): bricks and a dark footing
