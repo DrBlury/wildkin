@@ -48,6 +48,14 @@ SECTIONS
         __bss_end = .;
     } > iwram
 
+    /* Large zero-initialised buffers (EWRAM_BSS) in the 256 KiB EWRAM. */
+    .sbss (NOLOAD) : {
+        __sbss_start = .;
+        *(.sbss*)
+        . = ALIGN(4);
+        __sbss_end = .;
+    } > ewram
+
     /DISCARD/ : {
         *(.ARM.exidx*)
         *(.ARM.attributes)

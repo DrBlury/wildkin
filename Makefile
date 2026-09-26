@@ -1,8 +1,12 @@
 # ---------------------------------------------------------------
-# GBA starter build.
+# GBA build for WILDKIN -- The Brimming Storm.
 #
 #   make        build game.gba
 #   make run    build and open in mGBA
+#   make test   host-side unit tests (rules, battles, maps, menus)
+#   make art    regenerate the art headers from tools/gen_*.py
+#   make maps   render every map to build/maps/*.png
+#   make shot   build the headless screenshot harness (needs libmgba)
 #   make clean  remove build artifacts
 #
 # Uses the bare-metal ARM toolchain from Homebrew (arm-none-eabi-gcc)
@@ -11,29 +15,59 @@
 # ---------------------------------------------------------------
 
 TARGET   := game
-ROMTITLE := STARTER
+ROMTITLE := WILDKIN
 
 BUILD    := build
-SOURCES  := $(wildcard src/*.c)
+SOURCES  := src/main.c src/mem.c
 CRT0_SRC := src/crt0.S
 
 CC       := arm-none-eabi-gcc
 OBJCOPY  := arm-none-eabi-objcopy
 GBAFIX   := $(shell command -v gbafix)
+HOSTCC   ?= cc
+MGBA_PREFIX ?= /opt/homebrew
 
 # The GBA's ARM7TDMI: ARMv4T. Thumb + interwork calls is the usual setup.
 ARCH     := -mcpu=arm7tdmi -mthumb -mthumb-interwork
-CFLAGS   := -g -O2 -Wall -Wextra $(ARCH) -fomit-frame-pointer
+CFLAGS   := -g -O2 -Wall -Wextra $(ARCH) -fomit-frame-pointer -ffreestanding -DGBA
 ASFLAGS  := -g -mcpu=arm7tdmi -marm
 LDFLAGS  := $(ARCH) -nostartfiles -T gba.ld -Wl,-Map,$(BUILD)/$(TARGET).map
 
 OBJS     := $(SOURCES:%.c=$(BUILD)/%.o)
 OBJS     += $(BUILD)/src/crt0.o
 
+# Generated art headers and the scripts that write them.
+ART      := src/gfx_ui.h src/gfx_monsters.h src/gfx_field.h src/gfx_battle.h
+
 all: $(TARGET).gba
 
 run: $(TARGET).gba
 	mgba $(TARGET).gba
+
+# Host-side unit tests: tools/test_field.c and tools/test_game.c include
+# src/main.c (hardware registers become plain memory on the host), so the
+# rules, battles, maps and every menu screen are exercised frame by frame.
+# test_game.c also runs a tiered round-robin balance simulation.
+test:
+	@mkdir -p $(BUILD)
+	$(HOSTCC) -std=c11 -Wall -Wextra -Wno-unused-function -o $(BUILD)/test_field tools/test_field.c
+	$(BUILD)/test_field
+	$(HOSTCC) -std=c11 -Wall -Wextra -Wno-unused-function -o $(BUILD)/test_game tools/test_game.c
+	$(BUILD)/test_game
+
+art:
+	python3 tools/gen_ui_gfx.py
+	python3 tools/gen_monsters.py
+	python3 tools/gen_field_gfx.py
+	python3 tools/gen_battle_gfx.py
+
+maps:
+	python3 tools/render_maps.py build/maps
+
+# build/shot game.gba script.txt [save.sav] -- scripted inputs + PNG shots
+shot:
+	@mkdir -p $(BUILD)
+	$(HOSTCC) -O2 -I$(MGBA_PREFIX)/include -o $(BUILD)/shot tools/shot.c -L$(MGBA_PREFIX)/lib -lmgba -lz
 
 clean:
 	rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba
@@ -47,6 +81,8 @@ $(TARGET).gba: $(TARGET).elf
 $(TARGET).elf: $(OBJS) gba.ld
 	$(CC) $(LDFLAGS) $(OBJS) -o $@ -nostdlib -lgcc
 
+$(BUILD)/src/main.o: $(ART) $(wildcard src/*.h) $(wildcard src/game/*.c) $(wildcard src/game/*.h)
+
 $(BUILD)/%.o: %.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -55,4 +91,4 @@ $(BUILD)/%.o: %.S
 	@mkdir -p $(dir $@)
 	$(CC) $(ASFLAGS) -c $< -o $@
 
-.PHONY: all run clean
+.PHONY: all run test art maps shot clean

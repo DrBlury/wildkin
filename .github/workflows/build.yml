@@ -1,0 +1,50 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  rom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install the ARM toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-none-eabi binutils-arm-none-eabi
+
+      - name: Install gbafix
+        run: cargo install gbafix
+
+      - name: Generated art is up to date
+        run: |
+          make art
+          git diff --exit-code -- src/gfx_ui.h src/gfx_monsters.h src/gfx_field.h src/gfx_battle.h
+
+      - name: Build the ROM
+        run: make
+
+      - name: Host tests (rules, bouts, maps, menus, balance)
+        run: make test
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wildkin-rom
+          path: game.gba
+
+      - name: Publish the ROM on tagged releases
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp game.gba wildkin-${GITHUB_REF_NAME}.gba
+          gh release create "$GITHUB_REF_NAME" wildkin-${GITHUB_REF_NAME}.gba \
+            --title "WILDKIN $GITHUB_REF_NAME" --notes "Download the .gba and open it in mGBA (see the README)."

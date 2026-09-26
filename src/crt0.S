@@ -43,6 +43,14 @@ rom_start:
     strlo r3, [r1], #4
     blo 2b
 
+    @ Zero .sbss (EWRAM buffers)
+    ldr r1, =__sbss_start
+    ldr r2, =__sbss_end
+    mov r3, #0
+4:  cmp r1, r2
+    strlo r3, [r1], #4
+    blo 4b
+
     ldr r3, =main
     bx  r3
 3:  b 3b                          @ never return

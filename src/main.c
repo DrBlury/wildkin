@@ -1,135 +1,153 @@
 /*
- * GBA starter program.
+ * WILDKIN -- The Brimming Storm: a creature-collecting adventure for the GBA.
  *
- * Boots into bitmap mode 3 (240x160, one u16 BGR555 pixel per pixel),
- * draws a gradient background and lets you move an 8x8 square with the
- * D-pad. Press A to change the square's color.
+ * Unity build: this file includes every module so the whole game is one
+ * translation unit (the host unit tests include it the same way).
  *
- * Build with `make`, then run with `make run` (opens mGBA).
+ *   game/gba.h        hardware registers, host shims, input, RNG, strings
+ *   gfx_*.h           generated art (tools/gen_*.py): UI, monsters,
+ *                     overworld tilesets/characters, battle effects
+ *   game/data.h       types, 60 moves, 32 species, learnsets, items
+ *   game/monster.c    stats, XP, learning, evolution, damage, catching
+ *   game/gfx.c        UI canvas, variable-width text, windows, sprites
+ *   game/msg.c        typewriter message box, choices, dialog queue
+ *   game/party.c      team, PC storage, bag, money, catalogue flags
+ *   game/field.c      metatile maps, streaming renderer, movement, NPCs
+ *   game/battle.c     turn rules that queue presentation events
+ *   game/anim.c       move animations
+ *   game/battle_ui.c  event playback, HUD, battle menus, transitions
+ *   game/menu.c       START menu, team, summary, bag, shop, PC
+ *   game/dex.c        monster catalogue with scrolling detail pages
+ *   game/evolve.c     evolution scene
+ *   game/script.c     people, signs, items and field glue
+ *   save_game.h       checked SRAM save slots (+ v1 migration)
+ *
+ * Build with `make`, run with `make run`, test with `make test`.
  */
 
-typedef unsigned char  u8;
-typedef unsigned short u16;
-typedef unsigned int   u32;
+#include "game/gba.h"
+#include "game/options.h"
+#include "game/sfx.c"
+#include "gfx_ui.h"
+#include "gfx_monsters.h"
+#include "gfx_field.h"
+#include "gfx_battle.h"
+#include "game/data.h"
+#include "game/lore.h"
+#include "game/monster.c"
+#include "game/gfx.c"
+#include "game/msg.c"
+#include "game/party.c"
+#include "game/field.c"
+#include "game/battle.c"
+#include "game/anim.c"
+#include "game/battle_ui.c"
+#include "game/menu.c"
+#include "game/dex.c"
+#include "game/lorebook.c"
+#include "game/evolve.c"
+#include "game/script.c"
+#include "game/title.c"
+#include "save_game.h"
 
-#define MEM_IO   0x04000000u
-#define MEM_VRAM 0x06000000u
-
-#define REG_DISPCONTROL (*(volatile u16 *)(MEM_IO + 0x000))
-#define REG_VCOUNT      (*(volatile u16 *)(MEM_IO + 0x002))
-#define REG_KEYINPUT    (*(volatile u16 *)(MEM_IO + 0x130))
-
-#define SCREEN_WIDTH  240
-#define SCREEN_HEIGHT 160
-
-/* Display control bits */
-#define DCNT_MODE3 0x0003 /* bitmap mode 3 */
-#define DCNT_BG2   0x0400 /* enable BG layer 2 */
-
-/* Key bits: 0 = pressed in REG_KEYINPUT */
-#define KEY_A      0x0001
-#define KEY_B      0x0002
-#define KEY_SELECT 0x0004
-#define KEY_START  0x0008
-#define KEY_RIGHT  0x0010
-#define KEY_LEFT   0x0020
-#define KEY_UP     0x0040
-#define KEY_DOWN   0x0080
-
-/* 15-bit BGR color, channels 0..31 */
-#define RGB15(r, g, b) ((u16)((r) | ((g) << 5) | ((b) << 10)))
-
-static u16 *const vram = (u16 *)MEM_VRAM;
-
-/* Block until the start of vblank; all drawing after this is flicker-free. */
-static void vsync(void)
+/* VRAM uploads prepared during the previous frame; runs in vblank. */
+static void present(void)
 {
-    while (REG_VCOUNT >= SCREEN_HEIGHT) {
+    canvas_present();
+    oam_commit();
+    if (game_mode == MODE_FIELD || game_mode == MODE_START_MENU) {
+        field_render_view();
+        field_animate_tiles();
     }
-    while (REG_VCOUNT < SCREEN_HEIGHT) {
+    if ((game_mode == MODE_DEX && dex.state == 1) || (game_mode == MODE_LORE && lb.state == 2))
+        panel_present();
+}
+
+static void game_update(void)
+{
+    switch (game_mode) {
+    case MODE_FIELD: field_update(); break;
+    case MODE_START_MENU: start_menu_update(); break;
+    case MODE_PARTY: party_screen_update(); break;
+    case MODE_SUMMARY: summary_update(); break;
+    case MODE_BAG: bag_screen_update(); break;
+    case MODE_DEX: dex_update(); break;
+    case MODE_SHOP: shop_update(); break;
+    case MODE_PC: pc_update(); break;
+    case MODE_BATTLE: battle_update(); break;
+    case MODE_EVOLVE: evolve_update(); break;
+    case MODE_TITLE: title_update(); break;
+    case MODE_LORE: lorebook_update(); break;
+    case MODE_OPTIONS: options_update(); break;
     }
 }
 
-static void plot(int x, int y, u16 color)
+static void game_draw(void)
 {
-    vram[y * SCREEN_WIDTH + x] = color;
-}
-
-static void fill_rect(int x, int y, int w, int h, u16 color)
-{
-    for (int row = 0; row < h; row++) {
-        for (int col = 0; col < w; col++) {
-            plot(x + col, y + row, color);
-        }
+    switch (game_mode) {
+    case MODE_FIELD:
+    case MODE_START_MENU: field_draw(); break;
+    case MODE_PARTY: party_screen_draw(); break;
+    case MODE_SUMMARY: summary_draw(); break;
+    case MODE_DEX: dex_draw(); break;
+    case MODE_PC: pc_draw(); break;
+    case MODE_BATTLE: battle_draw(); break;
+    case MODE_EVOLVE: evolve_draw(); break;
+    case MODE_TITLE: title_draw_sprites(); break;
+    default: break;
     }
 }
 
-/* Background is a vertical gradient; row_color is reused to erase sprites. */
-static u16 row_color(int y)
+static void game_init(void)
 {
-    return RGB15(2 + (y >> 4), 4 + (y >> 3), 16 - (y >> 4));
+    gfx_init_tables();
+    load_ui_palettes();
+    copy32(VRAM_OBJ_TILES + OT_FX * 8, fx_gfx, FX_COUNT * 4 * 8);
+    copy32(VRAM_OBJ_TILES + OT_CAPSULE * 8, capsule_gfx, 4 * 4 * 8);
+    field_load_objects();
+    canvas_clear();
+    for (int i = 0; i < 128; i++) oam_shadow[i * 4] = ATTR0_HIDE;
+    REG_BG1CNT = BGCNT_CHARBLOCK(1) | BGCNT_SCREENBLOCK(SB_UI) | BGCNT_PRIO(0);
+    int has_save = save_load() != 0;
+    if (!has_save) {
+        options_reset();
+        new_game();
+    }
+    title_open(has_save);
 }
 
-static void draw_background(void)
+static void read_keys(void)
 {
-    for (int y = 0; y < SCREEN_HEIGHT; y++) {
-        u16 color = row_color(y);
-        for (int x = 0; x < SCREEN_WIDTH; x++) {
-            plot(x, y, color);
-        }
-    }
+    keys_prev = keys_now;
+    keys_now = (u16)(~REG_KEYINPUT & 0x03FF);
+}
+
+/* One frame of game logic and drawing (the host tests drive this too). */
+static void game_frame(void)
+{
+    frame_count++;
+    if ((keys_now & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT | KEY_L | KEY_R)) && keys_now == keys_prev)
+        key_repeat_timer++;
+    else
+        key_repeat_timer = 0;
+    oam_begin();
+    game_update();
+    game_draw();
+    oam_end();
+    sfx_update();
 }
 
 int main(void)
 {
-    static const u16 colors[] = {
-        RGB15(31, 31, 31), /* white  */
-        RGB15(31, 22, 0),  /* yellow */
-        RGB15(0, 31, 31),  /* cyan   */
-        RGB15(31, 5, 5),   /* red    */
-        RGB15(10, 31, 5),  /* green  */
-    };
-    const int num_colors = (int)(sizeof(colors) / sizeof(colors[0]));
-
-    REG_DISPCONTROL = DCNT_MODE3 | DCNT_BG2;
-    draw_background();
-
-    const int size = 8;
-    const int speed = 2;
-    int px = SCREEN_WIDTH / 2 - size / 2;
-    int py = SCREEN_HEIGHT / 2 - size / 2;
-    int color_index = 0;
-    u16 prev_keys = 0;
-
+    REG_DISPCNT = DCNT_BLANK;
+    REG_WAITCNT = 0x4317; /* faster ROM access with prefetch */
+    rng_seed(0x1234567u);
+    game_init();
+    rng_seed(REG_VCOUNT * 33u + 7u + frame_count);
     while (1) {
         vsync();
-
-        u16 keys = (u16)(~REG_KEYINPUT & 0x03FF); /* 1 = pressed */
-
-        int dx = 0;
-        int dy = 0;
-        if (keys & KEY_LEFT)  dx -= speed;
-        if (keys & KEY_RIGHT) dx += speed;
-        if (keys & KEY_UP)    dy -= speed;
-        if (keys & KEY_DOWN)  dy += speed;
-
-        if ((keys & KEY_A) && !(prev_keys & KEY_A)) {
-            color_index = (color_index + 1) % num_colors;
-        }
-        prev_keys = keys;
-
-        /* Erase old square with the gradient colors it covers. */
-        for (int row = 0; row < size; row++) {
-            fill_rect(px, py + row, size, 1, row_color(py + row));
-        }
-
-        px += dx;
-        py += dy;
-        if (px < 0) px = 0;
-        if (py < 0) py = 0;
-        if (px > SCREEN_WIDTH - size) px = SCREEN_WIDTH - size;
-        if (py > SCREEN_HEIGHT - size) py = SCREEN_HEIGHT - size;
-
-        fill_rect(px, py, size, size, colors[color_index]);
+        present();
+        read_keys();
+        game_frame();
     }
 }

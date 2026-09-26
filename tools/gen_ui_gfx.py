@@ -1,0 +1,1226 @@
+#!/usr/bin/env python3
+"""Generate src/gfx_ui.h: Emerald-style UI art for the GBA engine.
+
+Contents: a 14-row variable-width dialogue font, a small HUD digit font,
+9-slice window frames (standard / menu / battle), battle health boxes,
+type + status badges, menu backdrop patterns and two list icons, together
+with their 16-colour palettes.
+
+Run from anywhere (Python 3, standard library only):
+
+    python3 tools/gen_ui_gfx.py                 # writes src/gfx_ui.h
+    python3 tools/gen_ui_gfx.py --preview DIR   # also writes 3x preview PNGs
+
+UI palette convention (every bank): 0 transparent, 1 paper, 2 ink,
+3 ink shadow.  Text shadow = +1 right, +1 down, +1 diagonal where no ink.
+
+4bpp tiles: 8 u32 per tile, one per pixel row, pixel x at bits 4x..4x+3.
+"""
+
+import os
+import struct
+import sys
+import zlib
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUT_H = os.path.join(ROOT, "src", "gfx_ui.h")
+
+
+# ---------------------------------------------------------------------------
+# colours
+# ---------------------------------------------------------------------------
+
+def c15(r, g, b):
+    return r | (g << 5) | (b << 10)
+
+
+def rgb8(c):
+    r, g, b = c & 31, (c >> 5) & 31, (c >> 10) & 31
+    return ((r << 3) | (r >> 2), (g << 3) | (g >> 2), (b << 3) | (b >> 2))
+
+
+# bank 15: dialog boxes, menus, lists
+PAL_STD = [
+    c15(0, 0, 0),       # 0 transparent
+    c15(31, 31, 31),    # 1 paper
+    c15(12, 12, 13),    # 2 ink
+    c15(26, 26, 25),    # 3 ink shadow
+    c15(5, 8, 12),      # 4 frame dark (outline)
+    c15(10, 17, 22),    # 5 frame mid
+    c15(19, 26, 29),    # 6 frame light
+    c15(25, 29, 31),    # 7 selection highlight
+    c15(28, 6, 5),      # 8 red ink
+    c15(31, 22, 20),    # 9 red shadow
+    c15(5, 10, 27),     # 10 blue ink
+    c15(20, 24, 31),    # 11 blue shadow
+    c15(4, 18, 6),      # 12 green ink
+    c15(19, 28, 18),    # 13 green shadow
+    c15(28, 31, 31),    # 14 frame accent: highlight
+    c15(14, 22, 26),    # 15 frame accent: soft mid
+]
+
+# bank 14: battle message box
+PAL_BATTLE = [
+    c15(0, 0, 0),       # 0 transparent
+    c15(5, 10, 13),     # 1 paper: dark teal
+    c15(31, 31, 31),    # 2 ink: white
+    c15(2, 4, 6),       # 3 shadow: deep blue-gray
+    c15(2, 3, 5),       # 4 outer outline
+    c15(28, 29, 29),    # 5 bezel highlight
+    c15(20, 22, 23),    # 6 bezel mid
+    c15(12, 14, 16),    # 7 bezel dark
+    c15(30, 18, 5),     # 8 accent orange
+    c15(20, 9, 3),      # 9 accent dark orange
+    c15(9, 16, 19),     # 10 paper rim (lighter teal)
+    c15(3, 7, 9),       # 11 paper rim dark
+    c15(31, 26, 12),    # 12 accent light
+    c15(16, 18, 20),    # 13 spare gray
+    c15(24, 26, 27),    # 14 spare light gray
+    c15(7, 8, 10),      # 15 spare dark
+]
+
+# bank 13: battle health boxes
+PAL_HUD = [
+    c15(0, 0, 0),       # 0 transparent
+    c15(31, 31, 27),    # 1 paper (cream)
+    c15(8, 8, 8),       # 2 ink
+    c15(26, 25, 20),    # 3 ink shadow
+    c15(6, 7, 8),       # 4 outline
+    c15(24, 24, 18),    # 5 paper shade / bevel
+    c15(11, 11, 12),    # 6 capsule dark gray
+    c15(31, 22, 3),     # 7 "HP" letters (orange-yellow)
+    c15(14, 31, 21),    # 8 HP green
+    c15(11, 25, 15),    # 9 HP green shade
+    c15(31, 28, 7),     # 10 HP yellow
+    c15(25, 20, 1),     # 11 HP yellow shade
+    c15(31, 11, 7),     # 12 HP red
+    c15(21, 7, 8),      # 13 HP red shade
+    c15(8, 25, 31),     # 14 EXP blue
+    c15(6, 7, 8),       # 15 empty bar track
+]
+
+
+# ---------------------------------------------------------------------------
+# small image helper (palette-index images)
+# ---------------------------------------------------------------------------
+
+class Img:
+    def __init__(self, w, h, fill=0):
+        self.w, self.h = w, h
+        self.p = [[fill] * w for _ in range(h)]
+
+    def set(self, x, y, c):
+        if 0 <= x < self.w and 0 <= y < self.h:
+            self.p[y][x] = c
+
+    def get(self, x, y, default=0):
+        if 0 <= x < self.w and 0 <= y < self.h:
+            return self.p[y][x]
+        return default
+
+    def rect(self, x0, y0, x1, y1, c):
+        for y in range(y0, y1 + 1):
+            for x in range(x0, x1 + 1):
+                self.set(x, y, c)
+
+    def blit(self, o, x, y, skip0=True):
+        for yy in range(o.h):
+            for xx in range(o.w):
+                v = o.p[yy][xx]
+                if v or not skip0:
+                    self.set(x + xx, y + yy, v)
+
+    def tile(self, tx, ty):
+        rows = []
+        for y in range(8):
+            v = 0
+            for x in range(8):
+                v |= (self.p[ty * 8 + y][tx * 8 + x] & 15) << (4 * x)
+            rows.append(v)
+        return rows
+
+    def tiles(self):
+        out = []
+        for ty in range(self.h // 8):
+            for tx in range(self.w // 8):
+                out.append(self.tile(tx, ty))
+        return out
+
+
+def from_rows(rows, cmap):
+    """Build an Img from strings; cmap maps characters to indices."""
+    img = Img(len(rows[0]), len(rows))
+    for y, row in enumerate(rows):
+        assert len(row) == img.w, rows
+        for x, ch in enumerate(row):
+            img.p[y][x] = cmap[ch]
+    return img
+
+
+def layer_map(mask):
+    """Onion-peel a boolean mask (4-neighbourhood); returns depth or -1."""
+    h, w = len(mask), len(mask[0])
+    depth = [[-1] * w for _ in range(h)]
+    cur = [[mask[y][x] for x in range(w)] for y in range(h)]
+    d = 0
+    while any(any(r) for r in cur):
+        edge = []
+        for y in range(h):
+            for x in range(w):
+                if not cur[y][x]:
+                    continue
+                for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    nx, ny = x + dx, y + dy
+                    if not (0 <= nx < w and 0 <= ny < h) or not cur[ny][nx]:
+                        edge.append((x, y))
+                        break
+        for x, y in edge:
+            depth[y][x] = d
+            cur[y][x] = False
+        d += 1
+    return depth
+
+
+def span_mask(w, h, spans):
+    """spans: {y: (x0, x1)} inclusive -> boolean mask."""
+    m = [[False] * w for _ in range(h)]
+    for y, (x0, x1) in spans.items():
+        for x in range(max(0, x0), min(w - 1, x1) + 1):
+            m[y][x] = True
+    return m
+
+
+def rounded_spans(x0, y0, x1, y1, insets_top, insets_bot=None):
+    if insets_bot is None:
+        insets_bot = insets_top
+    sp = {}
+    for y in range(y0, y1 + 1):
+        a, b = x0, x1
+        i = y - y0
+        if i < len(insets_top):
+            a += insets_top[i]
+            b -= insets_top[i]
+        j = y1 - y
+        if j < len(insets_bot):
+            a += insets_bot[j]
+            b -= insets_bot[j]
+        sp[y] = (a, b)
+    return sp
+
+
+# ---------------------------------------------------------------------------
+# main font: 14 rows, caps on rows 1..10, x-height rows 4..10,
+# descenders to row 13.  Entry: (top_row, "row row row ...", advance|None)
+# ---------------------------------------------------------------------------
+
+FONT_HEIGHT = 14
+
+GLYPHS = {
+    " ": (1, "....", None),
+    "!": (1, "X X X X X X X . . X", None),
+    '"': (1, "X.X X.X X.X", None),
+    "#": (2, ".X.X. .X.X. XXXXX .X.X. .X.X. XXXXX .X.X. .X.X.", None),
+    "$": (1, "..X.. .XXX. X.X.X X.X.. .XXX. ..X.X ..X.X X.X.X .XXX. ..X..", None),
+    "%": (1, ".X...X X.X..X .X..X. ....X. ...X.. ..X... .X.... .X..X. X..X.X X...X.", None),
+    "&": (1, ".XX... X..X.. X..X.. X..X.. .XX... X.X..X X..X.X X...X. X..X.X .XX..X", None),
+    "'": (1, "X X X", None),
+    "(": (1, "..X .X. .X. X.. X.. X.. X.. .X. .X. ..X", None),
+    ")": (1, "X.. .X. .X. ..X ..X ..X ..X .X. .X. X..", None),
+    "*": (2, "..X.. X.X.X .XXX. X.X.X ..X..", None),
+    "+": (4, "..X.. ..X.. XXXXX ..X.. ..X..", None),
+    ",": (9, ".X .X X.", None),
+    "-": (6, "XXXX", None),
+    ".": (10, "X", None),
+    "/": (1, "....X ....X ...X. ...X. ..X.. ..X.. .X... .X... X.... X....", None),
+    "0": (1, ".XXX. X...X X...X X...X X...X X...X X...X X...X X...X .XXX.", None),
+    "1": (1, "..X.. .XX.. X.X.. ..X.. ..X.. ..X.. ..X.. ..X.. ..X.. XXXXX", None),
+    "2": (1, ".XXX. X...X ....X ....X ...X. ..X.. .X... X.... X.... XXXXX", None),
+    "3": (1, ".XXX. X...X ....X ....X ..XX. ....X ....X ....X X...X .XXX.", None),
+    "4": (1, "...X. ..XX. ..XX. .X.X. .X.X. X..X. XXXXX ...X. ...X. ...X.", None),
+    "5": (1, "XXXXX X.... X.... XXXX. ....X ....X ....X ....X X...X .XXX.", None),
+    "6": (1, ".XXX. X...X X.... X.... XXXX. X...X X...X X...X X...X .XXX.", None),
+    "7": (1, "XXXXX X...X ....X ...X. ...X. ..X.. ..X.. ..X.. ..X.. ..X..", None),
+    "8": (1, ".XXX. X...X X...X X...X .XXX. X...X X...X X...X X...X .XXX.", None),
+    "9": (1, ".XXX. X...X X...X X...X X...X .XXXX ....X ....X X...X .XXX.", None),
+    ":": (5, "X . . . . X", None),
+    ";": (5, ".X .. .. .. .. .X X.", None),
+    "<": (3, "...X ..X. .X.. X... .X.. ..X. ...X", None),
+    "=": (5, "XXXXX ..... XXXXX", None),
+    ">": (3, "X... .X.. ..X. ...X ..X. .X.. X...", None),
+    "?": (1, ".XXX. X...X ....X ....X ...X. ..X.. ..X.. ..... ..... ..X..", None),
+    "@": (1, "..XXX.. .X...X. X..XX.X X.X.X.X X.X.X.X X.X.X.X X..XXX. .X..... ..XXXX. .......", None),
+    "A": (1, ".XXXX. X....X X....X X....X X....X XXXXXX X....X X....X X....X X....X", None),
+    "B": (1, "XXXXX. X....X X....X X....X XXXXX. X....X X....X X....X X....X XXXXX.", None),
+    "C": (1, ".XXXX. X....X X..... X..... X..... X..... X..... X..... X....X .XXXX.", None),
+    "D": (1, "XXXX.. X...X. X....X X....X X....X X....X X....X X....X X...X. XXXX..", None),
+    "E": (1, "XXXXX X.... X.... X.... XXXX. X.... X.... X.... X.... XXXXX", None),
+    "F": (1, "XXXXX X.... X.... X.... XXXX. X.... X.... X.... X.... X....", None),
+    "G": (1, ".XXXX. X....X X..... X..... X..... X..XXX X....X X....X X....X .XXXX.", None),
+    "H": (1, "X....X X....X X....X X....X XXXXXX X....X X....X X....X X....X X....X", None),
+    "I": (1, "XXX .X. .X. .X. .X. .X. .X. .X. .X. XXX", None),
+    "J": (1, "....X ....X ....X ....X ....X ....X ....X X...X X...X .XXX.", None),
+    "K": (1, "X....X X...X. X..X.. X.X... XX.... XX.... X.X... X..X.. X...X. X....X", None),
+    "L": (1, "X.... X.... X.... X.... X.... X.... X.... X.... X.... XXXXX", None),
+    "M": (1, "X.....X XX...XX X.X.X.X X..X..X X..X..X X.....X X.....X X.....X X.....X X.....X", None),
+    "N": (1, "X....X XX...X XX...X X.X..X X.X..X X..X.X X..X.X X...XX X...XX X....X", None),
+    "O": (1, ".XXXX. X....X X....X X....X X....X X....X X....X X....X X....X .XXXX.", None),
+    "P": (1, "XXXXX. X....X X....X X....X X....X XXXXX. X..... X..... X..... X.....", None),
+    "Q": (1, ".XXXX. X....X X....X X....X X....X X....X X....X X..X.X X...X. .XXX.X", None),
+    "R": (1, "XXXXX. X....X X....X X....X X....X XXXXX. X..X.. X...X. X....X X....X", None),
+    "S": (1, ".XXXX. X....X X..... X..... .XXXX. .....X .....X .....X X....X .XXXX.", None),
+    "T": (1, "XXXXX ..X.. ..X.. ..X.. ..X.. ..X.. ..X.. ..X.. ..X.. ..X..", None),
+    "U": (1, "X....X X....X X....X X....X X....X X....X X....X X....X X....X .XXXX.", None),
+    "V": (1, "X....X X....X X....X X....X X....X .X..X. .X..X. .X..X. ..XX.. ..XX..", None),
+    "W": (1, "X.....X X.....X X.....X X.....X X..X..X X..X..X X..X..X X.X.X.X XX...XX X.....X", None),
+    "X": (1, "X....X X....X .X..X. .X..X. ..XX.. ..XX.. .X..X. .X..X. X....X X....X", None),
+    "Y": (1, "X...X X...X X...X .X.X. .X.X. ..X.. ..X.. ..X.. ..X.. ..X..", None),
+    "Z": (1, "XXXXXX .....X ....X. ....X. ...X.. ..X... .X.... .X.... X..... XXXXXX", None),
+    "[": (1, "XXX X.. X.. X.. X.. X.. X.. X.. X.. XXX", None),
+    "\\": (1, "X.... X.... .X... .X... ..X.. ..X.. ...X. ...X. ....X ....X", None),
+    "]": (1, "XXX ..X ..X ..X ..X ..X ..X ..X ..X XXX", None),
+    "^": (1, "..X.. .X.X. X...X", None),
+    "_": (12, "XXXXX", None),
+    "`": (1, "X. .X", None),
+    "a": (4, ".XXX. ....X .XXXX X...X X...X X...X .XXXX", None),
+    "b": (1, "X.... X.... X.... XXXX. X...X X...X X...X X...X X...X XXXX.", None),
+    "c": (4, ".XXX. X...X X.... X.... X.... X...X .XXX.", None),
+    "d": (1, "....X ....X ....X .XXXX X...X X...X X...X X...X X...X .XXXX", None),
+    "e": (4, ".XXX. X...X X...X XXXXX X.... X...X .XXX.", None),
+    "f": (1, "..XX .X.. .X.. XXXX .X.. .X.. .X.. .X.. .X.. .X..", None),
+    "g": (4, ".XXXX X...X X...X X...X X...X X...X .XXXX ....X X...X .XXX.", None),
+    "h": (1, "X.... X.... X.... XXXX. X...X X...X X...X X...X X...X X...X", None),
+    "i": (2, "X . X X X X X X X", None),
+    "j": (2, "..X ... ..X ..X ..X ..X ..X ..X ..X ..X X.X .X.", None),
+    "k": (1, "X.... X.... X.... X...X X..X. X.X.. XX... X.X.. X..X. X...X", None),
+    "l": (1, "X X X X X X X X X X", None),
+    "m": (4, "XXX.XX. X..X..X X..X..X X..X..X X..X..X X..X..X X..X..X", None),
+    "n": (4, "XXXX. X...X X...X X...X X...X X...X X...X", None),
+    "o": (4, ".XXX. X...X X...X X...X X...X X...X .XXX.", None),
+    "p": (4, "XXXX. X...X X...X X...X X...X X...X XXXX. X.... X.... X....", None),
+    "q": (4, ".XXXX X...X X...X X...X X...X X...X .XXXX ....X ....X ....X", None),
+    "r": (4, "X.XX XX.. X... X... X... X... X...", None),
+    "s": (4, ".XXX. X...X X.... .XXX. ....X X...X .XXX.", None),
+    "t": (2, ".X.. .X.. XXXX .X.. .X.. .X.. .X.. .X.. ..XX", None),
+    "u": (4, "X...X X...X X...X X...X X...X X...X .XXXX", None),
+    "v": (4, "X...X X...X X...X .X.X. .X.X. .X.X. ..X..", None),
+    "w": (4, "X.....X X.....X X..X..X X..X..X X..X..X X..X..X .XX.XX.", None),
+    "x": (4, "X...X X...X .X.X. ..X.. .X.X. X...X X...X", None),
+    "y": (4, "X...X X...X X...X X...X X...X X...X .XXXX ....X X...X .XXX.", None),
+    "z": (4, "XXXXX ....X ...X. ..X.. .X... X.... XXXXX", None),
+    # remaps
+    "{": (3, "X... XX.. XXX. XXXX XXX. XX.. X...", 7),        # right cursor
+    "|": (4, "X...X .X.X. ..X.. .X.X. X...X", None),          # multiplication
+    "}": (6, "XXXXXXX .XXXXX. ..XXX.. ...X...", 8),           # continue arrow
+    "~": (5, ".XX. XXXX XXXX .XX.", None),                    # bullet
+}
+
+FONT_FIRST, FONT_COUNT = 32, 95
+
+
+def build_font():
+    widths, bits = [], []
+    for code in range(FONT_FIRST, FONT_FIRST + FONT_COUNT):
+        ch = chr(code)
+        top, rows, adv = GLYPHS[ch]
+        rows = rows.split()
+        w = len(rows[0])
+        assert all(len(r) == w for r in rows), ch
+        assert w <= 8 and top + len(rows) <= FONT_HEIGHT, ch
+        g = [0] * FONT_HEIGHT
+        for i, r in enumerate(rows):
+            v = 0
+            for x, c in enumerate(r):
+                if c == "X":
+                    v |= 0x80 >> x
+            g[top + i] = v
+        widths.append(adv if adv else w + 1)
+        bits.append(g)
+    return widths, bits
+
+
+FONT_W, FONT_BITS = build_font()
+
+# ---------------------------------------------------------------------------
+# small font (HUD digits, level, HP): rows 0..6
+# ---------------------------------------------------------------------------
+
+SMALL_CHARS = "0123456789/LvHP"
+SMALL_GLYPHS = {
+    "0": ".XX. X..X X..X X..X X..X X..X .XX.",
+    "1": ".X.. XX.. .X.. .X.. .X.. .X.. XXX.",
+    "2": ".XX. X..X ...X ..X. .X.. X... XXXX",
+    "3": ".XX. X..X ...X .XX. ...X X..X .XX.",
+    "4": "..X. .XX. X.X. X.X. XXXX ..X. ..X.",
+    "5": "XXXX X... XXX. ...X ...X X..X .XX.",
+    "6": ".XX. X... X... XXX. X..X X..X .XX.",
+    "7": "XXXX ...X ..X. ..X. .X.. .X.. .X..",
+    "8": ".XX. X..X X..X .XX. X..X X..X .XX.",
+    "9": ".XX. X..X X..X .XXX ...X ...X .XX.",
+    "/": "..X ..X .X. .X. .X. X.. X..",
+    "L": "X.. X.. X.. X.. X.. X.. XXX",
+    "v": "... ... ... X.X X.X X.X .X.",
+    "H": "X..X X..X X..X XXXX X..X X..X X..X",
+    "P": "XXX. X..X X..X XXX. X... X... X...",
+}
+FONT_SMALL_HEIGHT = 8
+
+
+def build_small():
+    widths, bits = [], []
+    for ch in SMALL_CHARS:
+        rows = SMALL_GLYPHS[ch].split()
+        w = len(rows[0])
+        g = [0] * FONT_SMALL_HEIGHT
+        for y, r in enumerate(rows):
+            for x, c in enumerate(r):
+                if c == "X":
+                    g[y] |= 0x80 >> x
+        widths.append(w + 1)
+        bits.append(g)
+    return widths, bits
+
+
+SMALL_W, SMALL_BITS = build_small()
+
+# ---------------------------------------------------------------------------
+# tiny 3x5 label font (badges, HP / EXP labels) -- art only, not exported
+# ---------------------------------------------------------------------------
+
+TINY = {
+    "A": ".X. X.X XXX X.X X.X",
+    "B": "XX. X.X XX. X.X XX.",
+    "C": ".XX X.. X.. X.. .XX",
+    "D": "XX. X.X X.X X.X XX.",
+    "E": "XXX X.. XX. X.. XXX",
+    "F": "XXX X.. XX. X.. X..",
+    "G": ".XX X.. X.X X.X .XX",
+    "H": "X.X X.X XXX X.X X.X",
+    "I": "XXX .X. .X. .X. XXX",
+    "K": "X.X X.X XX. X.X X.X",
+    "L": "X.. X.. X.. X.. XXX",
+    "M": "X...X XX.XX X.X.X X...X X...X",
+    "N": "X..X XX.X X.XX X..X X..X",
+    "O": ".X. X.X X.X X.X .X.",
+    "P": "XX. X.X XX. X.. X..",
+    "R": "XX. X.X XX. X.X X.X",
+    "S": ".XX X.. .X. ..X XX.",
+    "T": "XXX .X. .X. .X. .X.",
+    "U": "X.X X.X X.X X.X XXX",
+    "V": "X.X X.X X.X X.X .X.",
+    "Y": "X.X X.X .X. .X. .X.",
+    "W": "X...X X...X X.X.X XX.XX X...X",
+    "X": "X.X X.X .X. X.X X.X",
+    "Z": "XXX ..X .X. X.. XXX",
+}
+
+
+def tiny_width(s):
+    return sum(len(TINY[c].split()[0]) + 1 for c in s) - 1
+
+
+def tiny_draw(img, x, y, s, ink, shadow=None):
+    pts = []
+    for ch in s:
+        rows = TINY[ch].split()
+        for yy, r in enumerate(rows):
+            for xx, c in enumerate(r):
+                if c == "X":
+                    pts.append((x + xx, y + yy))
+        x += len(rows[0]) + 1
+    ps = set(pts)
+    if shadow is not None:
+        for px, py in pts:
+            for dx, dy in ((1, 0), (0, 1), (1, 1)):
+                q = (px + dx, py + dy)
+                if q not in ps:
+                    img.set(q[0], q[1], shadow)
+    for px, py in pts:
+        img.set(px, py, ink)
+
+
+# ---------------------------------------------------------------------------
+# window frames (9-slice)
+# ---------------------------------------------------------------------------
+
+def frame_tiles(img):
+    return [img.tile(tx, ty) for ty in range(3) for tx in range(3)]
+
+
+def frame_from_corner(rows, cmap):
+    """Hand-drawn 8x8 top-left corner -> 24x24 box (mirrored corners, edges
+    extruded from the corner's last column / row, solid paper centre)."""
+    tl = from_rows(rows, cmap)
+    img = Img(24, 24, 1)
+    for y in range(24):
+        for x in range(24):
+            fx = min(x, 23 - x)
+            fy = min(y, 23 - y)
+            if fx < 8 and fy < 8:
+                v = tl.p[fy][fx]
+            elif fy < 8:
+                v = tl.p[fy][7]
+            elif fx < 8:
+                v = tl.p[7][fx]
+            else:
+                v = 1
+            img.p[y][x] = v
+    return img
+
+
+# standard dialog frame: dark outline, light rim, 2px steel band, dark
+# inner line (bank 15 indices 4/6/5)
+std_img = frame_from_corner([
+    "...OOOOO",
+    ".OOhhhhh",
+    ".Ohhmmmm",
+    "Ohhmmmmm",
+    "Ohmmmddd",
+    "Ohmmdppp",
+    "Ohmmdppp",
+    "Ohmmdppp",
+], {".": 0, "O": 4, "h": 6, "m": 5, "d": 4, "p": 1})
+FRAME_STD = frame_tiles(std_img)
+
+# menu frame: thinner and lighter -- outline, soft blue, pale rim
+menu_img = frame_from_corner([
+    "...OOOOO",
+    ".OOaaaaa",
+    ".Oaabbbb",
+    "Oaabpppp",
+    "Oabppppp",
+    "Oabppppp",
+    "Oabppppp",
+    "Oabppppp",
+], {".": 0, "O": 4, "a": 15, "b": 14, "p": 1})
+FRAME_MENU = frame_tiles(menu_img)
+
+# battle frame (bank 14): outline, metallic bezel, orange trim, dark rim
+battle_img = frame_from_corner([
+    "...OOOOO",
+    ".OOHHHHH",
+    ".OHHMMMM",
+    "OHHMAAAA",
+    "OHMAArrr",
+    "OHMArppp",
+    "OHMArppp",
+    "OHMArppp",
+], {".": 0, "O": 4, "H": 5, "M": 6, "A": 8, "r": 11, "p": 1})
+FRAME_BATTLE = frame_tiles(battle_img)
+
+
+def assemble_box(tiles9, wc, hc):
+    img = Img(wc * 8, hc * 8)
+    for cy in range(hc):
+        for cx in range(wc):
+            col = 0 if cx == 0 else (2 if cx == wc - 1 else 1)
+            row = 0 if cy == 0 else (2 if cy == hc - 1 else 1)
+            t = tiles9[row * 3 + col]
+            for y in range(8):
+                v = t[y]
+                for x in range(8):
+                    img.p[cy * 8 + y][cx * 8 + x] = (v >> (4 * x)) & 15
+    return img
+
+
+# ---------------------------------------------------------------------------
+# battle health boxes (bank 13)
+# ---------------------------------------------------------------------------
+
+HUD_STYLE = dict(ring=1, keel_fill=5, cap_fill=4)
+
+
+def hp_capsule(img, x0, y0, bar_x, bar_y):
+    """Dark capsule with orange 'HP' + empty 48x3 track at (bar_x, bar_y).
+    Capsule spans rows y0..y0+6; the track sits inside a 1px light ring."""
+    x1 = bar_x + 48 + 1 + 1      # ring col + one dark col
+    sp = rounded_spans(x0, y0, x1, y0 + 6, [2, 1], [2, 1])
+    for y, (a, b) in sp.items():
+        for x in range(a, b + 1):
+            img.set(x, y, HUD_STYLE["cap_fill"])
+    tiny_draw(img, x0 + 3, y0 + 1, "HP", 7)
+    if HUD_STYLE["ring"] is not None:
+        img.rect(bar_x - 1, bar_y - 1, bar_x + 48, bar_y + 3, HUD_STYLE["ring"])
+    img.rect(bar_x, bar_y, bar_x + 47, bar_y + 2, 15)
+
+
+def draw_panel(img, spans, bevel_rows=2):
+    mask = span_mask(img.w, img.h, spans)
+    depth = layer_map(mask)
+    for y in range(img.h):
+        for x in range(img.w):
+            d = depth[y][x]
+            if d == 0:
+                img.p[y][x] = 4
+            elif d > 0:
+                img.p[y][x] = 1
+    ys = sorted(spans)
+    bottom = ys[-1]
+    for y in range(bottom - bevel_rows, bottom):
+        for x in range(img.w):
+            if depth[y][x] > 0:
+                img.p[y][x] = 5
+    return depth
+
+
+def keel(img, y0, rows, left, right, fill):
+    """Parallelogram band: rows[i] = (x0, x1); outline 4, interior fill."""
+    for i, (x0, x1) in enumerate(rows):
+        y = y0 + i
+        for x in range(x0, x1 + 1):
+            img.set(x, y, 4)
+        if 0 < i < len(rows) - 1:
+            for x in range(x0 + 2 if left else x0 + 1, x1 - (1 if right else 0)):
+                img.set(x, y, fill)
+
+
+def make_enemy_hud():
+    W, H = 104, 32
+    img = Img(W, H)
+    # keel first (panel overlaps its top row): slants out to the right
+    keel(img, 25, [(3 + i, 98 + i) for i in range(6)], True, True,
+         HUD_STYLE["keel_fill"])
+    sp = rounded_spans(0, 0, 100, 25, [3, 1, 1], [1])
+    draw_panel(img, sp, bevel_rows=1)
+    anchors = dict(NAME_X=6, NAME_Y=2, LV_X=76, LV_Y=6,
+                   BAR_X=48, BAR_Y=19, STATUS_X=8, STATUS_Y=16)
+    hp_capsule(img, 33, 17, anchors["BAR_X"], anchors["BAR_Y"])
+    return img, anchors
+
+
+def make_ally_hud():
+    W, H = 104, 40
+    img = Img(W, H)
+    anchors = dict(NAME_X=10, NAME_Y=2, LV_X=76, LV_Y=6,
+                   BAR_X=48, BAR_Y=19, STATUS_X=8, STATUS_Y=16,
+                   HPNUM_X=97, HPNUM_Y=24, EXP_X=36, EXP_Y=35)
+    # EXP strip: dark keel slanting out to the left
+    keel(img, 32, [(7 - i, 103) for i in range(8)], True, False, 6)
+    sp = rounded_spans(2, 0, 103, 33, [3, 1, 1], [1])
+    draw_panel(img, sp, bevel_rows=1)
+    hp_capsule(img, 33, 17, anchors["BAR_X"], anchors["BAR_Y"])
+    ex, ey = anchors["EXP_X"], anchors["EXP_Y"]
+    tiny_draw(img, ex - 15, 34, "EXP", 7)
+    img.rect(ex, ey, ex + 63, ey + 1, 15)
+    return img, anchors
+
+
+HUD_ENEMY, ANCH_ENEMY = make_enemy_hud()
+HUD_ALLY, ANCH_ALLY = make_ally_hud()
+
+
+# ---------------------------------------------------------------------------
+# type and status badges (banks 12 / 11)
+# ---------------------------------------------------------------------------
+
+# WILDKIN types in data.h order (docs/WORLD.md section 5).
+TYPES = ["BEAST", "BLAZE", "TIDE", "BLOOM", "SPARK", "FROST", "BRAWL",
+         "VENOM", "STONE", "GALE", "DREAM", "SWARM", "DUSK", "WYRM"]
+LABELS = TYPES
+TYPE_COLORS = {            # (fill, dark)
+    "BEAST":  ((21, 19, 13), (11, 9, 6)),
+    "BLAZE":  ((30, 15, 5), (18, 6, 2)),
+    "TIDE":   ((12, 17, 30), (5, 7, 19)),
+    "BLOOM":  ((14, 25, 9), (5, 13, 3)),
+    "SPARK":  ((31, 25, 5), (18, 13, 1)),
+    "FROST":  ((17, 27, 28), (6, 15, 18)),
+    "BRAWL":  ((24, 8, 5), (13, 3, 2)),
+    "VENOM":  ((20, 8, 20), (10, 3, 12)),
+    "STONE":  ((25, 20, 12), (14, 10, 4)),
+    "GALE":   ((19, 20, 30), (9, 10, 20)),
+    "DREAM":  ((31, 12, 19), (18, 4, 10)),
+    "SWARM":  ((20, 23, 4), (10, 12, 1)),
+    "DUSK":   ((12, 9, 17), (5, 3, 8)),
+    "WYRM":   ((14, 8, 30), (6, 2, 17)),
+}
+
+TYPE_BANK = []      # 12 or 11
+TYPE_IDX = {}       # type -> (fill idx, dark idx)
+BADGE_PAL = [[c15(0, 0, 0), c15(31, 31, 31)] for _ in range(2)]
+for t in TYPES:
+    b = 0 if len(BADGE_PAL[0]) < 16 else 1
+    fill, dark = TYPE_COLORS[t]
+    fi = len(BADGE_PAL[b])
+    BADGE_PAL[b] += [c15(*fill), c15(*dark)]
+    TYPE_IDX[t] = (fi, fi + 1)
+    TYPE_BANK.append(12 if b == 0 else 11)
+assert all(len(p) == 16 for p in BADGE_PAL)
+
+
+def make_type_badge(t, label):
+    fi, di = TYPE_IDX[t]
+    img = Img(32, 16)
+    sp = rounded_spans(0, 2, 31, 13, [2, 1])
+    mask = span_mask(32, 16, sp)
+    depth = layer_map(mask)
+    for y in range(16):
+        for x in range(32):
+            if depth[y][x] == 0:
+                img.p[y][x] = di
+            elif depth[y][x] > 0:
+                img.p[y][x] = fi
+    # darker lower half band for a little depth
+    for x in range(32):
+        if depth[12][x] > 0:
+            img.p[12][x] = di
+    w = tiny_width(label) + 1
+    tiny_draw(img, (32 - w + 1) // 2, 5, label, 1, di)
+    return img
+
+
+TYPE_BADGES = [make_type_badge(t, l) for t, l in zip(TYPES, LABELS)]
+
+STATUS = [("BRN", "BLAZE"), ("PSN", "VENOM"), ("NMB", "SPARK"),
+          ("SLP", "BEAST"), ("FRZ", "FROST")]
+
+
+def make_status_badge(label, t):
+    fi, di = TYPE_IDX[t]
+    img = Img(24, 8, fi)
+    for x in range(24):
+        img.p[0][x] = di
+        img.p[7][x] = di
+    for y in range(8):
+        img.p[y][0] = di
+        img.p[y][23] = di
+    w = tiny_width(label) + 1
+    tiny_draw(img, (24 - w + 1) // 2, 1, label, 1, di)
+    return img
+
+
+STATUS_BADGES = [make_status_badge(l, t) for l, t in STATUS]
+STATUS_BANK = [TYPE_BANK[TYPES.index(t)] for _, t in STATUS]
+
+
+# ---------------------------------------------------------------------------
+# menu backdrops (bank 9) and list icons (bank 15)
+# ---------------------------------------------------------------------------
+
+MENU_PAL = [
+    # soft teal: 1 base, 2 alt tone, 3 lattice light, 4 sparkle
+    [c15(0, 0, 0), c15(13, 22, 23), c15(15, 24, 25), c15(18, 27, 27),
+     c15(24, 30, 30)] + [c15(0, 0, 0)] * 11,
+    # catalogue red/gray: 1 red, 2 dark red, 3 gray lattice, 4 light gray
+    [c15(0, 0, 0), c15(22, 7, 7), c15(19, 5, 6), c15(20, 18, 19),
+     c15(26, 25, 25)] + [c15(0, 0, 0)] * 11,
+]
+
+
+def make_menu_bg(kind):
+    """16x16 seamless pattern: soft 45-degree bands with a 2px light line
+    and a small dot pattern in the darker band."""
+    img = Img(16, 16, 1)
+    for y in range(16):
+        for x in range(16):
+            a = (x + y) % 16
+            v = 1 if a < 8 else 2
+            if a in (0, 1) if kind == 0 else a in (0,):
+                v = 3
+            if kind == 1 and a == 1:
+                v = 4
+            img.p[y][x] = v
+    # dots in the middle of the darker band
+    for (x, y) in ((4, 8), (12, 0)):
+        img.p[y][x] = 4 if kind == 0 else 3
+    return img
+
+
+MENU_BG = [make_menu_bg(0), make_menu_bg(1)]
+
+# a tiny glowing lantern: "befriended"
+ICON_CAUGHT = from_rows([
+    "..4444..",
+    ".444444.",
+    ".499994.",
+    ".491194.",
+    ".491194.",
+    ".498894.",
+    ".444444.",
+    "..4..4..",
+], {".": 0, "4": 4, "8": 8, "1": 1, "9": 9})
+
+ICON_EMPTY = from_rows([
+    "..3333..",
+    ".3....3.",
+    "3......3",
+    "3......3",
+    "3......3",
+    "3......3",
+    ".3....3.",
+    "..3333..",
+], {".": 0, "3": 3})
+
+
+# ---------------------------------------------------------------------------
+# header output
+# ---------------------------------------------------------------------------
+
+def fmt_u32_rows(rows, indent="    ", per=4):
+    out = []
+    for i in range(0, len(rows), per):
+        out.append(indent + ", ".join("0x%08X" % v for v in rows[i:i + per]) + ",")
+    return "\n".join(out)
+
+
+def fmt_u16(vals):
+    return ", ".join("0x%04X" % v for v in vals)
+
+
+def c_tiles_2d(name, tiles, comment=None):
+    s = []
+    if comment:
+        s.append("/* %s */" % comment)
+    s.append("static const u32 %s[%d][8] = {" % (name, len(tiles)))
+    for t in tiles:
+        s.append("    { " + ", ".join("0x%08X" % v for v in t) + " },")
+    s.append("};")
+    return "\n".join(s)
+
+
+def c_flat_tiles(name, img):
+    tiles = img.tiles()
+    flat = [v for t in tiles for v in t]
+    s = ["static const u32 %s[%d * %d * 8] = {" % (name, img.w // 8, img.h // 8)]
+    for i, t in enumerate(tiles):
+        s.append("    " + ", ".join("0x%08X" % v for v in t) + ",")
+    s.append("};")
+    return "\n".join(s)
+
+
+def write_header():
+    L = []
+    A = L.append
+    A("/* Generated by tools/gen_ui_gfx.py -- do not edit by hand. */")
+    A("/*")
+    A(" * Emerald-style UI art. Include after the u8/u16/u32 typedefs.")
+    A(" * Palette convention for every UI bank: 0 transparent, 1 paper, 2 ink,")
+    A(" * 3 ink shadow (drawn +1 right, +1 down, +1 diagonal where no ink).")
+    A(" * Tiles are 4bpp, 8 u32 per tile (one per row, pixel x at bits 4x..4x+3),")
+    A(" * multi-tile images in row-major tile order.")
+    A(" */")
+    A("#ifndef GFX_UI_H")
+    A("#define GFX_UI_H")
+    A("")
+    A("/* silence -Wunused-const-variable for tables a build doesn't use */")
+    A("#if defined(__GNUC__)")
+    A("#define GFX_UI_UNUSED __attribute__((unused))")
+    A("#else")
+    A("#define GFX_UI_UNUSED")
+    A("#endif")
+    A("")
+    # --- main font
+    A("/* ---- main variable-width font --------------------------------------- */")
+    A("/* Caps on rows 1..10 (baseline = bottom of row 10), x-height rows 4..10,")
+    A(" * descenders to row 13. Use a 16 px line pitch. bit 7 = leftmost pixel.")
+    A(" * font_width = advance incl. 1 px spacing (shadow overlaps the spacing).")
+    A(" * Remaps: '{' = right cursor, '}' = down 'continue' arrow,")
+    A(" *         '|' = multiplication sign, '~' = bullet. */")
+    A("#define FONT_FIRST 32")
+    A("#define FONT_COUNT 95")
+    A("#define FONT_HEIGHT 14")
+    A("static const u8 font_width[FONT_COUNT] = {")
+    for i in range(0, FONT_COUNT, 16):
+        A("    " + ", ".join("%d" % w for w in FONT_W[i:i + 16]) + ",")
+    A("};")
+    A("static const u8 font_bits[FONT_COUNT][FONT_HEIGHT] = {")
+    for i, g in enumerate(FONT_BITS):
+        ch = chr(FONT_FIRST + i)
+        name = {"\\": "backslash", "'": "quote", "*": "star", "/": "slash"}.get(ch, ch)
+        if ch == " ":
+            name = "space"
+        A("    { " + ", ".join("0x%02X" % v for v in g) + " }, /* %s */" % name)
+    A("};")
+    A("")
+    # --- small font
+    A("/* ---- small HUD font (rows 0..6) -------------------------------------- */")
+    A('static const char font_small_chars[] = "%s";' % SMALL_CHARS)
+    A("#define FONT_SMALL_HEIGHT 8")
+    A("static const u8 font_small_width[15] = { " + ", ".join(str(w) for w in SMALL_W) + " };")
+    A("static const u8 font_small_bits[15][FONT_SMALL_HEIGHT] = {")
+    for ch, g in zip(SMALL_CHARS, SMALL_BITS):
+        A("    { " + ", ".join("0x%02X" % v for v in g) + " }, /* %s */" % ch)
+    A("};")
+    A("")
+    # --- palettes
+    A("/* ---- palettes (RGB15) ------------------------------------------------ */")
+    A("/* bank 15 STD: 0 -, 1 paper, 2 ink, 3 shadow, 4/5/6 frame dark/mid/light,")
+    A(" * 7 selection fill, 8/9 red ink/shadow, 10/11 blue, 12/13 green,")
+    A(" * 14/15 frame accents */")
+    A("static const u16 ui_pal_std[16] = { %s };" % fmt_u16(PAL_STD))
+    A("/* bank 14 BATTLE: 1 dark teal paper, 2 white ink, 3 shadow, 4..15 frame */")
+    A("static const u16 ui_pal_battle[16] = { %s };" % fmt_u16(PAL_BATTLE))
+    A("/* bank 13 HUD: 1 cream, 2 ink, 3 shadow, 4-7 box art, 8/9 HP green/shade,")
+    A(" * 10/11 yellow, 12/13 red, 14 EXP blue, 15 empty track.")
+    A(" * HP fill: bar row 0 = shade (9/11/13), rows 1-2 = light (8/10/12). */")
+    A("static const u16 ui_pal_hud[16] = { %s };" % fmt_u16(PAL_HUD))
+    A("")
+    # --- frames
+    A("/* ---- 9-slice window frames: TL,T,TR,L,C,R,BL,B,BR (one 8x8 tile each) - */")
+    A(c_tiles_2d("ui_frame_std", FRAME_STD, "bank 15: dialog frame"))
+    A(c_tiles_2d("ui_frame_menu", FRAME_MENU, "bank 15: menu / list frame"))
+    A(c_tiles_2d("ui_frame_battle", FRAME_BATTLE, "bank 14: battle message box"))
+    A("")
+    # --- HUD
+    A("/* ---- battle health boxes (bank 13) ----------------------------------- */")
+    A("/* Anchors are pixel offsets from the box's top-left. HP fill area 48x3 at")
+    A(" * (BAR_X, BAR_Y); EXP fill area 64x2 at (EXP_X, EXP_Y). Name: main font")
+    A(" * glyph box top-left. Level: small font top-left. STATUS: 24x8 badge")
+    A(" * (8-aligned cells, plain paper in the art). HPNUM_X: exclusive right")
+    A(" * edge of the right-aligned HP numbers incl. trailing spacing, i.e. draw")
+    A(" * at x = HPNUM_X - sum(font_small_width) (small font, top row HPNUM_Y);")
+    A(" * the ink then ends flush with the HP bar's right end. */")
+    A("/* enemy: 104x32 (13x4 tiles) */")
+    for k in ("NAME_X", "NAME_Y", "LV_X", "LV_Y", "BAR_X", "BAR_Y",
+              "STATUS_X", "STATUS_Y"):
+        A("#define HUD_ENEMY_%s %d" % (k, ANCH_ENEMY[k]))
+    A("/* ally: 104x40 (13x5 tiles) */")
+    for k in ("NAME_X", "NAME_Y", "LV_X", "LV_Y", "BAR_X", "BAR_Y",
+              "STATUS_X", "STATUS_Y", "HPNUM_X", "HPNUM_Y", "EXP_X", "EXP_Y"):
+        A("#define HUD_ALLY_%s %d" % (k, ANCH_ALLY[k]))
+    A(c_flat_tiles("hud_enemy_gfx", HUD_ENEMY))
+    A(c_flat_tiles("hud_ally_gfx", HUD_ALLY))
+    A("")
+    # --- badges
+    A("/* ---- type badges (32x16, 4x2 tiles) and status badges (24x8) --------- */")
+    A("/* order: " + " ".join(TYPES) + " */")
+    A("#define TYPE_BADGE_COUNT 14")
+    A("static const u32 type_badge_gfx[14][8 * 8] = {")
+    for t, img in zip(TYPES, TYPE_BADGES):
+        A("    { /* %s */" % t)
+        A(fmt_u32_rows([v for tl in img.tiles() for v in tl], "        ", 8))
+        A("    },")
+    A("};")
+    A("static const u8 type_badge_bank[14] = { " + ", ".join(str(b) for b in TYPE_BANK) + " };")
+    A("/* [0] -> bank 12, [1] -> bank 11; index 1 = pure white */")
+    A("static const u16 type_badge_pal[2][16] = {")
+    for p in BADGE_PAL:
+        A("    { %s }," % fmt_u16(p))
+    A("};")
+    A("/* BRN PSN NMB SLP FRZ; fully opaque */")
+    A("static const u32 status_badge_gfx[5][3 * 8] = {")
+    for (lbl, _), img in zip(STATUS, STATUS_BADGES):
+        A("    { /* %s */" % lbl)
+        A(fmt_u32_rows([v for tl in img.tiles() for v in tl], "        ", 8))
+        A("    },")
+    A("};")
+    A("static const u8 status_badge_bank[5] = { " + ", ".join(str(b) for b in STATUS_BANK) + " };")
+    A("")
+    # --- menu bg + icons
+    A("/* ---- menu backdrops (bank 9, 16x16 = 2x2 tiles) and list icons ------- */")
+    A("static const u32 menu_bg_gfx[2][4 * 8] = {")
+    for img in MENU_BG:
+        A("    {")
+        A(fmt_u32_rows([v for tl in img.tiles() for v in tl], "        ", 8))
+        A("    },")
+    A("};")
+    A("static const u16 menu_bg_pal[2][16] = {")
+    for p in MENU_PAL:
+        A("    { %s }," % fmt_u16(p))
+    A("};")
+    A("/* bank 15 indices; 0 = transparent */")
+    A("static const u32 ui_icon_caught[8] = { %s };" %
+      ", ".join("0x%08X" % v for v in ICON_CAUGHT.tile(0, 0)))
+    A("static const u32 ui_icon_empty[8] = { %s };" %
+      ", ".join("0x%08X" % v for v in ICON_EMPTY.tile(0, 0)))
+    A("")
+    A("#endif /* GFX_UI_H */")
+    text = "\n".join(L) + "\n"
+    out = []
+    for line in text.split("\n"):
+        if line.startswith("static const ") and " = " in line:
+            i = line.index(" = ")
+            line = line[:i] + " GFX_UI_UNUSED" + line[i:]
+        out.append(line)
+    with open(OUT_H, "w") as f:
+        f.write("\n".join(out))
+
+
+# ---------------------------------------------------------------------------
+# previews: RGB canvas, mock compositor, PNG writer
+# ---------------------------------------------------------------------------
+
+class Canvas:
+    def __init__(self, w, h, bg=(0, 0, 0)):
+        self.w, self.h = w, h
+        self.p = [[bg] * w for _ in range(h)]
+        self.ink = set()
+
+    def set(self, x, y, c):
+        if 0 <= x < self.w and 0 <= y < self.h:
+            self.p[y][x] = c
+
+    def rect(self, x0, y0, x1, y1, c):
+        for y in range(y0, y1 + 1):
+            for x in range(x0, x1 + 1):
+                self.set(x, y, c)
+
+    def blit(self, img, pal, x, y, skip0=True, fill0=None):
+        for yy in range(img.h):
+            for xx in range(img.w):
+                v = img.p[yy][xx]
+                if v == 0 and fill0 is not None:
+                    v = fill0
+                if v or not skip0:
+                    self.set(x + xx, y + yy, rgb8(pal[v]))
+
+    def text(self, x, y, s, pal, ink=2, shadow=3):
+        for ch in s:
+            i = ord(ch) - FONT_FIRST
+            g = FONT_BITS[i]
+            pts = set()
+            for yy in range(FONT_HEIGHT):
+                for xx in range(8):
+                    if g[yy] & (0x80 >> xx):
+                        pts.add((x + xx, y + yy))
+            sh = set()
+            for px, py in pts:
+                for dx, dy in ((1, 0), (0, 1), (1, 1)):
+                    q = (px + dx, py + dy)
+                    if q not in pts:
+                        sh.add(q)
+            for q in sh:
+                if q not in self.ink:
+                    self.set(q[0], q[1], rgb8(pal[shadow]))
+            for q in pts:
+                self.set(q[0], q[1], rgb8(pal[ink]))
+                self.ink.add(q)
+            x += FONT_W[i]
+        return x
+
+    def small(self, x, y, s, pal, ink=2, shadow=3):
+        for ch in s:
+            if ch == " ":
+                x += 4
+                continue
+            i = SMALL_CHARS.index(ch)
+            g = SMALL_BITS[i]
+            pts = set()
+            for yy in range(FONT_SMALL_HEIGHT):
+                for xx in range(8):
+                    if g[yy] & (0x80 >> xx):
+                        pts.add((x + xx, y + yy))
+            for px, py in pts:
+                for dx, dy in ((1, 0), (0, 1), (1, 1)):
+                    q = (px + dx, py + dy)
+                    if q not in pts and q not in self.ink:
+                        self.set(q[0], q[1], rgb8(pal[shadow]))
+            for q in pts:
+                self.set(q[0], q[1], rgb8(pal[ink]))
+                self.ink.add(q)
+            x += SMALL_W[i]
+        return x
+
+    def save(self, path, scale=3):
+        rows = []
+        for y in range(self.h):
+            row = bytearray()
+            for x in range(self.w):
+                row += bytes(self.p[y][x]) * scale
+            for _ in range(scale):
+                rows.append(bytes(row))
+        write_png(path, self.w * scale, self.h * scale, rows)
+
+
+def write_png(path, w, h, rows):
+    raw = b"".join(b"\x00" + r for r in rows)
+
+    def chunk(t, d):
+        return (struct.pack(">I", len(d)) + t + d +
+                struct.pack(">I", zlib.crc32(t + d) & 0xFFFFFFFF))
+    data = (b"\x89PNG\r\n\x1a\n" +
+            chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0)) +
+            chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b""))
+    with open(path, "wb") as f:
+        f.write(data)
+
+
+def text_width(s):
+    return sum(FONT_W[ord(c) - FONT_FIRST] for c in s)
+
+
+def small_width(s):
+    return sum(SMALL_W[SMALL_CHARS.index(c)] for c in s)
+
+
+def field_bg(cv):
+    g1, g2, g3 = (96, 176, 72), (80, 160, 64), (136, 208, 104)
+    for y in range(cv.h):
+        for x in range(cv.w):
+            c = g1
+            if ((x // 16) + (y // 16)) % 2:
+                c = g2
+            if (x % 16, y % 16) in ((3, 4), (4, 3), (5, 4), (11, 11), (12, 10), (13, 11)):
+                c = g3
+            cv.p[y][x] = c
+    # a sandy path
+    for y in range(40, 112):
+        for x in range(60, 100):
+            cv.p[y][x] = (216, 192, 136) if (x + y) % 7 else (200, 176, 120)
+
+
+def preview_font(path):
+    cols = 16
+    cw, ch = 12, 18
+    W = max(cols * cw + 16, 256)
+    rows = (FONT_COUNT + cols - 1) // cols
+    H = rows * ch + 16 + 4 * 18 + 30
+    paper = rgb8(PAL_STD[1])
+    cv = Canvas(W, H, paper)
+    grid = (232, 236, 240)
+    for i in range(FONT_COUNT):
+        cx = 8 + (i % cols) * cw
+        cy = 8 + (i // cols) * ch
+        cv.rect(cx, cy, cx + cw - 2, cy + FONT_HEIGHT + 1, grid)
+        # baseline marker
+        cv.rect(cx, cy + 11, cx + cw - 2, cy + 11, (210, 220, 236))
+        cv.text(cx + 1, cy + 1, chr(FONT_FIRST + i), PAL_STD)
+    y = 8 + rows * ch + 6
+    for s in ["Hello! Welcome to the world of MONQUEST.",
+              "FLARIX used EMBER! It's super effective!",
+              "0123456789 ?!.,'-:;()/%&",
+              "{ Quick brown fox jumps over lazy dogs } |~"]:
+        cv.text(8, y, s, PAL_STD)
+        y += 16
+    # red / blue / green ink variants
+    x = cv.text(8, y, "Female ", PAL_STD, 8, 9)
+    x = cv.text(x, y, "Male ", PAL_STD, 10, 11)
+    x = cv.text(x, y, "Caught ", PAL_STD, 12, 13)
+    y += 18
+    cv.small(8, y, "0123456789/LvHP  Lv50 126/126", PAL_STD)
+    cv.save(path)
+
+
+def draw_hp(cv, x, y, frac, pal=PAL_HUD):
+    n = int(round(48 * frac))
+    if frac > 0.5:
+        lt, sh = 8, 9
+    elif frac > 0.2:
+        lt, sh = 10, 11
+    else:
+        lt, sh = 12, 13
+    for i in range(n):
+        cv.set(x + i, y, rgb8(pal[sh]))
+        cv.set(x + i, y + 1, rgb8(pal[lt]))
+        cv.set(x + i, y + 2, rgb8(pal[lt]))
+
+
+def preview_dialog(path):
+    cv = Canvas(240, 160)
+    field_bg(cv)
+    # a menu on the right
+    mx, my, mw, mh = 21, 0, 9, 13
+    menu = assemble_box(FRAME_MENU, mw, mh)
+    cv.blit(menu, PAL_STD, mx * 8, my * 8)
+    items = ["MONDEX", "TEAM", "BAG", "JULIAN", "SAVE", "OPTION"]
+    sel = 1
+    for i, it in enumerate(items):
+        ty = my * 8 + 6 + i * 16
+        if i == sel:
+            cv.rect(mx * 8 + 4, ty, mx * 8 + mw * 8 - 5, ty + 15, rgb8(PAL_STD[7]))
+            cv.text(mx * 8 + 7, ty + 1, "{", PAL_STD)
+        cv.text(mx * 8 + 16, ty + 1, it, PAL_STD)
+    # dialog
+    box = assemble_box(FRAME_STD, 30, 6)
+    cv.blit(box, PAL_STD, 0, 14 * 8)
+    cv.text(16, 120, "Hello! Welcome to the world of", PAL_STD)
+    x = cv.text(16, 136, "MONQUEST! My name is ", PAL_STD)
+    x = cv.text(x, 136, "OAKLEY", PAL_STD, 10, 11)
+    x = cv.text(x, 136, ".", PAL_STD)
+    cv.text(x + 3, 136, "}", PAL_STD, 8, 9)
+    cv.save(path)
+
+
+def preview_battle(path):
+    cv = Canvas(240, 160, (120, 200, 104))
+    # platforms for context
+    for (cx, cy, rx, ry) in ((176, 60, 44, 10), (64, 108, 56, 12)):
+        for y in range(cy - ry, cy + ry + 1):
+            for x in range(cx - rx, cx + rx + 1):
+                if ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1:
+                    cv.set(x, y, (152, 216, 120) if y < cy else (104, 176, 88))
+    # enemy HUD
+    ex, ey = 8, 16
+    cv.blit(HUD_ENEMY, PAL_HUD, ex, ey)
+    a = ANCH_ENEMY
+    cv.text(ex + a["NAME_X"], ey + a["NAME_Y"], "GLOOMOTH", PAL_HUD)
+    cv.small(ex + a["LV_X"], ey + a["LV_Y"], "Lv18", PAL_HUD)
+    draw_hp(cv, ex + a["BAR_X"], ey + a["BAR_Y"], 0.62)
+    sb = STATUS_BADGES[1]
+    cv.blit(sb, BADGE_PAL[0 if STATUS_BANK[1] == 12 else 1],
+            ex + a["STATUS_X"], ey + a["STATUS_Y"])
+    # ally HUD
+    axx, ayy = 136, 72
+    cv.blit(HUD_ALLY, PAL_HUD, axx, ayy)
+    a = ANCH_ALLY
+    cv.text(axx + a["NAME_X"], ayy + a["NAME_Y"], "FLARIX", PAL_HUD)
+    cv.small(axx + a["LV_X"], ayy + a["LV_Y"], "Lv50", PAL_HUD)
+    draw_hp(cv, axx + a["BAR_X"], ayy + a["BAR_Y"], 0.38)
+    s = "48/126"
+    cv.small(axx + a["HPNUM_X"] - small_width(s), ayy + a["HPNUM_Y"], s, PAL_HUD)
+    for i in range(int(64 * 0.45)):
+        cv.set(axx + a["EXP_X"] + i, ayy + a["EXP_Y"], rgb8(PAL_HUD[14]))
+        cv.set(axx + a["EXP_X"] + i, ayy + a["EXP_Y"] + 1, rgb8(PAL_HUD[14]))
+    # battle box + action menu
+    cv.blit(assemble_box(FRAME_BATTLE, 30, 6), PAL_BATTLE, 0, 112)
+    cv.text(16, 120, "What will", PAL_BATTLE)
+    cv.text(16, 136, "FLARIX do?", PAL_BATTLE)
+    cv.blit(assemble_box(FRAME_STD, 15, 6), PAL_STD, 120, 112)
+    cv.text(136, 121, "{", PAL_STD)
+    cv.text(146, 121, "FIGHT", PAL_STD)
+    cv.text(194, 121, "BAG", PAL_STD)
+    cv.text(146, 137, "TEAM", PAL_STD)
+    cv.text(194, 137, "RUN", PAL_STD)
+    cv.save(path)
+
+
+def preview_badges(path):
+    W, H = 240, 176
+    cv = Canvas(W, H, rgb8(PAL_STD[1]))
+    for i, img in enumerate(TYPE_BADGES):
+        x = 8 + (i % 6) * 38
+        y = 8 + (i // 6) * 20
+        pal = BADGE_PAL[0 if TYPE_BANK[i] == 12 else 1]
+        cv.blit(img, pal, x, y)
+    # on cream + with white fill on paper
+    y = 72
+    for i, img in enumerate(STATUS_BADGES):
+        pal = BADGE_PAL[0 if STATUS_BANK[i] == 12 else 1]
+        cv.blit(img, pal, 8 + i * 30, y)
+    # backdrops
+    y = 88
+    for k in range(2):
+        for ty in range(3):
+            for tx in range(6):
+                cv.blit(MENU_BG[k], MENU_PAL[k], 8 + k * 112 + tx * 16, y + ty * 16, skip0=False)
+    # icons
+    y = 146
+    cv.blit(ICON_CAUGHT, PAL_STD, 8, y + 4)
+    cv.text(20, y, "Befriended", PAL_STD, 12, 13)
+    cv.blit(ICON_EMPTY, PAL_STD, 80, y + 4)
+    cv.text(92, y, "Unseen", PAL_STD)
+    cv.save(path)
+
+
+def preview_frames(path):
+    cv = Canvas(240, 120, (96, 176, 72))
+    cv.blit(assemble_box(FRAME_STD, 10, 5), PAL_STD, 8, 8)
+    cv.blit(assemble_box(FRAME_MENU, 10, 5), PAL_STD, 96, 8)
+    cv.blit(assemble_box(FRAME_BATTLE, 12, 5), PAL_BATTLE, 8, 64)
+    cv.blit(HUD_ENEMY, PAL_HUD, 112, 56)
+    cv.save(path, 4)
+
+
+def main():
+    write_header()
+    if "--preview" in sys.argv:
+        d = sys.argv[sys.argv.index("--preview") + 1]
+        os.makedirs(d, exist_ok=True)
+        preview_font(os.path.join(d, "font.png"))
+        preview_dialog(os.path.join(d, "dialog.png"))
+        preview_battle(os.path.join(d, "battle.png"))
+        preview_badges(os.path.join(d, "badges.png"))
+        preview_frames(os.path.join(d, "frames.png"))
+    print("wrote", OUT_H)
+
+
+if __name__ == "__main__":
+    main()
