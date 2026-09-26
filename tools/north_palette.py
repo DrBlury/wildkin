@@ -118,16 +118,19 @@ SNOW_BANK_WALLS = ['sn_base', 'sn_mid', 'b_out', 'wd_lt', 'wd_base', 'wd_dk', 's
                    'st_mid', 'lw_hi', 'lw_base', 'lw_dk', 'ic_lt', 'sn_hi', 'sn_lt']
 
 # ---------------------------------------------------------------------------
-# 'cave' tileset banks
+# 'cave' tileset banks (tools/tilesets/ts_cave.py)
 # ---------------------------------------------------------------------------
-CAVE_BANK_FLOOR = ['cv_hi', 'cv_lt', 'cv_base', 'cv_mid', 'cv_dk', 'cv_dkr',
-                   'mo_hi', 'mo_base', 'mo_dk', 's_hi', 's_base', 's_mid', 's_dk',
-                   'cr_lt', 'cr_base']
+CAVE_BANK_FLOOR = ['cv_lt', 'cv_base', 'cv_mid', 'cv_dk', 'cv_dkr', 'mo_hi', 'mo_base', 'mo_dk',
+                   'cr_hi', 'cr_lt', 'cr_base', 'cr_dk', 'am_lt', 'am_base', 'cw_out']
 CAVE_BANK_WATER = ['uw_hi', 'uw_lt', 'uw_base', 'uw_mid', 'uw_dk', 'cv_hi', 'cv_lt', 'cv_base',
                    'cv_mid', 'cv_dk', 'cv_dkr', 'cr_lt', 'cr_base', 'cr_hi', 'nv_dk']
-CAVE_BANK_WALLS = ['cw_hi', 'cw_lt', 'cw_base', 'cw_dk', 'cw_out', 'cv_hi', 'cv_lt', 'cv_base',
-                   'cv_mid', 'cv_dk', 'cv_dkr', 'wd_lt', 'wd_base', 'wd_dk', 'lw_base']
+CAVE_BANK_WALLS = ['cw_hi', 'cw_lt', 'cw_base', 'cw_dk', 'cw_out', 'cv_lt', 'cv_base', 'cv_mid',
+                   'cv_dk', 'cv_dkr', 'am_lt', 'am_base', 'white', 'cr_lt', 'cr_base']
 CAVE_DECOR_BANK = ['b_out', 'white', 'cr_hi', 'cr_lt', 'cr_base', 'cr_dk', 'am_lt', 'am_base',
                    'am_dk', 'cw_hi', 'cw_lt', 'cw_base', 'cw_dk', 'mo_hi', 'mo_base']
-CAVE_BANK_SKY = ['nv_dk', 'nv_base', 'nv_lt', 'white', 'sy_hi', 'sy_base', 'am_lt', 'am_base',
-                 'am_dk', 'cr_hi', 'cr_lt', 'cv_base', 'cv_mid', 'cv_dk', 'cv_dkr']
+CAVE_BANK_MOUTH = ['cv_lt', 'cv_base', 'cv_mid', 'cv_dk', 'cv_dkr', 'sn_hi', 'sn_lt', 'sn_base',
+                   'sn_mid', 'sn_dk', 'mo_base', 'mo_dk', 'lw_hi', 'lw_base', 'lw_dk']
+CAVE_BANK_SKY = ['nv_dk', 'nv_base', 'nv_lt', 'white', 'sy_hi', 'sy_base', 'cr_lt', 'cv_lt',
+                 'cv_base', 'cv_mid', 'cv_dk', 'cv_dkr', 'am_lt', 'am_base', 'cr_hi']
+CAVE_BANK_CRYSTAL = ['cw_hi', 'cw_lt', 'cw_base', 'cw_dk', 'cw_out', 'cv_dkr', 'cr_hi', 'cr_lt',
+                     'cr_base', 'cr_dk', 'wd_lt', 'wd_base', 'wd_dk', 'b_out', 'lw_base']
