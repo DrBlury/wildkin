@@ -336,7 +336,7 @@ def hall(gf, R, style, gnd, wall, sign, emblem, spire=False):
     pl = sign_plate(sign)
     img.paste(pl, 56 - pl.w // 2, 26)
     em = emblem
-    img.paste(em, 56 - em.w // 2, 12 if not spire else 13)
+    img.paste(em, 56 - em.w // 2, min(12, 25 - em.h))
     ground_fill(img)
     return recolor(img, R, gnd, wall)
 
@@ -448,27 +448,28 @@ def lantern_hanging(img, x, y):
 
 
 def tower(gf, R, gnd, wall):
+    """A stacked Dreamspire tower. Every roof eave ends on the 8px grid so
+    glass and wood never share an 8x8 tile with a roof colour."""
     img = Img(48, 80)
     ground_shadow(img, 8, 45, 76)
     # lower storey
-    wall_block(img, 5, 42, 50, 71, 'plaster')
+    wall_block(img, 5, 42, 46, 71, 'plaster')
     foundation(img, 4, 43, 72)
     img.paste(gf.DOOR, 17, 54)
     img.paste(gf.STEP, 16, 72)
     round_window(img, 7, 56)
     round_window(img, 33, 56)
-    # first roof tier
-    cone_roof(img, 23.5, 38, 51, 12, 22, R)
-    # upper storey
-    wall_block(img, 12, 35, 24, 38, 'plaster')
-    round_window(img, 20, 27)
+    # upper storey, then the first roof tier around its foot
+    wall_block(img, 12, 35, 22, 35, 'plaster')
+    round_window(img, 20, 24)
+    cone_roof(img, 23.5, 36, 47, 13, 22, R)
     # top roof and finial
-    cone_roof(img, 23.5, 6, 25, 3, 16, R)
+    cone_roof(img, 23.5, 6, 23, 3, 16, R)
     for y in range(0, 7):
         img.set(23, y, 'b_out' if y in (0, 6) else 'st_hi')
         img.set(24, y, 'b_out' if y in (0, 6) else 'st_lt')
-    lantern_hanging(img, 1, 50)
-    lantern_hanging(img, 41, 50)
+    lantern_hanging(img, 1, 47)
+    lantern_hanging(img, 41, 47)
     ground_fill(img)
     return recolor(img, R, gnd, wall)
 
@@ -507,4 +508,34 @@ def volcanic_stamps(gf):
                'cave mouth in a basalt cliff (EMBER TUNNEL), door col 1 row 1'))
     st.append(('TUNNEL_ARCH', rock_arch(tf.cave_wall_face(), tf.cave_floor_img(0)), (0,),
                'arch in a cave wall (to CALDERA HEART), door col 1 row 1'))
+    return st
+
+
+INDIGO_R = {'1': 'ri_hi', '2': 'ri_lt', '3': 'ri_base', '4': 'ri_dk', '5': 'ri_dkr'}
+ROSE_R = {'1': 'ro_hi', '2': 'ro_lt', '3': 'ro_base', '4': 'ro_dk', '5': 'ro_dkr'}
+DR_GND = ('dg_base', 'dg_mid')
+DR_WALL = ('tw_hi', 'tw_base', 'tw_dk')
+
+DREAM_DOORS = [('HEARTH', 2, 3), ('SHOP', 2, 3), ('HOUSE', 2, 3), ('HOUSE_ROSE', 2, 3),
+               ('TOWER', 1, 4), ('TOWER_ROSE', 1, 4), ('MIRROR_HALL', 3, 4), ('LIBRARY', 3, 4)]
+
+
+def dream_stamps(gf):
+    st = []
+    st.append(('HEARTH', cottage(gf, 'heal', ROSE_R, 'plaster', DR_GND, DR_WALL), (6, 7),
+               'SPIRE HEARTH HALL (flame, rose roof), door col 2 row 3'))
+    st.append(('SHOP', cottage(gf, 'shop', INDIGO_R, 'plaster', DR_GND, DR_WALL, sign='SHOP'), (5, 7),
+               'SPIRE SHOP (indigo roof), door col 2 row 3'))
+    st.append(('HOUSE', cottage(gf, 'house', INDIGO_R, 'plaster', DR_GND, DR_WALL), (5, 7),
+               'plaster house, indigo roof, door col 2 row 3'))
+    st.append(('HOUSE_ROSE', cottage(gf, 'house', ROSE_R, 'plaster', DR_GND, DR_WALL), (6, 7),
+               'plaster house, rose roof, door col 2 row 3'))
+    st.append(('TOWER', tower(gf, INDIGO_R, DR_GND, DR_WALL), (5, 7),
+               'Dreamspire stacked tower, indigo roofs and lanterns, door col 1 row 4'))
+    st.append(('TOWER_ROSE', tower(gf, ROSE_R, DR_GND, DR_WALL), (6, 7),
+               'Dreamspire stacked tower, rose roofs and lanterns, door col 1 row 4'))
+    st.append(('MIRROR_HALL', hall(gf, INDIGO_R, 'plaster', DR_GND, DR_WALL, 'MIRROR HALL',
+                                   emblem_mirror(), spire=True), (5, 7), 'MIRROR HALL, door col 3 row 4'))
+    st.append(('LIBRARY', hall(gf, ROSE_R, 'plaster', DR_GND, DR_WALL, 'DUST LIBRARY', emblem_book()),
+               (6, 7), 'the DUST LIBRARY, door col 3 row 4'))
     return st

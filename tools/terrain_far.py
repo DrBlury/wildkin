@@ -797,3 +797,470 @@ def hall_mat():
     for x in range(3, 13):
         img.p[8][x] = 'bk_hi' if x % 2 else 'bk_base'
     return img
+
+
+# =====================================================================
+# DREAM: ground (Moonveil Path, Dreamspire)
+# =====================================================================
+
+def moongrass_img(seed=0):
+    """Mint moon grass: short soft blades, dew glints; tiles seamlessly."""
+    img = Img(16, 16, 'dg_base')
+    speckle(img, 101 + seed, [(12, 'dg_lt'), (9, 'dg_mid'), (2, 'dg_hi')])
+    blades = [(2, 3), (9, 1), (13, 6), (5, 9), (11, 12), (1, 13)] if seed != 1 else \
+             [(4, 2), (12, 4), (7, 8), (2, 11), (14, 13)]
+    for (x, y) in blades:
+        img.set(x, y, 'dg_hi')
+        img.set(x, (y + 1) % 16, 'dg_lt')
+        img.set((x + 1) % 16, (y + 1) % 16, 'dg_mid')
+        img.set(x, (y + 2) % 16, 'dg_mid')
+    if seed == 1:
+        put(img, [(9, 10)], 'vcr_base')        # a dew glint
+    if seed == 2:
+        # a few fallen moonpetals
+        put(img, [(4, 4), (11, 10)], 'dp_base')
+        put(img, [(5, 4), (12, 10)], 'dp_hi')
+        put(img, [(3, 12)], 'dp_dk')
+    return img
+
+
+def moonstone_img(seed=0):
+    """Pale lilac flagstones (Dreamspire's plazas): rounded slabs, lit on the
+    top-left, with soft joints; four slabs per cell, rows offset."""
+    img = Img(16, 16, 'ds_base')
+    for y in range(16):
+        for x in range(16):
+            row = y // 8
+            sx = (x + (4 if row else 0)) % 8
+            sy = y % 8
+            if sy == 7 or sx == 7:
+                c = 'ds_dk' if (sx == 7 and sy == 7) or (hash2(x, y, 5) & 3) else 'ds_mid'
+            elif sy == 0 or sx == 0:
+                c = 'ds_hi' if sy == 0 and sx < 5 else 'ds_lt'
+            elif sy == 6 or sx == 6:
+                c = 'ds_mid'
+            else:
+                c = 'ds_base' if (hash2(x, y, 31 + seed) & 7) else 'ds_lt'
+            img.p[y][x] = c
+    if seed == 1:
+        put(img, [(3, 3), (4, 4), (4, 5)], 'ds_dk')   # a hairline crack
+        put(img, [(11, 15), (12, 15)], 'dg_mid')       # moss in a joint
+        put(img, [(11, 14)], 'dg_lt')
+    return img
+
+
+MP_L = {'.': None, 'O': 'dg_dk', 'd': 'dg_dk', 'm': 'dg_mid', 'b': 'dg_base',
+        'l': 'dg_lt', 'h': 'dg_hi', 'p': 'dp_base', 'P': 'dp_hi', 'q': 'dp_dk'}
+MP_TUFT = G('''
+.Pp....p
+.pqh..hq
+.hlO..lm
+hllmdhlm
+hlmmdlmd
+lmmddmmd
+mmdddmdd
+ddddOddd
+dOddddOd
+''', MP_L)
+
+
+def moonpetal_layers():
+    """Tall moonpetal grass, mint blades with pink petal heads; wild kin
+    roam in it. Returns (bottom opaque, top with the front blades)."""
+    back = moongrass_img(0).copy()
+    for y in range(9, 16):
+        for x in range(16):
+            back.p[y][x] = 'dg_mid' if (x + y) % 3 else 'dg_dk'
+    for ox in (-4, 4, 12):
+        back.paste(MP_TUFT, ox, 0)
+    front = Img(16, 16)
+    for ox in (0, 8):
+        front.paste(MP_TUFT, ox, 8)
+    bottom = back.copy()
+    bottom.paste(front, 0, 0)
+    top = Img(16, 16)
+    for y in range(9, 16):
+        for x in range(16):
+            ty = y - 8
+            c = MP_TUFT.p[ty][x % 8]
+            if c is None or (ty <= 3 and c == 'dg_dk'):
+                continue
+            top.p[y][x] = c
+    return bottom, top
+
+
+def moonflower_img():
+    """Grass dotted with little lilac moonflowers (walkable)."""
+    img = moongrass_img(1)
+    fl = G('''
+    .P.
+    PhP
+    qPq
+    ''', {'.': None, 'P': 'dp_base', 'h': 'ds_hi', 'q': 'dp_dk'})
+    fl2 = fl.replace({'dp_base': 'ds_lt', 'dp_dk': 'ds_mid', 'ds_hi': 'dp_hi'})
+    img.paste(fl, 2, 2)
+    img.paste(fl2, 10, 4)
+    img.paste(fl, 6, 10)
+    img.paste(fl2, 12, 12)
+    return img
+
+
+def blossom_tree_img():
+    """16x32 moon-blossom tree (overlay): a round pink canopy over a slim
+    lilac trunk. Transparent around it; the engine draws the ground."""
+    clumps = [
+        (8.0, 7.5, 6.0, 5.5),
+        (4.5, 12.0, 4.4, 4.2), (11.5, 12.0, 4.4, 4.2),
+        (8.0, 14.5, 5.5, 4.6),
+        (4.8, 18.0, 4.0, 3.4), (11.2, 18.0, 4.0, 3.4),
+    ]
+    ramp = ['bt_hi', 'bt_lt', 'bt_base', 'bt_base', 'bt_dk']
+    can, own = shade_clumps(16, 32, clumps, ramp, 'bt_out', seed=11,
+                            clip=lambda x, y: 1 <= x <= 14 and y <= 21)
+    img = Img(16, 32)
+    trunk = G('''
+    ..OlbdO.
+    ..OlbdO.
+    .OOlbdO.
+    .OlbbdO.
+    .OlbbdO.
+    OlbbbddO
+    OOOOOOOO
+    ''', {'.': None, 'O': 'bt_out', 'l': 'tk_lt', 'b': 'tk_base', 'd': 'tk_dk'})
+    img.paste(trunk, 4, 21)
+    img.paste(can, 0, 0)
+    for (x, y) in ((5, 5), (10, 9), (3, 13), (9, 16)):
+        if img.get(x, y) not in (None, 'bt_out'):
+            img.set(x, y, 'bt_hi')
+    return img
+
+
+def dream_cliff(lip=True, seed=0):
+    """Pastel stone cliff: stacked lilac strata lit from above; lip=True
+    adds the mint grass edge (CLIFF), else plain face (CLIFF_FACE)."""
+    img = Img(16, 16)
+    bands = [(0, 4), (5, 9), (10, 15)]
+    for bi, (y0, y1) in enumerate(bands):
+        for y in range(y0, y1 + 1):
+            for x in range(16):
+                if y == y0:
+                    c = 'ds_lt'
+                elif y == y1:
+                    c = 'ds_dk'
+                else:
+                    c = 'ds_base' if (hash2(x, y, 57 + seed) & 7) else 'ds_mid'
+                img.p[y][x] = c
+        for jx in ((3, 11) if (bi + seed) % 2 else (7, 14)):
+            for y in range(y0 + 1, y1):
+                img.p[y][jx] = 'ds_dk'
+                img.p[y][(jx + 1) % 16] = 'ds_lt'
+    if lip:
+        top = G('''
+        hhlhhhhhlhhhhlhh
+        llbllllbllllbbll
+        bbmbbbmbbbbmbbmb
+        mdmmdmmdmmmdmmdm
+        OdOOOdOOOdOOOOdO
+        ''', {'h': 'dg_hi', 'l': 'dg_lt', 'b': 'dg_base', 'm': 'dg_mid', 'd': 'dg_dk',
+              'O': 'b_out'})
+        img.paste(top, 0, 0)
+    return img
+
+
+def dream_ledge(ends=None):
+    """One-way grassy ledge (walk DOWN to hop) over a pastel stone step."""
+    img = moongrass_img(0).copy()
+    for x in range(16):
+        img.p[5][x] = 'dg_hi' if x % 5 else 'dg_lt'
+        img.p[6][x] = 'dg_lt'
+        img.p[7][x] = 'dg_base' if x % 4 != 1 else 'dg_mid'
+        img.p[8][x] = 'b_out'
+        for y in (9, 10, 11):
+            img.p[y][x] = 'ds_lt' if y == 9 else ('ds_base' if y == 10 else 'ds_mid')
+            if x % 6 == 0 and y > 9:
+                img.p[y][x] = 'ds_dk'
+        img.p[12][x] = 'b_out'
+        img.p[13][x] = 'dg_dk'
+        img.p[14][x] = 'dg_mid' if x % 2 else 'dg_dk'
+    if ends:
+        g = moongrass_img(0)
+        rng = range(0, 3) if ends == 'L' else range(13, 16)
+        for x in rng:
+            for y in range(5, 16):
+                img.p[y][x] = g.p[y][x]
+        edge = 3 if ends == 'L' else 12
+        for y in range(6, 13):
+            img.p[y][edge] = 'b_out'
+    return img
+
+
+def pond_surface(f):
+    """Moon pond: deep periwinkle water with drifting starlight glints."""
+    img = Img(16, 16, 'vdw_base')
+    speckle(img, 211, [(30, 'vdw_mid'), (10, 'vdw_lt')])
+    rip = [(2, 3, 4), (10, 2, 3), (6, 8, 4), (13, 10, 3), (1, 12, 3), (8, 14, 4)]
+    for (x, y, n) in rip:
+        x2 = x + f
+        for i in range(n):
+            img.set((x2 + i) % 16, y, 'vdw_lt')
+        for i in range(max(1, n - 1)):
+            img.set((x2 + 1 + i) % 16, (y + 1) % 16, 'vdw_dk')
+    stars = [(4, 5), (12, 6), (8, 11), (14, 14), (2, 15)]
+    for i, (x, y) in enumerate(stars):
+        if (i + f) % 3 == 0:
+            img.set(x, y, 'white')
+            img.set((x + 1) % 16, y, 'vcr_hi')
+        elif (i + f) % 3 == 1:
+            img.set(x, y, 'vdw_hi')
+    return img
+
+
+def pond_quads(f):
+    """Moon pond autotiles: a mint grass bank over a pale stone rim."""
+    from terrain_common import autotile
+    surf = pond_surface(f)
+    grass = moongrass_img(0)
+
+    def color_at(d, X, Y, c, v, lx, ly):
+        if d < -1.0:
+            g = grass.p[Y][X]
+            return g if g.startswith('dg_') else 'dg_base'
+        if d < -0.2:
+            return 'dg_dk'
+        if d < 0.7:
+            return 'ds_lt' if (hash2(X, Y, 21) & 3) else 'ds_base'
+        if d < 1.5:
+            return 'ds_dk'
+        if d < 2.3:
+            return 'vdw_dk'
+        return surf.p[Y][X]
+    return autotile(color_at, E=2.0, R=6.0, Rn=2.5)
+
+
+MOON_TEX = G('''
+................
+..h......m......
+.......d.....h..
+....m...........
+..........h..m..
+.d..............
+......h.....d...
+...m.......h....
+.........m......
+.h..d...........
+.......h....m...
+............d..h
+..m..h..........
+........d.......
+.............m..
+...h...m........
+''', {'.': 'ds_lt', 'h': 'ds_hi', 'm': 'ds_base', 'd': 'ds_mid'})
+
+
+def moon_path_quads():
+    """Pale moonstone gravel paths through the mint grass."""
+    from terrain_common import autotile
+    grass = moongrass_img(0)
+
+    def color_at(d, X, Y, c, v, lx, ly):
+        if d < -1.0:
+            g = grass.p[Y][X]
+            return g if g.startswith('dg_') else 'dg_base'
+        if d < 0:
+            return 'dg_mid'
+        if d < 1.0:
+            return 'ds_base'
+        return MOON_TEX.p[Y][X]
+    return autotile(color_at, E=2.0, R=5.0, Rn=2.0)
+
+
+# ---------------------------------------------------------------- the Mirror Hall
+
+def mirror_floor_img(seed=0):
+    """Polished mirror-glass floor tiles: a checker of silver and lilac with
+    a diagonal sheen (seed 1: a star inlay)."""
+    img = Img(16, 16)
+    for y in range(16):
+        for x in range(16):
+            chk = ((x // 8) + (y // 8)) % 2
+            u, v = x % 8, y % 8
+            if u == 7 or v == 7:
+                c = 'mf_dk'
+            elif u == 0 or v == 0:
+                c = 'mf_hi'
+            else:
+                c = 'mf_lt' if chk == 0 else 'mf_base'
+                if (u + (7 - v)) in (6, 7) and chk == 0:
+                    c = 'mf_hi'
+                if (u + (7 - v)) == 4 and chk == 1:
+                    c = 'mf_lt'
+            img.p[y][x] = c
+    if seed == 1:
+        put(img, [(7, 3), (7, 11), (3, 7), (11, 7)], 'vcr_base')
+        put(img, [(7, 4), (7, 5), (7, 6), (7, 8), (7, 9), (7, 10),
+                  (4, 7), (5, 7), (6, 7), (8, 7), (9, 7), (10, 7)], 'vcr_hi')
+        put(img, [(6, 6), (8, 8), (6, 8), (8, 6)], 'vcr_base')
+        put(img, [(7, 7)], 'vcr_dk')
+    return img
+
+
+def mirror_wall_top():
+    """Upper Mirror Hall wall: indigo panelling under a silver moulding."""
+    img = Img(16, 16, 'ri_base')
+    for x in range(16):
+        img.p[0][x] = 'b_out'
+        img.p[1][x] = 'ri_dkr'
+        img.p[2][x] = 'st_hi'
+        img.p[3][x] = 'st_mid'
+        img.p[4][x] = 'ri_dk'
+    for y in range(5, 16):
+        for x in range(16):
+            u = x % 8
+            if u in (0, 7):
+                img.p[y][x] = 'ri_dk' if u == 7 else 'ri_lt'
+            elif y in (5, 15):
+                img.p[y][x] = 'ri_dk'
+            else:
+                img.p[y][x] = 'ri_base' if (x + y) % 5 else 'ri_lt'
+    return img
+
+
+def mirror_wall():
+    """Lower Mirror Hall wall: a tall silver mirror in an indigo frame over
+    a skirting board."""
+    img = Img(16, 16, 'ri_base')
+    for y in range(16):
+        for x in range(16):
+            if x in (0, 15):
+                c = 'ri_dk'
+            elif x in (1, 14):
+                c = 'b_out'
+            elif y >= 12:
+                c = 'ri_dkr' if y in (12, 15) else 'ri_dk'
+            elif y == 11 or y == 0:
+                c = 'b_out'
+            else:
+                t = x - y
+                c = 'st_hi' if 2 <= t <= 4 or t == -6 else ('st_lt' if t > -3 else 'st_mid')
+                if x == 13:
+                    c = 'st_mid'
+            img.p[y][x] = c
+    return img
+
+
+def mirror_mat():
+    img = mirror_floor_img()
+    for y in range(3, 15):
+        for x in range(1, 15):
+            edge = y in (3, 14) or x in (1, 14)
+            img.p[y][x] = 'vcr_dk' if edge else ('vcr_base' if (x + y) % 4 else 'mf_dk')
+    for x in range(3, 13):
+        img.p[8][x] = 'vcr_hi' if x % 2 else 'vcr_base'
+    return img
+
+
+# ---------------------------------------------------------------- the Dust Library
+
+def lib_floor_img(seed=0):
+    """Plum-wood floorboards, polished by a century of slippers."""
+    img = Img(16, 16)
+    for y in range(16):
+        for x in range(16):
+            r = y % 4
+            seam = (x + (6 if (y // 4) % 2 else 0) + seed * 3) % 16 == 0
+            if r == 3:
+                c = 'lw_out'
+            elif seam:
+                c = 'vlw_dk'
+            elif r == 0:
+                c = 'vlw_lt'
+            else:
+                c = 'vlw_base' if (hash2(x, y, 71 + seed) & 7) else 'vlw_lt'
+            img.p[y][x] = c
+    return img
+
+
+def _books(img, y0, y1, seed=0):
+    """A row of book spines between y0 and y1 (inclusive)."""
+    cols = ['bo_r', 'bo_g', 'bo_b', 'bo_y', 'pg_base', 'bo_r', 'bo_b', 'bo_g']
+    x, k = 0, seed
+    while x < 16:
+        w = 2 + (hash2(k, seed, 3) % 2)
+        c = cols[(k * 3 + seed) % len(cols)]
+        top = y0 + (hash2(k, seed, 9) % 3)
+        for xx in range(x, min(16, x + w)):
+            for y in range(y0, y1 + 1):
+                if y < top or xx == x:
+                    img.p[y][xx] = 'lw_out'
+                elif y == top + 2 and w > 2:
+                    img.p[y][xx] = 'pg_hi' if c != 'pg_base' else 'bo_y'
+                else:
+                    img.p[y][xx] = c
+        x += w
+        k += 1
+
+
+def lib_shelf_top():
+    """Top of the library's wall of shelves: a carved cornice over the
+    upper books."""
+    img = Img(16, 16)
+    for x in range(16):
+        img.p[0][x] = 'lw_out'
+        img.p[1][x] = 'vlw_hi'
+        img.p[2][x] = 'vlw_lt'
+        img.p[3][x] = 'vlw_dk'
+    _books(img, 4, 14, seed=1)
+    for x in range(16):
+        img.p[15][x] = 'vlw_dk'
+    return img
+
+
+def lib_shelf():
+    """Lower library wall: two shelves of books over a plinth."""
+    img = Img(16, 16)
+    _books(img, 0, 5, seed=2)
+    for x in range(16):
+        img.p[6][x] = 'vlw_lt'
+        img.p[7][x] = 'vlw_dk'
+    _books(img, 8, 12, seed=5)
+    for x in range(16):
+        img.p[13][x] = 'vlw_hi'
+        img.p[14][x] = 'vlw_base'
+        img.p[15][x] = 'lw_out'
+    return img
+
+
+def lib_dust_layers():
+    """Drifts of paper dust and fallen pages on the boards; RELIC kin rustle
+    in them (the Library's 'grass'). Returns (bottom, top)."""
+    bottom = lib_floor_img(1)
+    drift = G('''
+    ..hh....
+    .hbbh.h.
+    hbbdbhbh
+    bdbbdbbd
+    ''', {'.': None, 'h': 'pg_hi', 'b': 'pg_base', 'd': 'pg_dk'})
+    for (x, y) in ((0, 3), (8, 1), (4, 9), (11, 10)):
+        bottom.paste(drift, x, y)
+    page = G('''
+    OOOO
+    OhhO
+    ObhO
+    OOOO
+    ''', {'O': 'pg_dk', 'h': 'pg_hi', 'b': 'pg_base'})
+    bottom.paste(page, 12, 4)
+    top = Img(16, 16)
+    for (x, y) in ((4, 9), (11, 10)):
+        top.paste(drift, x, y)
+    return bottom, top
+
+
+def lib_mat():
+    img = lib_floor_img()
+    for y in range(3, 15):
+        for x in range(1, 15):
+            edge = y in (3, 14) or x in (1, 14)
+            img.p[y][x] = 'lw_out' if edge else ('bo_r' if (x + y) % 4 else 'vlw_dk')
+    for x in range(3, 13):
+        img.p[8][x] = 'bo_y' if x % 2 else 'bo_r'
+    return img
