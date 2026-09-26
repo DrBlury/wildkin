@@ -1,6 +1,6 @@
 /* items/farm.inc -- FARM owner: seeds, saplings, fertilisers, crops and farm gear.
  * ITEM_DEF(id, "NAME" (<= 14 chars), pocket, kind, param, price (0 = not sold), icon, "desc") */
-ITEM_DEF(ITEM_SEED_GLOWBERRY, "GLOWBERRY SEED", POCKET_FARM, IK_PLANT, 0, 40, ICON_SUNSEED,
+ITEM_DEF(ITEM_SEED_GLOWBERRY, "GLOW SEED", POCKET_FARM, IK_PLANT, 0, 40, ICON_SUNSEED,
          "Grows into a glowberry bush in 3 days. Regrows.")
 ITEM_DEF(ITEM_SEED_EMBERBERRY, "EMBER SEED", POCKET_FARM, IK_PLANT, 1, 60, ICON_SUNSEED,
          "Grows into an emberberry bush in 4 days. Regrows.")
@@ -20,7 +20,7 @@ ITEM_DEF(ITEM_SEED_TOMATO, "TOMATO SEED", POCKET_FARM, IK_PLANT, 8, 50, ICON_SUN
          "Tomatoes are ready in 5 days. Regrows.")
 ITEM_DEF(ITEM_SEED_CORN, "CORN SEED", POCKET_FARM, IK_PLANT, 9, 80, ICON_SUNSEED,
          "Corn takes 6 days. Regrows.")
-ITEM_DEF(ITEM_SEED_SUNFLOWER, "SUNFLOWER SEED", POCKET_FARM, IK_PLANT, 10, 60, ICON_SUNSEED,
+ITEM_DEF(ITEM_SEED_SUNFLOWER, "SUNNY SEED", POCKET_FARM, IK_PLANT, 10, 60, ICON_SUNSEED,
          "Sunflowers bloom in 5 days.")
 ITEM_DEF(ITEM_SEED_MOTEBLOOM, "MOTE SEED", POCKET_FARM, IK_PLANT, 11, 300, ICON_SUNSEED,
          "A rare flower that gathers motes. Blooms in 8 days.")

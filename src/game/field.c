@@ -484,7 +484,7 @@ static void field_render_view(void)
 static int storm_active(void)
 {
     return !(flag(FLAG_STORM_CALMED)) && (flag(FLAG_STARTER)) &&
-           (MAPS[cur_map].flags & MF_OUTDOOR);
+           (MAPS[cur_map].flags & MF_OUTDOOR) && !(MAPS[cur_map].flags & MF_DEBUG);
 }
 
 /* Storm light: the palette mixed toward a cold grey-blue. */
@@ -1185,6 +1185,7 @@ static int party_max_level(void);
 static Monster roll_wild(int zone)
 {
     const WildZone *z = &WILD_ZONES[zone];
+    if (zone <= ZONE_NONE || zone >= ZONE_COUNT || !z->count) return monster_make(SP_NIBBIT, 3);
     int total = 0;
     for (int i = 0; i < z->count; i++) total += z->slots[i].weight;
     int r = (int)rng_range((unsigned)total);

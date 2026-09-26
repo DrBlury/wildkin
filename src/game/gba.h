@@ -40,6 +40,9 @@ static u8 host_sram[0x8000] __attribute__((aligned(4)));
 #define IWRAM_CODE
 #endif
 
+/* Entry points a module offers before anyone calls them. */
+#define MAYBE_UNUSED __attribute__((unused))
+
 #define REG16(off) (*(volatile u16 *)(MEM_IO + (off)))
 #define REG32(off) (*(volatile u32 *)(MEM_IO + (off)))
 

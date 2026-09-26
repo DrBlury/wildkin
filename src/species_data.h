@@ -255,7 +255,7 @@ static const LearnEntry LS_FLYSQUIRL[] = { {1, M_BONK}, {1, M_BEAK_JAB}, {5, M_D
 static const LearnEntry LS_GALESQUIRL[] = { {1, M_BONK}, {1, M_BEAK_JAB}, {1, M_DART}, {1, M_DRAFT}, {14, M_SWIPE}, {20, M_BRACE}, {26, M_CATNAP}, {32, M_POUT}, {38, M_UPDRAFT}, {44, M_SNARL}, {50, M_FEATHER_CUT}, {0, 0} };
 static const LearnEntry LS_DOZLOTH[] = { {1, M_BONK}, {1, M_SWIPE}, {5, M_DART}, {10, M_BRACE}, {15, M_CATNAP}, {20, M_LULLABY}, {25, M_POUT}, {30, M_STILL_POND}, {35, M_DAYDREAM}, {40, M_SNARL}, {45, M_GLINT}, {0, 0} };
 static const LearnEntry LS_SOMNISLOTH[] = { {1, M_BONK}, {1, M_SWIPE}, {1, M_DART}, {1, M_BRACE}, {14, M_CATNAP}, {20, M_LULLABY}, {26, M_POUT}, {32, M_STILL_POND}, {38, M_DAYDREAM}, {44, M_SNARL}, {50, M_GLINT}, {0, 0} };
-static const LearnEntry LS_SCYTHLING[] = { {1, M_BONK}, {1, M_SILK_SNARE}, {5, M_PINCER}, {10, M_WINGDUST}, {15, M_SWARM_RUSH}, {0, 0} };
+static const LearnEntry LS_SCYTHLING[] = { {1, M_BONK}, {1, M_SILK_SNARE}, {5, M_PINCER}, {10, M_WINGDUST}, {15, M_SWARM_RUSH}, {40, M_SWARM_RUSH}, {0, 0} };
 static const LearnEntry LS_REAPMANTIS[] = { {1, M_BONK}, {1, M_BONE_RATTLE}, {1, M_LAST_RITES}, {1, M_SHROUD}, {14, M_SILK_SNARE}, {20, M_GRAVE_CHILL}, {26, M_MARROW_SIP}, {32, M_PINCER}, {38, M_WINGDUST}, {44, M_SWARM_RUSH}, {50, M_OSSIFY}, {0, 0} };
 static const LearnEntry LS_MAGNITICK[] = { {1, M_BONK}, {1, M_RIVET_SHOT}, {5, M_IRON_TAP}, {10, M_MAGNET_PULL}, {15, M_SILK_SNARE}, {20, M_STEEL_SHELL}, {25, M_FORGE_FLASH}, {30, M_PINCER}, {35, M_WINGDUST}, {40, M_SWARM_RUSH}, {45, M_GEAR_GRIND}, {0, 0} };
 static const LearnEntry LS_LODEHORN[] = { {1, M_BONK}, {1, M_RIVET_SHOT}, {1, M_IRON_TAP}, {1, M_MAGNET_PULL}, {14, M_SILK_SNARE}, {20, M_STEEL_SHELL}, {26, M_FORGE_FLASH}, {32, M_PINCER}, {38, M_WINGDUST}, {44, M_SWARM_RUSH}, {50, M_GEAR_GRIND}, {0, 0} };
@@ -281,7 +281,7 @@ static const LearnEntry LS_KETTLEKIN[] = { {1, M_BONK}, {1, M_TRINKET_TOSS}, {5,
 static const LearnEntry LS_TANUKETTLE[] = { {1, M_BONK}, {1, M_TRINKET_TOSS}, {1, M_CLATTER}, {1, M_DART}, {14, M_SWIPE}, {20, M_BRACE}, {26, M_CATNAP}, {32, M_POUT}, {38, M_TARNISH}, {44, M_SNARL}, {50, M_GLINT}, {0, 0} };
 static const LearnEntry LS_STRAWSPECT[] = { {1, M_BONK}, {1, M_TRINKET_TOSS}, {4, M_BURR_VOLLEY}, {9, M_CLATTER}, {14, M_BASK}, {19, M_BRAMBLE_LASH}, {24, M_DROWSY_POLLEN}, {29, M_TARNISH}, {34, M_THORN_WALL}, {39, M_SAP_SIP}, {44, M_LEAF_FLURRY}, {0, 0} };
 static const LearnEntry LS_RIVETILLO[] = { {1, M_BONK}, {1, M_RIVET_SHOT}, {5, M_IRON_TAP}, {10, M_GRIT_KICK}, {15, M_MAGNET_PULL}, {20, M_STEEL_SHELL}, {25, M_STONESKIN}, {30, M_PEBBLE_PELT}, {35, M_MUD_PIE}, {40, M_FORGE_FLASH}, {45, M_SANDBLAST}, {0, 0} };
-static const LearnEntry LS_FORTADILLO[] = { {1, M_BONK}, {1, M_RIVET_SHOT}, {1, M_IRON_TAP}, {1, M_GRIT_KICK}, {14, M_MAGNET_PULL}, {20, M_STEEL_SHELL}, {26, M_STONESKIN}, {32, M_PEBBLE_PELT}, {38, M_MUD_PIE}, {44, M_FORGE_FLASH}, {50, M_SANDBLAST}, {0, 0} };
+static const LearnEntry LS_FORTADILLO[] = { {1, M_BONK}, {1, M_RIVET_SHOT}, {1, M_IRON_TAP}, {1, M_GRIT_KICK}, {14, M_MAGNET_PULL}, {20, M_STEEL_SHELL}, {26, M_STONESKIN}, {32, M_PEBBLE_PELT}, {38, M_MUD_PIE}, {44, M_FORGE_FLASH}, {44, M_ANVIL_DROP}, {48, M_LODE_BEAM}, {50, M_SANDBLAST}, {0, 0} };
 static const LearnEntry LS_SALAMBER[] = { {1, M_BONK}, {1, M_CINDER_FLICK}, {5, M_LAST_EMBER}, {10, M_LANTERN_LURE}, {15, M_SEAR_BITE}, {20, M_EMBER_STORM}, {25, M_KILN_BREATH}, {30, M_SUNFLARE}, {0, 0} };
 static const LearnEntry LS_FOUNDRAKE[] = { {1, M_BONK}, {1, M_RIVET_SHOT}, {1, M_CINDER_FLICK}, {1, M_IRON_TAP}, {14, M_LAST_EMBER}, {20, M_LANTERN_LURE}, {26, M_MAGNET_PULL}, {32, M_STEEL_SHELL}, {38, M_FORGE_FLASH}, {44, M_SEAR_BITE}, {50, M_EMBER_STORM}, {0, 0} };
 static const LearnEntry LS_KOIRIN[] = { {1, M_BONK}, {1, M_FIZZ}, {5, M_SLIPSTREAM}, {10, M_UNDERTOW}, {15, M_RIPTIDE}, {20, M_SWELL}, {25, M_GEYSER}, {0, 0} };
@@ -295,7 +295,7 @@ static const LearnEntry LS_HOLLOWHELM[] = { {1, M_BONK}, {1, M_TRINKET_TOSS}, {1
 static const LearnEntry LS_WICKLET[] = { {1, M_BONK}, {1, M_TRINKET_TOSS}, {5, M_CINDER_FLICK}, {10, M_CLATTER}, {15, M_LAST_EMBER}, {20, M_LANTERN_LURE}, {25, M_TARNISH}, {30, M_POLTERGUST}, {35, M_SEAR_BITE}, {40, M_GILDED_GLEAM}, {45, M_EMBER_STORM}, {0, 0} };
 static const LearnEntry LS_LAMPGHAST[] = { {1, M_BONK}, {1, M_TRINKET_TOSS}, {1, M_CINDER_FLICK}, {1, M_CLATTER}, {14, M_LAST_EMBER}, {20, M_LANTERN_LURE}, {26, M_TARNISH}, {32, M_POLTERGUST}, {38, M_SEAR_BITE}, {44, M_GILDED_GLEAM}, {50, M_EMBER_STORM}, {0, 0} };
 static const LearnEntry LS_METEORB[] = { {1, M_BONK}, {1, M_TWINKLE}, {5, M_GRIT_KICK}, {10, M_NEBULA_VEIL}, {15, M_STARDUST}, {20, M_STONESKIN}, {25, M_PEBBLE_PELT}, {30, M_MUD_PIE}, {35, M_MOONBEAM}, {40, M_SANDBLAST}, {45, M_ROCKFALL}, {0, 0} };
-static const LearnEntry LS_BOLIDON[] = { {1, M_BONK}, {1, M_TWINKLE}, {1, M_GRIT_KICK}, {1, M_NEBULA_VEIL}, {14, M_STARDUST}, {20, M_STONESKIN}, {26, M_PEBBLE_PELT}, {32, M_MUD_PIE}, {38, M_MOONBEAM}, {44, M_SANDBLAST}, {50, M_ROCKFALL}, {0, 0} };
+static const LearnEntry LS_BOLIDON[] = { {1, M_BONK}, {1, M_TWINKLE}, {1, M_GRIT_KICK}, {1, M_NEBULA_VEIL}, {14, M_STARDUST}, {20, M_STONESKIN}, {26, M_PEBBLE_PELT}, {32, M_MUD_PIE}, {38, M_MOONBEAM}, {44, M_SANDBLAST}, {46, M_METEOR_FALL}, {50, M_ROCKFALL}, {0, 0} };
 static const LearnEntry LS_KELPYRE[] = { {1, M_BONK}, {1, M_FIZZ}, {1, M_SLIPSTREAM}, {1, M_STARE_DOWN}, {14, M_SNAP}, {20, M_UNDERTOW}, {26, M_HAUNT}, {32, M_SHADE_CUT}, {38, M_RIPTIDE}, {44, M_GLOOM_ORB}, {50, M_GNASH}, {0, 0} };
 static const LearnEntry LS_TENGALE[] = { {1, M_BONK}, {1, M_PUMMEL}, {1, M_ONE_TWO}, {1, M_BEAK_JAB}, {14, M_DRAFT}, {20, M_UPDRAFT}, {26, M_WAR_CRY}, {32, M_HAMMER_FIST}, {38, M_COUNTERJAB}, {44, M_FEATHER_CUT}, {50, M_CROSSWIND}, {0, 0} };
 static const LearnEntry LS_SLUMBAKU[] = { {1, M_BONK}, {1, M_SWIPE}, {1, M_DART}, {1, M_BRACE}, {14, M_CATNAP}, {20, M_LULLABY}, {26, M_POUT}, {32, M_STILL_POND}, {38, M_DAYDREAM}, {44, M_SNARL}, {50, M_GLINT}, {0, 0} };
@@ -308,7 +308,7 @@ static const LearnEntry LS_CALDERON[] = { {1, M_BONK}, {1, M_RIVET_SHOT}, {1, M_
 static const LearnEntry LS_NOCTHALE[] = { {1, M_BONK}, {1, M_FIZZ}, {1, M_SLIPSTREAM}, {1, M_TWINKLE}, {14, M_NEBULA_VEIL}, {20, M_STARDUST}, {26, M_MOONBEAM}, {32, M_UNDERTOW}, {38, M_RIPTIDE}, {44, M_COMET_DASH}, {50, M_MUON_RAIN}, {0, 0} };
 static const LearnEntry LS_HOARFANG[] = { {1, M_BONK}, {1, M_HAILSTONES}, {1, M_FLURRY}, {1, M_RIME_SHOT}, {14, M_SNOWDRIFT}, {20, M_STARE_DOWN}, {26, M_SNAP}, {32, M_HAUNT}, {38, M_SHADE_CUT}, {44, M_GLOOM_ORB}, {50, M_GNASH}, {0, 0} };
 static const LearnEntry LS_OSSUREX[] = { {1, M_BONK}, {1, M_BONE_RATTLE}, {1, M_LAST_RITES}, {1, M_SHROUD}, {14, M_WYRM_DANCE}, {20, M_GRAVE_CHILL}, {26, M_MARROW_SIP}, {32, M_WYRMBREATH}, {38, M_OSSIFY}, {44, M_SCALE_REND}, {50, M_DEATH_KNELL}, {0, 0} };
-static const LearnEntry LS_SELENOTH[] = { {1, M_BONK}, {1, M_TWINKLE}, {1, M_LULLABY}, {1, M_NEBULA_VEIL}, {14, M_STARDUST}, {20, M_STILL_POND}, {26, M_DAYDREAM}, {32, M_MOONBEAM}, {38, M_PRISM_RAY}, {44, M_COMET_DASH}, {50, M_DREAMQUAKE}, {0, 0} };
+static const LearnEntry LS_SELENOTH[] = { {1, M_BONK}, {1, M_TWINKLE}, {1, M_LULLABY}, {1, M_NEBULA_VEIL}, {14, M_STARDUST}, {20, M_STILL_POND}, {26, M_DAYDREAM}, {32, M_MOONBEAM}, {38, M_PRISM_RAY}, {44, M_COMET_DASH}, {50, M_DREAMQUAKE}, {60, M_SUPERNOVA}, {0, 0} };
 static const LearnEntry LS_SYLVARCH[] = { {1, M_BONK}, {1, M_BURR_VOLLEY}, {1, M_DART}, {1, M_SWIPE}, {14, M_BASK}, {20, M_BRACE}, {26, M_BRAMBLE_LASH}, {32, M_CATNAP}, {38, M_DROWSY_POLLEN}, {44, M_POUT}, {50, M_THORN_WALL}, {0, 0} };
 static const LearnEntry LS_HOROLOGOS[] = { {1, M_BONK}, {1, M_TRINKET_TOSS}, {1, M_RIVET_SHOT}, {1, M_CLATTER}, {14, M_IRON_TAP}, {20, M_MAGNET_PULL}, {26, M_STEEL_SHELL}, {32, M_TARNISH}, {38, M_FORGE_FLASH}, {44, M_POLTERGUST}, {50, M_GILDED_GLEAM}, {0, 0} };
 static const LearnEntry LS_SCRIPTORA[] = { {1, M_BONK}, {1, M_TRINKET_TOSS}, {1, M_CLATTER}, {1, M_LULLABY}, {14, M_STILL_POND}, {20, M_TARNISH}, {26, M_DAYDREAM}, {32, M_POLTERGUST}, {38, M_PRISM_RAY}, {44, M_GILDED_GLEAM}, {50, M_CHEST_CHOMP}, {0, 0} };
@@ -563,7 +563,7 @@ static const Species SPECIES[SP_COUNT] = {
         "KIN", 10, 100, LS_BLINKET,
         "Firefly with a blinking tail.",
         { TR_KEEN_EYE, TR_CONDUCTOR }, R_COMMON, FA_LIGHT, { TYPE_NONE, TYPE_NONE } },
-    [SP_BEACONFLY] = { "BEACONFLY", T_SWARM, T_SPARK, { 51, 103, 51, 77, 51, 167 }, 45, 220, EVO_NONE, 0, 0,
+    [SP_BEACONFLY] = { "BEACONFLY", T_SWARM, T_SPARK, { 57, 109, 56, 82, 56, 140 }, 45, 220, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_BEACONFLY,
         "Big firefly with a lantern abdomen.",
         { TR_KEEN_EYE, TR_CONDUCTOR }, R_UNCOMMON, FA_LIGHT, { TYPE_NONE, TYPE_NONE } },
@@ -571,7 +571,7 @@ static const Species SPECIES[SP_COUNT] = {
         "KIN", 10, 100, LS_STATICKO,
         "Gecko that sticks to walls with static.",
         { TR_STATIC_FUR, TR_CONDUCTOR }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_FULGECKO] = { "FULGECKO", T_SPARK, T_BEAST, { 76, 62, 50, 100, 62, 150 }, 45, 220, EVO_NONE, 0, 0,
+    [SP_FULGECKO] = { "FULGECKO", T_SPARK, T_BEAST, { 78, 64, 52, 102, 64, 140 }, 45, 220, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_FULGECKO,
         "Frilled lightning lizard.",
         { TR_STATIC_FUR, TR_MOMENTUM }, R_UNCOMMON, FA_LIGHT, { TYPE_NONE, TYPE_NONE } },
@@ -579,7 +579,7 @@ static const Species SPECIES[SP_COUNT] = {
         "KIN", 10, 100, LS_FLURRABBIT,
         "Snow hare.",
         { TR_THICK_FUR, TR_SURGE }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_MOONHARE] = { "MOONHARE", T_FROST, T_ASTRAL, { 77, 51, 77, 141, 77, 77 }, 45, 220, EVO_NONE, 0, 0,
+    [SP_MOONHARE] = { "MOONHARE", T_FROST, T_ASTRAL, { 78, 51, 77, 140, 77, 77 }, 45, 220, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_MOONHARE,
         "Moon rabbit with a mochi mallet.",
         { TR_THICK_FUR, TR_QUICK_STUDY }, R_UNCOMMON, FA_TELEPORT, { TYPE_NONE, TYPE_NONE } },
@@ -603,7 +603,7 @@ static const Species SPECIES[SP_COUNT] = {
         "KIN", 10, 100, LS_RAMBLET,
         "Lamb that headbutts everything.",
         { TR_BRUISER, TR_STUBBORN }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_CRAGHORN] = { "CRAGHORN", T_BRAWL, T_STONE, { 107, 143, 83, 48, 48, 71 }, 45, 220, EVO_NONE, 0, 0,
+    [SP_CRAGHORN] = { "CRAGHORN", T_BRAWL, T_STONE, { 108, 140, 84, 49, 48, 71 }, 45, 220, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_CRAGHORN,
         "Mountain ram with rock-hard horns.",
         { TR_BRUISER, TR_STUBBORN }, R_UNCOMMON, FA_STRENGTH, { TYPE_NONE, TYPE_NONE } },
@@ -619,7 +619,7 @@ static const Species SPECIES[SP_COUNT] = {
         "KIN", 10, 100, LS_DIGGET,
         "Mole with a tiny lantern.",
         { TR_BEDROCK, TR_STUBBORN }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_SEXTONE] = { "SEXTONE", T_STONE, T_HOLLOW, { 85, 98, 146, 49, 73, 49 }, 45, 220, EVO_NONE, 0, 0,
+    [SP_SEXTONE] = { "SEXTONE", T_STONE, T_HOLLOW, { 87, 99, 140, 50, 74, 50 }, 45, 220, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_SEXTONE,
         "Gravedigger mole with a spade and a lantern.",
         { TR_BEDROCK, TR_SELFMEND }, R_UNCOMMON, FA_STRENGTH, { TYPE_NONE, TYPE_NONE } },
@@ -635,7 +635,7 @@ static const Species SPECIES[SP_COUNT] = {
         "KIN", 10, 100, LS_FLYSQUIRL,
         "Flying squirrel.",
         { TR_DRIFTER, TR_MOMENTUM }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_GALESQUIRL] = { "GALESQUIRL", T_GALE, T_BEAST, { 76, 112, 50, 50, 62, 150 }, 45, 220, EVO_NONE, 0, 0,
+    [SP_GALESQUIRL] = { "GALESQUIRL", T_GALE, T_BEAST, { 78, 114, 52, 52, 64, 140 }, 45, 220, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_GALESQUIRL,
         "Big glider squirrel, cape-like membrane.",
         { TR_DRIFTER, TR_MOMENTUM }, R_UNCOMMON, 0, { TYPE_NONE, TYPE_NONE } },
@@ -683,7 +683,7 @@ static const Species SPECIES[SP_COUNT] = {
         "KIN", 10, 100, LS_SQUEAKLE,
         "Bat pup.",
         { TR_FOCUSED, TR_MOMENTUM }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_NOCTAVE] = { "NOCTAVE", T_DUSK, T_GALE, { 52, 77, 51, 128, 51, 141 }, 45, 220, EVO_NONE, 0, 0,
+    [SP_NOCTAVE] = { "NOCTAVE", T_DUSK, T_GALE, { 53, 77, 51, 128, 51, 140 }, 45, 220, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_NOCTAVE,
         "Sonar bat with tuning-fork ears.",
         { TR_FOCUSED, TR_MOMENTUM }, R_UNCOMMON, FA_FLY, { TYPE_NONE, TYPE_NONE } },
@@ -751,7 +751,7 @@ static const Species SPECIES[SP_COUNT] = {
         "KIN", 10, 100, LS_RIVETILLO,
         "Armadillo with riveted plates.",
         { TR_BEDROCK, TR_STUBBORN }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_FORTADILLO] = { "FORTADILLO", T_METAL, T_STONE, { 59, 119, 155, 48, 71, 48 }, 45, 220, EVO_NONE, 0, 0,
+    [SP_FORTADILLO] = { "FORTADILLO", T_METAL, T_STONE, { 62, 122, 140, 51, 74, 51 }, 45, 220, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_FORTADILLO,
         "Fortress armadillo.",
         { TR_BEDROCK, TR_STUBBORN }, R_UNCOMMON, FA_STRENGTH, { TYPE_NONE, TYPE_NONE } },
@@ -783,7 +783,7 @@ static const Species SPECIES[SP_COUNT] = {
         "KIN", 10, 100, LS_RATTLEBONE,
         "Skeleton squire with a pot helmet.",
         { TR_STUBBORN, TR_SELFMEND }, R_RARE, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_OSSIGUARD] = { "OSSIGUARD", T_HOLLOW, T_METAL, { 76, 77, 142, 52, 116, 52 }, 45, 220, EVO_NONE, 0, 0,
+    [SP_OSSIGUARD] = { "OSSIGUARD", T_HOLLOW, T_METAL, { 77, 78, 140, 52, 116, 52 }, 45, 220, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_OSSIGUARD,
         "Skeleton knight.",
         { TR_STUBBORN, TR_BRUISER }, R_RARE, FA_STRENGTH, { TYPE_NONE, TYPE_NONE } },
@@ -791,7 +791,7 @@ static const Species SPECIES[SP_COUNT] = {
         "KIN", 10, 100, LS_GAUNTLING,
         "A gauntlet that walks on its fingers.",
         { TR_HOARDER, TR_BRUISER }, R_RARE, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_HOLLOWHELM] = { "HOLLOWHELM", T_RELIC, T_METAL, { 49, 74, 159, 98, 86, 49 }, 45, 220, EVO_NONE, 0, 0,
+    [SP_HOLLOWHELM] = { "HOLLOWHELM", T_RELIC, T_METAL, { 53, 78, 140, 102, 90, 52 }, 45, 220, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_HOLLOWHELM,
         "An empty suit of armour.",
         { TR_HOARDER, TR_BRUISER }, R_RARE, FA_STRENGTH, { TYPE_NONE, TYPE_NONE } },
@@ -839,7 +839,7 @@ static const Species SPECIES[SP_COUNT] = {
         "KIN", 10, 100, LS_HOPSHI,
         "Hopping vampire (jiangshi).",
         { TR_STUBBORN, TR_KEEN_EYE }, R_RARE, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_QILUMEN] = { "QILUMEN", T_ASTRAL, T_SPARK, { 103, 51, 51, 154, 51, 90 }, 30, 190, EVO_NONE, 0, 0,
+    [SP_QILUMEN] = { "QILUMEN", T_ASTRAL, T_SPARK, { 106, 54, 54, 140, 54, 92 }, 30, 190, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_QILUMEN,
         "Kirin with a star-lit mane.",
         { TR_FOCUSED, TR_CONDUCTOR }, R_RARE, FA_TELEPORT|FA_LIGHT, { TYPE_NONE, TYPE_NONE } },
@@ -847,11 +847,11 @@ static const Species SPECIES[SP_COUNT] = {
         "KIN", 10, 100, LS_CALDERON,
         "Colossal forge salamander.",
         { TR_SURGE, TR_BRUISER }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_NOCTHALE] = { "NOCTHALE", T_TIDE, T_ASTRAL, { 154, 62, 92, 138, 92, 62 }, 3, 250, EVO_NONE, 0, 0,
+    [SP_NOCTHALE] = { "NOCTHALE", T_TIDE, T_ASTRAL, { 140, 66, 95, 140, 95, 64 }, 3, 250, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_NOCTHALE,
         "Star whale that sings under the sea.",
         { TR_SURGE, TR_QUICK_STUDY }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_HOARFANG] = { "HOARFANG", T_FROST, T_DUSK, { 62, 62, 92, 169, 92, 123 }, 3, 250, EVO_NONE, 0, 0,
+    [SP_HOARFANG] = { "HOARFANG", T_FROST, T_DUSK, { 68, 68, 98, 140, 98, 128 }, 3, 250, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_HOARFANG,
         "The winter wolf.",
         { TR_THICK_FUR, TR_SLIPPERY }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
@@ -859,7 +859,7 @@ static const Species SPECIES[SP_COUNT] = {
         "KIN", 10, 100, LS_OSSUREX,
         "Bone dragon of the Ossuary.",
         { TR_STUBBORN, TR_SURGE }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_SELENOTH] = { "SELENOTH", T_ASTRAL, T_DREAM, { 122, 62, 62, 200, 92, 62 }, 3, 250, EVO_NONE, 0, 0,
+    [SP_SELENOTH] = { "SELENOTH", T_ASTRAL, T_DREAM, { 134, 74, 74, 140, 104, 74 }, 3, 250, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_SELENOTH,
         "Moon moth.",
         { TR_FOCUSED, TR_WAKEFUL }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
@@ -867,19 +867,19 @@ static const Species SPECIES[SP_COUNT] = {
         "KIN", 10, 100, LS_SYLVARCH,
         "Great forest stag.",
         { TR_BASKER, TR_MOMENTUM }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_HOROLOGOS] = { "HOROLOGOS", T_METAL, T_RELIC, { 57, 114, 186, 86, 100, 57 }, 3, 250, EVO_NONE, 0, 0,
+    [SP_HOROLOGOS] = { "HOROLOGOS", T_METAL, T_RELIC, { 67, 123, 140, 95, 109, 66 }, 3, 250, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_HOROLOGOS,
         "Clockwork titan.",
         { TR_BEDROCK, TR_KEEN_EYE }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_SCRIPTORA] = { "SCRIPTORA", T_RELIC, T_DREAM, { 58, 59, 146, 161, 117, 59 }, 3, 250, EVO_NONE, 0, 0,
+    [SP_SCRIPTORA] = { "SCRIPTORA", T_RELIC, T_DREAM, { 65, 66, 140, 140, 124, 65 }, 3, 250, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_SCRIPTORA,
         "Serpent of living pages.",
         { TR_HOARDER, TR_WAKEFUL }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_SKYLORN] = { "SKYLORN", T_GALE, T_ASTRAL, { 91, 123, 62, 108, 62, 154 }, 3, 250, EVO_NONE, 0, 0,
+    [SP_SKYLORN] = { "SKYLORN", T_GALE, T_ASTRAL, { 94, 126, 65, 111, 64, 140 }, 3, 250, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_SKYLORN,
         "Sky manta above the clouds.",
         { TR_DRIFTER, TR_QUICK_STUDY }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_STEAMOTH] = { "STEAMOTH", T_GALE, T_BLAZE, { 53, 121, 54, 81, 54, 162 }, 45, 210, EVO_NONE, 0, 0,
+    [SP_STEAMOTH] = { "STEAMOTH", T_GALE, T_BLAZE, { 58, 126, 58, 85, 58, 140 }, 45, 210, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_STEAMOTH,
         "Moth of steam with brass wings.",
         { TR_DRIFTER, TR_EMBERSKIN }, R_FUSION, 0, { T_BLAZE, T_TIDE } },
@@ -903,7 +903,7 @@ static const Species SPECIES[SP_COUNT] = {
         "KIN", 10, 100, LS_HOARDWYRM,
         "A dragon made of a treasure hoard.",
         { TR_HOARDER, TR_SURGE }, R_FUSION, 0, { T_RELIC, T_WYRM } },
-    [SP_STARSQUID] = { "STARSQUID", T_ASTRAL, T_TIDE, { 135, 54, 67, 148, 67, 54 }, 45, 210, EVO_NONE, 0, 0,
+    [SP_STARSQUID] = { "STARSQUID", T_ASTRAL, T_TIDE, { 137, 56, 69, 140, 68, 55 }, 45, 210, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_STARSQUID,
         "Squid with nebula ink.",
         { TR_FOCUSED, TR_SOAKER }, R_FUSION, 0, { T_ASTRAL, T_TIDE } },
@@ -923,7 +923,7 @@ static const Species SPECIES[SP_COUNT] = {
         "KIN", 10, 100, LS_RIDDLEON,
         "Sphinx that asks riddles.",
         { TR_FOCUSED, TR_STUBBORN }, R_FUSION, 0, { T_DREAM, T_STONE } },
-    [SP_GRIFFALON] = { "GRIFFALON", T_GALE, T_BEAST, { 79, 118, 52, 52, 66, 158 }, 45, 210, EVO_NONE, 0, 0,
+    [SP_GRIFFALON] = { "GRIFFALON", T_GALE, T_BEAST, { 83, 122, 56, 55, 69, 140 }, 45, 210, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_GRIFFALON,
         "Griffin.",
         { TR_DRIFTER, TR_MOMENTUM }, R_FUSION, 0, { T_GALE, T_BEAST } },
@@ -939,11 +939,11 @@ static const Species SPECIES[SP_COUNT] = {
         "KIN", 10, 100, LS_OBSIDRAKE,
         "Obsidian drake.",
         { TR_BEDROCK, TR_SURGE }, R_FUSION, 0, { T_STONE, T_WYRM } },
-    [SP_AURORELK] = { "AURORELK", T_FROST, T_ASTRAL, { 80, 54, 81, 148, 81, 81 }, 45, 210, EVO_NONE, 0, 0,
+    [SP_AURORELK] = { "AURORELK", T_FROST, T_ASTRAL, { 82, 56, 83, 140, 82, 82 }, 45, 210, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_AURORELK,
         "Elk with aurora antlers.",
         { TR_THICK_FUR, TR_QUICK_STUDY }, R_FUSION, 0, { T_FROST, T_ASTRAL } },
-    [SP_RAIJUKO] = { "RAIJUKO", T_SPARK, T_BEAST, { 78, 66, 52, 105, 66, 158 }, 45, 210, EVO_NONE, 0, 0,
+    [SP_RAIJUKO] = { "RAIJUKO", T_SPARK, T_BEAST, { 82, 70, 56, 108, 69, 140 }, 45, 210, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_RAIJUKO,
         "Raiju, the thunder beast.",
         { TR_STATIC_FUR, TR_MOMENTUM }, R_FUSION, 0, { T_SPARK, T_BEAST } },
@@ -955,7 +955,7 @@ static const Species SPECIES[SP_COUNT] = {
         "KIN", 10, 100, LS_CLOCKOWL,
         "Owl with a clock-face chest.",
         { TR_BEDROCK, TR_WAKEFUL }, R_FUSION, 0, { T_METAL, T_DREAM } },
-    [SP_CINDERANT] = { "CINDERANT", T_BLAZE, T_SWARM, { 53, 108, 54, 108, 54, 148 }, 45, 210, EVO_NONE, 0, 0,
+    [SP_CINDERANT] = { "CINDERANT", T_BLAZE, T_SWARM, { 55, 110, 56, 109, 55, 140 }, 45, 210, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_CINDERANT,
         "Fire ant colony in one armour.",
         { TR_SURGE, TR_MOMENTUM }, R_FUSION, 0, { T_BLAZE, T_SWARM } },
@@ -971,7 +971,7 @@ static const Species SPECIES[SP_COUNT] = {
         "KIN", 10, 100, LS_BARKOLEM,
         "Stump golem with a birdhouse.",
         { TR_BASKER, TR_STUBBORN }, R_FUSION, 0, { T_BLOOM, T_STONE } },
-    [SP_PORCELYNX] = { "PORCELYNX", T_RELIC, T_FROST, { 51, 51, 141, 128, 90, 64 }, 45, 210, EVO_NONE, 0, 0,
+    [SP_PORCELYNX] = { "PORCELYNX", T_RELIC, T_FROST, { 52, 51, 140, 128, 90, 64 }, 45, 210, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_PORCELYNX,
         "Porcelain lynx with frost glaze.",
         { TR_HOARDER, TR_SURGE }, R_FUSION, 0, { T_RELIC, T_FROST } },
@@ -1003,11 +1003,11 @@ static const Species SPECIES[SP_COUNT] = {
         "KIN", 10, 100, LS_DYNAMOLE,
         "Mole with a dynamo.",
         { TR_BEDROCK, TR_CONDUCTOR }, R_FUSION, 0, { T_METAL, T_SPARK } },
-    [SP_LULLABOX] = { "LULLABOX", T_RELIC, T_DREAM, { 52, 51, 128, 141, 102, 51 }, 45, 210, EVO_NONE, 0, 0,
+    [SP_LULLABOX] = { "LULLABOX", T_RELIC, T_DREAM, { 53, 51, 128, 140, 102, 51 }, 45, 210, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_LULLABOX,
         "Music box that sings lullabies.",
         { TR_HOARDER, TR_WAKEFUL }, R_FUSION, 0, { T_RELIC, T_DREAM } },
-    [SP_KITSUFLAME] = { "KITSUFLAME", T_BLAZE, T_DREAM, { 53, 81, 54, 148, 81, 108 }, 45, 210, EVO_NONE, 0, 0,
+    [SP_KITSUFLAME] = { "KITSUFLAME", T_BLAZE, T_DREAM, { 55, 83, 56, 140, 82, 109 }, 45, 210, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_KITSUFLAME,
         "Nine-tailed fox of foxfire.",
         { TR_SURGE, TR_WAKEFUL }, R_FUSION, 0, { T_BLAZE, T_DREAM } },
@@ -1019,7 +1019,7 @@ static const Species SPECIES[SP_COUNT] = {
         "KIN", 10, 100, LS_TRIHYDRA,
         "Three-headed hydra.",
         { TR_SPORESKIN, TR_SURGE }, R_FUSION, 0, { T_VENOM, T_WYRM } },
-    [SP_PHOENEX] = { "PHOENEX", T_BLAZE, T_ASTRAL, { 80, 81, 54, 148, 54, 108 }, 45, 210, EVO_NONE, 0, 0,
+    [SP_PHOENEX] = { "PHOENEX", T_BLAZE, T_ASTRAL, { 82, 83, 56, 140, 55, 109 }, 45, 210, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_PHOENEX,
         "Phoenix of starfire.",
         { TR_SURGE, TR_QUICK_STUDY }, R_FUSION, 0, { T_BLAZE, T_ASTRAL } },
@@ -1031,11 +1031,11 @@ static const Species SPECIES[SP_COUNT] = {
         "KIN", 10, 100, LS_NIMBWHALE,
         "Cloud whale.",
         { TR_DRIFTER, TR_SOAKER }, R_FUSION, 0, { T_GALE, T_TIDE } },
-    [SP_JOLLYROGUE] = { "JOLLYROGUE", T_HOLLOW, T_RELIC, { 80, 52, 144, 79, 118, 52 }, 45, 210, EVO_NONE, 0, 0,
+    [SP_JOLLYROGUE] = { "JOLLYROGUE", T_HOLLOW, T_RELIC, { 81, 53, 140, 80, 119, 52 }, 45, 210, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_JOLLYROGUE,
         "Skeleton pirate with a ship in a bottle.",
         { TR_STUBBORN, TR_BEDROCK }, R_FUSION, 0, { T_HOLLOW, T_RELIC } },
-    [SP_RUNELITH] = { "RUNELITH", T_RELIC, T_STONE, { 63, 75, 162, 100, 75, 50 }, 45, 210, EVO_NONE, 0, 0,
+    [SP_RUNELITH] = { "RUNELITH", T_RELIC, T_STONE, { 68, 80, 140, 104, 79, 54 }, 45, 210, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_RUNELITH,
         "Walking rune stone.",
         { TR_HOARDER, TR_STUBBORN }, R_FUSION, 0, { T_RELIC, T_STONE } },
@@ -1051,7 +1051,7 @@ static const Species SPECIES[SP_COUNT] = {
         "KIN", 10, 100, LS_TESLAROSE,
         "Rose that sparks.",
         { TR_BASKER, TR_CONDUCTOR }, R_FUSION, 0, { T_BLOOM, T_SPARK } },
-    [SP_NOCTMARE] = { "NOCTMARE", T_DUSK, T_DREAM, { 53, 54, 54, 175, 81, 108 }, 45, 210, EVO_NONE, 0, 0,
+    [SP_NOCTMARE] = { "NOCTMARE", T_DUSK, T_DREAM, { 60, 61, 61, 140, 88, 115 }, 45, 210, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_NOCTMARE,
         "The nightmare horse.",
         { TR_FOCUSED, TR_WAKEFUL }, R_FUSION, 0, { T_DUSK, T_DREAM } },

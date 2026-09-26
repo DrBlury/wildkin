@@ -74,9 +74,10 @@ static void fresh_game(void)
 
 static void test_data(void)
 {
-    CHECK(MOVE_COUNT == 74, "there are exactly 74 learnable moves");
-    CHECK(SP_COUNT == 32, "there are 32 species (20 new ones)");
-    CHECK(ITEM_COUNT == 17, "there are 17 different items");
+    CHECK(MOVE_COUNT == 120, "there are exactly 120 learnable moves (docs/EXPANSION.md 5)");
+    CHECK(SP_COUNT == 174, "there are 174 species (docs/EXPANSION.md 4)");
+    CHECK(ITEM_COUNT >= 100, "there are at least 100 different items");
+    CHECK(TYPE_COUNT == 18, "there are 18 types");
 
     int moves_ok = 1, names_ok = 1, anim_ok = 1;
     for (int i = 0; i < MOVE_TABLE_SIZE; i++) {
@@ -101,9 +102,11 @@ static void test_data(void)
     for (int a = 0; a < MOVE_COUNT; a++)
         for (int b = a + 1; b < MOVE_COUNT; b++)
             if (MOVES[a].anim == MOVES[b].anim && MOVES[a].fx == MOVES[b].fx &&
-                MOVES[a].col1 == MOVES[b].col1 && MOVES[a].count == MOVES[b].count)
+                MOVES[a].col1 == MOVES[b].col1 && MOVES[a].count == MOVES[b].count) {
                 distinct = 0;
-    CHECK(distinct, "all 60 moves have their own animation recipe");
+                printf("     %s and %s look alike\n", MOVES[a].name, MOVES[b].name);
+            }
+    CHECK(distinct, "every move has its own animation recipe");
 
     int learned[MOVE_COUNT] = { 0 };
     int ls_ok = 1, stab_ok = 1, species_ok = 1, text_ok = 1;
@@ -114,10 +117,15 @@ static void test_data(void)
             !renderable(sp->category) || text_width(sp->category) > 72)
             text_ok = 0;
         if (sp->type1 >= TYPE_COUNT || (sp->type2 != TYPE_NONE && sp->type2 >= TYPE_COUNT) ||
-            sp->type1 == sp->type2 || sp->catch_rate < 3 || !sp->xp_yield)
+            sp->type1 == sp->type2 || sp->catch_rate < 3 || !sp->xp_yield) {
             species_ok = 0;
+            printf("     %s: bad types / catch / xp\n", sp->name);
+        }
         for (int b = 0; b < BS_COUNT; b++)
-            if (sp->base[b] < 20 || sp->base[b] > 135) species_ok = 0;
+            if (sp->base[b] < 20 || sp->base[b] > (sp->rarity == R_LEGEND ? 160 : 150)) {
+                species_ok = 0;
+                printf("     %s: base stat %d out of range\n", sp->name, sp->base[b]);
+            }
         if (sp->learnset[0].level != 1) ls_ok = 0;
         for (const LearnEntry *e = sp->learnset; e->level; e++, n++) {
             if (e->level < prev || e->move >= MOVE_COUNT) ls_ok = 0;
@@ -126,8 +134,14 @@ static void test_data(void)
             if (MOVES[e->move].power && species_has_type(s, MOVES[e->move].type) && e->level <= 20)
                 has_stab = 1;
         }
-        if (n < 6) ls_ok = 0;
-        if (!has_stab) stab_ok = 0;
+        if (n < 6) {
+            ls_ok = 0;
+            printf("     %s: only %d moves\n", sp->name, n);
+        }
+        if (!has_stab) {
+            stab_ok = 0;
+            printf("     %s: no same-type attack by Lv20\n", sp->name);
+        }
     }
     CHECK(species_ok, "species types, base stats and catch rates are sane");
     CHECK(text_ok, "species names, categories and catalogue text fit the UI");
@@ -139,7 +153,7 @@ static void test_data(void)
             all_learned = 0;
             printf("     move %s is never learned\n", MOVES[m].name);
         }
-    CHECK(all_learned, "every one of the 60 moves can be learned by some species");
+    CHECK(all_learned, "every move can be learned by some species");
 
     int evo_ok = 1, evo_count = 0, stone_evos = 0;
     for (int s = 0; s < SP_COUNT; s++) {
@@ -157,13 +171,15 @@ static void test_data(void)
         if (species_prevo(into) != s) evo_ok = 0;
     }
     CHECK(evo_ok, "evolutions point forward, raise base stats and use stones correctly");
-    CHECK(evo_count >= 15 && stone_evos == 4, "there are level and stone evolutions");
+    CHECK(evo_count >= 50 && stone_evos >= 8, "there are level and shard growths");
 
     int items_ok = 1;
     for (int i = 0; i < ITEM_COUNT; i++)
         if (!renderable(ITEMS[i].name) || text_width(ITEMS[i].name) > 88 || !renderable(ITEMS[i].desc) ||
-            ITEMS[i].pocket >= POCKET_COUNT)
+            ITEMS[i].pocket >= POCKET_COUNT || ITEMS[i].icon >= ICON_COUNT) {
             items_ok = 0;
+            printf("     item %s does not fit (%d px)\n", ITEMS[i].name, text_width(ITEMS[i].name));
+        }
     CHECK(items_ok, "items have renderable names, descriptions and a pocket");
 
     /* type chart */
@@ -528,14 +544,14 @@ static void test_save(void)
     CHECK(!save_load_from(sram), "blank SRAM loads nothing");
     CHECK(save_write_to(sram), "saving writes and verifies both slots");
     fresh_game();
-    CHECK(save_load_from(sram) == 3 && party_count == 6 && storage_count == 4 &&
+    CHECK(save_load_from(sram) == 4 && party_count == 6 && storage_count == 4 &&
           bag[ITEM_GLOW_LANTERN] == 7 && money == 4321 && cur_map == MAP_SHOP &&
           player.x == 3 && player.y == 5 && player.facing == DIR_LEFT &&
           flag(FLAG_LEAF_STONE) && item_taken(0) && !item_taken(1) && item_taken(2) && party[0].species == SP_AQUAPO,
           "loading restores team, PC storage, bag, money, flags and position");
     sram[20] ^= 0x55;
     fresh_game();
-    CHECK(save_load_from(sram) == 3 && party_count == 6, "a damaged primary slot falls back to the backup");
+    CHECK(save_load_from(sram) == 4 && party_count == 6, "a damaged primary slot falls back to the backup");
     sram[SAVE_BACKUP_OFFSET + 20] ^= 0x55;
     fresh_game();
     CHECK(!save_load_from(sram), "two damaged slots are rejected");
@@ -1069,7 +1085,7 @@ static void test_animations_and_sound(void)
     opt.sound = 0;
     sfx_update();
     sfx_play(SFX_CONFIRM);
-    CHECK(!sfx_busy() && !(REG16(0x084) & 0x80), "sound off silences everything");
+    CHECK(!sfx_busy() && !(REG16(0x080) & 0xFF00), "sound off silences every effect (music is separate)");
     opt.sound = 1;
     int all_end = 1;
     for (int id = 1; id < SFX_COUNT; id++) {

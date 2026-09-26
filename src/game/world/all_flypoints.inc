@@ -1,0 +1,13 @@
+/* world/all_flypoints.inc -- every region's flypoints.inc (do not edit). */
+#include "village/flypoints.inc"
+#include "east/flypoints.inc"
+#include "west/flypoints.inc"
+#include "north/flypoints.inc"
+#include "grim/flypoints.inc"
+#include "far/flypoints.inc"
+#include "farm/flypoints.inc"
+#include "craft/flypoints.inc"
+#include "fusion/flypoints.inc"
+#include "travel/flypoints.inc"
+#include "ui/flypoints.inc"
+#include "debug/flypoints.inc"

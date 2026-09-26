@@ -691,6 +691,7 @@ static int examine_cell(int x, int y)
 {
     const DecorPlace *p = decor_at(x, y, 0, 0);
     if (!p) return 0;
+    if (station_examine(p->kind)) return 1;
     switch (p->kind) {
     case DK_STORMSTONE:
         script_stormstone();
@@ -808,6 +809,10 @@ static int examine_cell(int x, int y)
                 : "The mailbox is empty.");
         return 1;
     default:
+        if (DECOR_EXAMINE[p->kind]) {
+            dlg_say(DECOR_EXAMINE[p->kind]);
+            return 1;
+        }
         return 0;
     }
 }

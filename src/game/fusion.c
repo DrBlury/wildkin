@@ -24,3 +24,12 @@ static void fusion_validate(void)
     for (int t = 0; t < TYPE_COUNT; t++)
         if (fusion.energy[t] > 9999) fusion.energy[t] = 9999;
 }
+
+enum { FUSION_SCREEN_MENU, FUSION_SCREEN_UNBIND, FUSION_SCREEN_MIX, FUSION_SCREEN_LOOM };
+
+/* The RESONANCE WORKS machines (a Works NPC script calls this). */
+MAYBE_UNUSED static void fusion_open(int screen)
+{
+    (void)screen;
+    dlg_say("The machines are still warming up.");
+}

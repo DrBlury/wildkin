@@ -7,115 +7,7 @@
  *
  * Run with `make test`.
  */
-#define main gba_main
-#include "../src/main.c"
-#undef main
-
-#include <stdio.h>
-#include <string.h>
-
-static int failures = 0;
-
-#define CHECK(cond, msg)                                                    \
-    do {                                                                    \
-        if (cond) {                                                         \
-            printf("ok: %s\n", (msg));                                      \
-        } else {                                                            \
-            printf("FAIL: %s\n", (msg));                                    \
-            failures++;                                                     \
-        }                                                                   \
-    } while (0)
-
-static void step(u16 keys)
-{
-    keys_prev = keys_now;
-    keys_now = keys;
-    game_frame();
-}
-
-static void tap(u16 keys)
-{
-    if (keys_now) step(0); /* a press only counts after a release */
-    step(keys);
-    step(0);
-}
-
-static void hold(u16 keys, int frames)
-{
-    while (frames--) step(keys);
-    step(0);
-}
-
-static void settle(void)
-{
-    for (int f = 0; f < 60 && (player.moving || warp.active); f++) step(0);
-}
-
-static void run_dialog(int limit)
-{
-    for (int f = 0; f < limit && (dialog_active() || game_mode == MODE_SHOP); f++)
-        step((f & 3) == 0 ? KEY_A : 0);
-}
-
-static void fresh_game(void)
-{
-    new_game();
-    dialog_clear();
-    canvas_clear();
-    game_mode = MODE_FIELD;
-    opt.follower = 1;
-}
-
-static void give_starter(void)
-{
-    Monster m = monster_make(SP_FLARIX, 8);
-    give_monster(&m);
-    flag_set(FLAG_STARTER);
-    follower_reset();
-}
-
-/* ---------------- maps ---------------- */
-
-static u8 seen_cells[MAP_MAX_W * MAP_MAX_H];
-
-/* Flood fill over walkable cells (people and satchels count as walls). */
-static void flood(int sx, int sy)
-{
-    static int qx[MAP_MAX_W * MAP_MAX_H], qy[MAP_MAX_W * MAP_MAX_H];
-    memset(seen_cells, 0, sizeof(seen_cells));
-    if (!cell_walkable(sx, sy) && !(cell_attr(sx, sy) & A_EXIT)) return;
-    int head = 0, tail = 0;
-    qx[tail] = sx;
-    qy[tail++] = sy;
-    seen_cells[sy * map_w + sx] = 1;
-    while (head < tail) {
-        int x = qx[head], y = qy[head++];
-        for (int d = 0; d < 4; d++) {
-            int nx = x + DIR_DX[d], ny = y + DIR_DY[d];
-            /* ledges: one-way hop south */
-            if (d == DIR_DOWN && nx >= 0 && ny >= 0 && nx < map_w && ny < map_h &&
-                (cell_attr(nx, ny) & A_LEDGE) && cell_walkable(nx, ny + 1))
-                ny++;
-            if (nx < 0 || ny < 0 || nx >= map_w || ny >= map_h) continue;
-            if (seen_cells[ny * map_w + nx] || !cell_walkable(nx, ny)) continue;
-            seen_cells[ny * map_w + nx] = 1;
-            qx[tail] = nx;
-            qy[tail++] = ny;
-        }
-    }
-}
-
-static int reached(int x, int y)
-{
-    return x >= 0 && y >= 0 && x < map_w && y < map_h && seen_cells[y * map_w + x];
-}
-
-static int reached_beside(int x, int y)
-{
-    for (int d = 0; d < 4; d++)
-        if (reached(x + DIR_DX[d], y + DIR_DY[d])) return 1;
-    return 0;
-}
+#include "tests/harness.h"
 
 /* A walkable cell of `map` to start flood fills from. */
 static void map_entry(int map, int *ex, int *ey)
@@ -185,6 +77,41 @@ static void test_maps(void)
             if (MAPS[to].link[BACK[l]] != m) links_ok = 0;
         }
     CHECK(links_ok, "map links are two-way");
+
+    /* every walkable edge cell lands on a walkable cell of the neighbour
+     * (the edge contracts in docs/EXPANSION.md 9) */
+    int land_ok = 1;
+    for (int m = 0; m < MAP_COUNT; m++)
+        for (int l = 0; l < 4; l++) {
+            int to = MAPS[m].link[l];
+            if (to == MAP_NONE) continue;
+            static u8 xs[MAP_MAX_W + MAP_MAX_H];
+            int n = 0;
+            map_load(m);
+            int len = l < 2 ? map_w : map_h;
+            for (int k = 0; k < len; k++) {
+                int x = l < 2 ? k : (l == LINK_W ? 0 : map_w - 1);
+                int y = l < 2 ? (l == LINK_N ? 0 : map_h - 1) : k;
+                if (!(cell_attr(x, y) & (A_SOLID | A_WATER | A_LEDGE))) xs[n++] = (u8)k;
+            }
+            int off = MAPS[m].link_off[l];
+            map_load(to);
+            for (int i = 0; i < n; i++) {
+                int x, y;
+                switch (l) {
+                case LINK_N: x = xs[i] + off; y = map_h - 1; break;
+                case LINK_S: x = xs[i] + off; y = 0; break;
+                case LINK_W: x = map_w - 1; y = xs[i] + off; break;
+                default: x = 0; y = xs[i] + off; break;
+                }
+                if (x < 0 || y < 0 || x >= map_w || y >= map_h || (cell_attr(x, y) & (A_SOLID | A_WATER))) {
+                    land_ok = 0;
+                    printf("  %s -> %s: walking off at %d lands on a wall (%d,%d)\n", MAPS[m].name,
+                           MAPS[to].name, xs[i], x, y);
+                }
+            }
+        }
+    CHECK(land_ok, "walking off any edge lands on a walkable cell of the next map");
 
     int doors_ok = 1;
     for (int i = 0; i < WARP_COUNT; i++) {
@@ -357,7 +284,7 @@ static void test_encounters(void)
     CHECK(in_grass, "they spawn in grass");
     int lv_lo = 99, lv_hi = 0;
     for (int n = 0; n < 60; n++) {
-        Monster m = roll_wild(0);
+        Monster m = roll_wild(ZONE_MEADOW);
         if (m.level < lv_lo) lv_lo = m.level;
         if (m.level > lv_hi) lv_hi = m.level;
     }

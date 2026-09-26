@@ -488,7 +488,7 @@ static const Move MOVES[MOVE_TABLE_SIZE] = {
         AK_POWDER, FX_SNOWFLAKE, FX_DUST, 4, RGB15(26, 30, 31), RGB15(31, 31, 31),
         "Buries the foe's feet in snow. Lowers SPEED."),
     [M_COUNTERJAB] = MV("COUNTERJAB", T_BRAWL, CAT_PHYS, 60, 100, 20, 1, EF_NONE, 0, 0, 0,
-        AK_STRIKE, FX_FIST, FX_IMPACT_SMALL, 1, RGB15(30, 20, 12), RGB15(31, 31, 26),
+        AK_STRIKE, FX_FIST, FX_SPEEDLINE, 2, RGB15(31, 24, 16), RGB15(31, 31, 26),
         "A snap jab thrown before the foe moves."),
     [M_ACID_SPIT] = MV("ACID SPIT", T_VENOM, CAT_SPEC, 60, 100, 20, 0, EF_FOE_STAT, 30, STAT_SPD, -1,
         AK_PROJECTILE, FX_GLOB, FX_SPLAT, 2, RGB15(18, 26, 4), RGB15(28, 30, 14),

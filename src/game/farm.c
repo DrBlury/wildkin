@@ -35,6 +35,10 @@ static int farm_dyn_cell(int mx, int my, u16 bottom[4], u16 mid[4], u16 top[4])
     return 0;
 }
 
+/* The farmhouse WORK BOARD (kin workers) and the SHIPPING BIN. */
+MAYBE_UNUSED static void farm_workboard_open(void) { dlg_say("The work board is empty."); }
+MAYBE_UNUSED static void farm_ship_open(void) { dlg_say("The shipping bin is empty."); }
+
 /* The field's hook for cells that change at run time (field.c). */
 static int dyn_cell(int mx, int my, u16 bottom[4], u16 mid[4], u16 top[4])
 {

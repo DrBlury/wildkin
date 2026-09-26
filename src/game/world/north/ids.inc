@@ -1,1 +1,12 @@
-/* world/north/ids.inc -- Map ids: MAP_X,. Owner: W-NORTH. */
+/* world/north/ids.inc -- Map ids: MAP_X,. PLACEHOLDER maps: the owner replaces them. */
+    MAP_FROSTPINE,
+    MAP_FROSTHOLLOW,
+    MAP_WHITECROWN,
+    MAP_SKY_ISLE,
+    MAP_FROST_HEARTH,
+    MAP_FROST_SHOP,
+    MAP_RIME_HALL,
+    MAP_HOT_SPRING,
+    MAP_GLIMMER_1,
+    MAP_GLIMMER_2,
+    MAP_STARFALL,

@@ -54,6 +54,11 @@ test:
 	$(BUILD)/test_field
 	$(HOSTCC) -std=c11 -Wall -Wextra -Wno-missing-field-initializers -Wno-unused-function -o $(BUILD)/test_game tools/test_game.c
 	$(BUILD)/test_game
+	@for t in tools/tests/test_*.c; do \
+		n=$$(basename $$t .c); \
+		$(HOSTCC) -std=c11 -Wall -Wextra -Wno-missing-field-initializers -Wno-unused-function -o $(BUILD)/$$n $$t || exit 1; \
+		$(BUILD)/$$n || exit 1; \
+	done
 
 art:
 	python3 tools/gen_ui_gfx.py

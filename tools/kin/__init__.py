@@ -50,7 +50,7 @@ class KinSpec:
         self.base = tuple(base) if base else None
         self.catch, self.xp, self.evo = catch, xp, evo
         self.category, self.height, self.weight = category, height, weight
-        self.learnset = list(learnset or [])
+        self.learnset = sorted(learnset or [], key=lambda e: e[0])   # stable: keeps level-1 order
         self.traits, self.desc, self.field = tuple(traits), desc, tuple(field)
         self.fusion = tuple(fusion) if fusion else None
         self.model, self.placeholder, self.concept = model, placeholder, concept

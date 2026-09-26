@@ -1,1 +1,11 @@
-/* world/grim/ids.inc -- Map ids: MAP_X,. Owner: W-GRIM. */
+/* world/grim/ids.inc -- Map ids: MAP_X,. PLACEHOLDER maps: the owner replaces them. */
+    MAP_ASHEN_FIELDS,
+    MAP_GRAVEWOOD,
+    MAP_DUSKMERE,
+    MAP_DUSK_HEARTH,
+    MAP_DUSK_SHOP,
+    MAP_APOTHECARY,
+    MAP_LANTERN_CRYPT,
+    MAP_OSSUARY_1,
+    MAP_OSSUARY_2,
+    MAP_BONE_THRONE,

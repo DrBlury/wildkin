@@ -23,7 +23,7 @@ static struct {
 
 static const char *const DBG_ITEMS[] = { "ASSET VIEWER", "KIN VIEWER", "WARP TO MAP", "BACK" };
 #define DBG_ITEM_COUNT 4
-#define DBG_ROWS 12
+#define DBG_ROWS 8
 
 static int dbg_view_first(void)
 {
@@ -47,8 +47,8 @@ static void dbg_list_draw(const char *title, int count, const char *(*label)(int
     canvas_window(0, 3, CANVAS_COLS, 17, WIN_STD);
     for (int r = 0; r < DBG_ROWS && dbg.scroll + r < count; r++) {
         int i = dbg.scroll + r;
-        if (i == dbg.cursor) text_draw(14, 32 + r * 9, "{");
-        small_text_draw(24, 34 + r * 9, label(i));
+        if (i == dbg.cursor) text_draw(14, 30 + r * 14, "{");
+        text_draw(24, 30 + r * 14, label(i));
     }
 }
 
@@ -142,14 +142,14 @@ static void dbg_kin_redraw(void)
     str_put(buf, SPECIES[dbg.sp].name);
     text_draw_col(16, 8, buf, INK_BLUE, INK_BLUE_SH);
     str_copy(buf, RARITY_NAMES[SPECIES[dbg.sp].rarity]);
-    small_text_draw(180, 11, buf);
+    text_draw_right(228, 8, buf);
     /* three backdrops: light, grass green, night */
     canvas_fill(0, 24, 80, 88, 1);
     canvas_fill(80, 24, 80, 88, 6);
     canvas_fill(160, 24, 80, 88, 4);
     canvas_window(0, 14, CANVAS_COLS, 6, WIN_STD);
-    small_text_draw(12, 120, "LEFT/RIGHT kin   A lustre   L/R back 10/next 10");
-    small_text_draw(12, 132, "B back");
+    text_draw(12, 118, "LEFT/RIGHT: kin   A: lustrous");
+    text_draw(12, 134, "L/R: 10 at a time   B: back");
     draw_type_badge(20, 17, SPECIES[dbg.sp].type1);
     if (SPECIES[dbg.sp].type2 != TYPE_NONE) draw_type_badge(25, 17, SPECIES[dbg.sp].type2);
     load_monster_gfx_ex(0, dbg.sp, 0, dbg.lustrous);

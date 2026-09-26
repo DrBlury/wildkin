@@ -43,3 +43,32 @@ static int travel_attr(int x, int y, int a)
     (void)x; (void)y;
     return a;
 }
+
+/* ---- entry points other modules call (TRAVERSAL owner implements) ---- */
+
+MAYBE_UNUSED static int travel_has_crest(int c) { return (travel.crests >> c) & 1; }
+
+/* A Hall Master hands over a crest. */
+MAYBE_UNUSED static void travel_award_crest(int c)
+{
+    if (c >= 0 && c < CREST_COUNT) travel.crests |= (u8)(1u << c);
+}
+
+/* A boat trip to (map, x, y): a sailing cutscene, then you arrive. */
+MAYBE_UNUSED static void travel_boat_to(int map, int x, int y)
+{
+    field_begin_warp(map, x, y, DIR_DOWN);
+}
+
+/* The FIELD menu on START: surf, fly, teleport, light, strength, bike. */
+MAYBE_UNUSED static void travel_field_menu_open(void)
+{
+    dlg_say("No field abilities yet.");
+}
+
+/* The town map (fly = 1: pick a destination). */
+MAYBE_UNUSED static void worldmap_open(int fly)
+{
+    (void)fly;
+    dlg_say("A map of the Vale.");
+}

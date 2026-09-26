@@ -1,0 +1,13 @@
+/* world/all_quests.inc -- every region's quests.inc (do not edit). */
+#include "village/quests.inc"
+#include "east/quests.inc"
+#include "west/quests.inc"
+#include "north/quests.inc"
+#include "grim/quests.inc"
+#include "far/quests.inc"
+#include "farm/quests.inc"
+#include "craft/quests.inc"
+#include "fusion/quests.inc"
+#include "travel/quests.inc"
+#include "ui/quests.inc"
+#include "debug/quests.inc"

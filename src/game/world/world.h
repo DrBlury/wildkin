@@ -47,6 +47,12 @@ enum {
     FLAG_COUNT
 };
 
+enum {
+    QUEST_NONE_ID,
+#include "all_quest_ids.inc"
+    QUEST_COUNT
+};
+
 /* ---------------- helpers for region data ---------------- */
 
 #define DP(K, X, Y) { DK_##K, X, Y, 0 }
@@ -98,3 +104,17 @@ static const WildZone WILD_ZONES[ZONE_COUNT] = {
     [ZONE_EMPTY] = { 0, 0, 0, "" },
 #include "all_zones.inc"
 };
+
+/* Quests shown in the quest log (quest.c keeps their stages). */
+typedef struct { const char *name, *goal; } QuestDef;
+static const QuestDef QUESTS[QUEST_COUNT] = {
+    [QUEST_NONE_ID] = { "", "" },
+#include "all_quests.inc"
+};
+
+/* Places you can fly to (once visited) and where they sit on the town map. */
+typedef struct { u8 map, x, y, map_x, map_y; const char *name; } FlyPoint;
+static const FlyPoint FLY_POINTS[] = {
+#include "all_flypoints.inc"
+};
+#define FLY_POINT_COUNT ((int)(sizeof(FLY_POINTS) / sizeof(FLY_POINTS[0])))

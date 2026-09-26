@@ -35,13 +35,13 @@ static const char *const TOWN_ROWS[] = {
     "TT..XXXXX..XXXXX...==..........XXXXX..TT", /* 24 */
     "tt..XXXXX..XXXXX...==............=....tt", /* 25 */
     "TT..==============================....TT", /* 26 */
-    "tt....................................tt", /* 27 */
-    "TT..~~~~~...rrrrr......,,,,,,,,..yyyy.TT", /* 28 */
-    "tt.~~~~~~~..rrrrr......,,,,,,,,..yyyy.tt", /* 29 */
-    "TT.~~~~~~~..yyyyy......,,,,,,,,..rrrr.TT", /* 30 */
-    "tt..~~~~~...yyyyy......,,,,,,,,.......tt", /* 31 */
-    "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT", /* 32 */
-    "tttttttttttttttttttttttttttttttttttttttt", /* 33 */
+    "tt.................==.................tt", /* 27 */
+    "TT..~~~~~...rrrrr..==..,,,,,,,,..yyyy.TT", /* 28 */
+    "tt.~~~~~~~..rrrrr..==..,,,,,,,,..yyyy.tt", /* 29 */
+    "TT.~~~~~~~..yyyyy..==..,,,,,,,,..rrrr.TT", /* 30 */
+    "tt..~~~~~...yyyyy..==..,,,,,,,,.......tt", /* 31 */
+    "TTTTTTTTTTTTTTTTTTT==TTTTTTTTTTTTTTTTTTT", /* 32 */
+    "ttttttttttttttttttt==ttttttttttttttttttt", /* 33 */
 };
 
 static const char *const MEADOW_ROWS[] = {
@@ -92,9 +92,9 @@ static const char *const MEADOW_ROWS[] = {
 };
 
 static const char *const RISE_ROWS[] = {
-    "PPPPPPPPPPPPPPPPPPPPPPPP", /*  0 */
-    "pppppppppppppppppppppppp", /*  1 */
-    "PP....................PP", /*  2 */
+    "PPPPPPPPPPP==PPPPPPPPPPP", /*  0 */
+    "ppppppppppp==ppppppppppp", /*  1 */
+    "PP.........==.........PP", /*  2 */
     "pp.,,,.##########.,,,.pp", /*  3 */
     "PP.,,,.#........#.,,,.PP", /*  4 */
     "pp.,,,.#..####..#.,,,.pp", /*  5 */
@@ -132,8 +132,8 @@ static const char *const WOOD_ROWS[] = {
     "PPf,,,,,,==fppppppppff~~f,,,,==fppppppppffPP", /* 14 */
     "ppf,,,,,,==f,,,,,,,,,f~~f,,,,==fffffffffffpp", /* 15 */
     "PPf,,,,,,==f,,,,,,,,,f~~f,,,,==,,,,,,,,,,fPP", /* 16 */
-    "===========f,,,,,,,,,f~~f,,,,==,,,,,,,,,,fpp", /* 17 */
-    "===========fdddddd,,,f~~f,,,,==,,,,,,,,,,fPP", /* 18 */
+    "===========f,,,,,,,,,f~~f,,,,===============", /* 17 */
+    "===========fdddddd,,,f~~f,,,,===============", /* 18 */
     "ppffffffffffdddddd,,,f~~f,,,,==,,,,,,,,,,fpp", /* 19 */
     "PPffffffffff,dddd,,,,f~~f,,,,==,,,,,,,,,,fPP", /* 20 */
     "ppfPPPPPPPPP,,,,,,,,,f~~fffff==,,,,,,,,,,fpp", /* 21 */
@@ -146,11 +146,11 @@ static const char *const WOOD_ROWS[] = {
     "PPffffffffffffff==ffff~~ffffffffffffffffffPP", /* 28 */
     "ppfPPPPPPPPPPfff======~~=============fffffpp", /* 29 */
     "PPfppppppppppfff======~~=============fffffPP", /* 30 */
-    "ppfPPPPPPPPPPfffffffff~~fffffff,,,,,,,,,,fpp", /* 31 */
-    "PPfppppppppppfffffffff~~fffffff,,,,,,,,,,fPP", /* 32 */
-    "ppffffffffffffffffffff~~fffffff,,,,,,,,,,fpp", /* 33 */
-    "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP", /* 34 */
-    "pppppppppppppppppppppppppppppppppppppppppppp", /* 35 */
+    "ppfPPPPPPPPPPfffffffff~~ffffff==,,,,,,,,,fpp", /* 31 */
+    "PPfppppppppppfffffffff~~ffffff==,,,,,,,,,fPP", /* 32 */
+    "ppffffffffffffffffffff~~ffffff==,,,,,,,,,fpp", /* 33 */
+    "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPP==PPPPPPPPPPPP", /* 34 */
+    "pppppppppppppppppppppppppppppp==pppppppppppp", /* 35 */
 };
 
 static const char *const LAKE_ROWS[] = {
@@ -185,8 +185,8 @@ static const char *const LAKE_ROWS[] = {
     "TT.ssss~~~~~~~~~~~~~ssss==..,,,,,,,,,.TT", /* 28 */
     "tt...sssssRRRRRRRRRsss..==..,,,,,,,,,.tt", /* 29 */
     "TT...sssssRRRRRRRRRsss..==............TT", /* 30 */
-    "tt......==================.....yyyyyy.tt", /* 31 */
-    "TT......==================.....yyyyyy.TT", /* 32 */
+    "==========================.....yyyyyy.tt", /* 31 */
+    "==========================.....yyyyyy.TT", /* 32 */
     "tt.............................yyyyyy.tt", /* 33 */
     "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT", /* 34 */
     "tttttttttttttttttttttttttttttttttttttttt", /* 35 */
