@@ -1562,7 +1562,7 @@ static void anim_move_frame(void)
     }
     case AK_TOLL: {
         /* a bell comes down over the foe and swings; every toll sends a ripple */
-        int by = dy - 36 - (t < 10 ? (10 - t) * 4 : 0);
+        int by = dy - 26 - (t < 10 ? (10 - t) * 4 : 0);
         int sw = t >= 10 ? soft_sin((t - 10) * 8) / 3 : 0;
         if (t < anim.dur - 6) fx_spr_aff(dx + sw / 3, by, fx, OBANK_FX_A, 384, sw);
         for (int i = 0; i < n; i++) {
