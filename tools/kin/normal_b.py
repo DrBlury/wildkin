@@ -78,7 +78,7 @@ SPECIES = [
               'crows land on its scythes, and then it moves.',
          concept='reaper mantis with bone scythes'),
     # ---- iron beetles ----------------------------------------------------------------
-    _kin(74, 'MAGNITICK', ('SWARM', 'METAL'), 'C', base=(45, 58, 78, 35, 50, 44), catch=190, xp=58,
+    _kin(74, 'MAGNITICK', ('SWARM', 'METAL'), 'C', base=(45, 54, 70, 35, 50, 44), catch=190, xp=58,
          evo=('LEVEL', 28, 'LODEHORN'), category='IRON GRUB', height=3, weight=90,
          learnset=[(1, 'M_BONK'), (1, 'M_IRON_TAP'), (5, 'M_MAGNET_PULL'), (9, 'M_SILK_SNARE'), (13, 'M_PINCER'),
                    (17, 'M_RIVET_SHOT'), (21, 'M_STEEL_SHELL'), (25, 'M_SWARM_RUSH'), (31, 'M_GEAR_GRIND')],
@@ -164,9 +164,9 @@ SPECIES = [
               'of eyes that were not there a moment ago.',
          concept='shadow panther'),
     # ---- HOLLOW: skeletons and zombies ----------------------------------------------------------------
-    _kin(84, 'CALCIPUP', ('HOLLOW',), 'C', base=(50, 55, 58, 35, 45, 62), catch=190, xp=58,
+    _kin(84, 'CALCIPUP', ('HOLLOW',), 'C', base=(56, 64, 58, 35, 45, 62), catch=190, xp=58,
          evo=('LEVEL', 28, 'OSSIHOUND'), category='BONE PUP', height=4, weight=40,
-         learnset=[(1, 'M_BONK'), (1, 'M_POUT'), (4, 'M_BONE_RATTLE'), (8, 'M_DART'), (12, 'M_SHROUD'), (16, 'M_GRAVE_CHILL'),
+         learnset=[(1, 'M_POUT'), (1, 'M_BONK'), (4, 'M_BONE_RATTLE'), (8, 'M_DART'), (12, 'M_GRAVE_CHILL'), (16, 'M_SHROUD'),
                    (21, 'M_CATNAP'), (25, 'M_MARROW_SIP'), (31, 'M_OSSIFY')],
          traits=('STUBBORN', 'SELFMEND'), field=(),
          desc='A kernel that outlived its body rebuilt it from old bone and grave dust. It rattles all over when it is '

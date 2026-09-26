@@ -53,6 +53,8 @@ enum {
     BSCENE_COUNT
 };
 #define BSCENE_AREA 0xFF        /* TrainerTeam.scene: use battle_next_scene */
+/* every BSCENE_* has a painted background (tools/bout_scenes.py) */
+typedef char BattleScenesPainted[BSCENE_COUNT == BBG_SCENE_COUNT ? 1 : -1];
 static int battle_next_scene = BSCENE_MEADOW;
 
 /* Called once from battle_exit (result = BR_*) before returning to the

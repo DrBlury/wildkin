@@ -110,8 +110,8 @@ SPECIES = [
     KinSpec(162, 'KITSUFLAME', ('BLAZE', 'DREAM'), 'F', base=(75, 70, 75, 125, 100, 115), catch=45, xp=215,
             category='FOXFIRE', height=13, weight=240,
             learnset=[(1, 'M_CINDER_FLICK'), (1, 'M_DAYDREAM'), (1, 'M_DART'), (1, 'M_LANTERN_LURE'),
-                      (8, 'M_SEAR_BITE'), (14, 'M_PRISM_RAY'), (20, 'M_KILN_BREATH'), (26, 'M_LULLABY'),
-                      (32, 'M_STILL_POND'), (38, 'M_EMBER_STORM'), (44, 'M_DREAMQUAKE'), (50, 'M_SUNFLARE')],
+                      (8, 'M_SEAR_BITE'), (14, 'M_PRISM_RAY'), (20, 'M_KILN_BREATH'), (26, 'M_STILL_POND'),
+                      (32, 'M_EMBER_STORM'), (38, 'M_DREAMQUAKE'), (44, 'M_LULLABY'), (50, 'M_SUNFLARE')],
             traits=('FOCUSED', 'GLOWER'), field=('LIGHT', 'TELEPORT'), fusion=('BLAZE', 'DREAM'),
             desc='Woven from BLAZE and DREAM energy, its pale foxfire glows but never scorches. Each of '
                  'its nine tails keeps one dream, and it shows them to travellers who get lost.',
@@ -134,11 +134,11 @@ SPECIES = [
             desc='Woven from VENOM and WYRM energy, one old kernel feeds three heads that each brew '
                  'their own poison. Knock one out in a bout and its motes grow it back by dusk.',
             concept='three-headed hydra', model=trihydra, placeholder=False),
-    KinSpec(165, 'PHOENEX', ('BLAZE', 'ASTRAL'), 'F', base=(80, 75, 70, 130, 90, 115), catch=45, xp=215,
+    KinSpec(165, 'PHOENEX', ('BLAZE', 'ASTRAL'), 'F', base=(80, 75, 70, 112, 88, 100), catch=45, xp=215,
             category='STARFIRE', height=20, weight=260,
             learnset=[(1, 'M_CINDER_FLICK'), (1, 'M_TWINKLE'), (1, 'M_DRAFT'), (1, 'M_STARDUST'),
-                      (8, 'M_SEAR_BITE'), (14, 'M_MOONBEAM'), (20, 'M_KILN_BREATH'), (26, 'M_NEBULA_VEIL'),
-                      (32, 'M_EMBER_STORM'), (38, 'M_COMET_DASH'), (44, 'M_MUON_RAIN'), (50, 'M_SUNFLARE'),
+                      (8, 'M_SEAR_BITE'), (14, 'M_MOONBEAM'), (20, 'M_KILN_BREATH'), (26, 'M_COMET_DASH'),
+                      (32, 'M_MUON_RAIN'), (38, 'M_EMBER_STORM'), (44, 'M_NEBULA_VEIL'), (50, 'M_SUNFLARE'),
                       (56, 'M_SUPERNOVA')],
             traits=('STUBBORN', 'FOCUSED'), field=('FLY', 'LIGHT'), fusion=('BLAZE', 'ASTRAL'),
             desc='Woven from BLAZE and ASTRAL energy, it burns cosmic rays as starfire. When it dozes '
@@ -187,7 +187,7 @@ SPECIES = [
             category='FAIRY FLY', height=9, weight=18,
             learnset=[(1, 'M_SILK_SNARE'), (1, 'M_DAYDREAM'), (1, 'M_PINCER'), (1, 'M_LULLABY'),
                       (8, 'M_WINGDUST'), (14, 'M_PRISM_RAY'), (20, 'M_SWARM_RUSH'), (26, 'M_STILL_POND'),
-                      (32, 'M_CROSSWIND'), (38, 'M_DREAMQUAKE'), (44, 'M_UPDRAFT'), (50, 'M_GLINT')],
+                      (32, 'M_UPDRAFT'), (38, 'M_CROSSWIND'), (44, 'M_DREAMQUAKE'), (50, 'M_SWARM_RUSH')],
             traits=('KEEN EYE', 'MOMENTUM'), field=('TELEPORT', 'LIGHT'), fusion=('DREAM', 'SWARM'),
             desc='Woven from DREAM and SWARM energy, its four wings flash in time with every sleeper '
                  'nearby. A field of dreamers shimmers like a pond wherever it hovers.',

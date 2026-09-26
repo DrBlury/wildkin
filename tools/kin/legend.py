@@ -54,11 +54,11 @@ SPECIES = [
             desc='Its wing dust is fallen starlight, each mote a tiny muon-pumped kernel. When it sleeps in '
                  'the STARFALL GROTTO, the whole Vale dreams of the same moon.',
             model=A.selenoth, placeholder=False),
-    KinSpec(126, 'SYLVARCH', ('BLOOM', 'BEAST'), 'L', base=(115, 115, 100, 90, 110, 75), catch=3, xp=255,
+    KinSpec(126, 'SYLVARCH', ('BLOOM', 'BEAST'), 'L', base=(115, 122, 100, 90, 100, 92), catch=3, xp=255,
             evo=None, category='ELDER STAG', height=44, weight=8200,
             learnset=[(1, 'M_BRAMBLE_LASH'), (1, 'M_BRACE'), (1, 'M_SAP_SIP'), (1, 'M_DROWSY_POLLEN'),
-                      (12, 'M_LEAF_FLURRY'), (20, 'M_BASK'), (28, 'M_SNARL'), (36, 'M_THORN_WALL'),
-                      (44, 'M_REED_BLADE'), (50, 'M_BELLY_FLOP'), (56, 'M_SUNSHAFT'), (62, 'M_PRIMAL_ROAR')],
+                      (12, 'M_LEAF_FLURRY'), (20, 'M_SNARL'), (28, 'M_BASK'), (34, 'M_THORN_WALL'),
+                      (38, 'M_SUNSHAFT'), (42, 'M_BELLY_FLOP'), (48, 'M_REED_BLADE'), (62, 'M_PRIMAL_ROAR')],
             traits=('BASKER', 'THICK FUR'), field=(),
             desc='The roots of ELDERWOOD HEART are one great web, and SYLVARCH is the kernel it pumps. '
                  'Seeds sprout in its hoofprints, and birds nest in its antlers.',
