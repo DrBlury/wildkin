@@ -186,9 +186,10 @@ static const u16 TYPE_TINT[TYPE_COUNT] = {
     RGB15(31, 28, 20), RGB15(31, 18, 4), RGB15(6, 14, 31), RGB15(22, 31, 8), RGB15(31, 31, 10),
     RGB15(18, 28, 31), RGB15(31, 22, 14), RGB15(16, 4, 22), RGB15(20, 13, 6), RGB15(26, 31, 31),
     RGB15(31, 12, 26), RGB15(24, 28, 12), RGB15(3, 1, 8), RGB15(6, 6, 22),
-    RGB15(10, 12, 10), RGB15(28, 20, 8), RGB15(20, 22, 26), RGB15(12, 8, 26),
+    /* HOLLOW grave-moss dusk, RELIC old gilt, METAL cold steel, ASTRAL night sky */
+    RGB15(8, 13, 10), RGB15(30, 22, 8), RGB15(14, 18, 25), RGB15(6, 4, 18),
 };
-static const u8 TYPE_TINT_AMT[TYPE_COUNT] = { 3, 7, 5, 5, 6, 7, 3, 6, 5, 4, 6, 4, 10, 8, 9, 5, 5, 9 };
+static const u8 TYPE_TINT_AMT[TYPE_COUNT] = { 3, 7, 5, 5, 6, 7, 3, 6, 5, 4, 6, 4, 10, 8, 8, 5, 6, 10 };
 
 /* Type flavour sound played when a move starts. */
 static const u8 TYPE_SFX[TYPE_COUNT] = {
@@ -247,20 +248,26 @@ static void spark_burst(int x, int y, int n, int speed, int fx, int bank)
 
 static int shake_x, shake_y;  /* this frame's screen shake (px) */
 static unsigned anim_frame;   /* frames drawn (drives shake and breathing) */
+/* 1 while anim_update() runs a step that is not shown (opt.battle_speed
+ * steps twice per frame): the state advances but no sprite is pushed. */
+static int anim_nodraw;
 
 static void fx_spr(int x, int y, int fx, int bank)
 {
+    if (anim_nodraw) return;
     spr_push(x - 8 + shake_x, y - 8 + shake_y, OT_FX + fx * 4, SQ16, bank, 1, 0);
 }
 
 static void fx_spr_flip(int x, int y, int fx, int bank, int flags)
 {
+    if (anim_nodraw) return;
     spr_push(x - 8 + shake_x, y - 8 + shake_y, OT_FX + fx * 4, SQ16, bank, 1, flags);
 }
 
 /* Particle with scale (8.8) and rotation (0..255). */
 static void fx_spr_aff(int x, int y, int fx, int bank, int scale, int rot)
 {
+    if (anim_nodraw) return;
     int aff = oam_affine_scale_rot(scale, scale, rot);
     spr_push_affine(x - 8 + shake_x, y - 8 + shake_y, OT_FX + fx * 4, SQ16, bank, 1, 0, aff,
                     scale > 256);
@@ -268,6 +275,7 @@ static void fx_spr_aff(int x, int y, int fx, int bank, int scale, int rot)
 
 static void fx_spr_aff2(int x, int y, int fx, int bank, int sx, int sy, int rot)
 {
+    if (anim_nodraw) return;
     int aff = oam_affine_scale_rot(sx, sy, rot);
     spr_push_affine(x - 8 + shake_x, y - 8 + shake_y, OT_FX + fx * 4, SQ16, bank, 1, 0, aff,
                     absi(sx) > 256 || absi(sy) > 256);
@@ -276,6 +284,7 @@ static void fx_spr_aff2(int x, int y, int fx, int bank, int sx, int sy, int rot)
 /* 32x32 particle (FXB_*) scaled; up to 2x fits the double-size box. */
 static void big_spr(int x, int y, int fxb, int bank, int sx, int sy)
 {
+    if (anim_nodraw) return;
     int aff = oam_affine_scale_rot(sx, sy, 0);
     spr_push_affine(x - 16 + shake_x, y - 16 + shake_y, OT_FX_BIG + fxb * 16, SQ32, bank, 1, 0, aff,
                     1);
@@ -433,6 +442,22 @@ static int anim_duration(int kind, int count, int variant)
     case AK_WRAP: return 58;
     case AK_GUARD: return 46;
     case AK_RUSH: return 50;
+    case AK_RATTLE: return 46;
+    case AK_MIST: return 60;
+    case AK_SHROUD: return 58;
+    case AK_TOLL: return 30 + count * 16;
+    case AK_CHOIR: return 76;
+    case AK_CHOMP: return 24 + count * 14;
+    case AK_WHIRL: return 64;
+    case AK_MAGNET: return 60;
+    case AK_GEARS: return 56;
+    case AK_ANVIL: return 66;
+    case AK_MOONLIT: return 70;
+    case AK_MUON: return 58;
+    case AK_METEOR: return 64;
+    case AK_NOVA: return 80;
+    case AK_ARC: return 50;
+    case AK_DANCE: return 62;
     default: return 34;
     }
 }
@@ -613,6 +638,11 @@ static void anim_move_frame(void)
         /* small lean-in, then the streaks sweep across the foe */
         anim.mon_dx[side] = dir * lunge(t, 6, 4, 6, 8, 10);
         int scale = anim.move == M_REED_BLADE || anim.move == M_SCALE_REND ? 384 : 256;
+        if (fx2 == FX_WISP) {                  /* SHADE CUT: a cut out of the dark */
+            anim.bg_color = RGB15(2, 1, 6);
+            anim.bg_amount = t < 26 ? 10 : 0;
+            if (t >= 12 && t < 26 && (t & 2)) fx_spr(dx - 12 + (t - 12) * 2, dy + 10 - (t - 12), FX_WISP, OBANK_FX_B);
+        }
         for (int i = 0; i < n; i++) {
             int s0 = 8 + i * 10, stt = t - s0;
             if (stt < 0 || stt >= 18) continue;
@@ -653,12 +683,12 @@ static void anim_move_frame(void)
                           fx == FX_FIREBALL ? 14 : fx == FX_PEBBLE ? 10 : 5;
                 y -= arc * (pt * (travel - pt)) / (travel * travel / 4);
                 if (fx == FX_BUBBLE || fx == FX_WIND) y += tri_sin(pt * 24 + i * 60) / 8;
-                if (fx == FX_SPARKLE) y += soft_sin(pt * 14) / 4;          /* GLINT curls in */
+                if (fx == FX_SPARKLE || fx == FX_MOTE) y += soft_sin(pt * 14) / 4;   /* GLINT, TWINKLE curl in */
                 int f = fx_frame(fx, fx2, pt + i);
                 if (fx == FX_LEAF_A) f = ((pt >> 2) & 1) ? FX_LEAF_B : FX_LEAF_A;
                 if (fx == FX_ORB) {                                         /* GLOOM ORB swells */
                     fx_spr_aff(x, y, FX_ORB, OBANK_FX_A, 192 + pt * 12, 0);
-                } else if (fx == FX_BURR || fx == FX_PEBBLE) {
+                } else if (fx == FX_BURR || fx == FX_PEBBLE || fx == FX_TRINKET || fx == FX_COIN) {
                     fx_spr_aff(x, y, f, OBANK_FX_A, 256, pt * 24);
                 } else {
                     fx_spr_flip(x, y, f, OBANK_FX_A, dir < 0 && (fx == FX_SHARD || fx == FX_NEEDLE) ?
@@ -666,6 +696,8 @@ static void anim_move_frame(void)
                 }
                 if (fx == FX_NEEDLE && fx2 == FX_TEAR && (pt & 2)) fx_spr(x - dir * 6, y + 6, FX_TEAR, OBANK_FX_B);
                 if (fx == FX_FIREBALL && (pt & 1)) fx_spr(x - dir * 8, y + 2, FX_FLAME_B, OBANK_FX_B);
+                if (fx == FX_RIVET && (pt & 1)) fx_spr(x - dir * 8, y + 3, fx2, OBANK_FX_B);    /* hot rivets */
+                if (fx == FX_MOTE && (pt & 2)) fx_spr(x - dir * 7, y + 4, FX_SPARKLE, OBANK_FX_B);
             } else {
                 int it = pt - travel;
                 int last = i == n - 1;
@@ -679,6 +711,9 @@ static void anim_move_frame(void)
                     }
                 } else if (fx == FX_ORB && it < 16) {
                     big_spr(dx, dy, FXB_GLOW, OBANK_FX_A, 256 + it * 16, 256 + it * 16);
+                } else if (fx2 == FX_STEAM && it < 16) {                  /* ACID SPIT sizzles */
+                    fx_spr_aff(dx + jx + ((it & 4) ? 2 : -2), dy + jy - it, FX_STEAM, OBANK_FX_B, 192 + it * 12, 0);
+                    if (it < 6) fx_spr(dx + jx, dy + jy, FX_SPLAT, OBANK_FX_A);
                 } else if (fx == FX_BUBBLE && it < 8) {
                     fx_spr_aff(dx + jx, dy + jy, FX_RING, OBANK_FX_A, 256 + it * 32, 0);
                 } else if (fx == FX_FIREBALL && it < 14) {
@@ -703,6 +738,7 @@ static void anim_move_frame(void)
             int x = sx + (dx - sx) * pt / 16 + tri_sin(e * 40 + pt * 12) / 10;
             int y = sy + (dy - sy) * pt / 16 + tri_sin(e * 70 + pt * 16) / 9;
             int f = fx_frame(fx, fx2, pt + e);
+            if (fx2 == FX_PEBBLE && (e & 4)) f = FX_PEBBLE;   /* SANDBLAST: grit in the dust */
             fx_spr_aff(x, y, f, (e & 2) ? OBANK_FX_B : OBANK_FX_A, 176 + pt * 8, 0);
         }
         impact_when(24, 0, dx, dy);
@@ -716,9 +752,16 @@ static void anim_move_frame(void)
         /* charge sparkle, then the beam grows across and holds */
         int len = t < 10 ? 0 : t < 22 ? (t - 10) * 16 / 12 : t < 44 ? 16 : 16 - (t - 44) * 16 / 14;
         if (t < 10) {
-            fx_spr_aff(sx + dir * 14, sy - 6, FX_SPARKLE, OBANK_FX_B, 128 + t * 26, t * 8);
+            if (anim.move == M_GILDED_GLEAM)       /* a coin flips up and catches the light */
+                fx_spr_aff2(sx + dir * 14, sy - 10 - t, FX_COIN, OBANK_FX_B, soft_sin(t * 24 + 64) * 4, 256, 0);
+            else
+                fx_spr_aff(sx + dir * 14, sy - 6, FX_SPARKLE, OBANK_FX_B, 128 + t * 26, t * 8);
             anim.scale_y[side] = 256 + t * 3;
         }
+        if (anim.move == M_GILDED_GLEAM && t >= 10 && t < 13) anim.bright = 6;
+        if (anim.move == M_LODE_BEAM)  /* the poles swap: red and blue cycle along the beam */
+            build_fx_palette(OBANK_FX_A, (t & 4) ? MOVES[M_LODE_BEAM].col1 : MOVES[M_LODE_BEAM].col2,
+                             (t & 4) ? MOVES[M_LODE_BEAM].col2 : MOVES[M_LODE_BEAM].col1);
         if (anim.move == M_PRISM_RAY)  /* rainbow cycling */
             build_fx_palette(OBANK_FX_A, hue15(t * 8), hue15(t * 8 + 96));
         if (len > 0) {
@@ -814,6 +857,7 @@ static void anim_move_frame(void)
         }
         anim.bg_amount = big && t > 6 && t < 40 ? tint_amt : 0;
         if (t >= 8 && t < 40) anim.tint_amount = 6;
+        if (fx2 == FX_RIVET && t >= 6 && t < 9) anim.bright = 7;   /* FORGE FLASH */
         break;
     }
     case AK_ORBIT: {
@@ -830,6 +874,7 @@ static void anim_move_frame(void)
             if (t < 56) fx_spr(x, y, fx_frame(fx, fx2, t + i * 3), (i & 1) ? OBANK_FX_B : OBANK_FX_A);
         }
         if (fx2 == FX_EYES && t > 20 && t < 50) fx_spr(dx, dy - 6, FX_EYES, OBANK_FX_B);
+        if (fx2 == FX_ZZZ && t > 44) fx_spr(dx + 14 + (t - 44) / 2, dy - 18 - (t - 44) / 2, FX_ZZZ, OBANK_FX_B);
         impact_when(52, st, dx, dy);
         if (t >= 52 && t < 60) big_spr(dx, dy, FXB_GLOW, OBANK_FX_A, 128 + (t - 52) * 32, 128 + (t - 52) * 32);
         if (t >= 44) anim.tint_amount = (t & 4) ? 10 : 4;
@@ -958,6 +1003,7 @@ static void anim_move_frame(void)
             anim.tint_amount = 7;
             if (t & 2) fx_spr(sx + tri_sin(t * 16) / 4, sy - 10 + tri_sin(t * 16 + 64) / 5, fx2, OBANK_FX_B);
         }
+        if (fx2 == FX_SKULL && t < 20 && (t & 2)) fx_spr(dx, dy - 20, FX_SKULL, OBANK_FX_B);
         if (t == 12) sfx_play(SFX_DRAIN);
         break;
     }
@@ -972,6 +1018,9 @@ static void anim_move_frame(void)
             for (int k = 1; k <= 2; k++)
                 fx_spr(sx + dir * (l - k * 14), sy - dir * (l - k * 14) / 3 + k * 3, fx2, OBANK_FX_B);
         impact_when(10, st, dx - dir * 6, dy);
+        if (!fx_is_hit(fx) && t >= 10 && t < 16) fx_spr(dx - dir * 8, dy, fx, OBANK_FX_A);   /* COUNTERJAB */
+        if (fx2 == FX_FLAKE && t >= 10 && t < 20)                                         /* IRON TAP rings */
+            fx_spr_aff(dx - dir * 6, dy, FX_RING, OBANK_FX_B, 160 + (t - 10) * 24, 0);
         break;
     }
     case AK_SLAM: {
@@ -999,7 +1048,9 @@ static void anim_move_frame(void)
         if (impact_when(26, st, dx, dy))
             for (int k = 0; k < 8; k++)
                 part_add(PK_FX, dx, side_gy(foe) - 4, soft_sin(k * 32 + 64) * 3 / 2, soft_sin(k * 32) / 3,
-                         fx2, OBANK_FX_B, 16, 0);
+                         fx2 == FX_CRACK ? fx : fx2, OBANK_FX_B, 16, 0);
+        if (fx2 == FX_CRACK && jt >= 18 && jt < 40)   /* OSSIFY: the foe stiffens and cracks */
+            for (int k = 0; k < 2; k++) fx_spr_flip(dx + (k ? 8 : -8), dy - 4 + k * 8, FX_CRACK, OBANK_FX_A, k ? ATTR1_HFLIP : 0);
         break;
     }
     case AK_WHIP:
@@ -1041,6 +1092,8 @@ static void anim_move_frame(void)
         }
         if (fx2 == FX_STEAM && t < 40)   /* SPORE CLOUD: a cloud hangs over it */
             fx_spr_aff(dx, dy - 20 + t / 4, FX_STEAM, OBANK_FX_A, 256 + t * 4, 0);
+        if (fx == FX_SNOWFLAKE && fx2 == FX_DUST && t > 28)   /* SNOWDRIFT: snow piles up */
+            fx_spr_aff2(dx, side_gy(foe) - 6, FX_DUST, OBANK_FX_B, 320 + (t - 28) * 6, 256, 0);
         if (fx2 == FX_ZZZ && t > 36)      /* DOZE POLLEN: Zzz */
             fx_spr(dx + 16 + (t - 36) / 3, dy - 20 - (t - 36) / 2, FX_ZZZ, OBANK_FX_B);
         if (t > 44) anim.tint_amount = (t & 4) ? 9 : 5;
@@ -1090,6 +1143,7 @@ static void anim_move_frame(void)
             if (sc > 512) sc = 512;
             if (pt < 20 || (pt & 1)) big_spr(x, y, FXB_RING, (i & 1) ? OBANK_FX_B : OBANK_FX_A, sc, sc * 3 / 4);
         }
+        if (fx2 == FX_EYES && t > 8 && t < 44) fx_spr(sx + dir * 8, sy - 10, FX_EYES, OBANK_FX_B);
         if (fx2 == FX_NOTE && t > 12 && t < 40 && (t & 4))
             fx_spr(sx + dir * 20, sy - 20 - (t - 12) / 2, FX_NOTE, OBANK_FX_B);
         if (status) {
@@ -1189,6 +1243,18 @@ static void anim_move_frame(void)
             if (t >= 6 && t < 48)
                 for (int y = 0; y < sy + 10; y += 16)
                     fx_spr_aff2(sx, y, FX_SUNRAY, OBANK_FX_A, 384, 256, 0);
+        } else if (fx == FX_CANDLE) {
+            /* LAST RITES: the lights go down, a ring of candles flickers round it */
+            anim.bg_color = RGB15(3, 2, 6);
+            anim.bg_amount = t < 52 ? (t < 8 ? t : 8) : 0;
+            for (int i = 0; i < 5; i++) {
+                int a = i * 51 + 20;
+                int lit = t > 4 + i * 3;
+                if (!lit || t >= 54) continue;
+                fx_spr(sx + soft_sin(a + 64) * 30 / 64, side_gy(side) - 8 + soft_sin(a) * 8 / 64,
+                       FX_CANDLE, ((t + i * 3) & 4) ? OBANK_FX_A : OBANK_FX_B);
+            }
+            anim.mon_dy[side] = t > 10 && t < 46 ? -2 : 0;
         } else {
             int curl = t < 12 ? t : t > 44 ? 56 - t : 12;
             anim.scale_x[side] = 256 + curl * 3;
@@ -1197,7 +1263,7 @@ static void anim_move_frame(void)
         }
         for (int i = 0; i < 5; i++) {
             int pt = (t + i * 9) % 30;
-            if (t < 48) fx_spr(sx - 20 + i * 10, sy + 14 - pt, fx2, OBANK_FX_B);
+            if (t < 48 && (fx != FX_CANDLE || t > 16)) fx_spr(sx - 20 + i * 10, sy + 14 - pt, fx2, OBANK_FX_B);
         }
         anim.tint_amount = 5 + tri_sin(t * 8) / 16;
         if (t == 12) sfx_play(SFX_SPARKLE);
@@ -1265,7 +1331,9 @@ static void anim_move_frame(void)
             x = dx + soft_sin(a + 64) * r / 64;
             y = dy - 6 + soft_sin(a) * r / 160 + soft_sin(t * 16) / 8;
         }
-        if (t < 62) fx_spr_aff(x, y, FX_WISP, OBANK_FX_A, 256 + soft_sin(t * 20) / 3, 0);
+        int lf = fx == FX_TRINKET ? FX_TRINKET : FX_WISP;   /* CURSED CURIO: an unlucky trinket */
+        if (t < 62) fx_spr_aff(x, y, lf, OBANK_FX_A, 256 + soft_sin(t * 20) / 3, lf == FX_TRINKET ? soft_sin(t * 8) / 3 : 0);
+        if (fx2 == FX_EYES && t > 34 && t < 62 && (t & 8)) fx_spr(dx, dy - 8, FX_EYES, OBANK_FX_B);
         if (t > 8 && (t & 3) == 0 && t < 60) part_add(PK_FX, x, y + 4, 0, 3, FX_SPARKLE, OBANK_FX_B, 10, 0);
         if (t >= 62 && t < 72) big_spr(dx, dy, FXB_GLOW, OBANK_FX_A, 160 + (t - 62) * 16, 160 + (t - 62) * 16);
         impact_when(62, 0, dx, dy);
@@ -1379,12 +1447,16 @@ static void anim_move_frame(void)
         anim.scale_y[side] = 256 - k * 4;
         anim.tint_side = side;
         anim.tint_amount = k * 8 / 10;
-        if (fx == FX_PEBBLE && t < 20)
+        if ((fx == FX_PEBBLE || fx == FX_FLAKE || fx == FX_VINE) && t < 20)
             for (int i = 0; i < 6; i++) {
                 int a = i * 42;
                 int r = 40 - t * 2;
-                fx_spr(sx + soft_sin(a + 64) * r / 64, sy + soft_sin(a) * r / 80, FX_PEBBLE, OBANK_FX_A);
+                fx_spr(sx + soft_sin(a + 64) * r / 64, sy + soft_sin(a) * r / 80, fx, OBANK_FX_A);
             }
+        if (fx == FX_VINE && t >= 18 && t < 42)   /* THORN WALL: a hedge stands in front */
+            for (int i = 0; i < 4; i++)
+                fx_spr(sx - 24 + i * 16 + dir * 16, side_gy(side) - 10 - ((i & 1) ? 4 : 0), (i & 1) ? fx2 : fx,
+                       (i & 1) ? OBANK_FX_B : OBANK_FX_A);
         if (t >= 18 && t < 32) {
             int gx = sx - 24 + (t - 18) * 4;
             fx_spr_aff(gx, sy - 12 + (t - 18), FX_SPARKLE, OBANK_FX_B, 320, t * 8);
@@ -1410,9 +1482,410 @@ static void anim_move_frame(void)
         anim.afterimage = t >= 12 && t < 22;
         if (t >= 12 && t < 22)
             for (int k = 0; k < 3; k++)
-                fx_spr(sx + dir * (l - 16 - k * 12), sy - 8 + k * 8 - dir * l / 3, FX_SPEEDLINE, OBANK_FX_B);
+                fx_spr(sx + dir * (l - 16 - k * 12), sy - 8 + k * 8 - dir * l / 3,
+                       fx == FX_IMPACT ? FX_SPEEDLINE : fx_is_hit(fx) ? fx2 : fx, OBANK_FX_B);
+        if (fx == FX_BUG && t < 34)             /* SWARM RUSH: the swarm rides along */
+            for (int k = 0; k < n; k++) {
+                int a = t * 16 + k * 256 / n;
+                fx_spr(sx + dir * l + soft_sin(a + 64) / 3, sy - 4 - dir * l / 3 + soft_sin(a) / 5, FX_BUG,
+                       (k & 1) ? OBANK_FX_B : OBANK_FX_A);
+            }
+        if (fx == FX_METEOR && t >= 12 && t < 24)   /* COMET DASH: it wears a comet's head */
+            fx_spr_aff(sx + dir * l + dir * 10, sy - 8 - dir * l / 3, FX_METEOR, OBANK_FX_A, 384, 0);
         if (t >= 24 && t < 34 && (t & 1)) anim.mon_dy[side] -= 2;
         impact_when(20, st + 1, dx - dir * 8, dy);
+        break;
+    }
+    /* ---------------- expansion kinds ---------------- */
+    case AK_RATTLE: {
+        /* bones gather round the foe, rattle and jitter, then clatter in */
+        anim.mon_dx[side] = t < 24 ? ((t & 2) ? 1 : -1) : 0;
+        if (t < 30)
+            for (int i = 0; i < n; i++) {
+                if (t < 6 && ((t + i) & 1)) continue;          /* flicker in */
+                int a = i * 256 / n + t * 5;
+                int r = t < 8 ? 36 - t : 28;
+                if (t >= 22) r = 28 - 28 * ease_in(t - 22, 8) / 256;
+                int jx = ((t + i) & 2) ? 2 : -2, jy = ((t + i * 3) & 4) ? 1 : -1;
+                fx_spr_aff(dx + soft_sin(a + 64) * r / 64 + jx, dy + soft_sin(a) * r / 96 + jy, fx,
+                           (i & 1) ? OBANK_FX_B : OBANK_FX_A, 256, t * 20 + i * 50);
+            }
+        if (t > 12 && t < 30) anim.mon_dx[foe] = (t & 2) ? 1 : -1;
+        if (impact_when(30, st, dx, dy))
+            for (int k = 0; k < n; k++)
+                part_add(PK_SPARK, dx, dy, soft_sin(k * 256 / n + 64) * 14 / 16,
+                         soft_sin(k * 256 / n) * 14 / 16 - 24, fx, OBANK_FX_A, 18, 3);
+        if (t >= 30 && t < 36) fx_spr(dx, dy, fx2, OBANK_FX_HIT);
+        break;
+    }
+    case AK_MIST: {
+        /* a cold fog bank rolls along the ground to the foe and rises round it */
+        int gy0 = side_gy(side) - 6, gy1 = side_gy(foe) - 6;
+        for (int i = 0; i < n; i++) {
+            int pt = t - i * 3;
+            if (pt < 0 || pt >= 52) continue;
+            int k = ease_out(pt < 26 ? pt : 26, 26);
+            int x = sx + (dx - sx) * k / 256 + ((i * 19) % 36) - 18;
+            int y = gy0 + (gy1 - gy0) * k / 256 - ((i * 7) % 8);
+            if (pt > 26) y -= (pt - 26) * (1 + (i % 3)) / 2;
+            int sc = 320 + soft_sin(pt * 8 + i * 40) / 2;
+            if (pt > 44) sc -= (pt - 44) * 24;
+            fx_spr_aff(x, y, fx, (i & 1) ? OBANK_FX_B : OBANK_FX_A, sc, 0);
+        }
+        if (t > 30 && t < 54 && (t & 3) == 0)
+            part_add(PK_FX, dx + fx_rand(40) - 20, dy + fx_rand(24) - 20, 0, 5, fx2, OBANK_FX_B, 14, 0);
+        impact_when(30, st, dx, dy);
+        if (t > 30 && t < 56) {
+            anim.tint_amount = 7;
+            anim.mon_dx[foe] = (t & 2) ? 1 : -1;
+        }
+        anim.bg_amount = t > 6 && t < 56 ? tint_amt : 0;
+        break;
+    }
+    case AK_SHROUD: {
+        /* grave mist spirals up the user and wraps it */
+        anim.tint_side = side;
+        for (int i = 0; i < n; i++) {
+            int pt = t - i * 4;
+            if (pt < 0 || pt >= 44) continue;
+            int a = pt * 10 + i * 256 / n;
+            int r = 30 - pt * 16 / 44;
+            int x = sx + soft_sin(a + 64) * r / 64;
+            int y = side_gy(side) - 4 - pt * 3 / 2 + soft_sin(a) * r / 192;
+            fx_spr_aff(x, y, (pt & 8) ? fx : fx2, (i & 1) ? OBANK_FX_B : OBANK_FX_A, 224 + pt * 3, 0);
+        }
+        if (t > 24 && t < 50 && (t & 1)) fx_spr_aff(sx, sy - 4, fx2, OBANK_FX_A, 448 + soft_sin(t * 8) / 2, 0);
+        anim.tint_amount = t < 40 ? t / 4 : t < 52 ? (52 - t) * 10 / 12 : 0;
+        anim.bg_amount = t < 54 ? tint_amt / 2 : 0;
+        self_pulse_when(36);
+        break;
+    }
+    case AK_TOLL: {
+        /* a bell comes down over the foe and swings; every toll sends a ripple */
+        int by = dy - 36 - (t < 10 ? (10 - t) * 4 : 0);
+        int sw = t >= 10 ? soft_sin((t - 10) * 8) / 3 : 0;
+        if (t < anim.dur - 6) fx_spr_aff(dx + sw / 3, by, fx, OBANK_FX_A, 384, sw);
+        for (int i = 0; i < n; i++) {
+            int t0 = 18 + i * 16, pt = t - t0;
+            if (t == t0) sfx_play(SFX_KNELL);
+            if (pt >= 0 && pt < 18)
+                big_spr(dx, by + 8 + pt, FXB_RING, (i & 1) ? OBANK_FX_B : OBANK_FX_A, 96 + pt * 22, 64 + pt * 12);
+            if (pt >= 0 && pt < 3) anim.bright = -4;
+            impact_when(t0 + 2, i == n - 1 ? st : 0, dx, dy);
+        }
+        anim.bg_amount = t < anim.dur - 4 ? tint_amt : 0;
+        anim.tint_amount = t > 18 ? 5 + ((t & 8) ? 3 : 0) : 0;
+        break;
+    }
+    case AK_CHOIR: {
+        /* spirits rise from the ground, sway and sing, then converge on the foe */
+        int gy = side_gy(foe) - 6;
+        anim.bg_color = RGB15(4, 3, 8);
+        anim.bg_amount = t < 70 ? (t < 12 ? t : 12) : 0;
+        for (int i = 0; i < n; i++) {
+            int bx = dx - (n - 1) * 11 + i * 22;
+            int pt = t - 4 - i * 3;
+            if (pt < 0 || t >= 62) continue;
+            int x, y;
+            if (t < 50) {
+                int rise = ease_out(pt < 16 ? pt : 16, 16) * 28 / 256;
+                x = bx + soft_sin(pt * 6 + i * 40) / 10;
+                y = gy - rise + soft_sin(pt * 10 + i * 60) / 16;
+            } else {
+                int k = ease_in(t - 50, 12);
+                x = bx + (dx - bx) * k / 256;
+                y = gy - 28 + (dy - gy + 28) * k / 256;
+            }
+            fx_spr(x, y, fx, (i & 1) ? OBANK_FX_B : OBANK_FX_A);
+            if (t > 20 && t < 50 && (t + i * 5) % 12 == 0)
+                part_add(PK_FX, x + 6, y - 8, (i & 1) ? 4 : -4, -10, fx2, OBANK_FX_B, 16, 0);
+        }
+        impact_when(62, st, dx, dy);
+        if (t >= 62 && t < 74) big_spr(dx, dy, FXB_GLOW, OBANK_FX_A, 128 + (t - 62) * 24, 128 + (t - 62) * 24);
+        if (t >= 62 && t < 65) anim.bright = 6;
+        anim.tint_amount = t >= 62 ? 10 : 0;
+        break;
+    }
+    case AK_CHOMP: {
+        /* a mimic's jaws open wide around the foe and snap shut */
+        int sc = t < 8 ? 128 + t * 24 : 320;
+        int gap = 4;
+        for (int i = 0; i < n; i++) {
+            int t0 = 8 + i * 14, bt = t - t0;
+            if (bt >= 0 && bt < 14)
+                gap = bt < 9 ? 4 + ease_out(bt, 9) * 20 / 256 : bt < 11 ? 24 - (bt - 9) * 12 : 0;
+            if (impact_when(t0 + 11, i == n - 1 ? st : 0, dx, dy))
+                for (int k = 0; k < 3; k++)
+                    part_add(PK_SPARK, dx + (k - 1) * 8, dy, (k - 1) * 12, -36 - k * 6, fx, OBANK_FX_B, 22, 4);
+        }
+        if (t >= 8 + n * 14) gap = 0;
+        if (t < anim.dur - 8 || (t & 1)) {
+            big_spr(dx, dy - 10 - gap, FXB_CHEST, OBANK_FX_A, sc, sc);
+            big_spr(dx, dy + 10 + gap, FXB_CHEST, OBANK_FX_A, sc, -sc);
+        }
+        if (gap == 0 && t >= 19) anim.mon_dx[foe] = (t & 2) ? 1 : -1;
+        break;
+    }
+    case AK_WHIRL: {
+        /* things whirl round the foe in a rising tornado, then close in */
+        int pair = fx == FX_FLAME_A;
+        for (int i = 0; i < n; i++) {
+            int pt = t - i * 2;
+            if (pt < 0 || pt >= 56) continue;
+            int a = pt * 12 + i * 256 / n;
+            int r0 = 14 + (i % 3) * 5;
+            int r = pt < 40 ? r0 + pt / 4 : (r0 + 10) * (56 - pt) / 16;
+            int h = (i * 37 + pt * 2) % 48;
+            int x = dx + soft_sin(a + 64) * r / 64;
+            int y = side_gy(foe) - 8 - h + soft_sin(a) * r / 256;
+            int f = pair ? fx_frame(fx, fx2, pt + i) : (i & 1) ? fx2 : fx;
+            fx_spr_aff(x, y, f, (i & 1) ? OBANK_FX_B : OBANK_FX_A, soft_sin(a) < 0 ? 200 : 256, pair ? 0 : pt * 16);
+        }
+        if (!pair && t > 6 && t < 50)
+            for (int k = 0; k < 2; k++)
+                fx_spr_flip(dx + soft_sin(t * 12 + k * 128 + 64) * 22 / 64, side_gy(foe) - 14 - k * 20, FX_WIND,
+                            OBANK_FX_A, k ? ATTR1_HFLIP : 0);
+        if (t > 10 && t < 56) anim.mon_dx[foe] = soft_sin(t * 16) / 20;
+        impact_when(24, 0, dx, dy);
+        impact_when(52, st, dx, dy);
+        anim.bg_amount = t < 58 ? tint_amt : 0;
+        if (pair && t > 8 && t < 56) anim.wobble = 2;
+        break;
+    }
+    case AK_MAGNET: {
+        /* a horseshoe magnet hauls the foe; iron flakes fly to it */
+        int mx = sx + dir * 22, my = sy - 18;
+        int in = t < 8 ? ease_out(t, 8) : t > 52 ? 256 - (t - 52) * 32 : 256;
+        if (in > 0)
+            fx_spr_aff(mx, my + ((t >> 3) & 1), fx, ((t & 4) && t > 12) ? OBANK_FX_B : OBANK_FX_A, 128 + in / 2,
+                       dir > 0 ? 192 : 64);
+        for (int k = 0; k < n; k++) {
+            if (t < 10 || t > 50) break;
+            int pt = (t + k * 8) % 24;
+            fx_spr_aff2(dx + (mx - dx) * pt / 24, dy + (my - dy) * pt / 24, FX_RING, OBANK_FX_B,
+                        96 + (24 - pt) * 8, 192 + (24 - pt) * 10, 0);
+        }
+        for (int i = 0; i < 6; i++) {
+            int pt = t - 12 - i * 5;
+            if (pt < 0 || pt >= 20) continue;
+            int ox = ((i * 23) % 30) - 15, oy = ((i * 13) % 24) - 12;
+            int k = ease_in(pt, 20);
+            fx_spr_aff(dx + ox + (mx - dx - ox) * k / 256, dy + oy + (my - dy - oy) * k / 256, fx2, OBANK_FX_B,
+                       256, pt * 20);
+        }
+        int pull = t < 14 ? 0 : t < 46 ? 8 * ease_out(t - 14, 10) / 256 : 8 - 8 * ease_out(t - 46, 10) / 256;
+        anim.mon_dx[foe] = -dir * pull;
+        anim.scale_x[foe] = 256 + pull * 3;
+        impact_when(30, 0, dx, dy);
+        anim.tint_amount = t > 14 && t < 50 ? 6 : 0;
+        break;
+    }
+    case AK_GEARS: {
+        /* two big gears close in from both sides and grind */
+        int off = t < 12 ? 56 - 40 * ease_out(t, 12) / 256 : t < 44 ? 16 : 16 + (t - 44) * 4;
+        if (t < 52) {
+            fx_spr_aff(dx - off, dy, fx, OBANK_FX_A, 384, t * 12);
+            fx_spr_aff(dx + off, dy, fx, OBANK_FX_B, 384, -t * 12 + 16);
+        }
+        if (t >= 12 && t < 44) {
+            anim.mon_dy[foe] = (t & 2) ? 1 : -1;
+            anim.scale_x[foe] = 236;
+            shake(12, 0);
+            if ((t % 3) == 0)
+                part_add(PK_SPARK, dx + ((t & 4) ? 8 : -8), dy - 4, ((t & 4) ? 1 : -1) * (10 + fx_rand(10)),
+                         -28 - fx_rand(12), fx2, OBANK_FX_B, 12, 4);
+        }
+        for (int i = 0; i < n; i++) impact_when(14 + i * 14, i == n - 1 ? st : 0, dx, dy);
+        break;
+    }
+    case AK_ANVIL: {
+        /* a shadow grows under the foe, then an anvil drops: squash, dust, stars */
+        int gy = side_gy(foe);
+        if (t < 26) fx_spr_aff2(dx, gy - 4, FX_RING, OBANK_FX_A, 96 + t * 10, 32 + t * 3, 0);
+        int ay = t < 14 ? -40 : t < 26 ? -40 + (dy - 12 + 40) * ease_in(t - 14, 12) / 256 :
+                 dy - 12 - (t < 30 ? (30 - t) / 2 : 0);
+        if (t >= 14 && (t < 44 || (t < 52 && (t & 1)))) big_spr(dx, ay, FXB_ANVIL, OBANK_FX_A, 288, 288);
+        if (t >= 16 && t < 26)
+            for (int k = -1; k <= 1; k += 2) fx_spr_aff(dx + k * 14, ay - 22, FX_SPEEDLINE, OBANK_FX_B, 256, 64);
+        if (impact_when(26, st + 1, dx, dy)) {
+            shake(96, 1);
+            for (int k = 0; k < 8; k++)
+                part_add(PK_FX, dx, gy - 4, soft_sin(k * 32 + 64) * 3 / 2, soft_sin(k * 32) / 3, fx, OBANK_FX_A, 16, 0);
+        }
+        if (t >= 26 && t < 44) {
+            anim.scale_x[foe] = 256 + 48 * (44 - t) / 18;
+            anim.scale_y[foe] = 256 - 64 * (44 - t) / 18;
+            anim.mon_dy[foe] = 8 * (44 - t) / 18;
+        }
+        if (t >= 32 && t < 62)
+            for (int k = 0; k < 3; k++) {
+                int a = t * 10 + k * 85;
+                fx_spr(dx + tri_sin(a) / 3, dy - 24 + tri_sin(a + 64) / 10, fx2, OBANK_FX_B);
+            }
+        break;
+    }
+    case AK_MOONLIT: {
+        /* night falls, the moon rises, a pale shaft falls on the foe, then drains */
+        anim.bg_color = RGB15(2, 3, 10);
+        anim.bg_amount = t < 64 ? (t < 12 ? t : 12) : 0;
+        int mx = dx - 52, my = t < 20 ? 40 - ease_out(t, 20) * 26 / 256 : 14;
+        if (t < 66) {
+            fx_spr_aff(mx, my, fx, OBANK_FX_A, 384, 0);
+            if (t > 18 && (t & 8)) fx_spr_aff(mx, my, FX_RING, OBANK_FX_B, 512, 0);
+        }
+        if (t >= 20 && t < 48) {
+            int h = ease_in(t - 20, 8) * (dy + 16) / 256;
+            for (int y = 0; y < h; y += 16)
+                fx_spr_aff2(dx, y, fx2, (y & 16) ? OBANK_FX_B : OBANK_FX_A, 320 + ((t & 2) ? 32 : 0), 256, 0);
+            anim.tint_amount = 9;
+        }
+        impact_when(26, st, dx, dy);
+        for (int i = 0; i < n; i++) {
+            int pt = t - 40 - i * 4;
+            if (pt < 0 || pt >= 20) continue;
+            int x = dx + (sx - dx) * ease_in(pt, 20) / 256;
+            int y = dy + (sy - dy) * pt / 20 - soft_sin(pt * 6) * (i - n / 2) / 4;
+            fx_spr(x, y, FX_SPARKLE, OBANK_FX_B);
+        }
+        if (t == 40) sfx_play(SFX_DRAIN);
+        if (t >= 56) {
+            anim.tint_side = side;
+            anim.tint_amount = 7;
+        }
+        break;
+    }
+    case AK_MUON: {
+        /* thin streaks of light rain straight through everything */
+        anim.bg_amount = t < 54 ? tint_amt : 0;
+        for (int i = 0; i < n; i++) {
+            int pt = t - 4 - (i * 11) % 36;
+            if (pt < 0 || pt >= 14) continue;
+            int x = 8 + (i * 53 + 17) % 224 + pt * 2;
+            fx_spr(x, -16 + pt * 12, fx, (i & 1) ? OBANK_FX_B : OBANK_FX_A);
+            fx_spr(x - 2, -32 + pt * 12, fx, (i & 1) ? OBANK_FX_B : OBANK_FX_A);
+        }
+        if (t > 16 && t < 48 && (t & 3) == 0)
+            part_add(PK_FX, dx + fx_rand(44) - 22, dy + fx_rand(36) - 18, 0, 0, fx2, OBANK_FX_B, 8, 0);
+        impact_when(20, 0, dx, dy);
+        impact_when(36, st, dx, dy);
+        anim.tint_amount = t > 16 && t < 48 && (t & 2) ? 10 : 0;
+        break;
+    }
+    case AK_METEOR: {
+        /* one huge meteor streaks in: flash, crater, debris */
+        anim.bg_color = t < 24 ? RGB15(4, 2, 8) : TYPE_TINT[anim.type];
+        anim.bg_amount = t < 22 ? t / 2 : t < 60 ? tint_amt : 0;
+        if (t < 24) {
+            int k = ease_in(t, 24);
+            int x = dx + 96 - 96 * k / 256, y = -32 + (dy + 32) * k / 256;
+            int sc = 256 + t * 12;
+            fx_spr_aff(x, y, fx, OBANK_FX_A, sc > 512 ? 512 : sc, 0);
+            if (t & 1) part_add(PK_FX, x + 8, y - 8, 6, -4, FX_SPARKLE, OBANK_FX_A, 10, 0);
+            shake(t * 2, 1);
+        }
+        if (t >= 24 && t < 27) anim.bright = 12;
+        if (impact_when(24, st + 1, dx, dy)) {
+            shake(104, 1);
+            for (int k = 0; k < 6; k++)
+                part_add(PK_SPARK, dx, side_gy(foe) - 8, soft_sin(k * 43 + 64) * 20 / 16,
+                         soft_sin(k * 21) * 10 / 16 - 40, fx2, OBANK_FX_B, 22, 4);
+        }
+        if (t >= 24 && t < 40) big_spr(dx, dy, FXB_GLOW, OBANK_FX_A, 128 + (t - 24) * 20, 128 + (t - 24) * 20);
+        if (t >= 24 && t < 60 && (t < 52 || (t & 1)))
+            fx_spr_aff2(dx, side_gy(foe) - 4, FX_CRACK, OBANK_FX_B, 448, 192, 0);
+        anim.tint_amount = t >= 24 && t < 50 ? 8 : 0;
+        break;
+    }
+    case AK_NOVA: {
+        /* gathers starlight, the world goes dark, a blinding burst */
+        int rel = 40;
+        anim.bg_color = RGB15(1, 1, 4);
+        if (t < rel) {
+            if (t == 2) sfx_play(SFX_CHARGE);
+            for (int i = 0; i < n; i++) {
+                int pt = (t * 2 + i * 9) % 26;
+                int a = i * 32 + t * 2;
+                int r = 44 - pt * 44 / 26;
+                fx_spr(sx + soft_sin(a + 64) * r / 64, sy + soft_sin(a) * r / 64, (i & 1) ? fx2 : fx,
+                       (i & 1) ? OBANK_FX_B : OBANK_FX_A);
+            }
+            anim.tint_side = side;
+            anim.tint_amount = t * 10 / rel;
+            anim.bg_amount = t * 14 / rel;
+            anim.scale_x[side] = anim.scale_y[side] = 256 + t / 2;
+            anim.mon_dx[side] = t > 24 ? ((t & 1) ? 1 : -1) : 0;
+        } else {
+            int it = t - rel;
+            anim.bg_amount = it < 36 ? 14 : 0;
+            if (it < 6) {
+                fx_spr_aff(sx + (dx - sx) * it / 6, sy + (dy - sy) * it / 6, fx, OBANK_FX_A, 384, it * 20);
+            } else if (it < 36) {
+                int g = it - 6;
+                int gs = 128 + g * 16 > 512 ? 512 : 128 + g * 16;
+                big_spr(dx, dy, FXB_GLOW, OBANK_FX_A, gs, gs);
+                if (g < 20) big_spr(dx, dy, FXB_RING, OBANK_FX_B, 128 + g * 19, 96 + g * 14);
+                for (int i = 0; i < n; i++) {
+                    int a = i * 256 / n + g * 2;
+                    fx_spr_aff(dx + soft_sin(a + 64) * g * 4 / 64, dy + soft_sin(a) * g * 3 / 64, fx,
+                               (i & 1) ? OBANK_FX_B : OBANK_FX_A, 256, g * 12);
+                }
+            }
+            anim.bright = it >= 6 && it < 14 ? 16 - (it - 6) * 2 : 0;
+            if (it == 6) sfx_play(SFX_THUNDER);
+            shake(it >= 6 && it < 20 ? 80 : 0, 0);
+            impact_when(rel + 6, st + 1, dx, dy);
+            anim.tint_side = foe;
+            anim.tint_amount = it > 6 ? 10 : 0;
+        }
+        break;
+    }
+    case AK_ARC: {
+        /* a jagged arc jumps from the user to the foe */
+        anim.bg_color = RGB15(4, 4, 12);
+        anim.bg_amount = t < 44 ? 6 : 0;
+        if (t < 10 && (t & 1)) fx_spr(sx + tri_sin(t * 40) / 4, sy - 8 + tri_sin(t * 40 + 64) / 5, fx2, OBANK_FX_B);
+        for (int k = 0; k < n; k++) {
+            int t0 = 10 + k * 12, at = t - t0;
+            if (at == 0 && k) sfx_play(SFX_ZAP);
+            if (at >= 0 && at < 2) anim.bright = 8;
+            impact_when(t0 + 1, k == n - 1 ? st : 0, dx, dy);
+            if (at < 0 || at >= 10 || (at & 2)) continue;
+            int segs = 8;
+            for (int s = 0; s <= segs; s++) {
+                int jag = (s == 0 || s == segs) ? 0 : ((s * 7 + k * 3 + at / 4) % 5 - 2) * 5;
+                int x = sx + (dx - sx) * s / segs, y = sy + (dy - sy) * s / segs + jag;
+                fx_spr(x, y, (s & 1) ? FX_SPARK_A : fx2, (s & 1) ? OBANK_FX_A : OBANK_FX_B);
+            }
+            fx_spr(dx, dy - 10, fx, OBANK_FX_A);
+        }
+        if (t >= 12 && t < 44) {
+            anim.mon_dx[foe] = (t & 2) ? 1 : -1;
+            anim.tint_amount = 8;
+            if ((t + 1) & 2) fx_spr(dx + tri_sin(t * 22) / 3, dy + tri_sin(t * 22 + 64) / 4, fx2, OBANK_FX_A);
+        }
+        break;
+    }
+    case AK_DANCE: {
+        /* the user sways and turns; scales spiral up around it */
+        anim.tint_side = side;
+        anim.mon_dx[side] = soft_sin(t * 8) / 8;
+        anim.mon_dy[side] = -absi(soft_sin(t * 16)) / 16;
+        if (t >= 16 && t < 40) {
+            int c = soft_sin((t - 16) * 256 / 24 + 64) * 4;
+            if (c > -48 && c < 48) c = c < 0 ? -48 : 48;
+            anim.scale_x[side] = c;
+        }
+        for (int i = 0; i < n; i++) {
+            int pt = (t + i * 8) % 40;
+            if (t > 52 && pt < 12) continue;
+            int a = pt * 14 + i * 256 / n;
+            int r = 30 - pt / 2;
+            fx_spr_aff(sx + soft_sin(a + 64) * r / 64, side_gy(side) - 4 - pt * 2 + soft_sin(a) * r / 200, fx,
+                       (i & 1) ? OBANK_FX_B : OBANK_FX_A, 256, a);
+        }
+        if (t > 40 && (t & 4)) fx_spr(sx, sy - 26, fx2, OBANK_FX_B);
+        anim.tint_amount = 5 + tri_sin(t * 8) / 16;
+        self_pulse_when(44);
         break;
     }
     }
@@ -1583,10 +2056,12 @@ static void parts_update(int frozen)
 static int anim_update(void)
 {
     int frozen = feel.hitstop > 0;
-    anim_frame++;
+    if (!anim_nodraw) anim_frame++;
     /* this frame's shake offset */
     int amp = feel.shake / 16;
-    if (amp) {
+    if (anim_nodraw) {
+        /* not shown: keep the offset of the last drawn frame */
+    } else if (amp) {
         int s = (anim_frame & 1) ? amp : -amp;
         if (feel.shake_v) {
             shake_y = s;
