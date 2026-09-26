@@ -11,14 +11,18 @@
 #define STORAGE_MAX (BOX_SIZE * BOX_COUNT)   /* the LANTERN SHELF: 8 boxes of 30 */
 
 /* A kin resting on the Shelf, packed to 24 bytes. Stats, HP and uses are
- * rebuilt when it comes back (resting on the Shelf heals it fully). */
+ * rebuilt when it comes back (resting on the Shelf heals it fully).
+ * storage[] stays packed and grouped by box: box 0's kin first, then box
+ * 1's... (storage_boxes_sync repairs anything else). */
 typedef struct {
     u8 species, level, flags, bond;
     u8 moves[MAX_MOVES];
     u32 xp;
     u32 pot;                 /* six 5-bit potentials: HP ATK DEF FOCUS WILL SPE */
     u8 temper, trait, size, met_map;
-    u8 met_level, pad[3];
+    u8 met_level;
+    u8 box;                  /* Shelf box 0..BOX_COUNT-1 */
+    u16 order;               /* arrival stamp: higher = came to the Shelf later */
 } BoxMon;
 typedef char BoxMonIs24[sizeof(BoxMon) == 24 ? 1 : -1];
 
@@ -83,21 +87,250 @@ static Monster storage_get(int i)
     return box_unpack(&storage[i]);
 }
 
-/* Puts a kin on the Shelf: 1 = stored, 0 = the Shelf is full. */
+/* ---------------- LANTERN SHELF boxes ---------------- */
+
+static u8 box_fill[BOX_COUNT];      /* kin per box, kept in step with storage[] */
+
+/*
+ * Recounts the boxes. If storage[] is not grouped by box (a box number out
+ * of range, out of order or a box over-full: an old save, a direct edit),
+ * the kin are laid out again 30 to a box in their current order.
+ */
+static void storage_boxes_sync(void)
+{
+    storage_count = clampi(storage_count, 0, STORAGE_MAX);
+    for (int b = 0; b < BOX_COUNT; b++) box_fill[b] = 0;
+    int prev = 0, ok = 1;
+    for (int i = 0; i < storage_count && ok; i++) {
+        int b = storage[i].box;
+        if (b >= BOX_COUNT || b < prev || box_fill[b] >= BOX_SIZE) ok = 0;
+        else {
+            box_fill[b]++;
+            prev = b;
+        }
+    }
+    if (ok) return;
+    for (int b = 0; b < BOX_COUNT; b++) box_fill[b] = 0;
+    for (int i = 0; i < storage_count; i++) {
+        storage[i].box = (u8)(i / BOX_SIZE);
+        box_fill[i / BOX_SIZE]++;
+    }
+}
+
+static int storage_box_count(int b)
+{
+    return b >= 0 && b < BOX_COUNT ? box_fill[b] : 0;
+}
+
+/* Index in storage[] of box b's first kin. */
+static int storage_box_start(int b)
+{
+    int s = 0;
+    for (int k = 0; k < b && k < BOX_COUNT; k++) s += box_fill[k];
+    return s;
+}
+
+/* The first box with room, starting at `from` and wrapping; -1 = all full. */
+static int storage_box_with_room(int from)
+{
+    for (int k = 0; k < BOX_COUNT; k++) {
+        int b = (from + k) % BOX_COUNT;
+        if (box_fill[b] < BOX_SIZE) return b;
+    }
+    return -1;
+}
+
+EWRAM_BSS static BoxMon storage_tmp[STORAGE_MAX];
+EWRAM_BSS static u32 storage_keys[STORAGE_MAX];
+EWRAM_BSS static u8 storage_idx[STORAGE_MAX];
+
+/* A fresh arrival stamp (renumbers everyone, keeping their order, in the
+ * rare case the stamps run out). */
+static u16 storage_next_order(void)
+{
+    u16 hi = 0;
+    for (int i = 0; i < storage_count; i++)
+        if (storage[i].order > hi) hi = storage[i].order;
+    if (hi < 0xFFFF) return (u16)(hi + 1);
+    for (int i = 0; i < storage_count; i++) {
+        int rank = 1;
+        for (int k = 0; k < storage_count; k++)
+            if (storage[k].order < storage[i].order || (storage[k].order == storage[i].order && k < i)) rank++;
+        storage_keys[i] = (u32)rank;
+    }
+    for (int i = 0; i < storage_count; i++) storage[i].order = (u16)storage_keys[i];
+    return (u16)(storage_count + 1);
+}
+
+static void storage_insert(int pos, BoxMon bm, int b)
+{
+    for (int k = storage_count; k > pos; k--) storage[k] = storage[k - 1];
+    bm.box = (u8)b;
+    storage[pos] = bm;
+    storage_count++;
+    box_fill[b]++;
+}
+
+/* Puts a kin at the end of box b, or of the next box with room.
+ * Returns the box it went to, or -1 when the Shelf is full. */
+static int storage_add_box(const Monster *m, int b)
+{
+    storage_boxes_sync();
+    if (storage_count >= STORAGE_MAX) return -1;
+    b = storage_box_with_room(((b % BOX_COUNT) + BOX_COUNT) % BOX_COUNT);
+    if (b < 0) return -1;
+    BoxMon bm = box_pack(m);
+    bm.order = storage_next_order();
+    storage_insert(storage_box_start(b) + box_fill[b], bm, b);
+    return b;
+}
+
+/* Puts a kin on the Shelf (the box last viewed, or the next with room):
+ * 1 = stored, 0 = the Shelf is full. */
 static int storage_add(const Monster *m)
 {
-    if (storage_count >= STORAGE_MAX) return 0;
-    storage[storage_count++] = box_pack(m);
-    return 1;
+    return storage_add_box(m, opt.shelf_box) >= 0;
 }
 
 /* Takes a kin off the Shelf (the rest move up). */
 static Monster storage_take(int i)
 {
+    storage_boxes_sync();
+    i = clampi(i, 0, storage_count > 0 ? storage_count - 1 : 0);
     Monster m = box_unpack(&storage[i]);
+    if (storage_count <= 0) return m;
+    if (box_fill[storage[i].box]) box_fill[storage[i].box]--;
     for (int k = i; k < storage_count - 1; k++) storage[k] = storage[k + 1];
     storage_count--;
     return m;
+}
+
+/* Moves stored kin i into box b, in front of the kin at position pos of
+ * that box as it is shown now (pos = the box's count: at the end).
+ * 0 = box b is full. */
+static int storage_move(int i, int b, int pos)
+{
+    storage_boxes_sync();
+    if (i < 0 || i >= storage_count || b < 0 || b >= BOX_COUNT) return 0;
+    int from = storage[i].box;
+    if (from != b && box_fill[b] >= BOX_SIZE) return 0;
+    int within = i - storage_box_start(from);
+    BoxMon bm = storage[i];
+    for (int k = i; k < storage_count - 1; k++) storage[k] = storage[k + 1];
+    storage_count--;
+    box_fill[from]--;
+    if (from == b && pos > within) pos--;
+    pos = clampi(pos, 0, box_fill[b]);
+    storage_insert(storage_box_start(b) + pos, bm, b);
+    return 1;
+}
+
+/* Sorting (the Shelf's SORT and BOXES BY TYPE). */
+enum { SORT_NUMBER, SORT_LEVEL, SORT_TYPE, SORT_RARITY, SORT_NEWEST, SORT_COUNT };
+
+/* Rarest first: legend, fusion, rare, uncommon, common. */
+static int rarity_rank(int r)
+{
+    static const u8 RANK[RARITY_COUNT] = { 0, 1, 2, 4, 3 };
+    return r >= 0 && r < RARITY_COUNT ? RANK[r] : 0;
+}
+
+static u32 boxmon_sort_key(const BoxMon *b, int how)
+{
+    const Species *s = &SPECIES[b->species < SP_COUNT ? b->species : 0];
+    u32 sp = b->species, lv = 255u - b->level;
+    switch (how) {
+    case SORT_LEVEL: return (lv << 16) | (sp << 8);
+    case SORT_TYPE:
+        return ((u32)s->type1 << 24) | ((u32)(s->type2 == TYPE_NONE ? 0 : s->type2 + 1) << 16) | (sp << 8) | lv;
+    case SORT_RARITY: return ((u32)(4 - rarity_rank(s->rarity)) << 24) | (sp << 8) | lv;
+    case SORT_NEWEST: return 0xFFFFu - b->order;
+    default: return (sp << 8) | lv;
+    }
+}
+
+/* Stable sort of storage[lo, hi) (an index insertion sort: the 24-byte
+ * kin are copied only once). */
+static void storage_sort_range(int lo, int hi, int how)
+{
+    int n = hi - lo;
+    if (n < 2) return;
+    for (int i = 0; i < n; i++) {
+        storage_keys[i] = boxmon_sort_key(&storage[lo + i], how);
+        storage_idx[i] = (u8)i;
+    }
+    for (int i = 1; i < n; i++) {
+        u8 v = storage_idx[i];
+        u32 k = storage_keys[v];
+        int j = i - 1;
+        while (j >= 0 && storage_keys[storage_idx[j]] > k) {
+            storage_idx[j + 1] = storage_idx[j];
+            j--;
+        }
+        storage_idx[j + 1] = v;
+    }
+    for (int i = 0; i < n; i++) storage_tmp[i] = storage[lo + storage_idx[i]];
+    for (int i = 0; i < n; i++) storage[lo + i] = storage_tmp[i];
+}
+
+static void storage_sort_box(int b, int how)
+{
+    storage_boxes_sync();
+    if (b < 0 || b >= BOX_COUNT) return;
+    int s = storage_box_start(b);
+    storage_sort_range(s, s + box_fill[b], how);
+}
+
+/* Sorts the whole Shelf and lays it out again, 30 to a box from box 1. */
+static void storage_sort_all(int how)
+{
+    storage_boxes_sync();
+    storage_sort_range(0, storage_count, how);
+    for (int i = 0; i < storage_count; i++) storage[i].box = (u8)(i / BOX_SIZE);
+    storage_boxes_sync();
+}
+
+/*
+ * BOXES BY TYPE: the whole Shelf sorted by type, and each type starts a new
+ * box when it doesn't fit in the space left in the current one (as long as
+ * the boxes after it can still hold everyone).
+ */
+static void storage_sort_type_boxes(void)
+{
+    storage_boxes_sync();
+    int n = storage_count;
+    storage_sort_range(0, n, SORT_TYPE);
+    int b = 0, used = 0;
+    for (int i = 0; i < n;) {
+        int t = SPECIES[storage[i].species].type1, g = 0;
+        while (i + g < n && SPECIES[storage[i + g].species].type1 == t) g++;
+        int remaining = n - i;
+        if (used > 0 && g > BOX_SIZE - used && b + 1 < BOX_COUNT &&
+            (BOX_COUNT - b - 1) * BOX_SIZE >= remaining) {
+            b++;
+            used = 0;
+        }
+        for (int k = 0; k < g; k++, i++) {
+            if (used == BOX_SIZE) {
+                b++;
+                used = 0;
+            }
+            storage[i].box = (u8)b;
+            used++;
+        }
+    }
+    storage_boxes_sync();
+}
+
+/* Stored kin of type t (as either type), as storage indices; returns the count. */
+static int storage_find_type(int t, u8 *out)
+{
+    int n = 0;
+    for (int i = 0; i < storage_count; i++) {
+        const Species *s = &SPECIES[storage[i].species];
+        if (s->type1 == t || s->type2 == t) out[n++] = (u8)i;
+    }
+    return n;
 }
 
 static int party_first_healthy(void)
@@ -322,18 +555,43 @@ static int item_use_field(int item, int slot)
         str_copy(msg, name);
         str_put(msg, " woke up with a start, ready to go!");
         break;
-    case IK_TEA: {
+    case IK_TEA:
+    case IK_TEA_ALL: {
         int ok = 0;
         for (int i = 0; i < MAX_MOVES; i++)
-            if (m->moves[i] != MOVE_NONE && m->pp[i] < MOVES[m->moves[i]].pp) {
-                m->pp[i] = (u8)clampi(m->pp[i] + it->param, 0, MOVES[m->moves[i]].pp);
+            if (m->moves[i] != MOVE_NONE && m->moves[i] < MOVE_COUNT && m->pp[i] < MOVES[m->moves[i]].pp) {
+                int add = it->kind == IK_TEA_ALL ? MOVES[m->moves[i]].pp : it->param;
+                m->pp[i] = (u8)clampi(m->pp[i] + add, 0, MOVES[m->moves[i]].pp);
                 ok = 1;
             }
         if (!ok) return 0;
         str_copy(msg, name);
-        str_put(msg, "'s moves got their uses back.");
+        str_put(msg, it->kind == IK_TEA_ALL ? "'s moves were fully restored." : "'s moves got their uses back.");
         break;
     }
+    case IK_HEAL_CURE: {
+        if (m->hp == 0 || (m->hp >= m->max_hp && m->status == STATUS_NONE)) return 0;
+        int before = m->hp;
+        m->hp = (u16)clampi(m->hp + it->param, 0, m->max_hp);
+        int cured = m->status != STATUS_NONE;
+        m->status = STATUS_NONE;
+        m->sleep_turns = 0;
+        str_copy(msg, name);
+        if (m->hp > before) {
+            str_put(msg, "'s HP was restored by ");
+            str_put_int(msg, m->hp - before);
+            str_put(msg, cured ? " points, and it feels fine again." : " points.");
+        } else {
+            str_put(msg, " was cured of its status problem.");
+        }
+        break;
+    }
+    case IK_REVIVE:
+        if (m->hp > 0) return 0;
+        m->hp = m->max_hp;
+        str_copy(msg, name);
+        str_put(msg, " woke up fully refreshed!");
+        break;
     case IK_SEED: {
         if (m->level >= MAX_LEVEL) return 0;
         monster_level_up(m);
@@ -363,5 +621,26 @@ static int item_use_field(int item, int slot)
     }
     bag[item]--;
     dlg_say(msg);
+    return 1;
+}
+
+/* ---------------- the SELECT register ---------------- */
+
+/* The key item registered to SELECT (opt.registered), or -1. */
+static int registered_item(void)
+{
+    int it = (int)opt.registered - 1;
+    if (it < 0 || it >= ITEM_COUNT || ITEMS[it].pocket != POCKET_KEY || bag[it] <= 0) return -1;
+    return it;
+}
+
+/* SELECT in the field (script.c): uses the registered key item. Returns 0
+ * when nothing is registered (SELECT then opens the LOREBOOK). */
+static int registered_item_use(void)
+{
+    int it = registered_item();
+    if (it < 0) return 0;
+    sfx_play(SFX_CONFIRM);
+    item_use_field(it, 0);
     return 1;
 }

@@ -968,6 +968,7 @@ static void field_update(void)
         if (key_hit(KEY_L)) debug_parade_shift(-WILD_MAX);
         if (key_hit(KEY_R)) debug_parade_shift(WILD_MAX);
     }
+    if (key_hit(KEY_SELECT) && !player.moving && registered_item_use()) return; /* the key item registered in the bag */
     if (key_hit(KEY_SELECT) && !player.moving) { /* shortcut: straight to the LOREBOOK */
         sfx_play(SFX_CONFIRM);
         field_setup_bg();
