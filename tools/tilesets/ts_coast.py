@@ -47,7 +47,7 @@ USES_DECOR = [
     'CAMPFIRE', 'FENCE', 'FENCE_END', 'BUSH', 'BOULDER', 'PEBBLES', 'SMALL_FLOWERS',
     'NOTICE_BOARD', 'SHRINE', 'SIGN_ARROW', 'WOODPILE', 'STUMP', 'LOG', 'WEATHER_VANE',
     'MARKET_STALL', 'MAILBOX', 'FLOWER_POT', 'PLANTER', 'WATER_TROUGH', 'PICNIC_TABLE',
-    'CLOTHESLINE',
+    'CLOTHESLINE', 'BRIDGE_H', 'BRIDGE_V', 'ROWBOAT',
 ]
 
 COAST_COLORS = {
@@ -615,7 +615,7 @@ def hall_pool_img():
         for i in range(n):
             img.p[y][x + i] = 'w_base'
         img.p[y][x + n // 2] = 'w_lt'
-    return img
+    return tile8(img)
 
 
 def current_frames(horizontal):
@@ -709,8 +709,17 @@ def grot_rock(seed=0):
     return img
 
 
+def tile8(img, ox=0, oy=0):
+    """A 16x16 cell repeating one 8x8 block of `img` (costs a single tile)."""
+    out = Img(16, 16)
+    for y in range(16):
+        for x in range(16):
+            out.p[y][x] = img.p[oy + y % 8][ox + x % 8]
+    return out
+
+
 def grot_top_img():
-    img = grot_rock(1)
+    img = tile8(grot_rock(1), 4, 4)
     return img.replace({'gb_lt': 'gb_mid', 'gb_mid': 'gb_dk'})
 
 
@@ -925,15 +934,16 @@ def current_hall(gf):
             elif y == 41:
                 c = 'gl_dk'
             elif y < 66:
-                c = 'st_hi' if (y - 42) % 6 else 'st_lt'
-                if (x + (3 if ((y - 42) // 6) % 2 else 0)) % 12 == 0 and (y - 42) % 6:
+                # ashlar courses (8px joints, so wall tiles repeat)
+                c = 'st_hi' if y % 4 else 'st_lt'
+                if (x + (4 if (y // 4) % 2 else 0)) % 8 == 0 and y % 4:
                     c = 'st_lt'
             else:
                 c = 'st_lt' if y < 70 else 'st_mid'
             img.set(x, y, c)
         img.set(4, y, 'b_out')
         img.set(107, y, 'b_out')
-    for px in (6, 30, 76, 100):     # pilasters
+    for px in (6, 30, 78, 102):     # pilasters (x % 8 == 6: their tiles repeat)
         for y in range(42, 70):
             for x in range(px, px + 6):
                 c = 'wl_hi' if x == px else ('st_lt' if x < px + 4 else 'st_mid')
@@ -949,7 +959,7 @@ def current_hall(gf):
         img.set(x, 73, 'st_mid' if x % 8 else 'b_out')
         img.set(x, 74, 'b_out')
     # round windows
-    for (wx, wy) in ((18, 50), (88, 50)):
+    for (wx, wy) in ((18, 50), (90, 50)):
         for y in range(wy - 7, wy + 8):
             for x in range(wx - 7, wx + 8):
                 d = math.hypot(x + 0.5 - wx, y + 0.5 - wy)
@@ -1011,7 +1021,7 @@ def current_hall(gf):
                         c = 'st_hi'
                 crest.p[y][x] = c
     img.paste(crest, 43, 6)
-    img.paste(sign(gf, 'CURRENT HALL'), 25, 27)
+    img.paste(sign(gf, 'CURRENT HALL'), 24, 27)
     # the eave row shares 8x8 tiles with the roof: the blue-roof bank has no
     # gl_hi, so the glass highlight there becomes the wall's white
     for y in range(32, 40):
@@ -1022,30 +1032,30 @@ def current_hall(gf):
 
 
 def thatch_hut(gf, door=True):
-    """64x48 stamp (4x3 metatiles): a Gull Isle fisher's hut: whitewashed
+    """48x48 stamp (3x3 metatiles): a Gull Isle fisher's hut: whitewashed
     walls, a thatched roof and a round window. Door cell: column 1, row 2."""
-    img = Img(64, 48, 'g_base')
-    for x in range(6, 62):
+    img = Img(48, 48, 'g_base')
+    for x in range(6, 46):
         img.set(x, 45, 'g_dk')
-        if 7 <= x <= 60:
+        if 7 <= x <= 44:
             img.set(x, 46, 'g_dk')
     # walls (x 4..59, y 24..43)
     for y in range(24, 44):
-        for x in range(4, 60):
-            if x in (4, 59):
+        for x in range(4, 44):
+            if x in (4, 43):
                 c = 'b_out'
             elif y >= 40:
-                c = 'st_mid' if (x + (3 if y % 2 else 0)) % 6 else 'st_lt'
+                c = 'st_mid' if (x + (4 if y % 2 else 0)) % 8 else 'st_lt'
                 if y == 40:
                     c = 'b_out'
             else:
-                c = 'wl_hi' if (x * 7 + y * 3) % 23 else 'wl_base'
+                c = 'wl_hi'
                 if x == 5:
                     c = 'wl_base'
-                if x == 58:
+                if x == 42:
                     c = 'wl_dk'
             img.set(x, y, c)
-    for x in range(4, 60):
+    for x in range(4, 44):
         img.set(x, 43, 'b_out')
     # door (x 18..29, y 28..43)
     if door:
@@ -1067,38 +1077,38 @@ def thatch_hut(gf, door=True):
                         ('gl_base' if (x + y) % 4 else 'gl_hi'))
     # round window
     for y in range(28, 40):
-        for x in range(38, 50):
-            d = math.hypot(x + 0.5 - 44, y + 0.5 - 34)
+        for x in range(30, 42):
+            d = math.hypot(x + 0.5 - 36, y + 0.5 - 34)
             if d <= 5.5:
                 c = 'b_out' if d > 4.4 else ('wd_lt' if d > 3.4 else 'gl_base')
-                if d <= 3.4 and x - 44 < y - 34 - 1:
+                if d <= 3.4 and x - 36 < y - 34 - 1:
                     c = 'gl_dk'
-                if d <= 3.4 and -1 <= (x - 44) - (y - 34) <= 0 and y < 34:
+                if d <= 3.4 and -1 <= (x - 36) - (y - 34) <= 0 and y < 34:
                     c = 'gl_hi'
                 img.set(x, y, c)
-    # thatched roof (x 1..62, y 2..27), bank 3 colours
+    # thatched roof (x 1..46, y 2..27), bank 3 colours
     for y in range(2, 28):
-        k = int(round(9 * (27 - y) / 25.0))
-        xl, xr = 1 + k, 62 - k
+        k = int(round(8 * (27 - y) / 25.0))
+        xl, xr = 1 + k, 46 - k
         for x in range(xl, xr + 1):
             if y == 2 or y == 27 or x == xl or x == xr:
                 c = 'b_out'
             else:
                 r = (y - 3) % 5
-                s = hash2(x, y // 5, 71) & 7
+                s = ((y // 5) * 3) & 7   # periodic in x: roof tiles repeat
                 if r == 4 or y == 26:
                     c = 'wd_dk'
                 elif r == 3:
-                    c = 'wd_base' if (x + s) % 3 else 'wd_dk'
+                    c = 'wd_base' if (x + s) % 4 else 'wd_dk'
                 elif r == 0:
                     c = 'wl_base' if (x + s) % 4 else 'wd_lt'
                 else:
-                    c = 'wd_lt' if (x + s + r) % 5 else 'wl_base'
-                if y == 25 and (x % 3 == 0):
+                    c = 'wd_lt' if (x + s + 3 * r) % 8 else 'wl_base'
+                if y == 25 and (x % 4 == 0):
                     c = 'wd_base'
             img.set(x, y, c)
     # ridge
-    for x in range(12, 52):
+    for x in range(11, 37):
         img.set(x, 3, 'wd_dk')
         img.set(x, 4, 'wd_base' if x % 2 else 'wd_dk')
     return img
@@ -1221,7 +1231,7 @@ def build(gf, name):
         ('HARBOR', harbor_office(gf), (B_WALLS, B_RED), 'HARBOR OFFICE, anchor gable, door col 2 row 3'),
         ('INN', inn(gf), (B_WALLS, B_BLUE), 'GULL INN, fish board, door col 2 row 3'),
         ('HALL', current_hall(gf), (B_WALLS, B_BLUE), 'CURRENT HALL, wave crest, door col 3 row 4'),
-        ('HUT', thatch_hut(gf), (B_WALLS, B_PROPS), 'Gull Isle thatched hut, door col 1 row 2'),
+        ('HUT', thatch_hut(gf), (B_WALLS, B_PROPS), 'Gull Isle thatched hut (3x3), door col 1 row 2'),
         ('CAVE', cave_mouth(gf, cliff, face), (B_GREEN,), 'sea cave mouth in a cliff, door col 1 row 1'),
     ])
     gf.add_path(ts, out)
