@@ -230,7 +230,7 @@ def clip_world():
 def clip_regions():
     """One still per expansion town, Hall and lair (the player on its fly
     point or just inside its door)."""
-    shots = [('lumen', 'LUMEN', 9, 18), ('brine', 'PORT_BRINE', 10, 14), ('gull', 'GULL_ISLE', 9, 11),
+    shots = [('lumen', 'LUMEN', 9, 18), ('brine', 'PORT_BRINE', 21, 17), ('gull', 'GULL_ISLE', 22, 14),
              ('frosthollow', 'FROSTHOLLOW', 7, 8), ('skyisle', 'SKY_ISLE', 17, 21),
              ('duskmere', 'DUSKMERE', 10, 12), ('cindermoor', 'CINDERMOOR', 19, 19),
              ('dreamspire', 'DREAMSPIRE', 24, 29), ('willow', 'WILLOW_ACRE', 19, 3),

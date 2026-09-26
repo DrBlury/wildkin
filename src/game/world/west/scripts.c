@@ -13,8 +13,8 @@
 /* where the ferry lands (a pier cell next to the other side's ferry) */
 #define WEST_ISLE_PIER_X 33
 #define WEST_ISLE_PIER_Y 5
-#define WEST_BRINE_PIER_X 10
-#define WEST_BRINE_PIER_Y 31
+#define WEST_BRINE_PIER_X 31
+#define WEST_BRINE_PIER_Y 34
 
 /* ---------------- Saltwind ---------------- */
 

@@ -1,17 +1,23 @@
-"""The 'coast' tileset (W-WEST: Saltwind Trail, Port Brine, the Current
-Hall, the Sea Route, Gull Isle and the Drowned Bell).
+"""The 'coast' tileset (W-WEST: Saltwind Trail, Port Brine, the Sea Route,
+Gull Isle) and the 'tide' tileset (the Current Hall and the Drowned Bell,
+build_tide; tools/tilesets/ts_tide.py registers it).
 
-One tileset serves the whole region, so it holds outdoor ground (grass,
-dunes, beach, sea cliffs, rock shelves, salt pans, harbour paving), the
-CURRENT HALL's floor, walls and flowing channels, and the DROWNED BELL's
-glowing grotto. Buildings are stamps; props live in tools/decor_west.py.
+'coast' holds the outdoor ground (grass, dunes, beach, rock shelves, salt
+pans, harbour paving) and the elevation art (cliffs, stairs and bridges are
+the maps' height layers, docs/ELEVATION.md); 'tide' holds the CURRENT HALL's
+floor, walls and flowing channels and the DROWNED BELL's glowing grotto.
+They were one tileset until the elevation art pushed it to 478 tiles, which
+left Port Brine 34 tiles for its props (the rest were skipped and drawn as
+garbage). Both share the palette banks, so the west props fit either.
+Buildings are stamps; props live in tools/decor_west.py. The CAVE stamp is a
+1x1 door cell to put on a TUNNEL mouth (Gull Isle's sea cave).
 
 Palette banks (8 x 15 colours):
 
   0 ground   grass, tall grass, marram dunes, flowers, paths, grass ledges
   1 sea      water autotile (sand shore, foam), sand, shelf rock, tide
              pools, salt pans, plaza slabs, the Hall's currents and pools
-  2 green    pines, palms, sea cliffs (rock + grass lip), the cave mouth
+  2 green    pines, palms
   3 props    the village decor bank (reused props), thatch, lighthouse
   4 red roof roof_bank(ROOF_RED): Hearth Hall, Harbor Office, houses
   5 blue roof roof_bank(ROOF_BLUE): shop, inn, Current Hall, houses
@@ -23,9 +29,9 @@ Map legend (documented again in src/game/world/west/data.h):
   outdoor  . grass   , tall grass (kin)   ; marram dune grass (kin)
            s sand    = path   ~ sea (surfable, autotiled sand shore)
            # plaza slabs   q quay setts   k rock shelf   o tide pool
-           % salt pan   C cliff (grass lip)   c cliff face
-           L ledge  [ ] ledge ends   l dune ledge (sand, hop south)
+           % salt pan   l dune ledge (sand, hop south)
            r y flowers   P/p pine top/bottom   A/a palm top/bottom
+  ('tide') the Hall and the grotto:
   hall     H wall top   h wall   n porthole   _ floor   M exit mat
            v ^ < > currents (A_CURRENT, see below)   O still pool (deep)
   grotto   G rock top   g rock wall   : wet floor   ' glowing floor
@@ -74,7 +80,7 @@ TERRAIN = [
     # outdoor ground
     'GRASS', 'GRASS2', 'GRASS3', 'TALLGRASS', 'DUNEGRASS', 'FLOWER_RED', 'FLOWER_YELLOW',
     'SAND', 'SAND2', 'SAND3', 'STONE', 'QUAY', 'SHELF', 'TIDEPOOL', 'SALTPAN',
-    'CLIFF', 'CLIFF_FACE', 'LEDGE', 'LEDGE_L', 'LEDGE_R', 'DUNE_LEDGE',
+    'DUNE_LEDGE',
     'PINE_TOP', 'PINE_BOTTOM', 'PALM_TOP', 'PALM_BOTTOM',
     # the Current Hall
     'HALL_FLOOR', 'HALL_WALL_TOP', 'HALL_WALL', 'HALL_PORTHOLE', 'HALL_MAT', 'HALL_POOL',
@@ -93,7 +99,6 @@ TERRAIN_DOC = {
     'SHELF': 'wave-cut rock shelf (walkable)',
     'TIDEPOOL': 'rock pool in the shelf (solid)',
     'SALTPAN': 'shallow salt pan with a clay rim; tiles as a grid (solid)',
-    'CLIFF': 'sea cliff with a grass lip (solid); CLIFF_FACE below it',
     'DUNE_LEDGE': 'one-way sand ledge on the dunes (hop south)',
     'PALM_TOP': '16x32 palm: TOP above BOTTOM',
     'HALL_FLOOR': 'Current Hall floor tiles (walkable platforms)',
@@ -1114,68 +1119,58 @@ def thatch_hut(gf, door=True):
     return img
 
 
-def cave_mouth(gf, cliff_top, cliff_face):
-    """48x32 stamp (3x2 metatiles) cut into a sea cliff: CLIFF on top,
-    CLIFF_FACE below, an arched dark opening. Door cell: column 1, row 1."""
-    img = Img(48, 32)
-    for cx in range(3):
-        img.paste(cliff_top, cx * 16, 0)
-        img.paste(cliff_face, cx * 16, 16)
-    cx0, base = 24.0, 32
-    for y in range(8, 32):
-        for x in range(48):
-            dx = x + 0.5 - cx0
-            top = 13.0 + (dx * dx) / 22.0
-            if y + 0.5 >= top and abs(dx) <= 11.0:
-                inner = (y + 0.5 >= top + 2.0) and abs(dx) <= 9.4
-                if not inner:
-                    c = 'k_dk' if y > top + 0.5 or abs(dx) > 10 else 't_out'
-                    if dx < 0 and y + 0.5 < top + 1.0:
-                        c = 'k_lt'
-                else:
-                    depth = (y - top) / 10.0
-                    c = 't_out'
-                    if y > 26:
-                        c = 'k_dk' if (x + y) % 3 else 't_out'
-                img.set(x, y, c)
-    # a rope rail and a stone step at the threshold
-    for x in range(15, 34):
-        img.set(x, 30, 'k_base' if x % 3 else 'k_lt')
-        img.set(x, 31, 'k_dk')
-    return img
+def cave_door():
+    """1x1 stamp: a sea cave's door cell. It goes on a TUNNEL mouth in an
+    elevation cliff (docs/ELEVATION.md): the mouth art is drawn over it, the
+    stamp gives the cell its A_DOOR and a dark inside (the same tile as
+    VOID, so it costs nothing)."""
+    return solid(16, 16, 'gb_blk')
 
 
 # ---------------------------------------------------------------- build
 
-def build(gf, name):
+TERRAIN_TIDE = [
+    # the Current Hall
+    'HALL_FLOOR', 'HALL_WALL_TOP', 'HALL_WALL', 'HALL_PORTHOLE', 'HALL_MAT', 'HALL_POOL',
+    'CUR_DOWN', 'CUR_UP', 'CUR_LEFT', 'CUR_RIGHT',
+    # the Drowned Bell
+    'GROT_TOP', 'GROT_WALL', 'GROT_FLOOR', 'GROT_GLOW', 'TEMPLE', 'GLOW_POOL', 'GROT_MAT',
+    'VOID',
+]
+TERRAIN_OUT = [t for t in TERRAIN if t not in TERRAIN_TIDE] + ['VOID']
+
+
+def _setup(gf, name, terrain):
     gf.register_colors(COAST_COLORS)
-    import terrain_wild
-    from terrain_common import GRASS_A, GRASS_B, GRASS_C, tallgrass_layers
     BANKS = banks(gf)
     gf.check_banks(name, BANKS)
     ts = gf.TileSet(name, BANKS)
-    out = {'ts': ts, 'meta_b': [], 'meta_t': [], 'terrain': TERRAIN}
+    return ts, {'ts': ts, 'meta_b': [], 'meta_t': [], 'terrain': list(terrain)}
+
+
+def _plain(gf, ts, out, name, imgs, tname):
+    im, top, bank = imgs[tname]
+    out['meta_b'].append(ts.meta(im, prefer=(bank,), where='%s.%s' % (name, tname)))
+    out['meta_t'].append(ts.meta(top, prefer=(bank,), where='%s.%s.top' % (name, tname),
+                                 opaque=False) if top else [0, 0, 0, 0])
+
+
+def build(gf, name):
+    """'coast': the outdoor maps (Saltwind, Port Brine, the Sea Route, Gull
+    Isle). The Current Hall and the Drowned Bell are the 'tide' tileset
+    (build_tide), so the towns keep room for their props in the 512-tile
+    scene charblock (tileset + the map's decor)."""
+    if name != 'coast':
+        return build_tide(gf, name)
+    import terrain_wild
+    from terrain_common import GRASS_A, GRASS_B, GRASS_C, tallgrass_layers
+    ts, out = _setup(gf, name, TERRAIN_OUT)
     add_coast_water(gf, ts, out)
     flower_meta = gf.add_flower_anim(ts, out)
-    cur = add_currents(gf, ts, out)
-    # glowing pool: animated raw tiles
-    gp = glow_pool_frames()
-    first = len(ts.tiles)
-    gp_tiles, gp_frames = [], [[] for _ in gp]
-    for (dx, dy) in gf.QUADS:
-        fr = [ts.indices(gf.img_pix(gp[f].crop(dx, dy, 8, 8)), B_GROTTO) for f in range(len(gp))]
-        gp_tiles.append(ts.add_raw(fr[0]))
-        for f in range(len(gp)):
-            gp_frames[f].append(fr[f])
-    out['anims'].append((first, gp_frames, 16))
-    gp_ents = [t | (B_GROTTO << 12) for t in gp_tiles]
-
     tall_b, tall_t = tallgrass_layers()
     dune_b, dune_t = dunegrass_layers()
     pine = terrain_wild.pine_img(overlay=True)
     palm = palm_img()
-    cliff = terrain_wild.cliff_img()
-    face = terrain_wild.CLIFF_FACE.copy()
     imgs = {
         'GRASS': (GRASS_A, None, B_GROUND), 'GRASS2': (GRASS_B, None, B_GROUND),
         'GRASS3': (GRASS_C, None, B_GROUND),
@@ -1184,42 +1179,21 @@ def build(gf, name):
         'SAND3': (sand3_img(), None, B_SEA), 'STONE': (stone_img(), None, B_SEA),
         'QUAY': (quay_img(), None, B_SEA), 'SHELF': (shelf_img(), None, B_SEA),
         'TIDEPOOL': (tidepool_img(), None, B_SEA), 'SALTPAN': (saltpan_img(), None, B_SEA),
-        'CLIFF': (cliff, None, B_GREEN), 'CLIFF_FACE': (face, None, B_GREEN),
-        'LEDGE': (terrain_wild.ledge_img(), None, B_GROUND),
-        'LEDGE_L': (terrain_wild.ledge_img('L'), None, B_GROUND),
-        'LEDGE_R': (terrain_wild.ledge_img('R'), None, B_GROUND),
         'DUNE_LEDGE': (dune_ledge_img(), None, B_GROUND),
-        'HALL_FLOOR': (hall_floor_img(), None, B_WALLS),
-        'HALL_WALL_TOP': (hall_wall_top_img(), None, B_WALLS),
-        'HALL_WALL': (hall_wall_img(), None, B_WALLS),
-        'HALL_PORTHOLE': (hall_porthole_img(), None, B_WALLS),
-        'HALL_MAT': (hall_mat_img(), None, B_WALLS),
-        'HALL_POOL': (hall_pool_img(), None, B_SEA),
-        'GROT_TOP': (grot_top_img(), None, B_GROTTO), 'GROT_WALL': (grot_wall_img(), None, B_GROTTO),
-        'GROT_FLOOR': (grot_floor_img(), None, B_GROTTO),
-        'GROT_GLOW': (grot_floor_img(True), None, B_GROTTO),
-        'TEMPLE': (temple_img(), None, B_GROTTO), 'GROT_MAT': (grot_mat_img(), None, B_GROTTO),
         'VOID': (solid(16, 16, 'gb_blk'), None, B_GROTTO),
     }
-    for tname in TERRAIN:
+    for tname in TERRAIN_OUT:
         if tname == 'FLOWER_RED':
             out['meta_b'].append(flower_meta[0])
         elif tname == 'FLOWER_YELLOW':
             out['meta_b'].append(flower_meta[1])
-        elif tname in cur:
-            out['meta_b'].append(cur[tname])
-        elif tname == 'GLOW_POOL':
-            out['meta_b'].append(gp_ents)
         elif tname in ('PINE_TOP', 'PINE_BOTTOM', 'PALM_TOP', 'PALM_BOTTOM'):
             src = pine if tname.startswith('PINE') else palm
             part = src.crop(0, 0, 16, 16) if tname.endswith('_TOP') else src.crop(0, 16, 16, 16)
             gf.add_overlay_terrain(ts, out, tname, part, top=tname.endswith('_TOP'))
             continue
         else:
-            im, top, bank = imgs[tname]
-            out['meta_b'].append(ts.meta(im, prefer=(bank,), where='coast.' + tname))
-            out['meta_t'].append(ts.meta(top, prefer=(bank,), where='coast.%s.top' % tname,
-                                         opaque=False) if top else [0, 0, 0, 0])
+            _plain(gf, ts, out, name, imgs, tname)
             continue
         out['meta_t'].append([0, 0, 0, 0])
     gf.add_stamps(ts, out, [
@@ -1232,16 +1206,74 @@ def build(gf, name):
         ('INN', inn(gf), (B_WALLS, B_BLUE), 'GULL INN, fish board, door col 2 row 3'),
         ('HALL', current_hall(gf), (B_WALLS, B_BLUE), 'CURRENT HALL, wave crest, door col 3 row 4'),
         ('HUT', thatch_hut(gf), (B_WALLS, B_PROPS), 'Gull Isle thatched hut (3x3), door col 1 row 2'),
-        ('CAVE', cave_mouth(gf, cliff, face), (B_GREEN,), 'sea cave mouth in a cliff, door col 1 row 1'),
+        ('CAVE', cave_door(), (B_GROTTO,),
+         'sea cave door (1x1): put it on a TUNNEL mouth in an elevation cliff'),
     ])
     gf.add_path(ts, out)
     A = gf
-    cur_attr = lambda d: A.A_CURRENT | (A.A_DIR_LO if d & 1 else 0) | (A.A_DIR_HI if d & 2 else 0)
     attrs = {
         'TALLGRASS': A.A_GRASS, 'DUNEGRASS': A.A_GRASS,
-        'TIDEPOOL': A.A_SOLID, 'SALTPAN': A.A_SOLID,
-        'CLIFF': A.A_SOLID, 'CLIFF_FACE': A.A_SOLID,
-        'LEDGE': A.A_LEDGE, 'LEDGE_L': A.A_LEDGE, 'LEDGE_R': A.A_LEDGE, 'DUNE_LEDGE': A.A_LEDGE,
+        'TIDEPOOL': A.A_SOLID, 'SALTPAN': A.A_SOLID, 'DUNE_LEDGE': A.A_LEDGE, 'VOID': A.A_SOLID,
+    }
+    return gf.finish_tileset(
+        out, name, 'CO', attrs=attrs,
+        ground=['GRASS', 'GRASS2', 'GRASS3', 'SAND', 'SAND2', 'SAND3', 'STONE', 'QUAY', 'SHELF'],
+        overlay=['PINE_TOP', 'PINE_BOTTOM', 'PALM_TOP', 'PALM_BOTTOM'],
+        legend={'.': gf.GRASS_VARIANTS, ',': 'TALLGRASS', ';': 'DUNEGRASS',
+                's': [('SAND2', 2), ('SAND3', 1), ('SAND', 13)], '=': 'PATH', '~': 'WATER',
+                '#': 'STONE', 'q': 'QUAY', 'k': 'SHELF', 'o': 'TIDEPOOL', '%': 'SALTPAN',
+                'l': 'DUNE_LEDGE', 'r': 'FLOWER_RED', 'y': 'FLOWER_YELLOW',
+                'P': 'PINE_TOP', 'T': 'PINE_TOP', 'p': 'PINE_BOTTOM', 'A': 'PALM_TOP', 'a': 'PALM_BOTTOM',
+                ' ': 'VOID'},
+        oob='VOID', default_ground='SAND', backdrop=(10, 14, 30),
+        doors=[('HEAL', 2, 3), ('SHOP', 2, 3), ('HOUSE_RED', 2, 3), ('HOUSE_BLUE', 2, 3),
+               ('HARBOR', 2, 3), ('INN', 2, 3), ('HALL', 3, 4), ('HUT', 1, 2), ('CAVE', 0, 0)])
+
+
+def build_tide(gf, name):
+    """'tide': the CURRENT HALL (floor, walls, pools, flowing channels) and
+    the DROWNED BELL grotto. Same palette banks as 'coast' (the west props
+    are drawn in them)."""
+    ts, out = _setup(gf, name, TERRAIN_TIDE)
+    out['anims'] = []
+    cur = add_currents(gf, ts, out)
+    # glowing pool: animated raw tiles
+    gp = glow_pool_frames()
+    first = len(ts.tiles)
+    gp_tiles, gp_frames = [], [[] for _ in gp]
+    for (dx, dy) in gf.QUADS:
+        fr = [ts.indices(gf.img_pix(gp[f].crop(dx, dy, 8, 8)), B_GROTTO) for f in range(len(gp))]
+        gp_tiles.append(ts.add_raw(fr[0]))
+        for f in range(len(gp)):
+            gp_frames[f].append(fr[f])
+    out['anims'].append((first, gp_frames, 16))
+    gp_ents = [t | (B_GROTTO << 12) for t in gp_tiles]
+    imgs = {
+        'HALL_FLOOR': (hall_floor_img(), None, B_WALLS),
+        'HALL_WALL_TOP': (hall_wall_top_img(), None, B_WALLS),
+        'HALL_WALL': (hall_wall_img(), None, B_WALLS),
+        'HALL_PORTHOLE': (hall_porthole_img(), None, B_WALLS),
+        'HALL_MAT': (hall_mat_img(), None, B_WALLS),
+        'HALL_POOL': (hall_pool_img(), None, B_SEA),
+        'GROT_TOP': (grot_top_img(), None, B_GROTTO), 'GROT_WALL': (grot_wall_img(), None, B_GROTTO),
+        'GROT_FLOOR': (grot_floor_img(), None, B_GROTTO),
+        'GROT_GLOW': (grot_floor_img(True), None, B_GROTTO),
+        'TEMPLE': (temple_img(), None, B_GROTTO), 'GROT_MAT': (grot_mat_img(), None, B_GROTTO),
+        'VOID': (solid(16, 16, 'gb_blk'), None, B_GROTTO),
+    }
+    for tname in TERRAIN_TIDE:
+        if tname in cur:
+            out['meta_b'].append(cur[tname])
+        elif tname == 'GLOW_POOL':
+            out['meta_b'].append(gp_ents)
+        else:
+            _plain(gf, ts, out, name, imgs, tname)
+            continue
+        out['meta_t'].append([0, 0, 0, 0])
+    out['stamps'] = []
+    A = gf
+    cur_attr = lambda d: A.A_CURRENT | (A.A_DIR_LO if d & 1 else 0) | (A.A_DIR_HI if d & 2 else 0)
+    attrs = {
         'HALL_WALL_TOP': A.A_SOLID, 'HALL_WALL': A.A_SOLID, 'HALL_PORTHOLE': A.A_SOLID,
         'HALL_MAT': A.A_EXIT, 'HALL_POOL': A.A_SOLID | A.A_WATER | A.A_DEEP,
         'CUR_DOWN': cur_attr(0), 'CUR_UP': cur_attr(1), 'CUR_LEFT': cur_attr(2),
@@ -1250,21 +1282,12 @@ def build(gf, name):
         'GLOW_POOL': A.A_SOLID | A.A_WATER | A.A_DEEP, 'GROT_MAT': A.A_EXIT, 'VOID': A.A_SOLID,
     }
     return gf.finish_tileset(
-        out, name, 'CO', attrs=attrs,
-        ground=['GRASS', 'GRASS2', 'GRASS3', 'SAND', 'SAND2', 'SAND3', 'STONE', 'QUAY', 'SHELF',
-                'HALL_FLOOR', 'GROT_FLOOR', 'GROT_GLOW', 'TEMPLE'],
-        overlay=['PINE_TOP', 'PINE_BOTTOM', 'PALM_TOP', 'PALM_BOTTOM'],
-        legend={'.': gf.GRASS_VARIANTS, ',': 'TALLGRASS', ';': 'DUNEGRASS',
-                's': [('SAND2', 2), ('SAND3', 1), ('SAND', 13)], '=': 'PATH', '~': 'WATER',
-                '#': 'STONE', 'q': 'QUAY', 'k': 'SHELF', 'o': 'TIDEPOOL', '%': 'SALTPAN',
-                'C': 'CLIFF', 'c': 'CLIFF_FACE', 'L': 'LEDGE', '[': 'LEDGE_L', ']': 'LEDGE_R',
-                'l': 'DUNE_LEDGE', 'r': 'FLOWER_RED', 'y': 'FLOWER_YELLOW',
-                'P': 'PINE_TOP', 'T': 'PINE_TOP', 'p': 'PINE_BOTTOM', 'A': 'PALM_TOP', 'a': 'PALM_BOTTOM',
-                'H': 'HALL_WALL_TOP', 'h': 'HALL_WALL', 'n': 'HALL_PORTHOLE', '_': 'HALL_FLOOR',
+        out, name, 'TD', attrs=attrs,
+        ground=['HALL_FLOOR', 'GROT_FLOOR', 'GROT_GLOW', 'TEMPLE'],
+        overlay=[],
+        legend={'H': 'HALL_WALL_TOP', 'h': 'HALL_WALL', 'n': 'HALL_PORTHOLE', '_': 'HALL_FLOOR',
                 'M': 'HALL_MAT', 'O': 'HALL_POOL', 'v': 'CUR_DOWN', '^': 'CUR_UP',
                 '<': 'CUR_LEFT', '>': 'CUR_RIGHT',
                 'G': 'GROT_TOP', 'g': 'GROT_WALL', ':': 'GROT_FLOOR', "'": 'GROT_GLOW',
                 't': 'TEMPLE', '*': 'GLOW_POOL', 'm': 'GROT_MAT', ' ': 'VOID'},
-        oob='VOID', default_ground='SAND', backdrop=(10, 14, 30),
-        doors=[('HEAL', 2, 3), ('SHOP', 2, 3), ('HOUSE_RED', 2, 3), ('HOUSE_BLUE', 2, 3),
-               ('HARBOR', 2, 3), ('INN', 2, 3), ('HALL', 3, 4), ('HUT', 1, 2), ('CAVE', 1, 1)])
+        oob='VOID', default_ground='HALL_FLOOR', backdrop=(10, 14, 30), legend_default=' ')

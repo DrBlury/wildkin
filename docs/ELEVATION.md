@@ -321,5 +321,13 @@ maps them per tileset (rock ramp + outline + lip colours must share one
 palette bank, the four wood colours another). To tune a tileset's look,
 change its ROLES entry (or pass `elev={...}` to `finish_tileset`); run
 `make art` and commit the regenerated headers. Tile counts after the art:
-coast 478, grim 497 of 500 — a region needing more room there can drop
-the elevation art (remove its ROLES entry) if it doesn't use heights.
+grim 497 of 500; coast 407 (the Current Hall and the Drowned Bell moved to
+their own 'tide' tileset, docs/handoff/towns_west.md) — a region needing
+more room can drop the elevation art (remove its ROLES entry) if it doesn't
+use heights, or split its interiors off like 'tide'.
+
+**The real budget is per map**: the tileset plus every decor kind the map
+uses must fit the 512-tile scene charblock. `field_load_tileset()` silently
+skips a kind that doesn't fit and it is then drawn from the tileset's own
+tiles (garbage). `decor_tiles_used > 512` never trips because of that skip;
+check `decor_base[kind]` for every kind instead (tools/tests/test_west.c).

@@ -67,3 +67,7 @@
 - Optional polish: more Port Brine set dressing, Gull Isle second hut.
 - `make` shows 6 pre-existing `-Wunused-function` warnings in party.c (UI
   owner), not from this region.
+
+## Later: towns on the height layer
+Port Brine and Gull Isle were rebuilt with elevation (and the Current Hall / Drowned Bell moved to
+their own `tide` tileset to free scene tiles for props): see docs/handoff/towns_west.md.
