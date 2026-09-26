@@ -44,10 +44,10 @@ from pixelart import Img, G, tex_fill, hash2, shade_clumps
 
 USES_DECOR = [
     'SIGNPOST', 'BARREL', 'CRATE', 'CRATE_STACK', 'SACKS', 'ROCK', 'BENCH', 'LANTERN_POST',
-    'CAMPFIRE', 'FENCE', 'FENCE_END', 'BUSH', 'BOULDER', 'PEBBLES', 'SMALL_FLOWERS', 'FLAG',
-    'NOTICE_BOARD', 'SHRINE', 'SIGN_ARROW', 'TENT', 'WOODPILE', 'STUMP', 'LOG', 'WEATHER_VANE',
+    'CAMPFIRE', 'FENCE', 'FENCE_END', 'BUSH', 'BOULDER', 'PEBBLES', 'SMALL_FLOWERS',
+    'NOTICE_BOARD', 'SHRINE', 'SIGN_ARROW', 'WOODPILE', 'STUMP', 'LOG', 'WEATHER_VANE',
     'MARKET_STALL', 'MAILBOX', 'FLOWER_POT', 'PLANTER', 'WATER_TROUGH', 'PICNIC_TABLE',
-    'CLOTHESLINE', 'BERRY_BUSH',
+    'CLOTHESLINE',
 ]
 
 COAST_COLORS = {
@@ -880,7 +880,7 @@ def harbor_office(gf):
 
 def inn(gf):
     img = gf.cottage('house').replace(gf.RED_TO_BLUE)
-    img.paste(sign(gf, 'GULL INN', plate='wl_hi', ink='rb_dkr', edge='wl_dk'), 18, 26)
+    img.paste(sign(gf, 'GULL INN', plate='wl_hi', ink='gl_dk', edge='wl_dk'), 18, 26)
     # a hanging board with a fish on it beside the door
     board = G('''
     OOOOOOOOOO
@@ -1012,6 +1012,12 @@ def current_hall(gf):
                 crest.p[y][x] = c
     img.paste(crest, 43, 6)
     img.paste(sign(gf, 'CURRENT HALL'), 25, 27)
+    # the eave row shares 8x8 tiles with the roof: the blue-roof bank has no
+    # gl_hi, so the glass highlight there becomes the wall's white
+    for y in range(32, 40):
+        for x in range(img.w):
+            if img.p[y][x] in ('gl_hi', 'gl_base'):
+                img.p[y][x] = 'wl_hi'
     return img
 
 
@@ -1085,9 +1091,9 @@ def thatch_hut(gf, door=True):
                 elif r == 3:
                     c = 'wd_base' if (x + s) % 3 else 'wd_dk'
                 elif r == 0:
-                    c = 'p_yel' if (x + s) % 4 else 'wd_lt'
+                    c = 'wl_base' if (x + s) % 4 else 'wd_lt'
                 else:
-                    c = 'wd_lt' if (x + s + r) % 5 else 'p_yel'
+                    c = 'wd_lt' if (x + s + r) % 5 else 'wl_base'
                 if y == 25 and (x % 3 == 0):
                     c = 'wd_base'
             img.set(x, y, c)
@@ -1243,7 +1249,7 @@ def build(gf, name):
                 '#': 'STONE', 'q': 'QUAY', 'k': 'SHELF', 'o': 'TIDEPOOL', '%': 'SALTPAN',
                 'C': 'CLIFF', 'c': 'CLIFF_FACE', 'L': 'LEDGE', '[': 'LEDGE_L', ']': 'LEDGE_R',
                 'l': 'DUNE_LEDGE', 'r': 'FLOWER_RED', 'y': 'FLOWER_YELLOW',
-                'P': 'PINE_TOP', 'p': 'PINE_BOTTOM', 'A': 'PALM_TOP', 'a': 'PALM_BOTTOM',
+                'P': 'PINE_TOP', 'T': 'PINE_TOP', 'p': 'PINE_BOTTOM', 'A': 'PALM_TOP', 'a': 'PALM_BOTTOM',
                 'H': 'HALL_WALL_TOP', 'h': 'HALL_WALL', 'n': 'HALL_PORTHOLE', '_': 'HALL_FLOOR',
                 'M': 'HALL_MAT', 'O': 'HALL_POOL', 'v': 'CUR_DOWN', '^': 'CUR_UP',
                 '<': 'CUR_LEFT', '>': 'CUR_RIGHT',
