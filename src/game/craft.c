@@ -1083,6 +1083,7 @@ static void cook_draw(void)
 #define BREW_FRAMES 300
 #define BREW_CYCLE  64
 #define BREW_PEAK   40
+#define BREW_BAND   12          /* +- heat units that count as in the band */
 
 static int brew_band_center(int t)
 {
@@ -1109,7 +1110,7 @@ static void brew_gauge_draw(void)
     canvas_fill(GAUGE_X - 1, GAUGE_Y - 1, GAUGE_W + 2, 8, INK_DARK);
     canvas_fill(GAUGE_X, GAUGE_Y, GAUGE_W, 6, INK_SHADOW);
     if (cg.phase == 0) {
-        int c = cg.band * GAUGE_W / 100, hw = 10 * GAUGE_W / 100;
+        int c = cg.band * GAUGE_W / 100, hw = BREW_BAND * GAUGE_W / 100;
         canvas_fill(GAUGE_X + c - hw, GAUGE_Y, hw * 2, 6, 13);
         canvas_fill(GAUGE_X + c - 1, GAUGE_Y, 2, 6, 12);
         text_draw(12, 11, "HEAT");
@@ -1124,8 +1125,8 @@ static void brew_liquid_colour(void)
 {
     int h = cg.heat / 256, d = h - cg.band;
     u16 main;
-    if (d < -10) main = RGB15(6, 12, 28);            /* too cool: dull blue */
-    else if (d > 10) main = RGB15(30, 10, 4);        /* too hot: scorching */
+    if (d < -BREW_BAND) main = RGB15(6, 12, 28);            /* too cool: dull blue */
+    else if (d > BREW_BAND) main = RGB15(30, 10, 4);        /* too hot: scorching */
     else main = RGB15(6, 26, 16);                    /* just right: bright green */
     if (cg.phase) main = RGB15(8, 28, 20);
     build_fx_palette(CB_FOOD, main, RGB15(24, 31, 28));
@@ -1135,13 +1136,13 @@ static void brew_update(void)
 {
     cg.t++;
     if (cg.phase == 0) {
-        cg.vel += (keys_now & KEY_A) ? 10 : -8;
-        cg.vel = clampi(cg.vel, -180, 180);
+        cg.vel += (keys_now & KEY_A) ? 14 : -12;
+        cg.vel = clampi(cg.vel, -256, 256);
         cg.heat += cg.vel;
         if (cg.heat < 0) { cg.heat = 0; cg.vel = 0; }
         if (cg.heat > 100 * 256) { cg.heat = 100 * 256; cg.vel = 0; }
         cg.band = brew_band_center(cg.t);
-        if (absi(cg.heat / 256 - cg.band) <= 10) cg.inband++;
+        if (absi(cg.heat / 256 - cg.band) <= BREW_BAND) cg.inband++;
         brew_gauge_draw();
         brew_liquid_colour();
         if (cg.heat > 60 * 256 && !(cg.t & 7)) cg_burst(96 + (int)rng_range(40), 92, 1, 0);
@@ -1312,7 +1313,7 @@ static void cg_play(void)
     cg.score = 0;
     cg.flip_t = 0;
     cg.toss = 0;
-    cg.heat = 20 * 256;
+    cg.heat = 40 * 256;
     cg.vel = 0;
     cg.inband = 0;
     cg.band = 50;
