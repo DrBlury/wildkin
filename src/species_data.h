@@ -304,15 +304,15 @@ static const LearnEntry LS_LAMPJINN[] = { {1, M_BONK}, {1, M_TRINKET_TOSS}, {1, 
 static const LearnEntry LS_GARGOLITH[] = { {1, M_BONK}, {1, M_GRIT_KICK}, {1, M_STARE_DOWN}, {1, M_STONESKIN}, {14, M_PEBBLE_PELT}, {20, M_MUD_PIE}, {26, M_SNAP}, {32, M_HAUNT}, {38, M_SANDBLAST}, {44, M_SHADE_CUT}, {50, M_ROCKFALL}, {0, 0} };
 static const LearnEntry LS_HOPSHI[] = { {1, M_BONK}, {1, M_PUMMEL}, {1, M_ONE_TWO}, {1, M_BONE_RATTLE}, {14, M_LAST_RITES}, {20, M_SHROUD}, {26, M_WAR_CRY}, {32, M_HAMMER_FIST}, {38, M_GRAVE_CHILL}, {44, M_COUNTERJAB}, {50, M_MARROW_SIP}, {0, 0} };
 static const LearnEntry LS_QILUMEN[] = { {1, M_BONK}, {1, M_STATIC_POP}, {1, M_TWINKLE}, {1, M_NEBULA_VEIL}, {14, M_STARDUST}, {20, M_TINGLE}, {26, M_LIVE_WIRE}, {32, M_MOONBEAM}, {38, M_ARC_FLASH}, {44, M_COMET_DASH}, {50, M_FORKED_BOLT}, {0, 0} };
-static const LearnEntry LS_CALDERON[] = { {1, M_BONK}, {1, M_RIVET_SHOT}, {1, M_CINDER_FLICK}, {1, M_IRON_TAP}, {14, M_LAST_EMBER}, {20, M_LANTERN_LURE}, {26, M_MAGNET_PULL}, {32, M_STEEL_SHELL}, {38, M_FORGE_FLASH}, {44, M_SEAR_BITE}, {50, M_EMBER_STORM}, {0, 0} };
-static const LearnEntry LS_NOCTHALE[] = { {1, M_BONK}, {1, M_FIZZ}, {1, M_SLIPSTREAM}, {1, M_TWINKLE}, {14, M_NEBULA_VEIL}, {20, M_STARDUST}, {26, M_MOONBEAM}, {32, M_UNDERTOW}, {38, M_RIPTIDE}, {44, M_COMET_DASH}, {50, M_MUON_RAIN}, {0, 0} };
-static const LearnEntry LS_HOARFANG[] = { {1, M_BONK}, {1, M_HAILSTONES}, {1, M_FLURRY}, {1, M_RIME_SHOT}, {14, M_SNOWDRIFT}, {20, M_STARE_DOWN}, {26, M_SNAP}, {32, M_HAUNT}, {38, M_SHADE_CUT}, {44, M_GLOOM_ORB}, {50, M_GNASH}, {0, 0} };
-static const LearnEntry LS_OSSUREX[] = { {1, M_BONK}, {1, M_BONE_RATTLE}, {1, M_LAST_RITES}, {1, M_SHROUD}, {14, M_WYRM_DANCE}, {20, M_GRAVE_CHILL}, {26, M_MARROW_SIP}, {32, M_WYRMBREATH}, {38, M_OSSIFY}, {44, M_SCALE_REND}, {50, M_DEATH_KNELL}, {0, 0} };
-static const LearnEntry LS_SELENOTH[] = { {1, M_BONK}, {1, M_TWINKLE}, {1, M_LULLABY}, {1, M_NEBULA_VEIL}, {14, M_STARDUST}, {20, M_STILL_POND}, {26, M_DAYDREAM}, {32, M_MOONBEAM}, {38, M_PRISM_RAY}, {44, M_COMET_DASH}, {50, M_DREAMQUAKE}, {60, M_SUPERNOVA}, {0, 0} };
-static const LearnEntry LS_SYLVARCH[] = { {1, M_BONK}, {1, M_BURR_VOLLEY}, {1, M_DART}, {1, M_SWIPE}, {14, M_BASK}, {20, M_BRACE}, {26, M_BRAMBLE_LASH}, {32, M_CATNAP}, {38, M_DROWSY_POLLEN}, {44, M_POUT}, {50, M_THORN_WALL}, {0, 0} };
-static const LearnEntry LS_HOROLOGOS[] = { {1, M_BONK}, {1, M_TRINKET_TOSS}, {1, M_RIVET_SHOT}, {1, M_CLATTER}, {14, M_IRON_TAP}, {20, M_MAGNET_PULL}, {26, M_STEEL_SHELL}, {32, M_TARNISH}, {38, M_FORGE_FLASH}, {44, M_POLTERGUST}, {50, M_GILDED_GLEAM}, {0, 0} };
-static const LearnEntry LS_SCRIPTORA[] = { {1, M_BONK}, {1, M_TRINKET_TOSS}, {1, M_CLATTER}, {1, M_LULLABY}, {14, M_STILL_POND}, {20, M_TARNISH}, {26, M_DAYDREAM}, {32, M_POLTERGUST}, {38, M_PRISM_RAY}, {44, M_GILDED_GLEAM}, {50, M_CHEST_CHOMP}, {0, 0} };
-static const LearnEntry LS_SKYLORN[] = { {1, M_BONK}, {1, M_BEAK_JAB}, {1, M_DRAFT}, {1, M_TWINKLE}, {14, M_NEBULA_VEIL}, {20, M_STARDUST}, {26, M_UPDRAFT}, {32, M_FEATHER_CUT}, {38, M_MOONBEAM}, {44, M_CROSSWIND}, {50, M_COMET_DASH}, {0, 0} };
+static const LearnEntry LS_CALDERON[] = { {1, M_SEAR_BITE}, {1, M_IRON_TAP}, {1, M_CINDER_FLICK}, {1, M_MAGNET_PULL}, {12, M_FORGE_FLASH}, {20, M_STEEL_SHELL}, {28, M_EMBER_STORM}, {36, M_GEAR_GRIND}, {44, M_KILN_BREATH}, {50, M_FAULTLINE}, {56, M_ANVIL_DROP}, {62, M_SUNFLARE}, {0, 0} };
+static const LearnEntry LS_NOCTHALE[] = { {1, M_FIZZ}, {1, M_TWINKLE}, {1, M_LULLABY}, {1, M_NEBULA_VEIL}, {12, M_MOONBEAM}, {20, M_UNDERTOW}, {28, M_STILL_POND}, {36, M_SWELL}, {44, M_MUON_RAIN}, {50, M_BELLY_FLOP}, {56, M_GEYSER}, {62, M_SUPERNOVA}, {0, 0} };
+static const LearnEntry LS_HOARFANG[] = { {1, M_RIME_SHOT}, {1, M_SNAP}, {1, M_STARE_DOWN}, {1, M_FLURRY}, {12, M_HAILSTONES}, {20, M_SNOWDRIFT}, {28, M_SHADE_CUT}, {36, M_SNARL}, {44, M_GNASH}, {50, M_WINTER_RAY}, {56, M_GLOOM_ORB}, {62, M_PRIMAL_ROAR}, {0, 0} };
+static const LearnEntry LS_OSSUREX[] = { {1, M_BONE_RATTLE}, {1, M_WYRMBREATH}, {1, M_SHROUD}, {1, M_GRAVE_CHILL}, {12, M_MARROW_SIP}, {20, M_SCALE_REND}, {28, M_WYRM_DANCE}, {36, M_OSSIFY}, {40, M_LAST_RITES}, {44, M_KILN_BREATH}, {50, M_DEATH_KNELL}, {56, M_REQUIEM}, {62, M_STARFALL}, {0, 0} };
+static const LearnEntry LS_SELENOTH[] = { {1, M_TWINKLE}, {1, M_DAYDREAM}, {1, M_STARDUST}, {1, M_LULLABY}, {12, M_MOONBEAM}, {20, M_PRISM_RAY}, {28, M_NEBULA_VEIL}, {36, M_WINGDUST}, {44, M_MUON_RAIN}, {50, M_DREAMQUAKE}, {56, M_STILL_POND}, {62, M_SUPERNOVA}, {0, 0} };
+static const LearnEntry LS_SYLVARCH[] = { {1, M_BRAMBLE_LASH}, {1, M_BRACE}, {1, M_SAP_SIP}, {1, M_DROWSY_POLLEN}, {12, M_LEAF_FLURRY}, {20, M_BASK}, {28, M_SNARL}, {36, M_THORN_WALL}, {44, M_REED_BLADE}, {50, M_BELLY_FLOP}, {56, M_SUNSHAFT}, {62, M_PRIMAL_ROAR}, {0, 0} };
+static const LearnEntry LS_HOROLOGOS[] = { {1, M_IRON_TAP}, {1, M_CLATTER}, {1, M_TARNISH}, {1, M_MAGNET_PULL}, {12, M_RIVET_SHOT}, {20, M_STEEL_SHELL}, {28, M_GEAR_GRIND}, {36, M_LODE_BEAM}, {44, M_CURSED_CURIO}, {50, M_FAULTLINE}, {56, M_ANVIL_DROP}, {62, M_HEIRLOOM}, {0, 0} };
+static const LearnEntry LS_SCRIPTORA[] = { {1, M_DAYDREAM}, {1, M_CLATTER}, {1, M_TARNISH}, {1, M_LULLABY}, {12, M_POLTERGUST}, {20, M_PRISM_RAY}, {28, M_SILK_SNARE}, {36, M_GILDED_GLEAM}, {44, M_STILL_POND}, {50, M_DREAMQUAKE}, {56, M_CURSED_CURIO}, {62, M_BRIM_BURST}, {0, 0} };
+static const LearnEntry LS_SKYLORN[] = { {1, M_DRAFT}, {1, M_TWINKLE}, {1, M_FEATHER_CUT}, {1, M_UPDRAFT}, {12, M_STARDUST}, {20, M_COMET_DASH}, {28, M_CROSSWIND}, {36, M_NEBULA_VEIL}, {44, M_MUON_RAIN}, {50, M_STOOP}, {56, M_METEOR_FALL}, {62, M_SUPERNOVA}, {0, 0} };
 static const LearnEntry LS_STEAMOTH[] = { {1, M_BONK}, {1, M_BEAK_JAB}, {1, M_CINDER_FLICK}, {1, M_DRAFT}, {14, M_LAST_EMBER}, {20, M_LANTERN_LURE}, {26, M_UPDRAFT}, {32, M_FEATHER_CUT}, {38, M_SEAR_BITE}, {44, M_CROSSWIND}, {50, M_EMBER_STORM}, {0, 0} };
 static const LearnEntry LS_VOLTORTLE[] = { {1, M_BONK}, {1, M_STATIC_POP}, {1, M_GRIT_KICK}, {1, M_STONESKIN}, {14, M_TINGLE}, {20, M_PEBBLE_PELT}, {26, M_MUD_PIE}, {32, M_LIVE_WIRE}, {38, M_ARC_FLASH}, {44, M_SANDBLAST}, {50, M_ROCKFALL}, {0, 0} };
 static const LearnEntry LS_EMBERIME[] = { {1, M_BONK}, {1, M_HAILSTONES}, {1, M_CINDER_FLICK}, {1, M_FLURRY}, {14, M_LAST_EMBER}, {20, M_RIME_SHOT}, {26, M_LANTERN_LURE}, {32, M_SNOWDRIFT}, {38, M_SEAR_BITE}, {44, M_EMBER_STORM}, {50, M_KILN_BREATH}, {0, 0} };
@@ -843,42 +843,42 @@ static const Species SPECIES[SP_COUNT] = {
         "KIN", 10, 100, LS_QILUMEN,
         "Kirin with a star-lit mane.",
         { TR_FOCUSED, TR_CONDUCTOR }, R_RARE, FA_TELEPORT|FA_LIGHT, { TYPE_NONE, TYPE_NONE } },
-    [SP_CALDERON] = { "CALDERON", T_BLAZE, T_METAL, { 60, 120, 105, 120, 75, 120 }, 3, 250, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_CALDERON,
-        "Colossal forge salamander.",
-        { TR_SURGE, TR_BRUISER }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_NOCTHALE] = { "NOCTHALE", T_TIDE, T_ASTRAL, { 140, 66, 95, 140, 95, 64 }, 3, 250, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_NOCTHALE,
-        "Star whale that sings under the sea.",
-        { TR_SURGE, TR_QUICK_STUDY }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_HOARFANG] = { "HOARFANG", T_FROST, T_DUSK, { 68, 68, 98, 140, 98, 128 }, 3, 250, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_HOARFANG,
-        "The winter wolf.",
-        { TR_THICK_FUR, TR_SLIPPERY }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_OSSUREX] = { "OSSUREX", T_HOLLOW, T_WYRM, { 108, 92, 123, 92, 123, 62 }, 3, 250, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_OSSUREX,
-        "Bone dragon of the Ossuary.",
-        { TR_STUBBORN, TR_SURGE }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_SELENOTH] = { "SELENOTH", T_ASTRAL, T_DREAM, { 134, 74, 74, 140, 104, 74 }, 3, 250, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_SELENOTH,
-        "Moon moth.",
-        { TR_FOCUSED, TR_WAKEFUL }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_SYLVARCH] = { "SYLVARCH", T_BLOOM, T_BEAST, { 120, 75, 90, 90, 135, 90 }, 3, 250, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_SYLVARCH,
-        "Great forest stag.",
-        { TR_BASKER, TR_MOMENTUM }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_HOROLOGOS] = { "HOROLOGOS", T_METAL, T_RELIC, { 67, 123, 140, 95, 109, 66 }, 3, 250, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_HOROLOGOS,
-        "Clockwork titan.",
-        { TR_BEDROCK, TR_KEEN_EYE }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_SCRIPTORA] = { "SCRIPTORA", T_RELIC, T_DREAM, { 65, 66, 140, 140, 124, 65 }, 3, 250, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_SCRIPTORA,
-        "Serpent of living pages.",
-        { TR_HOARDER, TR_WAKEFUL }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_SKYLORN] = { "SKYLORN", T_GALE, T_ASTRAL, { 94, 126, 65, 111, 64, 140 }, 3, 250, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_SKYLORN,
-        "Sky manta above the clouds.",
-        { TR_DRIFTER, TR_QUICK_STUDY }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
+    [SP_CALDERON] = { "CALDERON", T_BLAZE, T_METAL, { 105, 125, 130, 95, 85, 60 }, 3, 255, EVO_NONE, 0, 0,
+        "SALAMANDER", 62, 38000, LS_CALDERON,
+        "It sleeps in the magma of the CALDERA HEART, and its kernel pumps on the heat and the iron in its blood. Every scale it sheds cools into a perfect ingot.",
+        { TR_EMBERSKIN, TR_BEDROCK }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
+    [SP_NOCTHALE] = { "NOCTHALE", T_TIDE, T_ASTRAL, { 150, 70, 90, 125, 110, 60 }, 3, 255, EVO_NONE, 0, 0,
+        "STAR WHALE", 240, 65000, LS_NOCTHALE,
+        "Its kernel pumps on cosmic-ray muons, which reach even the sea floor. Its song rings the DROWNED BELL, and every star in the tide pools answers.",
+        { TR_SOAKER, TR_SELFMEND }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
+    [SP_HOARFANG] = { "HOARFANG", T_FROST, T_DUSK, { 90, 125, 85, 95, 85, 125 }, 3, 255, EVO_NONE, 0, 0,
+        "WINTER WOLF", 28, 1900, LS_HOARFANG,
+        "It pumps by shedding heat, so a blizzard follows its steps. Its shadow runs a moment ahead of it. Winter on WHITECROWN PEAK ends only when it sleeps.",
+        { TR_THICK_FUR, TR_KEEN_EYE }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
+    [SP_OSSUREX] = { "OSSUREX", T_HOLLOW, T_WYRM, { 110, 100, 110, 120, 110, 60 }, 3, 255, EVO_NONE, 0, 0,
+        "BONE WYRM", 71, 9800, LS_OSSUREX,
+        "A century ago OSSUREX brimmed and scorched the ASHEN MARCH. Its kernel outlived its body and pumps on the slow heat of old bone, waiting on the BONE THRONE.",
+        { TR_STUBBORN, TR_GLOWER }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
+    [SP_SELENOTH] = { "SELENOTH", T_ASTRAL, T_DREAM, { 95, 60, 85, 140, 115, 105 }, 3, 255, EVO_NONE, 0, 0,
+        "LUNAR MOTH", 38, 220, LS_SELENOTH,
+        "Its wing dust is fallen starlight, each mote a tiny muon-pumped kernel. When it sleeps in the STARFALL GROTTO, the whole Vale dreams of the same moon.",
+        { TR_DRIFTER, TR_FOCUSED }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
+    [SP_SYLVARCH] = { "SYLVARCH", T_BLOOM, T_BEAST, { 115, 115, 100, 90, 110, 75 }, 3, 255, EVO_NONE, 0, 0,
+        "ELDER STAG", 44, 8200, LS_SYLVARCH,
+        "The roots of ELDERWOOD HEART are one great web, and SYLVARCH is the kernel it pumps. Seeds sprout in its hoofprints, and birds nest in its antlers.",
+        { TR_BASKER, TR_THICK_FUR }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
+    [SP_HOROLOGOS] = { "HOROLOGOS", T_METAL, T_RELIC, { 100, 125, 145, 80, 100, 50 }, 3, 255, EVO_NONE, 0, 0,
+        "CLOCKWORK", 98, 52000, LS_HOROLOGOS,
+        "The tower clock kept the valley's time for three hundred years, until a magnetite kernel woke in its gears. Its pendulum heart has never missed a beat.",
+        { TR_BEDROCK, TR_STUBBORN }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
+    [SP_SCRIPTORA] = { "SCRIPTORA", T_RELIC, T_DREAM, { 95, 65, 90, 135, 125, 95 }, 3, 255, EVO_NONE, 0, 0,
+        "LIVING TOME", 120, 1800, LS_SCRIPTORA,
+        "A kernel lost in the DUST LIBRARY for a thousand years wove a body from every page. Read one of its scales and you will dream the whole book.",
+        { TR_QUICK_STUDY, TR_WAKEFUL }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
+    [SP_SKYLORN] = { "SKYLORN", T_GALE, T_ASTRAL, { 95, 105, 80, 110, 90, 125 }, 3, 255, EVO_NONE, 0, 0,
+        "SKY MANTA", 160, 12000, LS_SKYLORN,
+        "It never lands. It glides so high above the SKY ISLE that the air runs out and muons rain on its back. The clouds below are only its shadow.",
+        { TR_DRIFTER, TR_MOMENTUM }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
     [SP_STEAMOTH] = { "STEAMOTH", T_GALE, T_BLAZE, { 58, 126, 58, 85, 58, 140 }, 45, 210, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_STEAMOTH,
         "Moth of steam with brass wings.",
