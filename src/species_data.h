@@ -215,41 +215,41 @@ static const LearnEntry LS_GNAWLORD[] = { {1, M_BONK}, {1, M_DART}, {1, M_SNAP},
 static const LearnEntry LS_FROSTOAT[] = { {1, M_SWIPE}, {1, M_POUT}, {5, M_FLURRY}, {9, M_DART}, {13, M_RIME_SHOT}, {18, M_SNAP}, {22, M_HAILSTONES}, {26, M_GLINT}, {30, M_WINTER_RAY}, {36, M_STILL_POND}, {0, 0} };
 static const LearnEntry LS_WISPIRE[] = { {1, M_STARE_DOWN}, {1, M_DAYDREAM}, {8, M_LANTERN_LURE}, {14, M_HAUNT}, {20, M_GLOOM_ORB}, {26, M_PRISM_RAY}, {30, M_STILL_POND}, {36, M_DREAMQUAKE}, {42, M_KILN_BREATH}, {0, 0} };
 static const LearnEntry LS_DRAKORA[] = { {1, M_WYRMBREATH}, {1, M_DRAFT}, {1, M_STARE_DOWN}, {1, M_FEATHER_CUT}, {30, M_SCALE_REND}, {36, M_UPDRAFT}, {40, M_STOOP}, {46, M_FAULTLINE}, {52, M_STARFALL}, {0, 0} };
-static const LearnEntry LS_PRICKLET[] = { {1, M_BONK}, {1, M_SWIPE}, {5, M_DART}, {10, M_BRACE}, {15, M_CATNAP}, {20, M_POUT}, {25, M_SNARL}, {30, M_GLINT}, {35, M_BELLY_FLOP}, {40, M_RECKLESS_RUSH}, {45, M_PRIMAL_ROAR}, {0, 0} };
-static const LearnEntry LS_QUILLDRUM[] = { {1, M_BONK}, {1, M_PUMMEL}, {1, M_ONE_TWO}, {1, M_DART}, {14, M_SWIPE}, {20, M_BRACE}, {26, M_CATNAP}, {32, M_POUT}, {38, M_WAR_CRY}, {44, M_HAMMER_FIST}, {50, M_SNARL}, {0, 0} };
-static const LearnEntry LS_SNUFFLET[] = { {1, M_BONK}, {1, M_SWIPE}, {5, M_DART}, {10, M_BRACE}, {15, M_CATNAP}, {20, M_POUT}, {25, M_SNARL}, {30, M_GLINT}, {35, M_BELLY_FLOP}, {40, M_RECKLESS_RUSH}, {45, M_PRIMAL_ROAR}, {0, 0} };
-static const LearnEntry LS_TRUFFLOAR[] = { {1, M_BONK}, {1, M_BURR_VOLLEY}, {1, M_DART}, {1, M_SWIPE}, {14, M_BASK}, {20, M_BRACE}, {26, M_BRAMBLE_LASH}, {32, M_CATNAP}, {38, M_DROWSY_POLLEN}, {44, M_POUT}, {50, M_THORN_WALL}, {0, 0} };
-static const LearnEntry LS_RACCOIN[] = { {1, M_BONK}, {1, M_SWIPE}, {5, M_DART}, {10, M_BRACE}, {15, M_CATNAP}, {20, M_POUT}, {25, M_STARE_DOWN}, {30, M_SNARL}, {35, M_GLINT}, {40, M_SNAP}, {45, M_HAUNT}, {0, 0} };
-static const LearnEntry LS_BANDIRACC[] = { {1, M_BONK}, {1, M_SWIPE}, {1, M_DART}, {1, M_BRACE}, {14, M_CATNAP}, {20, M_POUT}, {26, M_STARE_DOWN}, {32, M_SNARL}, {38, M_GLINT}, {44, M_SNAP}, {50, M_HAUNT}, {0, 0} };
-static const LearnEntry LS_PEBBOTTER[] = { {1, M_BONK}, {1, M_FIZZ}, {5, M_SLIPSTREAM}, {10, M_UNDERTOW}, {15, M_RIPTIDE}, {20, M_SWELL}, {25, M_GEYSER}, {0, 0} };
-static const LearnEntry LS_TORRENTTER[] = { {1, M_BONK}, {1, M_PUMMEL}, {1, M_ONE_TWO}, {1, M_FIZZ}, {14, M_SLIPSTREAM}, {20, M_WAR_CRY}, {26, M_HAMMER_FIST}, {32, M_COUNTERJAB}, {38, M_UNDERTOW}, {44, M_RIPTIDE}, {50, M_SWELL}, {0, 0} };
-static const LearnEntry LS_JELLUME[] = { {1, M_BONK}, {1, M_FIZZ}, {5, M_SLIPSTREAM}, {10, M_STATIC_POP}, {15, M_TINGLE}, {20, M_LIVE_WIRE}, {25, M_UNDERTOW}, {30, M_ARC_FLASH}, {35, M_RIPTIDE}, {40, M_FORKED_BOLT}, {45, M_SWELL}, {0, 0} };
-static const LearnEntry LS_MEDUSHOCK[] = { {1, M_BONK}, {1, M_FIZZ}, {1, M_SLIPSTREAM}, {1, M_STATIC_POP}, {14, M_TINGLE}, {20, M_LIVE_WIRE}, {26, M_UNDERTOW}, {32, M_ARC_FLASH}, {38, M_RIPTIDE}, {44, M_FORKED_BOLT}, {50, M_SWELL}, {0, 0} };
-static const LearnEntry LS_LURELING[] = { {1, M_BONK}, {1, M_FIZZ}, {5, M_SLIPSTREAM}, {10, M_STARE_DOWN}, {15, M_SNAP}, {20, M_UNDERTOW}, {25, M_HAUNT}, {30, M_SHADE_CUT}, {35, M_RIPTIDE}, {40, M_GLOOM_ORB}, {45, M_GNASH}, {0, 0} };
-static const LearnEntry LS_ABYSSLURE[] = { {1, M_BONK}, {1, M_FIZZ}, {1, M_SLIPSTREAM}, {1, M_STARE_DOWN}, {14, M_SNAP}, {20, M_UNDERTOW}, {26, M_HAUNT}, {32, M_SHADE_CUT}, {38, M_RIPTIDE}, {44, M_GLOOM_ORB}, {50, M_GNASH}, {0, 0} };
-static const LearnEntry LS_RADISHOO[] = { {1, M_BONK}, {1, M_BURR_VOLLEY}, {5, M_BASK}, {10, M_BRAMBLE_LASH}, {15, M_DROWSY_POLLEN}, {20, M_THORN_WALL}, {25, M_SAP_SIP}, {30, M_LEAF_FLURRY}, {35, M_REED_BLADE}, {40, M_SUNSHAFT}, {0, 0} };
-static const LearnEntry LS_MANDRAGOR[] = { {1, M_BONK}, {1, M_BURR_VOLLEY}, {1, M_BASK}, {1, M_BRAMBLE_LASH}, {14, M_DROWSY_POLLEN}, {20, M_LULLABY}, {26, M_STILL_POND}, {32, M_THORN_WALL}, {38, M_DAYDREAM}, {44, M_SAP_SIP}, {50, M_LEAF_FLURRY}, {0, 0} };
-static const LearnEntry LS_PUMPKLING[] = { {1, M_BONK}, {1, M_BURR_VOLLEY}, {5, M_BASK}, {10, M_BRAMBLE_LASH}, {15, M_DROWSY_POLLEN}, {20, M_THORN_WALL}, {25, M_SAP_SIP}, {30, M_LEAF_FLURRY}, {35, M_REED_BLADE}, {40, M_SUNSHAFT}, {0, 0} };
-static const LearnEntry LS_JACKOGRIM[] = { {1, M_BONK}, {1, M_BURR_VOLLEY}, {1, M_BONE_RATTLE}, {1, M_BASK}, {14, M_BRAMBLE_LASH}, {20, M_DROWSY_POLLEN}, {26, M_LAST_RITES}, {32, M_SHROUD}, {38, M_THORN_WALL}, {44, M_SAP_SIP}, {50, M_GRAVE_CHILL}, {0, 0} };
-static const LearnEntry LS_SHROOMLET[] = { {1, M_BONK}, {1, M_BURR_VOLLEY}, {5, M_BARB}, {10, M_BASK}, {15, M_BRAMBLE_LASH}, {20, M_DROWSY_POLLEN}, {25, M_SPORE_CLOUD}, {30, M_THORN_WALL}, {35, M_SAP_SIP}, {40, M_LEAF_FLURRY}, {45, M_ACID_SPIT}, {0, 0} };
-static const LearnEntry LS_MYCOLOSSUS[] = { {1, M_BONK}, {1, M_BURR_VOLLEY}, {1, M_BARB}, {1, M_BASK}, {14, M_BRAMBLE_LASH}, {20, M_DROWSY_POLLEN}, {26, M_SPORE_CLOUD}, {32, M_THORN_WALL}, {38, M_SAP_SIP}, {44, M_LEAF_FLURRY}, {50, M_ACID_SPIT}, {0, 0} };
-static const LearnEntry LS_BLINKET[] = { {1, M_BONK}, {1, M_STATIC_POP}, {5, M_SILK_SNARE}, {10, M_TINGLE}, {15, M_PINCER}, {20, M_WINGDUST}, {25, M_LIVE_WIRE}, {30, M_ARC_FLASH}, {35, M_SWARM_RUSH}, {40, M_FORKED_BOLT}, {45, M_OVERCHARGE}, {0, 0} };
-static const LearnEntry LS_BEACONFLY[] = { {1, M_BONK}, {1, M_STATIC_POP}, {1, M_SILK_SNARE}, {1, M_TINGLE}, {14, M_PINCER}, {20, M_WINGDUST}, {26, M_LIVE_WIRE}, {32, M_ARC_FLASH}, {38, M_SWARM_RUSH}, {44, M_FORKED_BOLT}, {50, M_OVERCHARGE}, {0, 0} };
-static const LearnEntry LS_STATICKO[] = { {1, M_BONK}, {1, M_STATIC_POP}, {5, M_TINGLE}, {10, M_LIVE_WIRE}, {15, M_ARC_FLASH}, {20, M_FORKED_BOLT}, {25, M_OVERCHARGE}, {0, 0} };
-static const LearnEntry LS_FULGECKO[] = { {1, M_BONK}, {1, M_SWIPE}, {1, M_DART}, {1, M_STATIC_POP}, {14, M_BRACE}, {20, M_CATNAP}, {26, M_POUT}, {32, M_TINGLE}, {38, M_SNARL}, {44, M_GLINT}, {50, M_LIVE_WIRE}, {0, 0} };
-static const LearnEntry LS_FLURRABBIT[] = { {1, M_BONK}, {1, M_HAILSTONES}, {5, M_FLURRY}, {10, M_RIME_SHOT}, {15, M_SNOWDRIFT}, {20, M_WINTER_RAY}, {0, 0} };
-static const LearnEntry LS_MOONHARE[] = { {1, M_BONK}, {1, M_HAILSTONES}, {1, M_FLURRY}, {1, M_RIME_SHOT}, {14, M_TWINKLE}, {20, M_NEBULA_VEIL}, {26, M_SNOWDRIFT}, {32, M_STARDUST}, {38, M_MOONBEAM}, {44, M_COMET_DASH}, {50, M_MUON_RAIN}, {0, 0} };
-static const LearnEntry LS_TUXFLAKE[] = { {1, M_BONK}, {1, M_HAILSTONES}, {5, M_FIZZ}, {10, M_FLURRY}, {15, M_RIME_SHOT}, {20, M_SLIPSTREAM}, {25, M_SNOWDRIFT}, {30, M_UNDERTOW}, {35, M_RIPTIDE}, {40, M_SWELL}, {45, M_WINTER_RAY}, {0, 0} };
-static const LearnEntry LS_EMPERICE[] = { {1, M_BONK}, {1, M_HAILSTONES}, {1, M_FIZZ}, {1, M_FLURRY}, {14, M_RIME_SHOT}, {20, M_SLIPSTREAM}, {26, M_SNOWDRIFT}, {32, M_UNDERTOW}, {38, M_RIPTIDE}, {44, M_SWELL}, {50, M_WINTER_RAY}, {0, 0} };
-static const LearnEntry LS_YAKLING[] = { {1, M_BONK}, {1, M_HAILSTONES}, {5, M_DART}, {10, M_FLURRY}, {15, M_RIME_SHOT}, {20, M_SWIPE}, {25, M_BRACE}, {30, M_CATNAP}, {35, M_POUT}, {40, M_SNOWDRIFT}, {45, M_SNARL}, {0, 0} };
-static const LearnEntry LS_GLACIYAK[] = { {1, M_BONK}, {1, M_HAILSTONES}, {1, M_DART}, {1, M_FLURRY}, {14, M_RIME_SHOT}, {20, M_SWIPE}, {26, M_BRACE}, {32, M_CATNAP}, {38, M_POUT}, {44, M_SNOWDRIFT}, {50, M_SNARL}, {0, 0} };
-static const LearnEntry LS_RAMBLET[] = { {1, M_BONK}, {1, M_PUMMEL}, {5, M_ONE_TWO}, {10, M_WAR_CRY}, {15, M_HAMMER_FIST}, {20, M_COUNTERJAB}, {25, M_HAYMAKER}, {0, 0} };
-static const LearnEntry LS_CRAGHORN[] = { {1, M_BONK}, {1, M_PUMMEL}, {1, M_ONE_TWO}, {1, M_GRIT_KICK}, {14, M_STONESKIN}, {20, M_WAR_CRY}, {26, M_HAMMER_FIST}, {32, M_PEBBLE_PELT}, {38, M_MUD_PIE}, {44, M_COUNTERJAB}, {50, M_SANDBLAST}, {0, 0} };
-static const LearnEntry LS_STINGLET[] = { {1, M_BONK}, {1, M_BARB}, {5, M_SPORE_CLOUD}, {10, M_ACID_SPIT}, {15, M_FESTER}, {20, M_BOG_BOMB}, {0, 0} };
-static const LearnEntry LS_SCORCHION[] = { {1, M_BONK}, {1, M_BARB}, {1, M_CINDER_FLICK}, {1, M_LAST_EMBER}, {14, M_LANTERN_LURE}, {20, M_SPORE_CLOUD}, {26, M_ACID_SPIT}, {32, M_FESTER}, {38, M_SEAR_BITE}, {44, M_EMBER_STORM}, {50, M_BOG_BOMB}, {0, 0} };
-static const LearnEntry LS_DIGGET[] = { {1, M_BONK}, {1, M_GRIT_KICK}, {5, M_STONESKIN}, {10, M_PEBBLE_PELT}, {15, M_MUD_PIE}, {20, M_SANDBLAST}, {25, M_ROCKFALL}, {30, M_FAULTLINE}, {0, 0} };
-static const LearnEntry LS_SEXTONE[] = { {1, M_BONK}, {1, M_BONE_RATTLE}, {1, M_GRIT_KICK}, {1, M_LAST_RITES}, {14, M_SHROUD}, {20, M_STONESKIN}, {26, M_PEBBLE_PELT}, {32, M_GRAVE_CHILL}, {38, M_MUD_PIE}, {44, M_MARROW_SIP}, {50, M_SANDBLAST}, {0, 0} };
-static const LearnEntry LS_QUARTZLING[] = { {1, M_BONK}, {1, M_GRIT_KICK}, {5, M_SILK_SNARE}, {10, M_STONESKIN}, {15, M_PEBBLE_PELT}, {20, M_MUD_PIE}, {25, M_PINCER}, {30, M_WINGDUST}, {35, M_SANDBLAST}, {40, M_ROCKFALL}, {45, M_SWARM_RUSH}, {0, 0} };
+static const LearnEntry LS_PRICKLET[] = { {1, M_BONK}, {1, M_BRACE}, {5, M_POUT}, {9, M_DART}, {13, M_BURR_VOLLEY}, {17, M_SNARL}, {21, M_BELLY_FLOP}, {25, M_CATNAP}, {0, 0} };
+static const LearnEntry LS_QUILLDRUM[] = { {1, M_BONK}, {1, M_BRACE}, {1, M_POUT}, {1, M_DART}, {13, M_BURR_VOLLEY}, {17, M_SNARL}, {20, M_ONE_TWO}, {24, M_WAR_CRY}, {29, M_PUMMEL}, {34, M_COUNTERJAB}, {40, M_RECKLESS_RUSH}, {46, M_HAYMAKER}, {0, 0} };
+static const LearnEntry LS_SNUFFLET[] = { {1, M_BONK}, {1, M_POUT}, {5, M_GRIT_KICK}, {9, M_MUD_PIE}, {13, M_SWIPE}, {17, M_BRACE}, {21, M_BELLY_FLOP}, {25, M_SAP_SIP}, {0, 0} };
+static const LearnEntry LS_TRUFFLOAR[] = { {1, M_BONK}, {1, M_POUT}, {1, M_GRIT_KICK}, {1, M_MUD_PIE}, {13, M_SWIPE}, {17, M_BRACE}, {22, M_BRAMBLE_LASH}, {26, M_BELLY_FLOP}, {31, M_THORN_WALL}, {36, M_SAP_SIP}, {42, M_RECKLESS_RUSH}, {48, M_SUNSHAFT}, {0, 0} };
+static const LearnEntry LS_RACCOIN[] = { {1, M_SWIPE}, {1, M_POUT}, {5, M_SNAP}, {9, M_DART}, {13, M_GLINT}, {17, M_STARE_DOWN}, {21, M_TRINKET_TOSS}, {25, M_HAUNT}, {0, 0} };
+static const LearnEntry LS_BANDIRACC[] = { {1, M_SWIPE}, {1, M_POUT}, {1, M_SNAP}, {1, M_DART}, {13, M_GLINT}, {17, M_STARE_DOWN}, {21, M_TRINKET_TOSS}, {24, M_SHADE_CUT}, {28, M_TARNISH}, {33, M_GNASH}, {39, M_GILDED_GLEAM}, {46, M_GLOOM_ORB}, {0, 0} };
+static const LearnEntry LS_PEBBOTTER[] = { {1, M_BONK}, {1, M_FIZZ}, {5, M_POUT}, {9, M_SLIPSTREAM}, {13, M_PEBBLE_PELT}, {17, M_UNDERTOW}, {21, M_RIPTIDE}, {25, M_ROCKFALL}, {0, 0} };
+static const LearnEntry LS_TORRENTTER[] = { {1, M_BONK}, {1, M_FIZZ}, {1, M_SLIPSTREAM}, {1, M_PEBBLE_PELT}, {13, M_UNDERTOW}, {17, M_ONE_TWO}, {21, M_RIPTIDE}, {24, M_HAMMER_FIST}, {29, M_COUNTERJAB}, {34, M_ROCKFALL}, {40, M_SWELL}, {47, M_HAYMAKER}, {0, 0} };
+static const LearnEntry LS_JELLUME[] = { {1, M_FIZZ}, {1, M_STATIC_POP}, {5, M_TINGLE}, {9, M_SLIPSTREAM}, {13, M_GLINT}, {17, M_LIVE_WIRE}, {21, M_UNDERTOW}, {25, M_ARC_FLASH}, {29, M_SWELL}, {0, 0} };
+static const LearnEntry LS_MEDUSHOCK[] = { {1, M_FIZZ}, {1, M_STATIC_POP}, {1, M_TINGLE}, {1, M_SLIPSTREAM}, {13, M_GLINT}, {17, M_LIVE_WIRE}, {21, M_UNDERTOW}, {25, M_ARC_FLASH}, {30, M_SWELL}, {36, M_FORKED_BOLT}, {42, M_GEYSER}, {49, M_OVERCHARGE}, {0, 0} };
+static const LearnEntry LS_LURELING[] = { {1, M_FIZZ}, {1, M_STARE_DOWN}, {5, M_SNAP}, {9, M_LANTERN_LURE}, {13, M_SLIPSTREAM}, {17, M_GLINT}, {21, M_UNDERTOW}, {25, M_HAUNT}, {29, M_GNASH}, {33, M_GLOOM_ORB}, {0, 0} };
+static const LearnEntry LS_ABYSSLURE[] = { {1, M_FIZZ}, {1, M_STARE_DOWN}, {1, M_SNAP}, {1, M_LANTERN_LURE}, {13, M_SLIPSTREAM}, {17, M_GLINT}, {21, M_UNDERTOW}, {25, M_HAUNT}, {30, M_GNASH}, {35, M_GLOOM_ORB}, {41, M_SWELL}, {48, M_GEYSER}, {0, 0} };
+static const LearnEntry LS_RADISHOO[] = { {1, M_BONK}, {1, M_POUT}, {5, M_SAP_SIP}, {9, M_GRIT_KICK}, {13, M_BRAMBLE_LASH}, {17, M_DROWSY_POLLEN}, {21, M_LEAF_FLURRY}, {25, M_BASK}, {0, 0} };
+static const LearnEntry LS_MANDRAGOR[] = { {1, M_BONK}, {1, M_SAP_SIP}, {1, M_DROWSY_POLLEN}, {1, M_DAYDREAM}, {13, M_BRAMBLE_LASH}, {17, M_LEAF_FLURRY}, {22, M_LULLABY}, {26, M_PRISM_RAY}, {31, M_STILL_POND}, {36, M_DREAMQUAKE}, {42, M_SUNSHAFT}, {48, M_PRIMAL_ROAR}, {0, 0} };
+static const LearnEntry LS_PUMPKLING[] = { {1, M_BONK}, {1, M_POUT}, {5, M_BRAMBLE_LASH}, {9, M_BRACE}, {13, M_BURR_VOLLEY}, {17, M_SAP_SIP}, {21, M_LANTERN_LURE}, {25, M_THORN_WALL}, {29, M_BELLY_FLOP}, {0, 0} };
+static const LearnEntry LS_JACKOGRIM[] = { {1, M_BONK}, {1, M_BRAMBLE_LASH}, {1, M_LANTERN_LURE}, {1, M_BONE_RATTLE}, {13, M_BURR_VOLLEY}, {17, M_SAP_SIP}, {21, M_GRAVE_CHILL}, {26, M_THORN_WALL}, {30, M_SHROUD}, {35, M_REED_BLADE}, {40, M_DEATH_KNELL}, {47, M_REQUIEM}, {0, 0} };
+static const LearnEntry LS_SHROOMLET[] = { {1, M_BONK}, {1, M_SPORE_CLOUD}, {5, M_BARB}, {9, M_SAP_SIP}, {13, M_DROWSY_POLLEN}, {17, M_ACID_SPIT}, {21, M_BRAMBLE_LASH}, {25, M_FESTER}, {29, M_BASK}, {33, M_BOG_BOMB}, {0, 0} };
+static const LearnEntry LS_MYCOLOSSUS[] = { {1, M_BONK}, {1, M_SPORE_CLOUD}, {1, M_BARB}, {1, M_SAP_SIP}, {13, M_DROWSY_POLLEN}, {17, M_ACID_SPIT}, {21, M_BRAMBLE_LASH}, {25, M_FESTER}, {32, M_THORN_WALL}, {37, M_BOG_BOMB}, {43, M_FAULTLINE}, {50, M_SUNSHAFT}, {0, 0} };
+static const LearnEntry LS_BLINKET[] = { {1, M_STATIC_POP}, {1, M_POUT}, {5, M_PINCER}, {9, M_TINGLE}, {13, M_GLINT}, {17, M_WINGDUST}, {21, M_LIVE_WIRE}, {25, M_SWARM_RUSH}, {0, 0} };
+static const LearnEntry LS_BEACONFLY[] = { {1, M_STATIC_POP}, {1, M_POUT}, {1, M_PINCER}, {1, M_TINGLE}, {13, M_GLINT}, {17, M_WINGDUST}, {21, M_LIVE_WIRE}, {26, M_SWARM_RUSH}, {31, M_ARC_FLASH}, {37, M_FORKED_BOLT}, {44, M_UPDRAFT}, {50, M_OVERCHARGE}, {0, 0} };
+static const LearnEntry LS_STATICKO[] = { {1, M_STATIC_POP}, {1, M_POUT}, {5, M_DART}, {9, M_TINGLE}, {13, M_SWIPE}, {17, M_LIVE_WIRE}, {21, M_STARE_DOWN}, {25, M_ARC_FLASH}, {0, 0} };
+static const LearnEntry LS_FULGECKO[] = { {1, M_STATIC_POP}, {1, M_DART}, {1, M_TINGLE}, {1, M_SWIPE}, {13, M_STARE_DOWN}, {17, M_LIVE_WIRE}, {21, M_SNARL}, {25, M_ARC_FLASH}, {30, M_FORKED_BOLT}, {36, M_RECKLESS_RUSH}, {42, M_OVERCHARGE}, {48, M_PRIMAL_ROAR}, {0, 0} };
+static const LearnEntry LS_FLURRABBIT[] = { {1, M_BONK}, {1, M_POUT}, {5, M_FLURRY}, {9, M_DART}, {13, M_RIME_SHOT}, {17, M_SNOWDRIFT}, {21, M_HAILSTONES}, {26, M_CATNAP}, {31, M_WINTER_RAY}, {36, M_BELLY_FLOP}, {0, 0} };
+static const LearnEntry LS_MOONHARE[] = { {1, M_BONK}, {1, M_FLURRY}, {1, M_TWINKLE}, {1, M_RIME_SHOT}, {13, M_SNOWDRIFT}, {17, M_STARDUST}, {21, M_MOONBEAM}, {26, M_HAILSTONES}, {31, M_NEBULA_VEIL}, {36, M_COMET_DASH}, {42, M_WINTER_RAY}, {48, M_MUON_RAIN}, {0, 0} };
+static const LearnEntry LS_TUXFLAKE[] = { {1, M_BONK}, {1, M_POUT}, {5, M_FIZZ}, {9, M_FLURRY}, {13, M_SLIPSTREAM}, {17, M_RIME_SHOT}, {21, M_BELLY_FLOP}, {25, M_UNDERTOW}, {29, M_SNOWDRIFT}, {33, M_HAILSTONES}, {0, 0} };
+static const LearnEntry LS_EMPERICE[] = { {1, M_BONK}, {1, M_FIZZ}, {1, M_FLURRY}, {1, M_SLIPSTREAM}, {13, M_RIME_SHOT}, {17, M_BELLY_FLOP}, {21, M_UNDERTOW}, {25, M_SNOWDRIFT}, {32, M_RIPTIDE}, {37, M_WINTER_RAY}, {43, M_SWELL}, {49, M_GEYSER}, {0, 0} };
+static const LearnEntry LS_YAKLING[] = { {1, M_BONK}, {1, M_POUT}, {5, M_FLURRY}, {9, M_BRACE}, {13, M_RIME_SHOT}, {17, M_SWIPE}, {21, M_HAILSTONES}, {25, M_BELLY_FLOP}, {29, M_SNOWDRIFT}, {33, M_RECKLESS_RUSH}, {0, 0} };
+static const LearnEntry LS_GLACIYAK[] = { {1, M_BONK}, {1, M_FLURRY}, {1, M_BRACE}, {1, M_RIME_SHOT}, {13, M_SWIPE}, {17, M_HAILSTONES}, {21, M_BELLY_FLOP}, {25, M_SNOWDRIFT}, {33, M_STONESKIN}, {38, M_RECKLESS_RUSH}, {44, M_WINTER_RAY}, {50, M_FAULTLINE}, {0, 0} };
+static const LearnEntry LS_RAMBLET[] = { {1, M_BONK}, {1, M_POUT}, {5, M_BRACE}, {9, M_ONE_TWO}, {13, M_DART}, {17, M_HAMMER_FIST}, {21, M_WAR_CRY}, {25, M_COUNTERJAB}, {29, M_RECKLESS_RUSH}, {0, 0} };
+static const LearnEntry LS_CRAGHORN[] = { {1, M_BONK}, {1, M_BRACE}, {1, M_ONE_TWO}, {1, M_GRIT_KICK}, {13, M_DART}, {17, M_HAMMER_FIST}, {21, M_PEBBLE_PELT}, {26, M_WAR_CRY}, {30, M_ROCKFALL}, {35, M_COUNTERJAB}, {41, M_FAULTLINE}, {47, M_HAYMAKER}, {0, 0} };
+static const LearnEntry LS_STINGLET[] = { {1, M_BARB}, {1, M_POUT}, {5, M_PINCER}, {9, M_GRIT_KICK}, {13, M_SPORE_CLOUD}, {17, M_ACID_SPIT}, {21, M_FESTER}, {25, M_SNAP}, {29, M_BOG_BOMB}, {0, 0} };
+static const LearnEntry LS_SCORCHION[] = { {1, M_BARB}, {1, M_PINCER}, {1, M_CINDER_FLICK}, {1, M_GRIT_KICK}, {13, M_SPORE_CLOUD}, {17, M_ACID_SPIT}, {21, M_SEAR_BITE}, {26, M_FESTER}, {30, M_LAST_EMBER}, {35, M_EMBER_STORM}, {41, M_BOG_BOMB}, {48, M_KILN_BREATH}, {0, 0} };
+static const LearnEntry LS_DIGGET[] = { {1, M_BONK}, {1, M_GRIT_KICK}, {5, M_MUD_PIE}, {9, M_SWIPE}, {13, M_PEBBLE_PELT}, {17, M_STONESKIN}, {21, M_SANDBLAST}, {26, M_ROCKFALL}, {31, M_LANTERN_LURE}, {36, M_FAULTLINE}, {0, 0} };
+static const LearnEntry LS_SEXTONE[] = { {1, M_BONK}, {1, M_GRIT_KICK}, {1, M_MUD_PIE}, {1, M_BONE_RATTLE}, {13, M_PEBBLE_PELT}, {17, M_STONESKIN}, {21, M_GRAVE_CHILL}, {26, M_ROCKFALL}, {31, M_OSSIFY}, {36, M_LAST_RITES}, {42, M_FAULTLINE}, {48, M_DEATH_KNELL}, {0, 0} };
+static const LearnEntry LS_QUARTZLING[] = { {1, M_BONK}, {1, M_SILK_SNARE}, {5, M_GRIT_KICK}, {9, M_PINCER}, {13, M_PEBBLE_PELT}, {17, M_STONESKIN}, {21, M_SANDBLAST}, {25, M_SWARM_RUSH}, {29, M_ROCKFALL}, {33, M_GLINT}, {0, 0} };
 static const LearnEntry LS_QUARTZPEDE[] = { {1, M_BONK}, {1, M_GRIT_KICK}, {1, M_SILK_SNARE}, {1, M_STONESKIN}, {14, M_PEBBLE_PELT}, {20, M_MUD_PIE}, {26, M_PINCER}, {32, M_WINGDUST}, {38, M_SANDBLAST}, {44, M_ROCKFALL}, {50, M_SWARM_RUSH}, {0, 0} };
 static const LearnEntry LS_FLYSQUIRL[] = { {1, M_BONK}, {1, M_BEAK_JAB}, {5, M_DART}, {10, M_DRAFT}, {15, M_SWIPE}, {20, M_BRACE}, {25, M_CATNAP}, {30, M_POUT}, {35, M_UPDRAFT}, {40, M_SNARL}, {45, M_FEATHER_CUT}, {0, 0} };
 static const LearnEntry LS_GALESQUIRL[] = { {1, M_BONK}, {1, M_BEAK_JAB}, {1, M_DART}, {1, M_DRAFT}, {14, M_SWIPE}, {20, M_BRACE}, {26, M_CATNAP}, {32, M_POUT}, {38, M_UPDRAFT}, {44, M_SNARL}, {50, M_FEATHER_CUT}, {0, 0} };
@@ -487,146 +487,146 @@ static const Species SPECIES[SP_COUNT] = {
         "STORMWYRM", 45, 2100, LS_DRAKORA,
         "Its kernel is so old and vast that it feels the whole sky. When DRAKORA brims, the heavens brim with it.",
         { TR_GLOWER, TR_MOMENTUM }, R_LEGEND, FA_FLY, { TYPE_NONE, TYPE_NONE } },
-    [SP_PRICKLET] = { "PRICKLET", T_BEAST, TYPE_NONE, { 71, 52, 35, 35, 52, 70 }, 190, 60, EVO_LEVEL, 20, SP_QUILLDRUM,
-        "KIN", 10, 100, LS_PRICKLET,
-        "Hedgehog kit that rolls into a burr.",
-        { TR_KEEN_EYE, TR_MOMENTUM }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_QUILLDRUM] = { "QUILLDRUM", T_BEAST, T_BRAWL, { 119, 107, 48, 48, 71, 107 }, 45, 220, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_QUILLDRUM,
-        "Hedgehog that drums its quills as a warning.",
-        { TR_KEEN_EYE, TR_STUBBORN }, R_UNCOMMON, FA_STRENGTH, { TYPE_NONE, TYPE_NONE } },
-    [SP_SNUFFLET] = { "SNUFFLET", T_BEAST, TYPE_NONE, { 71, 52, 35, 35, 52, 70 }, 190, 60, EVO_LEVEL, 22, SP_TRUFFLOAR,
-        "KIN", 10, 100, LS_SNUFFLET,
-        "Truffle piglet with a leaf on its snout.",
-        { TR_KEEN_EYE, TR_MOMENTUM }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_TRUFFLOAR] = { "TRUFFLOAR", T_BEAST, T_BLOOM, { 109, 73, 61, 61, 98, 98 }, 45, 220, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_TRUFFLOAR,
-        "Boar with a mossy garden on its back; digs up buried items.",
-        { TR_KEEN_EYE, TR_SPORESKIN }, R_UNCOMMON, FA_STRENGTH, { TYPE_NONE, TYPE_NONE } },
-    [SP_RACCOIN] = { "RACCOIN", T_BEAST, T_DUSK, { 61, 46, 31, 54, 46, 77 }, 190, 60, EVO_LEVEL, 24, SP_BANDIRACC,
-        "KIN", 10, 100, LS_RACCOIN,
-        "Masked raccoon hoarding shiny coins.",
-        { TR_KEEN_EYE, TR_SLIPPERY }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_BANDIRACC] = { "BANDIRACC", T_BEAST, T_DUSK, { 98, 73, 49, 85, 73, 122 }, 45, 220, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_BANDIRACC,
-        "Bandit raccoon with a bandana and a coin sack.",
-        { TR_KEEN_EYE, TR_SLIPPERY }, R_UNCOMMON, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_PEBBOTTER] = { "PEBBOTTER", T_TIDE, TYPE_NONE, { 73, 37, 56, 56, 56, 37 }, 190, 60, EVO_LEVEL, 24, SP_TORRENTTER,
-        "KIN", 10, 100, LS_PEBBOTTER,
-        "Otter juggling river stones.",
-        { TR_SURGE, TR_SOAKER }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_TORRENTTER] = { "TORRENTTER", T_TIDE, T_BRAWL, { 125, 88, 75, 75, 75, 62 }, 45, 220, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_TORRENTTER,
-        "River otter with a stone club.",
-        { TR_SURGE, TR_STUBBORN }, R_UNCOMMON, FA_SURF|FA_STRENGTH, { TYPE_NONE, TYPE_NONE } },
-    [SP_JELLUME] = { "JELLUME", T_TIDE, T_SPARK, { 65, 32, 48, 65, 48, 57 }, 190, 60, EVO_LEVEL, 26, SP_MEDUSHOCK,
-        "KIN", 10, 100, LS_JELLUME,
-        "Jellyfish whose bell glows like a lamp.",
-        { TR_SURGE, TR_CONDUCTOR }, R_COMMON, FA_LIGHT, { TYPE_NONE, TYPE_NONE } },
-    [SP_MEDUSHOCK] = { "MEDUSHOCK", T_TIDE, T_SPARK, { 102, 51, 77, 103, 77, 90 }, 45, 220, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_MEDUSHOCK,
-        "Tall jellyfish whose tendrils arc.",
-        { TR_SURGE, TR_CONDUCTOR }, R_UNCOMMON, FA_LIGHT|FA_SURF, { TYPE_NONE, TYPE_NONE } },
-    [SP_LURELING] = { "LURELING", T_TIDE, T_DUSK, { 66, 32, 48, 73, 48, 48 }, 190, 60, EVO_LEVEL, 30, SP_ABYSSLURE,
-        "KIN", 10, 100, LS_LURELING,
-        "Anglerfish fry; its lure is a tiny kernel.",
-        { TR_SURGE, TR_SLIPPERY }, R_UNCOMMON, FA_LIGHT, { TYPE_NONE, TYPE_NONE } },
-    [SP_ABYSSLURE] = { "ABYSSLURE", T_TIDE, T_DUSK, { 103, 51, 77, 115, 77, 77 }, 45, 220, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_ABYSSLURE,
-        "Deep anglerfish, lure like a lantern.",
-        { TR_SURGE, TR_SLIPPERY }, R_UNCOMMON, FA_LIGHT|FA_SURF, { TYPE_NONE, TYPE_NONE } },
-    [SP_RADISHOO] = { "RADISHOO", T_BLOOM, TYPE_NONE, { 55, 37, 56, 56, 74, 37 }, 190, 60, EVO_LEVEL, 22, SP_MANDRAGOR,
-        "KIN", 10, 100, LS_RADISHOO,
-        "Radish sprite with a leafy tuft.",
-        { TR_BASKER, TR_SPORESKIN }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_MANDRAGOR] = { "MANDRAGOR", T_BLOOM, T_DREAM, { 78, 51, 77, 115, 128, 51 }, 45, 220, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_MANDRAGOR,
-        "Mandrake whose scream is a lullaby.",
-        { TR_BASKER, TR_WAKEFUL }, R_UNCOMMON, FA_TELEPORT, { TYPE_NONE, TYPE_NONE } },
-    [SP_PUMPKLING] = { "PUMPKLING", T_BLOOM, TYPE_NONE, { 55, 37, 56, 56, 74, 37 }, 190, 60, EVO_LEVEL, 28, SP_JACKOGRIM,
-        "KIN", 10, 100, LS_PUMPKLING,
-        "Pumpkin sprout with a carved grin.",
-        { TR_BASKER, TR_SPORESKIN }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_JACKOGRIM] = { "JACKOGRIM", T_BLOOM, T_HOLLOW, { 90, 51, 103, 77, 128, 51 }, 45, 220, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_JACKOGRIM,
-        "Vine-bodied jack-o'-lantern with a lantern head.",
-        { TR_BASKER, TR_SELFMEND }, R_UNCOMMON, FA_LIGHT, { TYPE_NONE, TYPE_NONE } },
-    [SP_SHROOMLET] = { "SHROOMLET", T_BLOOM, T_VENOM, { 57, 40, 48, 57, 81, 32 }, 190, 60, EVO_LEVEL, 30, SP_MYCOLOSSUS,
-        "KIN", 10, 100, LS_SHROOMLET,
-        "Mushroom-cap tot that puffs spores.",
-        { TR_BASKER, TR_SELFMEND }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_MYCOLOSSUS] = { "MYCOLOSSUS", T_BLOOM, T_VENOM, { 90, 64, 77, 90, 128, 51 }, 45, 220, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_MYCOLOSSUS,
-        "Walking giant fungus.",
-        { TR_BASKER, TR_SELFMEND }, R_UNCOMMON, FA_STRENGTH, { TYPE_NONE, TYPE_NONE } },
-    [SP_BLINKET] = { "BLINKET", T_SWARM, T_SPARK, { 33, 65, 32, 48, 32, 105 }, 190, 60, EVO_LEVEL, 22, SP_BEACONFLY,
-        "KIN", 10, 100, LS_BLINKET,
-        "Firefly with a blinking tail.",
-        { TR_KEEN_EYE, TR_CONDUCTOR }, R_COMMON, FA_LIGHT, { TYPE_NONE, TYPE_NONE } },
-    [SP_BEACONFLY] = { "BEACONFLY", T_SWARM, T_SPARK, { 57, 109, 56, 82, 56, 140 }, 45, 220, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_BEACONFLY,
-        "Big firefly with a lantern abdomen.",
-        { TR_KEEN_EYE, TR_CONDUCTOR }, R_UNCOMMON, FA_LIGHT, { TYPE_NONE, TYPE_NONE } },
-    [SP_STATICKO] = { "STATICKO", T_SPARK, TYPE_NONE, { 37, 37, 37, 74, 37, 93 }, 190, 60, EVO_LEVEL, 25, SP_FULGECKO,
-        "KIN", 10, 100, LS_STATICKO,
-        "Gecko that sticks to walls with static.",
-        { TR_STATIC_FUR, TR_CONDUCTOR }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_FULGECKO] = { "FULGECKO", T_SPARK, T_BEAST, { 78, 64, 52, 102, 64, 140 }, 45, 220, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_FULGECKO,
-        "Frilled lightning lizard.",
-        { TR_STATIC_FUR, TR_MOMENTUM }, R_UNCOMMON, FA_LIGHT, { TYPE_NONE, TYPE_NONE } },
-    [SP_FLURRABBIT] = { "FLURRABBIT", T_FROST, TYPE_NONE, { 36, 37, 56, 74, 56, 56 }, 190, 60, EVO_ITEM, ITEM_ASTRAL_SHARD, SP_MOONHARE,
-        "KIN", 10, 100, LS_FLURRABBIT,
-        "Snow hare.",
-        { TR_THICK_FUR, TR_SURGE }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_MOONHARE] = { "MOONHARE", T_FROST, T_ASTRAL, { 78, 51, 77, 140, 77, 77 }, 45, 220, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_MOONHARE,
-        "Moon rabbit with a mochi mallet.",
-        { TR_THICK_FUR, TR_QUICK_STUDY }, R_UNCOMMON, FA_TELEPORT, { TYPE_NONE, TYPE_NONE } },
-    [SP_TUXFLAKE] = { "TUXFLAKE", T_FROST, T_TIDE, { 48, 32, 57, 73, 57, 48 }, 190, 60, EVO_LEVEL, 30, SP_EMPERICE,
-        "KIN", 10, 100, LS_TUXFLAKE,
-        "Penguin chick in a snow puff.",
-        { TR_THICK_FUR, TR_SOAKER }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_EMPERICE] = { "EMPERICE", T_FROST, T_TIDE, { 77, 51, 90, 115, 90, 77 }, 45, 220, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_EMPERICE,
-        "Emperor penguin with an ice crown.",
-        { TR_THICK_FUR, TR_SOAKER }, R_UNCOMMON, FA_SURF, { TYPE_NONE, TYPE_NONE } },
-    [SP_YAKLING] = { "YAKLING", T_FROST, T_BEAST, { 48, 39, 47, 63, 55, 63 }, 190, 60, EVO_LEVEL, 32, SP_GLACIYAK,
-        "KIN", 10, 100, LS_YAKLING,
-        "Shaggy yak calf.",
-        { TR_THICK_FUR, TR_MOMENTUM }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_GLACIYAK] = { "GLACIYAK", T_FROST, T_BEAST, { 75, 62, 75, 100, 88, 100 }, 45, 220, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_GLACIYAK,
-        "Glacier yak with icicle horns.",
-        { TR_THICK_FUR, TR_MOMENTUM }, R_UNCOMMON, FA_STRENGTH, { TYPE_NONE, TYPE_NONE } },
-    [SP_RAMBLET] = { "RAMBLET", T_BRAWL, TYPE_NONE, { 70, 88, 35, 35, 35, 52 }, 190, 60, EVO_LEVEL, 26, SP_CRAGHORN,
-        "KIN", 10, 100, LS_RAMBLET,
-        "Lamb that headbutts everything.",
-        { TR_BRUISER, TR_STUBBORN }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_CRAGHORN] = { "CRAGHORN", T_BRAWL, T_STONE, { 108, 140, 84, 49, 48, 71 }, 45, 220, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_CRAGHORN,
-        "Mountain ram with rock-hard horns.",
-        { TR_BRUISER, TR_STUBBORN }, R_UNCOMMON, FA_STRENGTH, { TYPE_NONE, TYPE_NONE } },
-    [SP_STINGLET] = { "STINGLET", T_VENOM, TYPE_NONE, { 55, 56, 37, 56, 74, 37 }, 190, 60, EVO_LEVEL, 27, SP_SCORCHION,
-        "KIN", 10, 100, LS_STINGLET,
-        "Scorpling.",
+    [SP_PRICKLET] = { "PRICKLET", T_BEAST, TYPE_NONE, { 48, 52, 64, 32, 44, 60 }, 190, 58, EVO_LEVEL, 20, SP_QUILLDRUM,
+        "QUILL KIT", 3, 18, LS_PRICKLET,
+        "When startled it curls into a spiky burr and rolls off downhill. Meadow seeds hitch rides in its quills, so flowers spring up wherever it naps.",
+        { TR_STUBBORN, TR_THICK_FUR }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
+    [SP_QUILLDRUM] = { "QUILLDRUM", T_BEAST, T_BRAWL, { 88, 110, 96, 46, 72, 88 }, 45, 172, EVO_NONE, 0, 0,
+        "WAR DRUM", 12, 380, LS_QUILLDRUM,
+        "Before a bout it rattles its hollow tail quills like a war drum. It is a fair warning: the beat strains its bones, pumping its kernel for the first punch.",
+        { TR_GLOWER, TR_STUBBORN }, R_UNCOMMON, FA_STRENGTH, { TYPE_NONE, TYPE_NONE } },
+    [SP_SNUFFLET] = { "SNUFFLET", T_BEAST, TYPE_NONE, { 64, 55, 52, 34, 46, 45 }, 190, 60, EVO_LEVEL, 22, SP_TRUFFLOAR,
+        "TRUFFLER", 4, 90, LS_SNUFFLET,
+        "It can smell a truffle through a yard of soil. The leaf on its snout is a seedling that took root there, and it droops whenever the piglet is sad.",
+        { TR_HOARDER, TR_STUBBORN }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
+    [SP_TRUFFLOAR] = { "TRUFFLOAR", T_BEAST, T_BLOOM, { 95, 102, 88, 60, 80, 65 }, 45, 175, EVO_NONE, 0, 0,
+        "MOSS BOAR", 12, 1500, LS_TRUFFLOAR,
+        "A whole garden grows on its back, warmed by its kernel. Farmers follow it around: wherever it roots, it turns up lost coins, old tools and fat truffles.",
+        { TR_HOARDER, TR_BASKER }, R_UNCOMMON, FA_STRENGTH, { TYPE_NONE, TYPE_NONE } },
+    [SP_RACCOIN] = { "RACCOIN", T_BEAST, T_DUSK, { 48, 50, 40, 44, 40, 72 }, 190, 60, EVO_LEVEL, 24, SP_BANDIRACC,
+        "MASKED KIT", 4, 55, LS_RACCOIN,
+        "It washes every coin it finds in the creek and polishes it to a shine. Its dusk kernel drinks even the faint glint of its hoard by starlight.",
+        { TR_HOARDER, TR_SLIPPERY }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
+    [SP_BANDIRACC] = { "BANDIRACC", T_BEAST, T_DUSK, { 78, 96, 68, 82, 66, 115 }, 45, 170, EVO_NONE, 0, 0,
+        "BANDIT", 11, 320, LS_BANDIRACC,
+        "A dashing night thief that never keeps its loot for long. It leaves one bright coin on the doorstep of every house it robs, and some towns call it rent.",
+        { TR_HOARDER, TR_KEEN_EYE }, R_UNCOMMON, 0, { TYPE_NONE, TYPE_NONE } },
+    [SP_PEBBOTTER] = { "PEBBOTTER", T_TIDE, TYPE_NONE, { 52, 48, 46, 52, 44, 62 }, 190, 60, EVO_LEVEL, 24, SP_TORRENTTER,
+        "JUGGLER", 5, 60, LS_PEBBOTTER,
+        "It juggles smooth river stones to show off and never drops one. Every splash of the stream tops up its kernel, so it can play all day long.",
+        { TR_SOAKER, TR_QUICK_STUDY }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
+    [SP_TORRENTTER] = { "TORRENTTER", T_TIDE, T_BRAWL, { 92, 112, 80, 60, 70, 86 }, 45, 172, EVO_NONE, 0, 0,
+        "CLUB OTTER", 13, 420, LS_TORRENTTER,
+        "It lashes its favourite river stone to a driftwood haft. The current it rides pumps its kernel, and one swing parts the river down to its bed.",
+        { TR_SOAKER, TR_BRUISER }, R_UNCOMMON, FA_SURF|FA_STRENGTH, { TYPE_NONE, TYPE_NONE } },
+    [SP_JELLUME] = { "JELLUME", T_TIDE, T_SPARK, { 55, 30, 45, 66, 60, 54 }, 190, 60, EVO_LEVEL, 26, SP_MEDUSHOCK,
+        "LAMP JELLY", 4, 12, LS_JELLUME,
+        "Its bell glows like a hanging lamp as its kernel sheds spare motes as light. Sailors follow a drifting string of them home through the night fog.",
+        { TR_CONDUCTOR, TR_DRIFTER }, R_COMMON, FA_LIGHT, { TYPE_NONE, TYPE_NONE } },
+    [SP_MEDUSHOCK] = { "MEDUSHOCK", T_TIDE, T_SPARK, { 80, 55, 70, 110, 95, 90 }, 45, 172, EVO_NONE, 0, 0,
+        "ARC JELLY", 18, 60, LS_MEDUSHOCK,
+        "Charge builds along its trailing tendrils until the gaps between them arc and snap. Fishers pull in their nets when the sea near shore starts to fizz.",
+        { TR_CONDUCTOR, TR_STATIC_FUR }, R_UNCOMMON, FA_LIGHT|FA_SURF, { TYPE_NONE, TYPE_NONE } },
+    [SP_LURELING] = { "LURELING", T_TIDE, T_DUSK, { 55, 48, 42, 62, 45, 50 }, 180, 62, EVO_LEVEL, 30, SP_ABYSSLURE,
+        "LURE FRY", 3, 15, LS_LURELING,
+        "The bead on its lure is its own kernel, glowing to draw in prey. When a shy one hides the light behind its fins, it simply blinks out of sight.",
+        { TR_GLOWER, TR_SLIPPERY }, R_UNCOMMON, FA_LIGHT, { TYPE_NONE, TYPE_NONE } },
+    [SP_ABYSSLURE] = { "ABYSSLURE", T_TIDE, T_DUSK, { 95, 100, 75, 105, 75, 60 }, 45, 175, EVO_NONE, 0, 0,
+        "ABYSS LAMP", 16, 900, LS_ABYSSLURE,
+        "It hangs in the black deep with its lantern lit. Its dusk kernel drinks every glimmer around it, so all anyone ever sees is the lamp and a grin.",
+        { TR_GLOWER, TR_SOAKER }, R_UNCOMMON, FA_LIGHT|FA_SURF, { TYPE_NONE, TYPE_NONE } },
+    [SP_RADISHOO] = { "RADISHOO", T_BLOOM, TYPE_NONE, { 50, 42, 50, 58, 60, 40 }, 190, 58, EVO_LEVEL, 22, SP_MANDRAGOR,
+        "ROOTLING", 4, 20, LS_RADISHOO,
+        "It shoos away anyone who tugs its leaves, then dives back into the soil. A patch it lives in grows the sweetest radishes in the Vale.",
+        { TR_BASKER, TR_SLIPPERY }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
+    [SP_MANDRAGOR] = { "MANDRAGOR", T_BLOOM, T_DREAM, { 82, 60, 76, 112, 110, 60 }, 45, 172, EVO_NONE, 0, 0,
+        "MANDRAKE", 10, 150, LS_MANDRAGOR,
+        "Pulled from the earth, it screams a note so pure that every mind nearby falls into step with it and dozes off. Wise diggers plug their ears with wax.",
+        { TR_WAKEFUL, TR_BASKER }, R_UNCOMMON, FA_TELEPORT, { TYPE_NONE, TYPE_NONE } },
+    [SP_PUMPKLING] = { "PUMPKLING", T_BLOOM, TYPE_NONE, { 55, 50, 58, 40, 60, 35 }, 190, 60, EVO_LEVEL, 28, SP_JACKOGRIM,
+        "PUMPKIN", 4, 50, LS_PUMPKLING,
+        "It carves its own grin so the sunlight it soaks up by day can shine back out at night. Children find their way home by the glow of a pumpkling patch.",
+        { TR_BASKER, TR_STUBBORN }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
+    [SP_JACKOGRIM] = { "JACKOGRIM", T_BLOOM, T_HOLLOW, { 85, 95, 80, 90, 95, 60 }, 45, 172, EVO_NONE, 0, 0,
+        "GRIM GOURD", 17, 300, LS_JACKOGRIM,
+        "Its kernel outlived the vine and now pumps from the slow warmth of old bone. It walks the burnt fields at night, its carved head lit by a hundred harvests.",
+        { TR_SELFMEND, TR_GLOWER }, R_UNCOMMON, FA_LIGHT, { TYPE_NONE, TYPE_NONE } },
+    [SP_SHROOMLET] = { "SHROOMLET", T_BLOOM, T_VENOM, { 58, 42, 55, 50, 70, 30 }, 190, 60, EVO_LEVEL, 30, SP_MYCOLOSSUS,
+        "SPORE TOT", 3, 20, LS_SHROOMLET,
+        "It sneezes out puffs of spores when it is tickled. The slow rot of fallen logs pumps its kernel, so a damp log in the shade is its idea of a feast.",
         { TR_SPORESKIN, TR_SELFMEND }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_SCORCHION] = { "SCORCHION", T_VENOM, T_BLAZE, { 76, 90, 51, 103, 103, 77 }, 45, 220, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_SCORCHION,
-        "Ember-tailed scorpion.",
-        { TR_SPORESKIN, TR_EMBERSKIN }, R_UNCOMMON, FA_LIGHT, { TYPE_NONE, TYPE_NONE } },
-    [SP_DIGGET] = { "DIGGET", T_STONE, TYPE_NONE, { 52, 70, 88, 35, 35, 35 }, 190, 60, EVO_ITEM, ITEM_HOLLOW_SHARD, SP_SEXTONE,
-        "KIN", 10, 100, LS_DIGGET,
-        "Mole with a tiny lantern.",
-        { TR_BEDROCK, TR_STUBBORN }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_SEXTONE] = { "SEXTONE", T_STONE, T_HOLLOW, { 87, 99, 140, 50, 74, 50 }, 45, 220, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_SEXTONE,
-        "Gravedigger mole with a spade and a lantern.",
-        { TR_BEDROCK, TR_SELFMEND }, R_UNCOMMON, FA_STRENGTH, { TYPE_NONE, TYPE_NONE } },
-    [SP_QUARTZLING] = { "QUARTZLING", T_STONE, T_SWARM, { 45, 77, 77, 31, 31, 54 }, 190, 60, EVO_LEVEL, 30, SP_QUARTZPEDE,
-        "KIN", 10, 100, LS_QUARTZLING,
-        "Crystal grub.",
-        { TR_BEDROCK, TR_MOMENTUM }, R_UNCOMMON, 0, { TYPE_NONE, TYPE_NONE } },
+    [SP_MYCOLOSSUS] = { "MYCOLOSSUS", T_BLOOM, T_VENOM, { 110, 100, 100, 70, 90, 30 }, 45, 175, EVO_NONE, 0, 0,
+        "SPORE GIANT", 22, 2200, LS_MYCOLOSSUS,
+        "Its threads run under the whole forest floor and link the roots of every tree. When it walks, the ground shivers and every mushroom nearby turns to watch.",
+        { TR_SPORESKIN, TR_STUBBORN }, R_UNCOMMON, FA_STRENGTH, { TYPE_NONE, TYPE_NONE } },
+    [SP_BLINKET] = { "BLINKET", T_SWARM, T_SPARK, { 40, 45, 40, 58, 42, 80 }, 190, 58, EVO_LEVEL, 22, SP_BEACONFLY,
+        "FIREFLY", 2, 3, LS_BLINKET,
+        "Its tail blinks in time with every blinket nearby until the whole meadow flashes as one. That shared beat is what makes a swarm kernel strong.",
+        { TR_CONDUCTOR, TR_KEEN_EYE }, R_COMMON, FA_LIGHT, { TYPE_NONE, TYPE_NONE } },
+    [SP_BEACONFLY] = { "BEACONFLY", T_SWARM, T_SPARK, { 70, 75, 70, 105, 80, 105 }, 45, 172, EVO_NONE, 0, 0,
+        "BEACON", 12, 85, LS_BEACONFLY,
+        "Its lantern body can light a whole valley. On summer nights swarms gather round it and flash in sync, bright enough to be seen from the next town.",
+        { TR_CONDUCTOR, TR_FOCUSED }, R_UNCOMMON, FA_LIGHT, { TYPE_NONE, TYPE_NONE } },
+    [SP_STATICKO] = { "STATICKO", T_SPARK, TYPE_NONE, { 42, 45, 38, 62, 40, 78 }, 190, 58, EVO_LEVEL, 25, SP_FULGECKO,
+        "WALL GECKO", 3, 8, LS_STATICKO,
+        "It rubs its toes on dry grass until they crackle, then strolls up walls and across ceilings on static cling alone. Touch it and you get a snap.",
+        { TR_STATIC_FUR, TR_SLIPPERY }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
+    [SP_FULGECKO] = { "FULGECKO", T_SPARK, T_BEAST, { 78, 88, 68, 100, 70, 112 }, 45, 172, EVO_NONE, 0, 0,
+        "BOLT FRILL", 14, 260, LS_FULGECKO,
+        "Cornered, it rears up on its hind legs and flares its frill. Sparks leap from spine to spine with a crack loud enough to send a bear running.",
+        { TR_STATIC_FUR, TR_MOMENTUM }, R_UNCOMMON, FA_LIGHT, { TYPE_NONE, TYPE_NONE } },
+    [SP_FLURRABBIT] = { "FLURRABBIT", T_FROST, TYPE_NONE, { 48, 45, 45, 55, 50, 67 }, 190, 60, EVO_ITEM, ITEM_ASTRAL_SHARD, SP_MOONHARE,
+        "SNOW HARE", 4, 30, LS_FLURRABBIT,
+        "Its kernel pumps by shedding heat, so the snow it hops over turns to fine powder. On clear, cold nights it sits and stares at the moon for hours.",
+        { TR_THICK_FUR, TR_SLIPPERY }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
+    [SP_MOONHARE] = { "MOONHARE", T_FROST, T_ASTRAL, { 80, 85, 70, 105, 80, 90 }, 45, 172, EVO_NONE, 0, 0,
+        "MOON HARE", 12, 180, LS_MOONHARE,
+        "An ASTRAL SHARD tuned it to the muons raining down from the sky. Under a full moon it pounds rice cakes with its mallet, and the thuds ring like bells.",
+        { TR_THICK_FUR, TR_FOCUSED }, R_UNCOMMON, FA_TELEPORT, { TYPE_NONE, TYPE_NONE } },
+    [SP_TUXFLAKE] = { "TUXFLAKE", T_FROST, T_TIDE, { 55, 42, 52, 52, 55, 44 }, 190, 60, EVO_LEVEL, 30, SP_EMPERICE,
+        "FLUFF CHICK", 4, 45, LS_TUXFLAKE,
+        "Its down is so thick that snow clings to it in a round puff. It waddles to the water and belly-slides the last stretch in, squeaking all the way.",
+        { TR_THICK_FUR, TR_SOAKER }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
+    [SP_EMPERICE] = { "EMPERICE", T_FROST, T_TIDE, { 95, 75, 85, 100, 95, 60 }, 45, 172, EVO_NONE, 0, 0,
+        "EMPEROR", 14, 400, LS_EMPERICE,
+        "Its crown of rime grows a new point every hard winter. In blizzards the colony huddles behind it, and it never once turns its back to the wind.",
+        { TR_THICK_FUR, TR_SOAKER }, R_UNCOMMON, FA_SURF, { TYPE_NONE, TYPE_NONE } },
+    [SP_YAKLING] = { "YAKLING", T_FROST, T_BEAST, { 65, 55, 55, 40, 50, 35 }, 190, 62, EVO_LEVEL, 32, SP_GLACIYAK,
+        "YAK CALF", 7, 800, LS_YAKLING,
+        "Its fringe hangs over its eyes, yet it never gets lost: it simply follows the cold. Herders comb its shed wool into the warmest scarves in the Vale.",
+        { TR_THICK_FUR, TR_STUBBORN }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
+    [SP_GLACIYAK] = { "GLACIYAK", T_FROST, T_BEAST, { 115, 105, 95, 60, 85, 45 }, 45, 178, EVO_NONE, 0, 0,
+        "GLACIER YAK", 20, 6800, LS_GLACIYAK,
+        "Its horns are ice that never melts. A herd crossing a pass pulls so much heat from the air that the snow behind it freezes hard enough to walk on.",
+        { TR_THICK_FUR, TR_STUBBORN }, R_UNCOMMON, FA_STRENGTH, { TYPE_NONE, TYPE_NONE } },
+    [SP_RAMBLET] = { "RAMBLET", T_BRAWL, TYPE_NONE, { 55, 68, 50, 30, 40, 55 }, 190, 60, EVO_LEVEL, 26, SP_CRAGHORN,
+        "RAM LAMB", 5, 180, LS_RAMBLET,
+        "It headbutts fences, trees and its own shadow. Every bump strains its skull and pumps its kernel, so each knock only makes it bouncier.",
+        { TR_BRUISER, TR_STUBBORN }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
+    [SP_CRAGHORN] = { "CRAGHORN", T_BRAWL, T_STONE, { 90, 125, 105, 45, 65, 75 }, 45, 175, EVO_NONE, 0, 0,
+        "CRAG RAM", 13, 1200, LS_CRAGHORN,
+        "Its horns are stone, grown from the strain of a thousand clashes. When two meet on a ridge, the crack of their horns rolls down the valley like thunder.",
+        { TR_BRUISER, TR_BEDROCK }, R_UNCOMMON, FA_STRENGTH, { TYPE_NONE, TYPE_NONE } },
+    [SP_STINGLET] = { "STINGLET", T_VENOM, TYPE_NONE, { 45, 58, 55, 40, 45, 62 }, 190, 60, EVO_LEVEL, 27, SP_SCORCHION,
+        "SCORPLING", 2, 12, LS_STINGLET,
+        "The drop on its tail is sour, not deadly: fruit sugars fermented in its sting. It hides under sun-warmed stones and pinches curious toes.",
+        { TR_SPORESKIN, TR_KEEN_EYE }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
+    [SP_SCORCHION] = { "SCORCHION", T_VENOM, T_BLAZE, { 80, 105, 90, 90, 70, 75 }, 45, 172, EVO_NONE, 0, 0,
+        "EMBER TAIL", 12, 350, LS_SCORCHION,
+        "Its sting burns as hot as a coal. It basks in volcanic vents until its shell glows, and its trail through the ash is a line of little embers.",
+        { TR_EMBERSKIN, TR_SPORESKIN }, R_UNCOMMON, FA_LIGHT, { TYPE_NONE, TYPE_NONE } },
+    [SP_DIGGET] = { "DIGGET", T_STONE, TYPE_NONE, { 55, 60, 65, 30, 40, 50 }, 190, 60, EVO_ITEM, ITEM_HOLLOW_SHARD, SP_SEXTONE,
+        "LAMP MOLE", 3, 40, LS_DIGGET,
+        "It carries a tiny lantern into its tunnels, though it can barely see. The strain of the rock it digs through pumps its kernel, so it hums as it works.",
+        { TR_BEDROCK, TR_HOARDER }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
+    [SP_SEXTONE] = { "SEXTONE", T_STONE, T_HOLLOW, { 95, 110, 115, 50, 75, 55 }, 45, 175, EVO_NONE, 0, 0,
+        "SEXTON", 13, 700, LS_SEXTONE,
+        "A HOLLOW SHARD tied its kernel to the slow warmth of old bone. It tends graveyards by lantern light and sets a stone wherever it turns up bones.",
+        { TR_BEDROCK, TR_HOARDER }, R_UNCOMMON, FA_STRENGTH, { TYPE_NONE, TYPE_NONE } },
+    [SP_QUARTZLING] = { "QUARTZLING", T_STONE, T_SWARM, { 50, 55, 70, 40, 45, 40 }, 180, 62, EVO_LEVEL, 30, SP_QUARTZPEDE,
+        "GEM GRUB", 3, 60, LS_QUARTZLING,
+        "It eats gravel and grows a new quartz point on its back each time it moults. Squeezed, the crystals spit sparks, so its back glitters as it squirms.",
+        { TR_BEDROCK, TR_STUBBORN }, R_UNCOMMON, 0, { TYPE_NONE, TYPE_NONE } },
     [SP_QUARTZPEDE] = { "QUARTZPEDE", T_STONE, T_SWARM, { 73, 122, 122, 49, 49, 85 }, 45, 220, EVO_NONE, 0, 0,
         "KIN", 10, 100, LS_QUARTZPEDE,
         "Crystal centipede.",
