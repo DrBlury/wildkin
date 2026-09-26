@@ -1,5 +1,16 @@
 # WILDKIN expansion: handoff
 
+> **Update (2026-09-26, later):** every area is now implemented and merged
+> into `expansion`: the 16 first-round branches plus a second round of 11
+> agents (traversal, farm + time, crafting, fusion, UI, bouts, and the east,
+> west, north, grim and far regions). `make art && make && make test` is
+> green (14 suites) with zero warnings. Each area's current done/left list
+> is in `docs/handoff/<area>.md`; sections 2-7 below describe the earlier
+> state. Still open: kin art (many kin use placeholders), the README and
+> media, the music hooks, cross-region balance and story pacing, and the
+> small per-area leftovers (e.g. the Clockwork Spire's town-map spot, the
+> brewer/smith rooms, per-region berry patches, the Lorebook PLACES limit).
+
 Where the big expansion (docs/EXPANSION.md) stands, how the work is organised,
 and exactly how to continue.
 
