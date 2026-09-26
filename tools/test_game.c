@@ -975,9 +975,45 @@ static void test_wardens_and_story(void)
     fresh_game();
     give_monster(&m);
     battle_next_scene = BSCENE_STORM;
-    battle_start_wild(monster_make(SP_DRAKORA, 40));
+    battle_start_wild(monster_make(SP_PYREFOX, 40));   /* not a legend: legends refuse with their own line */
     CHECK(battle.scene == BSCENE_STORM, "battle_next_scene picks the background");
     battle_next_scene = BSCENE_MEADOW;
+
+    /* legends: their own intro, no running */
+    fresh_game();
+    give_monster(&m);
+    battle_start_legend(monster_make(SP_DRAKORA, 40), BSCENE_LAIR);
+    CHECK(battle.legend && battle.no_run && battle.scene == BSCENE_LAIR, "a legend bout sets legend, no_run and its lair");
+    battle_queue_intro();
+    CHECK(count_text("The legendary DRAKORA rises before you!") == 1 && battle.ev[1].type == EV_LEGEND,
+          "a legend rears up and rises before you");
+    battle.ev_count = 0;
+    battle.no_run = 0;
+
+    /* Hall Masters: title and banner */
+    {
+        static TrainerTeam hm;
+        hm.name = "ODESSA";
+        hm.count = 2;
+        hm.species[0] = SP_PYREFOX; hm.level[0] = 20;
+        hm.species[1] = SP_AXOLURK; hm.level[1] = 20;
+        hm.prize = 1000;
+        hm.scene = BSCENE_RING;
+        hm.lose_line = "ODESSA: Well fought.";
+        fresh_game();
+        give_monster(&m);
+        battle_start_master(&hm);
+        CHECK(battle.master && str_eq(battle.foe_title, "HALL MASTER ODESSA"), "a Hall Master is titled HALL MASTER");
+        battle_queue_intro();
+        CHECK(battle.ev[0].type == EV_BANNER && str_eq(battle.ev[0].text, "HALL MASTER ODESSA") &&
+              count_text("HALL MASTER ODESSA wants a bout!") == 1, "a Hall Master opens with the banner");
+        battle.ev_count = 0;
+        battle_settle(3000);
+        CHECK(battle.state == BST_ACTION || battle.state == BST_MOVES, "a Hall Master bout reaches the menu");
+    }
+    fresh_game();
+    give_monster(&m);
+    battle_start_wild(monster_make(SP_PYREFOX, 40));
 
     /* story bouts: no running */
     battle.no_run = 1;

@@ -876,15 +876,6 @@ static void enemy_switch_to(int idx)
     enemy_send_out(idx);
 }
 
-/* Warden kin still awake (the one out included). */
-static int enemy_awake_count(void)
-{
-    int n = 0;
-    for (int i = 0; i < battle.team_count; i++)
-        if (battle.team[i].hp > 0) n++;
-    return n;
-}
-
 static void end_of_turn(void)
 {
     battle.turn++;

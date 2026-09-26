@@ -34,7 +34,7 @@
 #define OBANK_LIGHT    15   /* warm lantern light (glows, send-out bursts) */
 #define OT_LANTERN_MINI (OT_FX_BIG + FXB_COUNT * 16)
 
-enum { ANIM_MOVE, ANIM_STAT, ANIM_STATUS, ANIM_SHORT, ANIM_MISS, ANIM_TRAIT, ANIM_REACT };
+enum { ANIM_MOVE, ANIM_STAT, ANIM_STATUS, ANIM_SHORT, ANIM_MISS, ANIM_TRAIT, ANIM_REACT, ANIM_LEGEND };
 
 static struct {
     int active, mode, kind, move, side, t, dur, variant, flags;
@@ -194,7 +194,7 @@ static const u8 TYPE_TINT_AMT[TYPE_COUNT] = { 3, 7, 5, 5, 6, 7, 3, 6, 5, 4, 6, 4
 static const u8 TYPE_SFX[TYPE_COUNT] = {
     SFX_SWING, SFX_FIRE, SFX_SPLASH, SFX_LEAF, SFX_ZAP, SFX_ICE, SFX_SWING, SFX_VENOM,
     SFX_ROCK, SFX_WIND, SFX_DREAM, SFX_BUZZ, SFX_DUSK, SFX_WYRM,
-    SFX_DUSK, SFX_ROCK, SFX_ROCK, SFX_DREAM,   /* HOLLOW RELIC METAL ASTRAL (bout owner: own sounds) */
+    SFX_HOLLOW, SFX_RELIC, SFX_METAL, SFX_ASTRAL,   /* HOLLOW RELIC METAL ASTRAL */
 };
 
 /* ---------------- particles that outlive an animation ---------------- */
@@ -530,6 +530,20 @@ static void anim_start_react(int side, int flags)
     anim.flags = flags & ~0xFF;
     anim.dur = 14;
     build_fx_palette(OBANK_FX_HIT, RGB15(31, 30, 18), RGB15(31, 22, 6));
+}
+
+/* A legend arrives: it rears up, shockwave rings roll out, the screen
+ * shakes hard and the background flashes its type's tint. */
+static void anim_start_legend(int side)
+{
+    int type = SPECIES[side_mon(side)->species].type1;
+    anim_begin(ANIM_LEGEND, side);
+    anim.type = type;
+    anim.dur = opt.battle_anims ? 72 : 24;
+    anim.tint_color = TYPE_TINT[type];
+    build_fx_palette(OBANK_FX_A, TYPE_TINT[type], RGB15(31, 31, 31));
+    build_fx_palette(OBANK_FX_B, RGB15(31, 31, 31), TYPE_TINT[type]);
+    sfx_play(SFX_ROAR);
 }
 
 /* ---------------- per-kind motion ---------------- */
@@ -1486,6 +1500,38 @@ static void anim_react_frame(void)
     }
 }
 
+static void anim_legend_frame(void)
+{
+    int t = anim.t, side = anim.side;
+    int sx = side_cx(side), sy = side_cy(side);
+    if (!opt.battle_anims) {
+        anim.bg_color = TYPE_TINT[anim.type];
+        anim.bg_amount = t < 16 ? 10 : 0;
+        return;
+    }
+    if (t < 12) {
+        anim.scale_x[side] = 256 - t * 3;
+        anim.scale_y[side] = 256 + t * 5;
+        anim.mon_dy[side] = -t / 2;
+    } else if (t < 52) {
+        anim.scale_x[side] = 286 + ((t & 2) ? 6 : 0);
+        anim.scale_y[side] = 236;
+        anim.mon_dy[side] = -6;
+        shake(72, t & 8);
+    }
+    for (int i = 0; i < 4; i++) {
+        int pt = t - 12 - i * 9;
+        if (pt < 0 || pt >= 26) continue;
+        int sc = 96 + ease_out(pt, 26) * 440 / 256;
+        if (sc > 512) sc = 512;
+        if (pt < 22 || (pt & 1)) big_spr(sx, sy - 8, FXB_RING, (i & 1) ? OBANK_FX_B : OBANK_FX_A, sc, sc * 3 / 4);
+    }
+    anim.bg_color = TYPE_TINT[anim.type];
+    anim.bg_amount = (t > 10 && t < 20) ? 16 : (t >= 20 && t < 56) ? 8 : 0;
+    anim.tint_side = side;
+    anim.tint_amount = (t > 12 && t < 18) ? 12 : 0;
+}
+
 /* ---------------- per-frame update ---------------- */
 
 static void feel_update(void)
@@ -1568,6 +1614,7 @@ static int anim_update(void)
     case ANIM_STATUS: anim_status_frame(); break;
     case ANIM_TRAIT: anim_trait_frame(); break;
     case ANIM_REACT: anim_react_frame(); break;
+    case ANIM_LEGEND: anim_legend_frame(); break;
     }
     if (frozen) return 1;
     anim.t++;

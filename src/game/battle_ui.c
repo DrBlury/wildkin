@@ -857,7 +857,7 @@ static void battle_load_scene(void)
     REG_DISPCNT = DCNT_MODE0 | DCNT_BG0 | DCNT_BG1 | DCNT_OBJ | DCNT_OBJ_1D;
     copy32(VRAM_OBJ_TILES + OT_FX * 8, fx_gfx, FX_COUNT * 4 * 8);
     copy32(VRAM_OBJ_TILES + OT_FX_BIG * 8, fx_big_gfx, FXB_COUNT * 16 * 8);
-    copy32(VRAM_OBJ_TILES + OT_LANTERN_MINI * 8, lantern_mini_gfx, 8);
+    copy32(VRAM_OBJ_TILES + OT_LANTERN_MINI * 8, lantern_mini_gfx, 16);
     copy32(VRAM_OBJ_TILES + OT_CAPSULE * 8, capsule_gfx, 4 * 4 * 8);
     build_fx_palette(OBANK_LIGHT, RGB15(31, 22, 8), RGB15(31, 31, 24));
 }
@@ -881,6 +881,11 @@ static void battle_reset(int kind)
     battle.scene = clampi(battle_next_scene, 0, BSCENE_COUNT - 1);
     battle.foe_title[0] = 0;
     battle.lose_line = 0;
+    battle.master = 0;
+    battle.legend = 0;
+    battle.foe_entered = 0;
+    battle.foe_switches = 0;
+    disp_foe_idx = 0;
     battle_leveled = 0;
     for (int i = 0; i < 6; i++) battle.move_cursor_of[i] = 0;
     for (int s = 0; s < 2; s++) {
@@ -909,13 +914,21 @@ static void battle_reset(int kind)
 static void battle_queue_intro(void)
 {
     char msg[BEV_TEXT];
-    if (battle.kind == BK_WILD) {
+    if (battle.kind == BK_WILD && battle.legend) {
+        bev_push(EV_SEND_OUT, SIDE_ENEMY, 0, 1);
+        bev_push(EV_LEGEND, SIDE_ENEMY, 0, 0);
+        str_copy(msg, "The legendary ");
+        str_put(msg, SPECIES[battle.team[0].species].name);
+        str_put(msg, " rises before you!");
+        bsay_wait(msg);
+    } else if (battle.kind == BK_WILD) {
         bev_push(EV_SEND_OUT, SIDE_ENEMY, 0, 1);
         str_copy(msg, "A brimming ");
         str_put(msg, SPECIES[battle.team[0].species].name);
         str_put(msg, " wants a bout!");
         bsay_wait(msg);
     } else {
+        if (battle.master) str_copy(bev_push(EV_BANNER, SIDE_ENEMY, 0, 0)->text, battle.foe_title);
         str_copy(msg, battle.foe_title);
         str_put(msg, " wants a bout!");
         bsay_wait(msg);
@@ -931,6 +944,7 @@ static void battle_queue_intro(void)
     str_put(msg, "!");
     bsay(msg);
     bev_push(EV_SEND_OUT, SIDE_ALLY, battle.ally, 0);
+    apply_meal_stages();
     entry_traits(SIDE_ENEMY);
     entry_traits(SIDE_ALLY);
 }
@@ -942,15 +956,29 @@ static void battle_start_wild(Monster wild)
     battle.team_count = 1;
     battle.prize = 0;
     dex_seen[wild.species] = 1;
+    if (SPECIES[wild.species].rarity == R_LEGEND) {
+        battle.legend = 1;
+        battle.no_run = 1;
+        battle_cue(BCUE_START_LEGEND);
+    } else {
+        battle_cue(BCUE_START_WILD);
+    }
 }
 
-static void battle_set_title(const char *name)
+/* A legend in its lair: the wild bout with the lair's scene. */
+MAYBE_UNUSED static void battle_start_legend(Monster m, int scene)
+{
+    battle_start_wild(m);
+    battle.scene = clampi(scene, 0, BSCENE_COUNT - 1);
+}
+
+static void battle_set_title(const char *name, int master)
 {
     int spaced = 0;
     for (const char *c = name; *c; c++)
         if (*c == ' ') spaced = 1;
     battle.foe_title[0] = 0;
-    if (!spaced) str_copy(battle.foe_title, "WARDEN ");
+    if (!spaced) str_copy(battle.foe_title, master ? "HALL MASTER " : "WARDEN ");
     if (str_len(battle.foe_title) + str_len(name) < sizeof(battle.foe_title))
         str_put(battle.foe_title, name);
 }
@@ -962,10 +990,20 @@ static void battle_start_trainer_team(const TrainerTeam *t)
     for (int i = 0; i < n; i++) battle.team[i] = monster_make(t->species[i], t->level[i]);
     battle.team_count = n;
     battle.prize = t->prize;
-    battle_set_title(t->name ? t->name : "WARDEN");
+    battle.master = (t->flags & TT_MASTER) != 0;
+    battle_set_title(t->name ? t->name : "WARDEN", battle.master);
     battle.lose_line = t->lose_line;
     battle.scene = t->scene == BSCENE_AREA ? clampi(battle_next_scene, 0, BSCENE_COUNT - 1) :
                    clampi(t->scene, 0, BSCENE_COUNT - 1);
+    battle_cue(battle.master ? BCUE_START_MASTER : BCUE_START_WARDEN);
+}
+
+/* A Hall Master: the warden bout with TT_MASTER set. */
+MAYBE_UNUSED static void battle_start_master(const TrainerTeam *t)
+{
+    TrainerTeam m = *t;
+    m.flags |= TT_MASTER;
+    battle_start_trainer_team(&m);
 }
 
 static const u8 TRAINER_POOL[] = {
@@ -1025,6 +1063,9 @@ static void battle_exit(void)
     battle_lines_off();
     copy16(obj_palette + OBANK_LIGHT * 16, saved_light_bank, 16);
     battle.lantern_visible = 0;
+    battle.on_water = 0;
+    meal_bout_finished();
+    battle_cue(BCUE_END);
     if (battle.result == BR_LOSE) {
         party_heal_all();
         field_enter_map(MAP_REST, 5, 4, DIR_UP);
@@ -1127,7 +1168,7 @@ static void battle_reload_gfx(void)
     battle_load_mon_gfx(SIDE_ENEMY);
     battle_load_mon_gfx(SIDE_ALLY);
     copy32(VRAM_OBJ_TILES + OT_FX_BIG * 8, fx_big_gfx, FXB_COUNT * 16 * 8);
-    copy32(VRAM_OBJ_TILES + OT_LANTERN_MINI * 8, lantern_mini_gfx, 8);
+    copy32(VRAM_OBJ_TILES + OT_LANTERN_MINI * 8, lantern_mini_gfx, 16);
     hud_load_palettes();
     battle_apply_scene_tint(0, 0);
     build_fx_palette(OBANK_LIGHT, RGB15(31, 22, 8), RGB15(31, 31, 24));
@@ -1321,6 +1362,13 @@ static void battle_draw_lines(void)
         }
         lines_repeat16(wl);
         oam_line_win0h = wl;
+    } else if (banner_on) {
+        /* the Hall Master banner: WIN0 spans the band's wipe, full width elsewhere */
+        u16 *wl = line_win[line_buf];
+        for (int y = 0; y < SCREEN_HEIGHT; y++)
+            wl[y] = (y >= BANNER_Y0 && y < BANNER_Y1) ? (u16)((banner_l << 8) | banner_r) : (u16)240;
+        lines_repeat16(wl);
+        oam_line_win0h = wl;
     }
     line_buf ^= 1;
 }
@@ -1437,6 +1485,8 @@ static void battle_draw(void)
         spr_push(HUD_ENEMY_CX * 8 + 98 + jx, HUD_ENEMY_CY * 8 - 3, OT_LANTERN_MINI, SQ8, OBANK_CAPSULE, 0, 0);
     }
 
+    team_row_draw();
+    banner_draw();
     anim_update();
 
     /* the rim of the intro's lantern light glitters */

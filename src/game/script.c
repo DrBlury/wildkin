@@ -38,8 +38,8 @@ static void give_item(int item, int qty)
 /* Battle backdrop for the current area. */
 static void set_battle_scene(int sc)
 {
-    static const u8 MAP_SCENE[] = { BSCENE_MEADOW, BSCENE_FOREST, BSCENE_LAKE, BSCENE_RING, BSCENE_STORM };
-    battle_next_scene = MAP_SCENE[sc % 5];
+    /* SC_* and BSCENE_* share their order (MEADOW..LAIR) */
+    battle_next_scene = sc >= 0 && sc < BSCENE_COUNT ? sc : BSCENE_MEADOW;
 }
 
 /* ---------------- the Kindling (Keeper Linden) ---------------- */
@@ -323,10 +323,11 @@ static TrainerTeam team_from(const TrainerDef *t, int scene)
     TrainerTeam tt;
     tt.name = t->name;
     tt.count = t->count;
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < TRAINER_TEAM_MAX; i++) {
         tt.species[i] = t->species[i];
         tt.level[i] = t->level[i];
     }
+    tt.flags = 0;
     tt.prize = t->prize;
     tt.scene = (u8)scene;
     tt.lose_line = t->lose;
