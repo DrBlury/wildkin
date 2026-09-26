@@ -52,6 +52,7 @@
 #include "game/time.c"
 #include "game/travel.c"
 #include "game/battle.c"
+#include "game/anim3d.c"
 #include "game/anim.c"
 #include "game/battle_ui.c"
 #include "game/menu.c"
