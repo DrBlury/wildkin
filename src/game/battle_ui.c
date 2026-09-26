@@ -228,6 +228,16 @@ static void draw_action_box(void)
         text_draw(x, y, ACTION_LABELS[i]);
         if (i == battle.cursor) text_draw(x - 10, y, "{");
     }
+    /* on RUN in a wild bout: the escape odds when they are not certain */
+    int pct = battle.kind == BK_WILD && battle.cursor == 3 ? battle_run_chance() : 100;
+    if (pct > 0 && pct < 100) {
+        char odds[8];
+        odds[0] = 0;
+        str_put_int(odds, pct);
+        str_put(odds, "%");
+        int x = 15 * 8 + 18 + 48 + text_width("RUN") + 3;
+        text_draw_col(x, 120 + LINE_H, odds, INK_BLUE, INK_BLUE_SH);
+    }
 }
 
 /* Which effectiveness tab a move shows against the current foe (-1 none). */
@@ -236,7 +246,8 @@ static int move_tab(int move)
     const Move *mv = &MOVES[move];
     int eff = type_effectiveness(mv->type, side_mon(SIDE_ENEMY)->species);
     if (mv->cat == CAT_STATUS) {
-        if ((mv->effect == EF_STATUS || mv->effect == EF_FOE_STAT) && eff == 0) return BL_NONE;
+        if ((mv->effect == EF_STATUS || mv->effect == EF_FOE_STAT || mv->effect == EF_FOE_STATS) && eff == 0)
+            return BL_NONE;
         return -1;
     }
     if (eff == 0) return BL_NONE;
@@ -364,6 +375,96 @@ static int lantern_done(const BEvent *e)
     return battle.ev_timer >= LANTERN_ARC + LANTERN_OPEN + LANTERN_DROP + shown * LANTERN_WOBBLE + 34;
 }
 
+/* ---------------- the Hall Master's banner ---------------- */
+
+/*
+ * A band across the middle of the screen with the master's title, wiped in
+ * from the left by WIN0 (per-scanline, like the intro iris), held, then
+ * wiped out to the right. Sparkles ride the wipe's edge.
+ */
+#define BANNER_ROW   6
+#define BANNER_ROWS  3
+#define BANNER_Y0    (BANNER_ROW * 8)
+#define BANNER_Y1    ((BANNER_ROW + BANNER_ROWS) * 8)
+#define BANNER_IN    14
+#define BANNER_HOLD  74
+#define BANNER_OUT   14
+
+static int banner_on, banner_l, banner_r;
+
+static void banner_begin(const char *title)
+{
+    canvas_window(0, BANNER_ROW, CANVAS_COLS, BANNER_ROWS, WIN_BATTLE);
+    text_draw_col(120 - text_width(title) / 2, BANNER_Y0 + 6, title, INK_RED, INK_RED_SH);
+    banner_on = 1;
+    banner_l = banner_r = 0;
+    REG_WIN0V = SCREEN_HEIGHT;
+    REG_WININ = 0x003F;           /* inside: everything */
+    REG_WINOUT = 0x003D;          /* outside: all but the canvas (BG1) */
+    REG_DISPCNT = (u16)(REG_DISPCNT | DCNT_WIN0);
+    sfx_play(SFX_BANNER);
+    feel.bright = 3;
+}
+
+static void banner_end(void)
+{
+    banner_on = 0;
+    oam_line_win0h = 0;
+    REG_DISPCNT = (u16)(REG_DISPCNT & ~DCNT_WIN0);
+    canvas_clear_cells(0, BANNER_ROW, CANVAS_COLS, BANNER_ROWS);
+}
+
+/* Returns 1 when the banner is gone. */
+static int banner_update(int t)
+{
+    if (t < BANNER_IN) {
+        banner_l = 0;
+        banner_r = 240 * ease_out(t + 1, BANNER_IN) / 256;
+    } else if (t < BANNER_IN + BANNER_HOLD) {
+        banner_l = 0;
+        banner_r = 240;
+    } else if (t < BANNER_IN + BANNER_HOLD + BANNER_OUT) {
+        banner_l = 240 * ease_in(t - BANNER_IN - BANNER_HOLD + 1, BANNER_OUT) / 256;
+        banner_r = 240;
+    } else {
+        banner_end();
+        return 1;
+    }
+    return 0;
+}
+
+/* Sparkles along the wipe's moving edge (drawn with the other sprites). */
+static void banner_draw(void)
+{
+    if (!banner_on) return;
+    int edge = banner_r < 240 ? banner_r : banner_l > 0 ? banner_l : -1;
+    for (int k = 0; k < 4; k++) {
+        int y = BANNER_Y0 - 4 + ((k * 11 + (int)frame_count * 3) % (BANNER_Y1 - BANNER_Y0 + 8));
+        if (edge >= 0) fx_spr_aff(edge + ((k & 1) ? 3 : -3), y, FX_SPARKLE, OBANK_LIGHT, 192 + k * 24, k * 40);
+    }
+    if (edge < 0 && (frame_count & 7) < 4)          /* held: two twinkles at the ends */
+        for (int k = 0; k < 2; k++)
+            fx_spr_aff(k ? 228 : 12, BANNER_Y0 + 12, FX_SPARKLE, OBANK_LIGHT, 256, (int)frame_count * 6);
+}
+
+/* ---------------- the warden's team row ---------------- */
+
+/* A lantern per warden kin under the foe's HUD: lit = ready, dark = dozing. */
+static int disp_foe_idx;   /* the warden kin the screen shows (set as it is sent out) */
+
+static void team_row_draw(void)
+{
+    if (battle.kind != BK_TRAINER || battle.team_count < 1) return;
+    if (!battle.disp[SIDE_ENEMY].visible && battle.state != BST_EVENTS) return;
+    int x0 = HUD_ENEMY_CX * 8 + 6, y = HUD_ENEMY_CY * 8 + 33;
+    for (int i = 0; i < battle.team_count; i++) {
+        int awake = battle.team[i].hp > 0;
+        /* the one on screen goes dark when its bar empties, not before */
+        if (i == disp_foe_idx && battle.disp[SIDE_ENEMY].visible) awake = battle.disp[SIDE_ENEMY].hp > 0;
+        spr_push(x0 + i * 9, y, OT_LANTERN_MINI + (awake ? 0 : 1), SQ8, OBANK_CAPSULE, 0, 0);
+    }
+}
+
 /* ---------------- event playback ---------------- */
 
 static void bev_pop(void)
@@ -418,9 +519,18 @@ static int bev_run(BEvent *e)
         case EV_TEXT:
             battle.impacted = 0;
             msg_start(e->text, WIN_BATTLE, e->a);
-            if (battle.ev_count > 1 && battle.ev[1].type == EV_ANIM) msg.hold = 8;
-            else msg.hold = 30;
+            if (battle.ev_count > 1 && battle.ev[1].type == EV_ANIM) msg.hold = opt.battle_speed ? 4 : 8;
+            else msg.hold = opt.battle_speed ? 15 : 30;
             break;
+        case EV_BANNER:
+            banner_begin(e->text);
+            break;
+        case EV_LEGEND:
+            anim_start_legend(side);
+            break;
+        case EV_CUE:
+            battle_cue(e->a);
+            return 1;
         case EV_ANIM:
             anim_start(e->a, side, e->b);
             break;
@@ -459,7 +569,7 @@ static int bev_run(BEvent *e)
         }
         case EV_SEND_OUT:
             if (side == SIDE_ALLY) battle.ally = e->a;
-            else battle.team_idx = e->a;
+            else battle.team_idx = disp_foe_idx = e->a;
             battle_load_mon_gfx(side);
             if (side == SIDE_ENEMY) dex_seen[battle.team[e->a].species] = 1;
             disp_sync(side);
@@ -556,7 +666,10 @@ static int bev_run(BEvent *e)
     case EV_STATUS:
     case EV_TRAIT:
     case EV_HIT:
+    case EV_LEGEND:
         return !anim_busy();
+    case EV_BANNER:
+        return banner_update(t);
     case EV_HP: {
         int *hp = &battle.disp[side].hp;
         battle.disp[side].hp_t++;
