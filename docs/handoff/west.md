@@ -1,112 +1,69 @@
 # W-WEST handoff (Saltwind Trail, Port Brine, Current Hall, Sea Route, Gull Isle, Drowned Bell)
 
 ## Done
-- Nothing in `src/game/world/west/` has changed yet: the maps, NPCs, wardens,
-  scripts, lore, quests, fly points and zones are still the base placeholders.
-- Worktree branch fast-forwarded from `main` to the `expansion` base (6118872).
+- **Tileset** `tools/tilesets/ts_coast.py`: 382 tiles (was 422). Hut is now 3x3,
+  hall/hut wall and thatch textures repeat every 8 px, the grotto ceiling and
+  Hall pool are single repeating tiles. BRIDGE_H / BRIDGE_V / ROWBOAT added to
+  USES_DECOR (piers).
+- **Decor** `tools/decor_west.py` (29 kinds, registered in `all_decor()`):
+  pier post, bollard, lobster pots, anchor, lifebuoy, fishing boat, ferry
+  boat, lighthouse (animated lamp), nets, fish stall, shells, starfish,
+  seaweed, driftwood, sea rock, salt heap, bell buoy (bobbing), gull post,
+  whale-rib arch, shell lamp, Hall column, crab shell; grotto: DROWNED_BELL,
+  pillar, glow coral (pulsing), whale carving; interiors: ship wheel, fish
+  trophy, ship in a bottle, wall net.
+- **Maps** (`src/game/world/west/data.h`, legend in its header):
+  SALTWIND TRAIL 50x40 (dunes, dune ledge, salt pans, cliff + ledge, beach,
+  rock shelf), PORT BRINE 48x44 (Current Hall, hearth, shop, inn, harbor
+  office, skipper's house, quays, lighthouse, ferry pier, south pier to the
+  Sea Route), SEA ROUTE 40x48 (open water, 3 sandbar islets + rock islet),
+  GULL ISLE 40x34 (hut, salt pans, cliff with sea cave, whale arch, ferry
+  pier), CURRENT HALL 15x18 (current network; correct route: left channel ->
+  P1 -> right channel -> P2 -> up channel -> dais; the middle channel and P2's
+  down channel loop back to the start; a nook with a satchel), DROWNED BELL
+  20x18 (temple, glowing pool, `OBJ(LEGEND, 11, 8, SP_NOCTHALE)`), interiors
+  BRINE HEARTH HALL (MF_HEAL), BRINE SHOP, HARBOR OFFICE, GULL INN, SKIPPER'S
+  HOUSE (new id MAP_BRINE_HOUSE, appended last), ODA'S HUT.
+- Edge contracts kept: Saltwind E y31-32 (Mirror Lake), Saltwind W / Brine E
+  y19-20, Brine S / Sea Route N x20-21 (plank pier), Sea Route S / Gull Isle N.
+- Objects: OBJ_FERRY on both piers (arg = destination map), OBJ_BERRY ids
+  10-13, the NOCTHALE legend.
+- Zones: SALTWIND (14-19), SANDBARS (22-27), ISLE (24-30), SEA = water_zone of
+  Saltwind/Brine/Sea Route/Gull Isle (KELPYRE night, weight 2).
+- People: 13 wardens (Saltwind 4, Sea Route 3, Gull Isle 2, Hall 3) with 2-4
+  kin, HALL MASTER MAREN (6 TIDE kin, Lv23-27, `battle_start_master`, win ->
+  FLAG_TIDE_CREST, `travel_award_crest(CREST_TIDE)`, 3 TIDE LANTERNS,
+  LORE_TIDE_CREST), ferrymen (500c or FERRY PASS, `travel_boat_to`), BRINE
+  SHOP (`shop_open_stock`), inn (SCR_CHEF cook + innkeeper bed 100c), salt
+  raker, lightkeeper, harbor master, skipper, hall guide, Oda.
+- Quests: HARBOR POST (3 letters -> FERRY PASS), SALT FOR THE ISLE (3 SALT ->
+  GRAND TONIC x2 + Drowned Bell/NOCTHALE lore).
+- Lore: 11 entries (Saltwind, seabirds, Port Brine, tides, lighthouse, Current
+  Hall, Tide Crest, Gull Isle, glowing sea, Drowned Bell, NOCTHALE); 9 signs;
+  14 satchels; fly points Port Brine (30,108) and Gull Isle (22,146).
+- `tools/tests/test_west.c`: tileset budget, people/character limits, edge
+  openings, surf-only Sea Route, KELPYRE slot, Hall solved by the current
+  rule (and the loop/dais checks), NOCTHALE reachable, ferries, berry ids,
+  shop, ferry both ways, both quests, the Master bout and crest.
+- Verified in the ROM with `build/shot` (warp menu): Port Brine, Saltwind,
+  the Current Hall and the Drowned Bell render correctly.
 
-## In progress
-- `tools/tilesets/ts_coast.py`: first full draft of the real 'coast' tileset.
-  - Banks: 0 ground, 1 sea/sand, 2 trees/cliffs, 3 village prop bank (for
-    reused decor), 4 red roof, 5 blue roof, 6 walls, 7 grotto.
-  - Terrain: grass, tall grass, marram dune grass (A_GRASS), sand x3, plaza
-    slabs, quay setts, rock shelf, tide pool, salt pan, cliff, ledges, dune
-    ledge, pines, palms; Current Hall floor/walls/porthole/exit mat/deep pool;
-    four animated currents; grotto rock, floors, temple slabs, glowing pool
-    (animated), exit steps, void.
-  - A sand-edged, foam-lapping water autotile.
-  - Stamps: HEAL, SHOP, HOUSE_RED, HOUSE_BLUE, HARBOR, INN, HALL (7x5 Current
-    Hall), HUT (thatched), CAVE (cliff cave mouth with a door).
-  - The legend is documented at the top of the module.
-  - `USES_DECOR` lists the existing props to reuse. Their colours are not
-    verified yet.
-- **Broken:** `python3 tools/gen_field_gfx.py` currently fails.
-  - Error: `coast: tile INN[2,2] colors [... rb_dkr, wd_lt ...] fit no bank`.
-  - Cause: the GULL INN sign ink `rb_dkr` shares a tile with the wooden
-    frame.
-  - Likely fix: ink `gl_dk` (like the other signs), or keep the sign off the
-    beam.
-  - Nothing was regenerated. `src/gfx_field.h` and the debug viewer maps are
-    unchanged, so `make` and `make test` still build from the old header.
-  - Next steps after the fix:
-    - check the tile budget (tileset must stay well under about 380 tiles so
-      maps can add decor)
-    - check the `USES_DECOR` colour fit
-    - preview the tileset
+## Shared files edited
+- `tools/gen_field_gfx.py`: one line in `all_decor()` (decor_west).
+- `tools/tests/harness.h`: `flood()` treats open water (A_WATER, not A_DEEP,
+  no solid decor) as passable on maps with `MapDef.water_zone` (surf mode).
+- `tools/test_game.c`: the KEEN EYE check reseeds the rng after each duel.
+  It was seeded once, so it depended on how many NPCs `npcs_reset()` drew
+  random numbers for, and broke when any region added people.
+- Regenerated: `src/gfx_field.h`, `src/game/world/debug/*`.
 
-## Not started
-- `tools/decor_west.py` has not been written or registered in
-  `gen_field_gfx.all_decor()`. Planned props:
-  - piers, posts and bollards
-  - fishing and ferry boats
-  - the lighthouse (as decor), gull posts, nets, lobster pots
-  - fish stall, anchor, lifebuoy, shells, starfish, seaweed, driftwood, sea
-    rocks, salt heaps, bell buoy
-  - Hall: columns, shell lamps
-  - grotto: the drowned bell, pillars, glow coral, whale carving
-  - Gull Isle: whale-bone arch
-  - interiors: ship wheel, fish trophy, ship in a bottle
-- All maps:
-  - SALTWIND TRAIL: 56x40, east exit y 31-32 (contract), west exit to Port
-    Brine planned at y 19-20.
-  - PORT BRINE: 56x48.
-  - SEA ROUTE: 40x48.
-  - GULL ISLE.
-  - DROWNED BELL: grotto with `OBJ(LEGEND, x, y, SP_NOCTHALE)`.
-  - Interiors: hearth, shop, harbor office, inn with SCR_CHEF, house.
-  - CURRENT HALL: TS_COAST interior with a current network.
-- NPCs, wardens:
-  - 4-8 route wardens with ≤3 kin each.
-  - 3-4 Hall wardens.
-  - The Hall Master's 6-kin team. `TrainerTeam` / `TEAM_MAX` are still 3, so
-    copy only `sizeof(tt.species)` kin.
-- Scripts:
-  - BRINE SHOP with `shop_open_stock`.
-  - Master win: `travel_award_crest(CREST_TIDE)`.
-  - Harbour master / ferry: 500c or FERRY PASS, then `travel_boat_to`.
-- Two quests:
-  - Harbour post delivery that ends with the FERRY PASS.
-  - Gull Isle salt / sandbar quest.
-- Also not started:
-  - 6-10 lore entries.
-  - Fly points.
-  - Berry patches (ids 10-19).
-  - Wild zones: Saltwind, sandbars, ISLE, and a sea water zone with KELPYRE
-    at night about 2%.
-- `tools/tests/test_west.c`.
-
-## Notes
-- **Build and tests:**
-  - `make` and `make test` were green at the base before this work.
-  - The only change since then is `ts_coast.py`, and the generator is broken
-    by it (see above). The committed generated files are still the base ones.
-- **Edits outside `src/game/world/west/`:** only `tools/tilesets/ts_coast.py`
-  (owned) and this file.
-- **A_CURRENT convention (proposed; documented in `ts_coast.py`):**
-  - Direction = `(A_DIR_HI << 1) | A_DIR_LO`: 0 down, 1 up, 2 left, 3 right,
-    the same order as field.c `DIR_*`.
-  - Current cells are walkable (not SOLID).
-  - Stepping onto one carries the player one cell per step in the direction
-    of the cell they stand on, until they reach a non-current cell or the way
-    ahead is blocked.
-  - Still hall pools are SOLID | WATER | DEEP.
-- **Reachability test (needs a decision):**
-  - The harness `flood()` in `tools/test_field.c` is walk-only, so a
-    surf-only Sea Route fails the reachability check.
-  - Plan: treat surfable water (A_WATER without A_DEEP) as open on maps with
-    `MapDef.water_zone` set. That is a small edit to `tools/tests/harness.h`,
-    to agree with the traversal owner.
-  - The alternative is walkable sandbars through the Sea Route, which would
-    make the boat pointless.
-- **APIs relied on:**
-  - `travel_boat_to`, `travel_award_crest`, `quest_set` / `quest_get`,
-    `shop_open_stock`, `lore_reveal` / `lore_story`, `give_item`
-  - SCR_TENDER, SCR_CHEF
-  - OBJ_LEGEND, OBJ_BERRY
-  - Traversal to implement currents, surf and the water-zone spawns per the
-    convention above.
-- **Local tools:**
-  - `tools/render_maps.py` is stale: it reads the removed
-    `src/game/maps.h`.
-  - A working region renderer (fieldmap-based) is kept in the session
-    scratchpad (`render.py`). It is not committed.
+## Left
+- Traversal: currents, surf, ferry objects and the legend encounter are the
+  traversal owner's (convention in data.h / ts_coast.py). Until then the
+  Hall's currents are plain walkable floor in the ROM, and the Sea Route can
+  only be crossed by the ferry script.
+- Crafting station decor (COOKTOP) next to the inn's cook once decor_craft
+  exists; berry patch art is the farm owner's.
+- Optional polish: more Port Brine set dressing, Gull Isle second hut.
+- `make` shows 6 pre-existing `-Wunused-function` warnings in party.c (UI
+  owner), not from this region.
