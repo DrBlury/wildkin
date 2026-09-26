@@ -386,8 +386,10 @@ static void shop_answer(int c)
 
 static const char *const HEARTH_MENU[3] = { "REST", "CHAT", "NO THANKS" };
 
+/* Resting in a Hearth Hall also makes it the respawn point. */
 static void hearth_rest(void)
 {
+    if (MAPS[cur_map].flags & MF_HEAL) travel.last_hearth = (u8)cur_map;
     party_heal_all();
     sfx_play(SFX_HEAL);
     follower_reset();
@@ -898,7 +900,7 @@ static void edge_blocked(void)
 static void field_on_enter(void)
 {
     if (cur_map == MAP_RISE) lore_story(LORE_STORMSTONE_RISE);
-    if (cur_map == MAP_REST && opt.autosave && party_count) save_write();
+    if (cur_map == travel.last_hearth && opt.autosave && party_count) save_write();
     grim_on_enter();
 }
 

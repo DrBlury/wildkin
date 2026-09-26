@@ -354,8 +354,9 @@ static DamageResult calc_damage(const Monster *att, const s8 *att_st,
     return r;
 }
 
-/* Gen-3 catch formula; returns the number of shakes (4 = caught). */
-static int catch_shakes(const Monster *m, int capsule_x10)
+/* Gen-3 catch formula: the odds (out of 65536) that one shake holds, or
+ * 65536 when the catch is certain. */
+static u32 catch_shake_odds(const Monster *m, int capsule_x10)
 {
     u32 max = m->max_hp, hp = m->hp;
     u32 a = (3 * max - 2 * hp) * SPECIES[m->species].catch_rate * (u32)capsule_x10 /
@@ -363,12 +364,31 @@ static int catch_shakes(const Monster *m, int capsule_x10)
     if (m->status == STATUS_SLP || m->status == STATUS_FRZ) a = a * 2;
     else if (m->status != STATUS_NONE) a = a * 3 / 2;
     if (a < 1) a = 1;
-    if (a >= 255) return 4;
+    if (a >= 255) return 65536;
     /* b = 1048560 / sqrt(sqrt(16711680 / a)), in 12-bit fixed point */
     unsigned long long x = (unsigned long long)(16711680u / a) << 16;
     unsigned long long root2 = isqrt64(x);            /* sqrt(v) * 256 */
     unsigned long long root4 = isqrt64(root2 << 16);  /* v^(1/4) * 4096 */
-    u32 b = (u32)(1048560ull * 4096ull / (root4 ? root4 : 1));
+    return (u32)(1048560ull * 4096ull / (root4 ? root4 : 1));
+}
+
+/* The chance (percent, 0..100) that a lantern of this strength catches m:
+ * all four shakes must hold. */
+static int catch_chance_pct(const Monster *m, int capsule_x10)
+{
+    unsigned long long b = catch_shake_odds(m, capsule_x10);
+    if (b >= 65536) return 100;
+    unsigned long long p = b * b >> 16;
+    p = p * p >> 16;                                  /* b^4, out of 65536 */
+    int pct = (int)((p * 100 + 32768) >> 16);
+    return pct >= 100 ? 99 : pct;
+}
+
+/* Returns the number of shakes (4 = caught). */
+static int catch_shakes(const Monster *m, int capsule_x10)
+{
+    u32 b = catch_shake_odds(m, capsule_x10);
+    if (b >= 65536) return 4;
     int shakes = 0;
     while (shakes < 4 && (rng_next() & 0xFFFF) < b) shakes++;
     return shakes;

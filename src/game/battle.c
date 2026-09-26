@@ -1141,12 +1141,12 @@ static int battle_player_move(int slot)
     return 1;
 }
 
-/* Escape odds (percent) of the next RUN from a wild bout. The odds grow with
+/* Escape odds (percent) of the next RUN (0 in keeper bouts: no fleeing). The odds grow with
  * every failed try and a faster (or SLIPPERY) kin always gets away. */
 static int battle_run_chance(void)
 {
-    if (battle.no_run) return 0;
-    if (battle.kind == BK_TRAINER || has_trait(SIDE_ALLY, TR_SLIPPERY)) return 100;
+    if (battle.no_run || battle.kind == BK_TRAINER) return 0;
+    if (has_trait(SIDE_ALLY, TR_SLIPPERY)) return 100;
     int a = battle_stat(side_mon(SIDE_ALLY), 0, STAT_SPE);
     int b = battle_stat(side_mon(SIDE_ENEMY), 0, STAT_SPE);
     if (a >= b) return 100;
@@ -1164,9 +1164,9 @@ static void battle_try_run(void)
         return;
     }
     if (battle.kind == BK_TRAINER) {
-        bsay_wait("You bowed out of the bout!");
-        bev_push(EV_FLEE, SIDE_ALLY, 0, 0);
-        battle_finish(BR_RUN);
+        /* a bout with another keeper is a promise: see it through */
+        bsay_wait("You gave your word to this bout. There's no walking away!");
+        battle.return_state = BST_ACTION;
         battle_play();
         return;
     }
@@ -1277,6 +1277,16 @@ static int lantern_finesse(int item)
     }
     if (on) f *= 2;
     return clampi(f + meal_catch_bonus(), 1, 255);
+}
+
+/* The chance (percent) that this lantern befriends the wild foe right now,
+ * or -1 where lanterns do nothing (keeper bouts, fused kin). */
+static int lantern_catch_pct(int item)
+{
+    if (battle.kind != BK_WILD || ITEMS[item].kind != IK_LANTERN) return -1;
+    const Monster *w = side_mon(SIDE_ENEMY);
+    if (SPECIES[w->species].rarity == R_FUSION) return -1;
+    return catch_chance_pct(w, lantern_finesse(item));
 }
 
 /* The lantern that suits this wild kin best (L quick-throw), or -1. */

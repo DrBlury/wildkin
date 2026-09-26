@@ -1122,6 +1122,24 @@ static void bag_redraw(void)
         str_copy(buf, "|");
         str_put_int(buf, bag[item]);
         text_draw_right(228, y, buf);
+        if (ITEMS[item].kind == IK_LANTERN) {
+            /* in a wild bout: the odds of befriending the foe with this
+             * lantern right now; elsewhere: the lantern's base strength */
+            int pct = bscr.ctx == BAGCTX_BATTLE ? lantern_catch_pct(item) : -1;
+            buf[0] = 0;
+            if (bscr.ctx == BAGCTX_BATTLE) {
+                if (pct < 0) continue;
+                str_put(buf, pct == 0 ? "<1" : "");
+                if (pct) str_put_int(buf, pct);
+                str_put(buf, "%");
+            } else {
+                str_put(buf, "x");
+                str_put_int(buf, ITEMS[item].param / 10);
+                str_put(buf, ".");
+                str_put_int(buf, ITEMS[item].param % 10);
+            }
+            text_draw_col(228 - 24 - text_width(buf), y, buf, INK_BLUE, INK_BLUE_SH);
+        }
     }
     if (BAG_SCROLL > 0) text_draw_col(214, 0, "^", INK_BLUE, INK_BLUE_SH);
     if (BAG_SCROLL + BAG_ROWS < bscr.count) text_draw_col(214, 98, "}", INK_BLUE, INK_BLUE_SH);

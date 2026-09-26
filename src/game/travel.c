@@ -34,7 +34,7 @@ typedef struct {
     u8 visited[16];     /* maps you have been to (fly points), bit per map */
     u8 crests;          /* bit per Hall crest (CREST_*) */
     u8 biking, surfing;
-    u8 last_hearth;     /* map of the last Hearth Hall (teleport / WAYSTONE) */
+    u8 last_hearth;     /* Hearth Hall the party last rested in (respawn / teleport / WAYSTONE) */
     u8 puzzle[16];      /* solved gates, opened chests, answered legends */
     u8 lure_lo, lure_hi;/* LURE INCENSE steps left */
     u8 mount;           /* species that carries you while surfing */
@@ -822,7 +822,6 @@ static void travel_dark_off(void)
 static void travel_map_entered(int map)
 {
     bit_set(travel.visited, map);
-    if (MAPS[map].flags & MF_HEAL) travel.last_hearth = (u8)map;
     travel.surfing = (cell_attr(player.x, player.y) & A_WATER) != 0;
     if (travel.surfing) {
         travel.biking = 0;

@@ -1072,8 +1072,14 @@ static void battle_exit(void)
     meal_bout_finished();
     battle_cue(BCUE_END);
     if (battle.result == BR_LOSE) {
+        /* back to the Hearth Hall where the party last rested */
+        int hx = 5, hy = 4, hmap = MAP_REST;
+        if (hearth_spot(&hx, &hy)) hmap = travel.last_hearth;
+        travel.surfing = 0;
+        travel.biking = 0;
         party_heal_all();
-        field_enter_map(MAP_REST, 5, 4, DIR_UP);
+        field_enter_map(hmap, hx, hy, DIR_UP);
+        dlg_say("Everything went dark... You woke by the hearth where you last rested, your kin tended and whole again.");
     }
     for (int i = 0; i < party_count; i++) {
         if (!(battle_leveled & (1u << i))) continue;
