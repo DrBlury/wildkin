@@ -1323,6 +1323,9 @@ static const DecorPlace VIEW_INTERIOR_2_DECOR[] = {
     DP(FZ_MIXER, 6, 1),
     DP(FZ_LOOM, 9, 1),
     DP(FZ_TANKS, 13, 1),
+    DP(COOKTOP, 16, 1),
+    DP(CAULDRON, 19, 1),
+    DP(ANVIL, 22, 1),
 };
 
 static const u16 VIEW_CITY_1_CELLS[1320] = {

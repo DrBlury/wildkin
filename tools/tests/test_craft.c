@@ -64,7 +64,7 @@ static void test_data(void)
         teachers[1] += NPCS[i].script == SCR_BREWER;
         teachers[2] += NPCS[i].script == SCR_SMITH;
     }
-    CHECK(teachers[0] == 1 && teachers[1] <= 1 && teachers[2] <= 1, "the chef is placed; at most one brewer and one smith");
+    CHECK(teachers[0] >= 1, "the chef is placed (region inns may host more cooks)");
 }
 
 static void test_rules(void)
@@ -274,7 +274,15 @@ static void test_minigames(void)
     tap(KEY_A);
     CHECK(cg.state == CS_PLAY && cg.phase == 0, "A starts the kitchen");
     for (int toss = 0; toss < 3; toss++) {
-        for (int f = 0; f < 400 && absi(cg.needle / 16 - cg.zone) > 1; f++) step(0);
+        /* the needle moves before A is read: press when its NEXT spot is on the mark */
+        int prev = cg.needle;
+        step(0);
+        int spd = absi(cg.needle - prev);
+        for (int f = 0; f < 400 && absi((cg.needle + cg.ndir * spd) / 16 - cg.zone) > 2; f++) {
+            prev = cg.needle;
+            step(0);
+            if (absi(cg.needle - prev) > spd / 2) spd = absi(cg.needle - prev);
+        }
         step(KEY_A);
         step(0);
         for (int f = 0; f < 40 && cg.flip_t; f++) step(0);

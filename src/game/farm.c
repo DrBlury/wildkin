@@ -95,8 +95,8 @@ enum { FERT_BASIC, FERT_COMPOST, FERT_MULCH };
 enum { PROC_JAR, PROC_PRESS, PROC_DRIER, PROC_COUNT };
 static const char *const PROC_NAMES[PROC_COUNT] = { "PRESERVES JAR", "FRUIT PRESS", "DRYING RACK" };
 
-typedef struct { u8 proc, crop, in, days; u8 out; } Recipe;
-static const Recipe RECIPES[] = {
+typedef struct { u8 proc, crop, in, days; u8 out; } ProcRecipe;
+static const ProcRecipe PROC_RECIPES[] = {
     { PROC_JAR, CROP_GLOWBERRY, 2, 1, ITEM_FRUIT_JAM }, { PROC_JAR, CROP_EMBERBERRY, 2, 1, ITEM_FRUIT_JAM },
     { PROC_JAR, CROP_TIDEBERRY, 2, 1, ITEM_FRUIT_JAM }, { PROC_JAR, CROP_APPLE, 1, 1, ITEM_FRUIT_JAM },
     { PROC_JAR, CROP_PEACH, 1, 1, ITEM_FRUIT_JAM },     { PROC_JAR, CROP_TOMATO, 2, 1, ITEM_FRUIT_JAM },
@@ -108,7 +108,7 @@ static const Recipe RECIPES[] = {
     { PROC_DRIER, CROP_CHILI, 3, 2, ITEM_DRIED_CHILI }, { PROC_DRIER, CROP_APPLE, 2, 2, ITEM_DRIED_FRUIT },
     { PROC_DRIER, CROP_PEACH, 2, 2, ITEM_DRIED_FRUIT }, { PROC_DRIER, CROP_SUNFLOWER, 1, 2, ITEM_SUN_SEEDS },
 };
-#define RECIPE_COUNT ((int)(sizeof(RECIPES) / sizeof(RECIPES[0])))
+#define PROC_RECIPE_COUNT ((int)(sizeof(PROC_RECIPES) / sizeof(PROC_RECIPES[0])))
 #define PROC_BATCH_MAX 5
 
 /* Coins each in the shipping bin (0 = the bin won't take it). */
@@ -204,7 +204,7 @@ enum {
 typedef struct { u8 crop, growth, flags, care; } FarmPlot;  /* crop: CROP_* + 1, 0 = empty */
 typedef struct { u8 growth, picks; } BerryPatch;
 typedef struct { u8 job, species, level, days; u32 pot; } FarmWorker;  /* found on the Shelf by species + pot */
-typedef struct { u8 recipe, batches; u16 ready_day; } FarmProc;        /* recipe: RECIPES index + 1 */
+typedef struct { u8 recipe, batches; u16 ready_day; } FarmProc;        /* recipe: PROC_RECIPES index + 1 */
 typedef struct { u16 code, count; } FarmChestSlot;                    /* code: item_code() */
 
 typedef struct {
@@ -259,7 +259,7 @@ static void farm_validate(void)
     }
     for (int i = 0; i < PROC_COUNT; i++) {
         FarmProc *p = &farm.procs[i];
-        if (p->recipe > RECIPE_COUNT || !p->batches || RECIPES[p->recipe - 1].proc != i) p->recipe = p->batches = 0;
+        if (p->recipe > PROC_RECIPE_COUNT || !p->batches || PROC_RECIPES[p->recipe - 1].proc != i) p->recipe = p->batches = 0;
         if (p->batches > PROC_BATCH_MAX) p->batches = PROC_BATCH_MAX;
     }
     for (int i = 0; i < FARM_CHEST; i++)
@@ -1122,7 +1122,7 @@ static void proc_answer(int c)
 {
     if (c < 0 || c >= 8 || !proc_choice_names[c] || proc_choice_recipe[c] == 0xFF) return;
     int r = proc_choice_recipe[c];
-    const Recipe *rc = &RECIPES[r];
+    const ProcRecipe *rc = &PROC_RECIPES[r];
     int item = crop_item(rc->crop);
     int batches = bag[item] / rc->in;
     if (batches > PROC_BATCH_MAX) batches = PROC_BATCH_MAX;
@@ -1147,7 +1147,7 @@ static void farm_proc_open(int kind)
     FarmProc *p = &farm.procs[kind];
     char msg[120];
     if (p->recipe) {
-        const Recipe *rc = &RECIPES[p->recipe - 1];
+        const ProcRecipe *rc = &PROC_RECIPES[p->recipe - 1];
         if (gtime.day >= p->ready_day) {
             int n = p->batches;
             p->recipe = p->batches = 0;
@@ -1162,10 +1162,10 @@ static void farm_proc_open(int kind)
     }
     proc_open_kind = kind;
     int n = 0;
-    for (int r = 0; r < RECIPE_COUNT && n < 7; r++) {
-        if (RECIPES[r].proc != kind || bag[crop_item(RECIPES[r].crop)] < RECIPES[r].in) continue;
+    for (int r = 0; r < PROC_RECIPE_COUNT && n < 7; r++) {
+        if (PROC_RECIPES[r].proc != kind || bag[crop_item(PROC_RECIPES[r].crop)] < PROC_RECIPES[r].in) continue;
         proc_choice_recipe[n] = (u8)r;
-        proc_choice_names[n++] = ITEMS[crop_item(RECIPES[r].crop)].name;
+        proc_choice_names[n++] = ITEMS[crop_item(PROC_RECIPES[r].crop)].name;
     }
     str_copy(msg, "The ");
     str_put(msg, PROC_NAMES[kind]);
