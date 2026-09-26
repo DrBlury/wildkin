@@ -870,7 +870,4 @@ _ALL_NORTH_DECOR = [
           examine='A moonstone dais, dusted with pale wing-scales.'),
 ]
 
-# The cave decor waits for the real 'cave' tileset (tools/tilesets/ts_cave.py is
-# still the placeholder, whose banks can't hold the crystals): only the snow
-# decor is registered for now.
-NORTH_DECOR = [d for d in _ALL_NORTH_DECOR if 'cave' not in d.sets]
+NORTH_DECOR = _ALL_NORTH_DECOR
