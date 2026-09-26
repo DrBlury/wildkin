@@ -37,7 +37,7 @@ typedef struct {
     u32 size;                        /* sizeof(SaveData) when written */
     u8 party_count, map, player_x, player_y;
     u16 storage_count, bag_count;
-    u8 facing, pad0[3];
+    u8 facing, level, pad0[2];       /* level: player's elevation + 1 (0 = derive it) */
     Monster party[PARTY_MAX];
     BoxMon storage[STORAGE_MAX];
     BagEntry bag[BAG_SAVE_MAX];
@@ -244,6 +244,7 @@ static void save_capture(SaveData *data)
     data->player_x = (u8)player.x;
     data->player_y = (u8)player.y;
     data->facing = player.facing;
+    data->level = (u8)(player.level + 1);
     mod_store(data->time, &data->mod_size[0], &gtime, sizeof(gtime));
     mod_store(data->farm, &data->mod_size[1], &farm, sizeof(farm));
     mod_store(data->craft, &data->mod_size[2], &craft, sizeof(craft));
@@ -323,6 +324,8 @@ static void save_apply(const SaveData *data)
     player.facing = data->facing;
     player.ox = player.oy = 0;
     player.moving = 0;
+    /* saves from before elevation carry 0 here: derive the level */
+    player.level = (u8)elev_level_at(player.x, player.y, data->level ? data->level - 1 : -1, player.facing);
 }
 
 /* ---- v3 migration ---- */

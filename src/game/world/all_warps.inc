@@ -9,5 +9,6 @@
 #include "craft/warps.inc"
 #include "fusion/warps.inc"
 #include "travel/warps.inc"
+#include "elev/warps.inc"
 #include "ui/warps.inc"
 #include "debug/warps.inc"

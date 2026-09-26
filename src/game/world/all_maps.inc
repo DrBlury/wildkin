@@ -9,5 +9,6 @@
 #include "craft/maps.inc"
 #include "fusion/maps.inc"
 #include "travel/maps.inc"
+#include "elev/maps.inc"
 #include "ui/maps.inc"
 #include "debug/maps.inc"

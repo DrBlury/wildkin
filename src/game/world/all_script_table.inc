@@ -9,5 +9,6 @@
 #include "craft/script_table.inc"
 #include "fusion/script_table.inc"
 #include "travel/script_table.inc"
+#include "elev/script_table.inc"
 #include "ui/script_table.inc"
 #include "debug/script_table.inc"

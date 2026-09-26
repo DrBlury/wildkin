@@ -9,5 +9,6 @@
 #include "craft/signs.inc"
 #include "fusion/signs.inc"
 #include "travel/signs.inc"
+#include "elev/signs.inc"
 #include "ui/signs.inc"
 #include "debug/signs.inc"
