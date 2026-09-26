@@ -57,3 +57,6 @@
     WARDEN(MAP_GLIMMER_2, 28, 20, WARDEN_B, UP, 3, TR_N_SOREN, SP_METEORB, "Look up in the grotto. You'll see why it's called Starfall."),
     /* ---- Starfall Grotto ---- */
     PERSON(MAP_STARFALL, 17, 16, SCIENTIST, LEFT, LOOK, GROTTO_SCHOLAR, LSRC_GROTTO_SCHOLAR, "DR. MAREN", 0),
+    /* ---- Sky Isle ---- */
+    PERSON(MAP_SKY_ISLE, 20, 20, SCIENTIST, LEFT, LOOK, TALK, NO_LORE, "WIND WATCHER",
+           "Mind the ledges on the spires: the only way down is the landing. Or the clouds, if you are feeling brave."),
