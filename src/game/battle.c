@@ -1072,14 +1072,20 @@ static void battle_finish(int result)
     for (int i = 0; i < party_count; i++)
         if (battle.fought & (1u << i)) bond_add(&party[i], 2);
     battle.result = result;
-    /* (a Hall Master's win already cued its fanfare with the victory line) */
-    if (!(result == BR_WIN && battle.master) && result > BR_NONE && result <= BR_CAUGHT)
+    /* (wins and catches cued their music when they happened, under the XP,
+     * prize and lantern lines: queue_enemy_fainted, battle_use_lantern) */
+    if (result == BR_LOSE || result == BR_RUN)
         bev_push(EV_CUE, 0, CUE[result], 0);
     bev_push(EV_END, 0, result, 0);
 }
 
 static void queue_enemy_fainted(void)
 {
+    int last = 1;              /* the foe has no one left: the win music starts now */
+    if (battle.kind == BK_TRAINER)
+        for (int i = 0; i < battle.team_count; i++)
+            if (i != battle.team_idx && battle.team[i].hp) last = 0;
+    if (last && !battle.master) bev_push(EV_CUE, 0, BCUE_WIN, 0);
     award_xp(side_mon(SIDE_ENEMY));
     int next = battle.kind == BK_TRAINER ? ai_best_reserve() : -1;
     if (next >= 0) {
@@ -1328,6 +1334,7 @@ static void battle_throw_lantern(int item)
     bev_push(EV_LANTERN, SIDE_ENEMY, shakes, battle_lantern_kind(item));
     if (shakes >= 4) {
         const char *name = SPECIES[wild->species].name;
+        bev_push(EV_CUE, 0, BCUE_CAUGHT, 0);
         str_copy(msg, "Yes! ");
         str_put(msg, name);
         str_put(msg, " settled into the lantern!");

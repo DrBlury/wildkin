@@ -371,6 +371,7 @@ typedef struct {
 static const char *const OPT_ON_OFF[2] = { "OFF", "ON" };
 static const char *const OPT_SPEED[TEXT_SPEED_COUNT] = { "SLOW", "MID", "FAST", "INSTANT" };
 static const char *const OPT_BOUT_SPEED[2] = { "NORMAL", "FAST" };
+static const char *const OPT_MUSIC_VOL[3] = { "HIGH", "LOW", "MID" };   /* opt.music_vol: 0 full */
 
 static const OptRow OPT_ROWS_DEF[] = {
     { "TEXT SPEED", &opt.text_speed, TEXT_SPEED_COUNT, OPT_SPEED,
@@ -379,6 +380,10 @@ static const OptRow OPT_ROWS_DEF[] = {
       "OFF plays quick hits instead of\nthe full move animations." },
     { "SOUND", &opt.sound, 2, OPT_ON_OFF,
       "Sound effects for menus, the\nfield and bouts." },
+    { "MUSIC", &opt.music, 2, OPT_ON_OFF,
+      "Background music in the field,\nin bouts and on the title." },
+    { "MUSIC VOLUME", &opt.music_vol, 3, OPT_MUSIC_VOL,
+      "How loud the music plays under\nthe sound effects." },
     { "BOUT SPEED", &opt.battle_speed, 2, OPT_BOUT_SPEED,
       "FAST plays bout animations at\ntwice the speed." },
     { "KIN FOLLOWS YOU", &opt.follower, 2, OPT_ON_OFF,

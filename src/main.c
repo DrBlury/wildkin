@@ -20,6 +20,9 @@
  *   game/dex.c        monster catalogue with scrolling detail pages
  *   game/evolve.c     evolution scene
  *   game/script.c     people, signs, items and field glue
+ *   game/sfx.c        sound effects on the PSG channels
+ *   game/music.c      background music: synth + sequencer on Direct Sound A
+ *   game/music_map.c  which song plays on each map, in bouts, on the title
  *   save_game.h       checked SRAM save slots (+ v1 migration)
  *
  * Build with `make`, run with `make run`, test with `make test`.
@@ -28,6 +31,7 @@
 #include "game/gba.h"
 #include "game/options.h"
 #include "game/sfx.c"
+#include "game/music.c"
 #include "gfx_ui.h"
 #include "gfx_monsters.h"
 #include "gfx_field.h"
@@ -57,6 +61,7 @@
 #include "game/farm.c"
 #include "game/modules.c"
 #include "game/script.c"
+#include "game/music_map.c"
 #include "game/title.c"
 #include "game/debug.c"
 #include "save_game.h"
@@ -114,6 +119,8 @@ static void game_draw(void)
 
 static void game_init(void)
 {
+    music_init();
+    music_map_init();
     gfx_init_tables();
     load_ui_palettes();
     copy32(VRAM_OBJ_TILES + OT_FX * 8, fx_gfx, FX_COUNT * 4 * 8);
@@ -149,6 +156,9 @@ static void game_frame(void)
     game_draw();
     oam_end();
     sfx_update();
+#ifndef GBA
+    music_host_frame();      /* the GBA runs the music in its interrupt */
+#endif
 }
 
 int main(void)
