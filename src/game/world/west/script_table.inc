@@ -4,7 +4,7 @@
     [SCR_LIGHTKEEPER] = scr_lightkeeper,
     [SCR_BRINE_SHOP] = scr_brine_shop,
     [SCR_HARBORMASTER] = scr_harbormaster,
-    [SCR_INNKEEPER] = scr_innkeeper,
+    [SCR_BRINE_INNKEEPER] = scr_brine_innkeeper,
     [SCR_SKIPPER] = scr_skipper,
     [SCR_HALL_GUIDE] = scr_hall_guide,
     [SCR_MAREN] = scr_maren,

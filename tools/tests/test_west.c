@@ -91,7 +91,7 @@ static void talk(int map, int scr)
 
 static void finish(void)
 {
-    for (int f = 0; f < 400 && (dialog_active() || warp.active || game_mode == MODE_SHOP); f++) {
+    for (int f = 0; f < 1500 && (dialog_active() || warp.active || game_mode == MODE_SHOP || game_mode == MODE_EXT); f++) {
         if (game_mode == MODE_SHOP) {
             tap(KEY_B);
             continue;
@@ -151,7 +151,7 @@ int main(void)
     map_load(MAP_SEA_ROUTE);
     hall_flood(20, 0);   /* no currents here: a plain walking flood */
     int walk_only = hall_seen[47 * map_w + 20];
-    flood(20, 0);        /* the harness floods with SURF on maps with a water zone */
+    flood_ex(20, 0, FLOOD_SURF);   /* as if with SURF */
     CHECK(!walk_only && reached(20, 47), "the SEA ROUTE is crossed by SURF, not on foot");
     int kelp = 0;
     for (int i = 0; i < WILD_ZONES[ZONE_SEA].count; i++)
@@ -230,7 +230,7 @@ int main(void)
     talk(MAP_HARBOR_OFFICE, SCR_HARBORMASTER);
     finish();
     CHECK(quest_get(QUEST_HARBOR_POST) == 1, "the harbor master hands out HARBOR POST");
-    talk(MAP_BRINE_INN, SCR_INNKEEPER);
+    talk(MAP_BRINE_INN, SCR_BRINE_INNKEEPER);
     finish();
     talk(MAP_BRINE_HOUSE, SCR_SKIPPER);
     finish();

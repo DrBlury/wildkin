@@ -25,7 +25,7 @@
     PERSON(MAP_HARBOR_OFFICE, 2, 6, VILLAGER, RIGHT, LOOK, TALK, NO_LORE, "CLERK",
            "The telegraph says fair weather. The gulls say otherwise. I trust the gulls."),
     PERSON(MAP_BRINE_INN, 1, 2, BAKER, DOWN, STILL, CHEF, NO_LORE, "COOK", 0),
-    PERSON(MAP_BRINE_INN, 3, 2, VILLAGER, DOWN, STILL, INNKEEPER, NO_LORE, "INNKEEPER", 0),
+    PERSON(MAP_BRINE_INN, 3, 2, VILLAGER, DOWN, STILL, BRINE_INNKEEPER, NO_LORE, "INNKEEPER", 0),
     PERSON(MAP_BRINE_INN, 9, 4, WARDEN_A, LEFT, LOOK, TALK, NO_LORE, "GUEST",
            "I came for the Hall and stayed for the fish pie. Third week now."),
     PERSON(MAP_BRINE_HOUSE, 6, 3, ELDER, DOWN, LOOK, SKIPPER, LSRC_SKIPPER, "OLD SKIPPER", 0),

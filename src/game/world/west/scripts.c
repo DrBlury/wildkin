@@ -38,7 +38,7 @@ static void ferry_sail(int to_isle)
     else travel_boat_to(MAP_PORT_BRINE, WEST_BRINE_PIER_X, WEST_BRINE_PIER_Y);
 }
 
-static void ferry_answer(int c)
+static void brine_ferry_answer(int c)
 {
     int to_isle = cur_map != MAP_GULL_ISLE;
     if (c != 0) {
@@ -63,12 +63,12 @@ static void scr_ferry(int npc)
 {
     (void)npc;
     if (cur_map == MAP_GULL_ISLE)
-        dlg_ask("Sailing back to PORT BRINE? The return is paid for.", YES_NO, 2, ferry_answer);
+        dlg_ask("Sailing back to PORT BRINE? The return is paid for.", YES_NO, 2, brine_ferry_answer);
     else if (bag[ITEM_FERRY_PASS])
-        dlg_ask("GULL ISLE with your FERRY PASS? Free as the wind.", YES_NO, 2, ferry_answer);
+        dlg_ask("GULL ISLE with your FERRY PASS? Free as the wind.", YES_NO, 2, brine_ferry_answer);
     else
         dlg_ask("The ferry to GULL ISLE: 500c a crossing, the way back included. Sail?", YES_NO, 2,
-                ferry_answer);
+                brine_ferry_answer);
 }
 
 /* ---------------- Port Brine ---------------- */
@@ -159,7 +159,7 @@ static void scr_harbormaster(int npc)
 
 static const char *const INN_MENU[3] = { "REST 100c", "CHAT", "NO THANKS" };
 
-static void inn_answer(int c)
+static void brine_inn_answer(int c)
 {
     if (c == 1) {
         dlg_say("Fish pie tonight. Fish pie every night, truth be told. Ask the cook for the recipe!");
@@ -178,11 +178,11 @@ static void inn_answer(int c)
     dlg_say("You slept to the sound of the harbor. Your kin woke up full of vigor!");
 }
 
-static void scr_innkeeper(int npc)
+static void scr_brine_innkeeper(int npc)
 {
     (void)npc;
     if (west_post_deliver(FLAG_POST_INN, "A letter from the harbor? My brother on GULL ISLE! Thank you, dear.")) return;
-    dlg_ask("Welcome to the GULL INN. A bed for your team is 100c.", INN_MENU, 3, inn_answer);
+    dlg_ask("Welcome to the GULL INN. A bed for your team is 100c.", INN_MENU, 3, brine_inn_answer);
 }
 
 static void scr_skipper(int npc)
