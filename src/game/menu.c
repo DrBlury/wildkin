@@ -408,7 +408,7 @@ static void options_redraw(void)
             text_draw(13, y - 3, "{");
         }
         text_draw(24, y - 3, o->label);
-        text_draw_col(160, y - 3, "<", INK_BLUE, INK_BLUE_SH);
+        text_draw_col(154, y - 3, "<", INK_BLUE, INK_BLUE_SH);
         text_draw_center(192, y - 3, o->names[*o->value % o->count]);
         text_draw_col(222, y - 3, ">", INK_BLUE, INK_BLUE_SH);
     }
@@ -1097,7 +1097,7 @@ static void bag_redraw(void)
         text_draw_col(12, 78, "IN A BOUT", INK_RED, INK_RED_SH);
     } else {
         text_draw_col(12, 72, BSORT_NAMES[bscr.sort], INK_BLUE, INK_BLUE_SH);
-        text_draw_col(12, 88, "SELECT: ORDER", INK_SHADOW, INK_SHADOW);
+        text_draw_col(12, 88, "SEL: ORDER", INK_SHADOW, INK_SHADOW);
     }
 
     /* right: the items */
@@ -1638,7 +1638,7 @@ static void pc_redraw(void)
     canvas_window(0, 3, 12, 17, WIN_STD);
     if (pc.moving) {
         Monster carried = storage_get(pc.move_from);
-        pc_draw_left(&carried, "MOVE");
+        pc_draw_left(&carried, 0);
     } else if (pc.cursor < n) {
         Monster m = pc_mon(pc.cursor);
         pc_draw_left(&m, 0);
@@ -1979,6 +1979,8 @@ static void pc_update(void)
     }
     if (!key_hit(KEY_A)) return;
     if (pc.moving) {
+        int same = storage[pc.move_from].box == pc_box();
+        int within = pc.move_from - storage_box_start(pc_box());
         if (!storage_move(pc.move_from, pc_box(), pc.cursor)) {
             sfx_play(SFX_ERROR);
             pc_say("That box is full.");
@@ -1986,6 +1988,7 @@ static void pc_update(void)
         }
         pc.moving = 0;
         sfx_play(SFX_CONFIRM);
+        if (same && within < pc.cursor) pc.cursor--;   /* select the kin where it landed */
         if (pc.cursor >= pc_count()) pc.cursor = pc_count() - 1;
         pc_redraw();
         return;
@@ -1999,6 +2002,7 @@ static void pc_draw(void)
 {
     int n = pc_count();
     if (pc.moving || pc.cursor < n) spr_push(16, 28, OT_MON_A, SQ64, OBANK_MON_A, 0, 0);
+    if (pc.state != SH_LIST) return;   /* menus and messages sit over the list */
     for (int r = 0; r < SHELF_ROWS; r++) {
         if (pc.row_sp[r] < 0) continue;
         int y = SHELF_ROW_Y(r);

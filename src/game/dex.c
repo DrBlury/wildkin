@@ -497,7 +497,7 @@ static void dex_list_redraw(void)
     if (dex_list_n) load_monster_gfx(0, sp, 0);
     if (dex.state == 2) {
         static const char *const LABEL[4] = { "SHOW", "TYPE", "RARITY", "PLACE" };
-        canvas_window(3, 4, 24, 13, WIN_STD);
+        canvas_window(3, 4, 24, 14, WIN_STD);
         text_draw_col(40, 40, "FILTER THE ALMANAC", INK_BLUE, INK_BLUE_SH);
         for (int r = 0; r < 4; r++) {
             int y = 60 + r * 16;
@@ -520,7 +520,7 @@ static void dex_list_redraw(void)
         buf[0] = 0;
         str_put_int(buf, dex_list_n);
         str_put(buf, " KIN   A: DONE");
-        text_draw_col(48, 122, buf, INK_SHADOW, INK_SHADOW);
+        text_draw_col(48, 124, buf, INK_SHADOW, INK_SHADOW);
     }
 }
 
