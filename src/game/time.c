@@ -39,6 +39,21 @@ static void time_validate(void)
 __attribute__((unused)) static int time_hour(void) { return gtime.minute / 60; }
 __attribute__((unused)) static int time_is_night(void) { return gtime.minute >= 20 * 60 || gtime.minute < 6 * 60; }
 
+/* "DAY 3  14:05" for the START menu clock (UI placeholder: the FARM owner's
+ * version replaces this one when time.c is merged). */
+MAYBE_UNUSED static void time_text(char *buf)
+{
+    str_copy(buf, "DAY ");
+    str_put_int(buf, gtime.day);
+    str_put(buf, "  ");
+    int h = gtime.minute / 60 % 24, m = gtime.minute % 60;
+    if (h < 10) str_put(buf, "0");
+    str_put_int(buf, h);
+    str_put(buf, ":");
+    if (m < 10) str_put(buf, "0");
+    str_put_int(buf, m);
+}
+
 /* Field palettes pass through here (field.c): day/night tint. */
 static u16 field_tint(u16 c)
 {

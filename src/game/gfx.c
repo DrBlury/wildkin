@@ -429,10 +429,19 @@ static void draw_status_badge(int cx, int cy, int status)
     canvas_image(cx, cy, 3, 1, status_badge_gfx[status - 1], 0, status_badge_bank[status - 1]);
 }
 
+/* ICON_* art of an item (0 for anything out of range). */
+static int item_icon_index(int item)
+{
+    if (item < 0 || item >= ITEM_COUNT) return 0;
+    int icon = ITEMS[item].icon;
+    return icon < ITEM_ICON_COUNT ? icon : 0;
+}
+
 static void draw_item_icon(int cx, int cy, int item)
 {
-    for (int i = 0; i < 16; i++) bg_palette[BANK_ITEM_ICON * 16 + i] = item_icon_pal[item][i];
-    canvas_image(cx, cy, 3, 3, item_icon_gfx[item], 1, BANK_ITEM_ICON);
+    int icon = item_icon_index(item);
+    for (int i = 0; i < 16; i++) bg_palette[BANK_ITEM_ICON * 16 + i] = item_icon_pal[icon][i];
+    canvas_image(cx, cy, 3, 3, item_icon_gfx[icon], 1, BANK_ITEM_ICON);
 }
 
 /* ---------------- present ---------------- */
@@ -789,4 +798,22 @@ static void set_brightness(int level)
         REG_BLDCNT = (u16)(0x3F | (level > 0 ? 0x80 : 0xC0));
         REG_BLDY = (u16)clampi(absi(level), 0, 16);
     }
+}
+
+/* ---------------- rarity gems (8x8 OBJ sprites) ---------------- */
+
+#define OT_GEM          120   /* GEM_COUNT tiles; NPC slots 14+ are never used in menus */
+#define OBANK_GEM         7
+
+/* Menus call this once when they open (the field reuses the bank). */
+static void gems_load(void)
+{
+    copy32(VRAM_OBJ_TILES + OT_GEM * 8, gem_obj_gfx, GEM_COUNT * 8);
+    load_pal(obj_palette + OBANK_GEM * 16, gem_obj_pal);
+}
+
+static void gem_push(int x, int y, int rarity)
+{
+    if (rarity < 0 || rarity >= GEM_COUNT) return;
+    spr_push(x, y, OT_GEM + rarity, SQ8, OBANK_GEM, 0, 0);
 }

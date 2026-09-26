@@ -648,14 +648,18 @@ static void test_menus(void)
     start_cursor = start_index(SM_SHELF);
     tap(KEY_A);
     CHECK(game_mode == MODE_PC, "SHELF opens the Lantern Shelf anywhere");
-    tap(KEY_SELECT);
-    CHECK(pc.deposit, "SELECT swaps between withdraw and deposit");
+    tap(KEY_LEFT);
+    CHECK(pc.page == 0, "LEFT / RIGHT flip between the team and the boxes");
     tap(KEY_A);
-    for (int f = 0; f < 200 && pc.state == 2; f++) step((f & 3) == 0 ? KEY_A : 0);
+    choice.cursor = 1; /* DEPOSIT */
+    tap(KEY_A);
+    for (int f = 0; f < 200 && pc.state == SH_DIALOG; f++) step((f & 3) == 0 ? KEY_A : 0);
     CHECK(party_count == 2 && storage_count == 1, "a kin goes to the shelf");
-    tap(KEY_SELECT);
+    tap(KEY_RIGHT);
     tap(KEY_A);
-    for (int f = 0; f < 200 && pc.state == 2; f++) step((f & 3) == 0 ? KEY_A : 0);
+    choice.cursor = 1; /* WITHDRAW */
+    tap(KEY_A);
+    for (int f = 0; f < 200 && pc.state == SH_DIALOG; f++) step((f & 3) == 0 ? KEY_A : 0);
     CHECK(party_count == 3 && storage_count == 0, "and comes back");
     tap(KEY_B);
     CHECK(game_mode == MODE_START_MENU, "B returns to the START menu");
