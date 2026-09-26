@@ -181,7 +181,7 @@ static void relearn_pick_kin(int c)
     if (c != 0) return;
     int n = 0;
     for (int i = 0; i < party_count; i++) {
-        str_copy(names[i], SPECIES[party[i].species].name);
+        str_copy(names[i], kin_name(&party[i]));
         kin[n++] = names[i];
     }
     kin[n++] = "CANCEL";
@@ -647,7 +647,7 @@ static void follower_talk(void)
     if (lead < 0) return;
     const Monster *m = &party[lead];
     char msg[96];
-    str_copy(msg, SPECIES[m->species].name);
+    str_copy(msg, kin_name(m));
     if (m->bond >= 220) {
         str_put(msg, " leans against you and glows warmly. It trusts you completely.");
         field_emote(-1, EMOTE_HAPPY, 50);

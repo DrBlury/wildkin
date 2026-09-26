@@ -110,7 +110,7 @@ int main(void)
     CHECK(save_write_to(sram), "a save without the RUNESTONE writes");
     new_game();
     bag[ITEM_RUNESTONE] = 0;
-    CHECK(save_load_from(sram) == 4 && bag[ITEM_RUNESTONE] == 1, "loading it hands the RUNESTONE over");
+    CHECK(save_load_from(sram) == SAVE_VERSION && bag[ITEM_RUNESTONE] == 1, "loading it hands the RUNESTONE over");
 
     if (!failures) {
         printf("all runestone checks passed\n");

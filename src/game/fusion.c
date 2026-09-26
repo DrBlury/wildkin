@@ -416,6 +416,7 @@ static struct {
     int works_cursor;
     /* UNBIND */
     int ub_state, ub_cursor, ub_timer, ub_ntypes, ub_species, ub_lustrous;
+    char ub_name[KIN_NAME_LEN + 1];   /* the unbinding kin's name */
     u8 ub_type[2];
     u16 ub_amt[2], ub_before[2];
     /* ENERGY */
@@ -751,7 +752,7 @@ static void ub_redraw(void)
     if (fz.ub_state == UB_ANIM) {
         ub_liquid_colors(fz.ub_type[0], fz.ub_ntypes > 1 ? fz.ub_type[1] : fz.ub_type[0]);
         ub_flask_draw(fz_level_rows(fz.ub_before[0]), 0);
-        str_copy(buf, SPECIES[fz.ub_species].name);
+        str_copy(buf, fz.ub_name);
         str_put(buf, " is coming unbound...");
         text_draw(16, 120, buf);
         ub_load_portrait();
@@ -770,7 +771,7 @@ static void ub_redraw(void)
     int la = fz_level_rows(fusion.energy[type[0]]);
     int lb = k > 1 ? fz_level_rows(fusion.energy[type[0]] + fusion.energy[type[1]]) - la : 0;
     ub_flask_draw(la, lb);
-    str_copy(buf, s->name);
+    str_copy(buf, kin_name(&m));
     if (m.flags & MF_LUSTROUS) str_put(buf, "*");
     str_put(buf, "  Lv");
     str_put_int(buf, m.level);
@@ -812,6 +813,7 @@ static void ub_begin_anim(int i)
     fz.ub_amt[0] = amt[0];
     fz.ub_amt[1] = n > 1 ? amt[1] : 0;
     fz.ub_species = m.species;
+    str_copy(fz.ub_name, kin_name(&m));
     fz.ub_lustrous = (m.flags & MF_LUSTROUS) != 0;
     fz.ub_state = UB_ANIM;
     fz.ub_timer = 0;
@@ -827,7 +829,7 @@ static void ub_finish(void)
     fz.ub_state = UB_PICK;
     REG_MOSAIC = 0;
     fzp_clear();
-    str_copy(msg, SPECIES[fz.ub_species].name);
+    str_copy(msg, fz.ub_name);
     str_put(msg, "'s kernel came unbound: ");
     for (int i = 0; i < fz.ub_ntypes; i++) {
         char part[24];
@@ -866,7 +868,7 @@ static void ub_confirm(int c)
     const Species *s = &SPECIES[m.species];
     if (s->rarity == R_LEGEND || (m.flags & MF_LUSTROUS)) {
         char msg[128];
-        str_copy(msg, s->name);
+        str_copy(msg, kin_name(&m));
         str_put(msg, s->rarity == R_LEGEND ? " is a legend. There will never be another like it. Really unbind it?"
                                            : " is lustrous, a rare colour you may never see again. Really unbind it?");
         dlg_ask(msg, YES_NO, 2, ub_confirm_final);
@@ -937,7 +939,7 @@ static void ub_update(void)
         int k = fusion_unbind_yield(&m, type, amt);
         char msg[160];
         str_copy(msg, "Unbind ");
-        str_put(msg, SPECIES[m.species].name);
+        str_put(msg, kin_name(&m));
         str_put(msg, "? Its kernel becomes ");
         for (int i = 0; i < k; i++) {
             char part[24];

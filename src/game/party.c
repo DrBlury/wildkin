@@ -10,7 +10,7 @@
 #define BOX_COUNT 8
 #define STORAGE_MAX (BOX_SIZE * BOX_COUNT)   /* the LANTERN SHELF: 8 boxes of 30 */
 
-/* A kin resting on the Shelf, packed to 24 bytes. Stats, HP and uses are
+/* A kin resting on the Shelf, packed to 36 bytes. Stats, HP and uses are
  * rebuilt when it comes back (resting on the Shelf heals it fully).
  * storage[] stays packed and grouped by box: box 0's kin first, then box
  * 1's... (storage_boxes_sync repairs anything else). */
@@ -23,8 +23,10 @@ typedef struct {
     u8 met_level;
     u8 box;                  /* Shelf box 0..BOX_COUNT-1 */
     u16 order;               /* arrival stamp: higher = came to the Shelf later */
+    char name[KIN_NAME_LEN]; /* nickname, 0-padded (not terminated when 10 long) */
+    u8 pad[2];
 } BoxMon;
-typedef char BoxMonIs24[sizeof(BoxMon) == 24 ? 1 : -1];
+typedef char BoxMonIs36[sizeof(BoxMon) == 36 ? 1 : -1];
 
 static Monster party[PARTY_MAX];
 static int party_count;
@@ -53,7 +55,22 @@ static BoxMon box_pack(const Monster *m)
     b.size = m->size;
     b.met_map = m->met_map;
     b.met_level = m->met_level;
+    for (int i = 0; i < KIN_NAME_LEN; i++) b.name[i] = m->name[i];
     return b;
+}
+
+/* A Shelf kin's name (nickname or species); the text lives until the
+ * fourth call after this one. */
+static const char *box_name(const BoxMon *b)
+{
+    static char bufs[4][KIN_NAME_LEN + 1];
+    static int next;
+    if (!b->name[0]) return SPECIES[b->species < SP_COUNT ? b->species : 0].name;
+    char *buf = bufs[next];
+    next = (next + 1) & 3;
+    for (int i = 0; i < KIN_NAME_LEN; i++) buf[i] = b->name[i];
+    buf[KIN_NAME_LEN] = 0;
+    return buf;
 }
 
 static Monster box_unpack(const BoxMon *b)
@@ -76,6 +93,8 @@ static Monster box_unpack(const BoxMon *b)
     m.size = b->size;
     m.met_map = b->met_map;
     m.met_level = b->met_level;
+    for (int i = 0; i < KIN_NAME_LEN; i++) m.name[i] = b->name[i];
+    m.name[KIN_NAME_LEN] = 0;
     monster_recalc(&m);
     monster_heal_full(&m);
     return m;
@@ -190,6 +209,15 @@ static int storage_add_box(const Monster *m, int b)
 static int storage_add(const Monster *m)
 {
     return storage_add_box(m, opt.shelf_box) >= 0;
+}
+
+/* The Shelf slot of the kin that arrived last (-1 when empty). */
+static int storage_newest(void)
+{
+    int best = -1;
+    for (int i = 0; i < storage_count; i++)
+        if (best < 0 || storage[i].order > storage[best].order) best = i;
+    return best;
 }
 
 /* Takes a kin off the Shelf (the rest move up). */
@@ -416,7 +444,7 @@ static void learn_forget_pick(int c)
 {
     char msg[MSG_TEXT_MAX];
     Monster *m = &party[learn.slot];
-    const char *name = SPECIES[m->species].name;
+    const char *name = kin_name(m);
     if (c < 0 || c >= MAX_MOVES) {
         str_copy(msg, name);
         str_put(msg, " did not learn ");
@@ -459,7 +487,7 @@ static void learn_begin(int slot, int move)
 {
     char msg[MSG_TEXT_MAX];
     Monster *m = &party[slot];
-    const char *name = SPECIES[m->species].name;
+    const char *name = kin_name(m);
     if (monster_knows(m, move)) return;
     if (monster_add_move(m, move)) {
         str_copy(msg, name);
@@ -520,7 +548,7 @@ static int item_use_field(int item, int slot)
     default: break;
     }
     Monster *m = &party[slot];
-    const char *name = SPECIES[m->species].name;
+    const char *name = kin_name(m);
     char msg[MSG_TEXT_MAX];
     if (it->kind == IK_HUSH) {
         if (bag[item] <= 0) return 0;

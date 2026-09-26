@@ -6,6 +6,7 @@
 
 #define MAX_MOVES 4
 #define MAX_LEVEL 100
+#define KIN_NAME_LEN 10   /* nickname length (uppercase, digits, a few symbols) */
 
 typedef struct {
     u8 species, level, status, sleep_turns;
@@ -20,7 +21,7 @@ typedef struct {
     u8 flags;           /* MF_* */
     u8 bond;            /* 0..255 */
     u8 met_map, met_level;
-    u8 pad;
+    char name[KIN_NAME_LEN + 1];   /* nickname, 0-terminated; "" = the species name */
 } Monster;
 
 enum { MF_LUSTROUS = 1 };
@@ -28,6 +29,33 @@ enum { MF_LUSTROUS = 1 };
 #define POT_MAX 31
 #define BOND_START 70
 #define LUSTROUS_ODDS 128
+
+/* What the player calls this kin: its nickname, or else its species name
+ * (so a kin without a nickname shows its new name after evolving). */
+static const char *kin_name(const Monster *m)
+{
+    return m->name[0] ? m->name : SPECIES[m->species].name;
+}
+
+/* Characters a nickname may hold. */
+static int kin_name_char_ok(char c)
+{
+    return (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == ' ' || c == '-' || c == '.' ||
+           c == '\'' || c == '!' || c == '?' || c == '&' || c == '+' || c == '/';
+}
+
+/* Set a nickname (clipped to KIN_NAME_LEN; bad characters dropped, the
+ * spaces around it trimmed). A name equal to the species name, or an empty
+ * one, clears the nickname. */
+static void kin_set_name(Monster *m, const char *src)
+{
+    int n = 0;
+    for (int i = 0; src && src[i] && n < KIN_NAME_LEN; i++)
+        if (kin_name_char_ok(src[i]) && !(n == 0 && src[i] == ' ')) m->name[n++] = src[i];
+    while (n > 0 && m->name[n - 1] == ' ') n--;
+    for (int i = n; i <= KIN_NAME_LEN; i++) m->name[i] = 0;
+    if (str_eq(m->name, SPECIES[m->species].name)) m->name[0] = 0;
+}
 
 static int calc_hp_stat(int base, int pot, int level)
 {

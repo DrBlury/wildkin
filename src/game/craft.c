@@ -440,7 +440,7 @@ static int craft_read_book(int item, int book)
 /* Heal one kin by `amount` (0 = fully, moves too). */
 static int food_heal_one(Monster *k, int amount, char *msg)
 {
-    const char *name = SPECIES[k->species].name;
+    const char *name = kin_name(k);
     if (!k->hp) return 0;
     if (amount) {
         if (k->hp >= k->max_hp) return 0;
@@ -511,7 +511,7 @@ static int craft_use_food(int item, int slot)
         monster_level_up(k);
         if (k->hp == 0) k->hp = 1;
         k->bond = (u8)clampi(k->bond + BOND[tier], 0, 255);
-        str_copy(msg, SPECIES[k->species].name);
+        str_copy(msg, kin_name(k));
         str_put(msg, " crunched the KERNEL CANDY and grew to Lv. ");
         str_put_int(msg, k->level);
         str_put(msg, "!");

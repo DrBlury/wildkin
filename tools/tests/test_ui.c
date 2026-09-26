@@ -299,8 +299,8 @@ static void test_shelf(void)
     pc_redraw();
     int sp = party[3].species;
     tap(KEY_A);
-    CHECK(pc.act_n == 3 && pc.act_id[0] == SHA_SUMMARY && pc.act_id[1] == SHA_MOVE,
-          "the team page offers SUMMARY and MOVE (no DEPOSIT / WITHDRAW)");
+    CHECK(pc.act_n == 4 && pc.act_id[0] == SHA_SUMMARY && pc.act_id[1] == SHA_MOVE && pc.act_id[2] == SHA_NAME,
+          "the team page offers SUMMARY, MOVE and NAME (no DEPOSIT / WITHDRAW)");
     choice.cursor = 1; /* MOVE */
     tap(KEY_A);
     CHECK(pc.moving && pc.move_team, "MOVE picks a team kin up");
@@ -376,7 +376,7 @@ static void test_shelf(void)
     pc_redraw();
     int before = storage_count;
     tap(KEY_A);
-    choice.cursor = 2; /* RELEASE */
+    choice.cursor = 3; /* RELEASE */
     tap(KEY_A);
     for (int f = 0; f < 200 && !choice.active; f++) step(0);
     choice.cursor = 1; /* NO */
@@ -384,7 +384,7 @@ static void test_shelf(void)
     run_until_idle(pc_busy, 300);
     CHECK(storage_count == before, "NO keeps the kin");
     tap(KEY_A);
-    choice.cursor = 2;
+    choice.cursor = 3;
     tap(KEY_A);
     for (int f = 0; f < 200 && !choice.active; f++) step(0);
     tap(KEY_A);   /* YES */
@@ -465,7 +465,7 @@ static void test_shelf(void)
     opt.registered = ITEM_HOE + 1;
     save_write_to(sram);
     new_game();
-    CHECK(save_load_from(sram) == 4 && storage_box_count(1) == b2 && opt.registered == ITEM_HOE + 1,
+    CHECK(save_load_from(sram) == SAVE_VERSION && storage_box_count(1) == b2 && opt.registered == ITEM_HOE + 1,
           "boxes and the registered item survive a save");
     opt.registered = 0;
 }
