@@ -3,11 +3,7 @@
  * Owner: FUSION system.
  */
 
-/* The machines of the RESONANCE WORKS (W-EAST's MAP_RESONANCE_WORKS, an
- * 11x9 interior: wall rows 0-1, door at 5,8). Each stands with its top row
- * over the lower wall; examining one opens its screen (fusion_examine).
- * ENGINEER NELL (world/fusion/npcs.inc) waits at 8,5. */
-static const DecorPlace WORKS_DECOR[] = {
-    DP(FZ_EXTRACTOR, 0, 1), DP(FZ_MIXER, 2, 1), DP(FZ_LOOM, 4, 1), DP(FZ_TANKS, 8, 1),
-    DP(PLANT, 10, 1),
-};
+/* The machines of the RESONANCE WORKS stand on its lower floor; they are
+ * placed in W-EAST's RESONANCE_WORKS_DECOR (world/east/data.h). Examining
+ * one opens its screen (fusion_examine). ENGINEER NELL
+ * (world/fusion/npcs.inc) waits behind the counter at 6,2. */

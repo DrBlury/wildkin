@@ -34,7 +34,6 @@
     PERSON(MAP_LUMEN_MARKET, 1, 2, SHOPKEEPER, DOWN, STILL, LUMEN_SHOP, NO_LORE, "CLERK", 0),
     PERSON(MAP_LUMEN_MARKET, 7, 6, VILLAGER, UP, LOOK, TALK, NO_LORE, "SHOPPER",
            "SWIFT COILS, FOCUS COILS... a coil for everything! Lumen people love their coils."),
-    PERSON(MAP_RESONANCE_WORKS, 6, 2, SCIENTIST, DOWN, STILL, FUSION_DESK, NO_LORE, "DESK CLERK", 0),
     PERSON(MAP_RESONANCE_WORKS, 3, 7, PROFESSOR, RIGHT, LOOK, TALK, NO_LORE, "DR. OHMSTEAD",
            "We don't make energy here. Kin make it. We just catch what they spill, and weave it."),
     PERSON(MAP_BIKE_SHOP, 8, 2, SHOPKEEPER, DOWN, STILL, BIKE_OTTO, NO_LORE, "OTTO", 0),

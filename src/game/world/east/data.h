@@ -441,8 +441,9 @@ static const char *const RESONANCE_WORKS_ROWS[] = {
 static const DecorPlace RESONANCE_WORKS_DECOR[] = {
     DP(ENERGY_VAT, 0, 1), DP(ENERGY_VAT, 1, 1), DP(RESONANCE_COIL, 2, 1), DP(CHALKBOARD, 4, 0),
     DP(RESONANCE_COIL, 10, 1), DP(ENERGY_VAT, 11, 1), DP(ENERGY_VAT, 12, 1),
-    DP(LAB_MACHINE, 0, 5), DP(DYNAMO, 11, 5), DP(TELEGRAPH, 12, 7), DP(PLANT, 0, 8),
-    DP(SMALL_PLANT, 12, 8),
+    /* the fusion machines (FUSION owner: fusion_examine opens each one) */
+    DP(FZ_EXTRACTOR, 0, 4), DP(FZ_MIXER, 2, 4), DP(FZ_TANKS, 0, 6), DP(FZ_LOOM, 9, 4),
+    DP(TELEGRAPH, 12, 7), DP(PLANT, 0, 8), DP(SMALL_PLANT, 12, 8),
 };
 
 /* BIKE SHOP */

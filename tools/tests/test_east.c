@@ -132,7 +132,7 @@ static void test_reach(void)
         int m = queue[head], sx = qx[head], sy = qy[head];
         head++;
         map_load(m);
-        flood(sx, sy);
+        flood_ex(sx, sy, FLOOD_SOLVED);   /* puzzles solved (traversal makes objects solid) */
         /* everything on the map is reachable from where you come in */
         for (int i = 0; i < NPC_COUNT; i++)
             if (NPCS[i].map == m) {
@@ -182,7 +182,7 @@ static void test_reach(void)
 
     /* the Spire's Crown is only reachable through the boulder's cell */
     map_load(MAP_CLOCKWORK_SPIRE);
-    flood(6, 18);
+    flood_ex(6, 18, FLOOD_SOLVED);
     int crown = reached(6, 4);
     CHECK(crown && (cell_attr(5, 7) & A_SOLID) && (cell_attr(7, 7) & A_SOLID) &&
           MAPS[MAP_CLOCKWORK_SPIRE].objs[0].kind == OBJ_BOULDER && MAPS[MAP_CLOCKWORK_SPIRE].objs[0].x == 6 &&
@@ -217,7 +217,9 @@ static int switch_at(int x, int y)
 static int hall_free(int x, int y, int bits)
 {
     if (x < 0 || y < 0 || x >= HW || y >= HH) return 0;
-    if (!cell_walkable(x, y)) return 0;
+    /* this solver models the barriers itself: read the map without traversal's objects */
+    if (cell_attr_raw(x, y) & (A_SOLID | A_LEDGE)) return 0;
+    if (npc_at(x, y) >= 0 || npc_kin_at(x, y) >= 0 || item_ball_at(x, y) >= 0) return 0;
     int b = barrier_at(x, y);
     return b < 0 || ((bits >> b) & 1);
 }
