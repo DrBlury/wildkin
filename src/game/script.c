@@ -664,12 +664,9 @@ static void follower_talk(void)
     dlg_say(msg);
 }
 
-static const char *const PC_MENU[3] = { "WITHDRAW", "DEPOSIT", "CANCEL" };
-
 static void pc_answer(int c)
 {
     if (c == 0) pc_open(0);
-    else if (c == 1) pc_open(1);
 }
 
 static void bed_answer(int c)
@@ -718,7 +715,7 @@ static int examine_cell(int x, int y)
         }
         return 0;
     case DK_PC:
-        dlg_ask("A LANTERN SHELF terminal. Its twin crystal glows softly. Which service?", PC_MENU, 3, pc_answer);
+        dlg_ask("A LANTERN SHELF terminal. Its twin crystal glows softly. Open the Shelf?", YES_NO, 2, pc_answer);
         return 1;
     case DK_BOOKSHELF:
         lore_reveal(book_source(), "It's packed with books about kin, weather and the old Kinship.");

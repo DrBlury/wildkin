@@ -1454,8 +1454,9 @@ def make_sprites(model):
     # front
     ex = measure(model, model.front_yaw, model.front_pitch)
     wu, hu = ex[2] - ex[0], ex[3] - ex[1]
-    s = min(model.height / hu, min(model.max_w, 59.0) / wu)
     bottom = 60.0 - model.float_lift
+    # never taller than the frame: a hovering kin shrinks rather than clip
+    s = min(model.height / hu, min(model.max_w, 59.0) / wu, (bottom - 2.0) / hu)
     ox = 32.0 - s * (ex[0] + ex[2]) / 2.0
     oy = bottom - s * ex[3]
     Rf = render(model, model.front_yaw, model.front_pitch, s, ox, oy, 64, 64)

@@ -1518,8 +1518,9 @@ static void shop_update(void)
 /*
  * Page 0 is your team, pages 1..8 are the Shelf's boxes of 30. Each row
  * shows the kin's icon (OBJ banks 1-5), name, rarity gem and level; the
- * left panel shows the selected kin. A: SUMMARY / WITHDRAW / DEPOSIT /
- * MOVE / RELEASE (asked twice). START: SORT, BOXES BY TYPE, FIND BY TYPE;
+ * left panel shows the selected kin. A: SUMMARY / MOVE / RELEASE (asked
+ * twice). MOVE picks a kin up from the team or a box and puts it down on
+ * any page: that is how kin join the team or go onto the Shelf. START: SORT, BOXES BY TYPE, FIND BY TYPE;
  * while a search is on, SELECT jumps to the next kin of that type.
  */
 
@@ -1528,13 +1529,14 @@ static void shop_update(void)
 #define SHELF_ROW_Y(r) (30 + (r) * 24)
 
 enum { SH_LIST, SH_ACTION, SH_DIALOG, SH_TOOLS, SH_SORT, SH_FIND };
-enum { SHA_SUMMARY, SHA_WITHDRAW, SHA_DEPOSIT, SHA_MOVE, SHA_RELEASE, SHA_SORT_BOX, SHA_SORT_ALL,
+enum { SHA_SUMMARY, SHA_MOVE, SHA_RELEASE, SHA_SORT_BOX, SHA_SORT_ALL,
        SHA_BY_TYPE, SHA_FIND, SHA_CANCEL };
 static const char *const SORT_NAMES[SORT_COUNT] = { "NUMBER", "LEVEL", "TYPE", "RARITY", "NEWEST" };
 
 static struct {
     int page, cursor, scroll, state, from_menu;
-    int moving, move_from;          /* carrying storage[move_from] (MOVE) */
+    int moving, move_from;          /* carrying storage[move_from] (MOVE) ... */
+    int move_team;                  /* ... or party[move_from] */
     int sort_all;                   /* the SORT menu is for every box */
     int find_type, find_pick;       /* FIND BY TYPE: the type searched (-1 = none) */
     int found_n, found_k;
@@ -1548,16 +1550,20 @@ static struct {
 } pc;
 
 static int pc_box(void) { return pc.page - 1; }
+static const char *pc_drop(void);
 
 static int pc_count(void)
 {
     return pc.page == 0 ? party_count : storage_box_count(pc_box());
 }
 
-/* Rows in the list: the kin, plus a "put it at the end" row while moving. */
+/* Rows in the list: the kin, plus a "put it at the end" row while moving
+ * (on the team page only when there is room, or to reorder the team). */
 static int pc_rows(void)
 {
-    return pc_count() + (pc.moving && pc.page > 0 ? 1 : 0);
+    if (!pc.moving) return pc_count();
+    if (pc.page == 0) return party_count + (pc.move_team || party_count < PARTY_MAX ? 1 : 0);
+    return pc_count() + 1;
 }
 
 static int pc_index(int k)
@@ -1569,6 +1575,20 @@ static Monster pc_mon(int k)
 {
     if (pc.page == 0) return party[k];
     return storage_get(pc_index(k));
+}
+
+/* The kin being carried by MOVE. */
+static Monster pc_carried(void)
+{
+    return pc.move_team ? party[pc.move_from] : storage_get(pc.move_from);
+}
+
+/* Row k of this page is the carried kin itself. */
+static int pc_is_carried(int k)
+{
+    if (!pc.moving || k >= pc_count()) return 0;
+    if (pc.page == 0) return pc.move_team && k == pc.move_from;
+    return !pc.move_team && pc_index(k) == pc.move_from;
 }
 
 static void pc_clamp(void)
@@ -1656,7 +1676,7 @@ static void pc_redraw(void)
     /* left: the kin under the cursor (or the one being carried) */
     canvas_window(0, 3, 12, 17, WIN_STD);
     if (pc.moving) {
-        Monster carried = storage_get(pc.move_from);
+        Monster carried = pc_carried();
         pc_draw_left(&carried, 0);
     } else if (pc.cursor < n) {
         Monster m = pc_mon(pc.cursor);
@@ -1677,7 +1697,7 @@ static void pc_redraw(void)
         Monster m = pc_mon(k);
         const Species *s = &SPECIES[m.species];
         int match = pc.find_type >= 0 && (s->type1 == pc.find_type || s->type2 == pc.find_type);
-        if (pc.moving && pc.page > 0 && pc_index(k) == pc.move_from)
+        if (pc_is_carried(k))
             text_draw_col(142, y, s->name, INK_SHADOW, INK_SHADOW);
         else if (match)
             text_draw_col(142, y, s->name, INK_GREEN, INK_GREEN_SH);
@@ -1692,7 +1712,7 @@ static void pc_redraw(void)
     if (pc.scroll > 0) text_draw_col(216, 22, "^", INK_BLUE, INK_BLUE_SH);
     if (pc.scroll + SHELF_ROWS < rows) text_draw_col(216, 146, "}", INK_BLUE, INK_BLUE_SH);
     if (pc.moving) {
-        Monster carried = storage_get(pc.move_from);
+        Monster carried = pc_carried();
         load_monster_icon_ex(5, carried.species, (carried.flags & MF_LUSTROUS) != 0);
     }
     if (pc.state == SH_FIND) {
@@ -1772,42 +1792,10 @@ static void pc_act(int act)
         if (pc.page == 0) summary_open(k, MODE_PC);
         else summary_open_shelf(pc_index(k));
         return;
-    case SHA_DEPOSIT: {
-        int healthy_others = 0;
-        for (int i = 0; i < party_count; i++)
-            if (i != k && party[i].hp > 0) healthy_others++;
-        if (party_count <= 1 || !healthy_others) {
-            pc_say("You can't send away your last kin that's awake!");
-            return;
-        }
-        int b = storage_add_box(&party[k], opt.shelf_box);
-        if (b < 0) {
-            pc_say("The LANTERN SHELF is full.");
-            return;
-        }
-        str_copy(msg, SPECIES[party[k].species].name);
-        str_put(msg, " went across the wire to BOX ");
-        str_put_int(msg, b + 1);
-        str_put(msg, ".");
-        for (int i = k; i < party_count - 1; i++) party[i] = party[i + 1];
-        party_count--;
-        pc_say(msg);
-        return;
-    }
-    case SHA_WITHDRAW:
-        if (party_count >= PARTY_MAX) {
-            pc_say("Your team is full!");
-            return;
-        }
-        party[party_count++] = storage_take(pc_index(k));
-        str_copy(msg, SPECIES[party[party_count - 1].species].name);
-        str_put(msg, " joined your team!");
-        pc.find_type = -1;
-        pc_say(msg);
-        return;
     case SHA_MOVE:
         pc.moving = 1;
-        pc.move_from = pc_index(k);
+        pc.move_team = pc.page == 0;
+        pc.move_from = pc.page == 0 ? k : pc_index(k);
         pc.find_type = -1;
         pc_redraw();
         return;
@@ -1859,14 +1847,10 @@ static void pc_open_menu(int tools)
         PC_ADD("SORT ALL BOXES", SHA_SORT_ALL);
         PC_ADD("BOXES BY TYPE", SHA_BY_TYPE);
         PC_ADD("FIND BY TYPE", SHA_FIND);
-    } else if (pc.page == 0) {
-        PC_ADD("SUMMARY", SHA_SUMMARY);
-        PC_ADD("DEPOSIT", SHA_DEPOSIT);
     } else {
         PC_ADD("SUMMARY", SHA_SUMMARY);
-        PC_ADD("WITHDRAW", SHA_WITHDRAW);
         PC_ADD("MOVE", SHA_MOVE);
-        PC_ADD("RELEASE", SHA_RELEASE);
+        if (pc.page > 0) PC_ADD("RELEASE", SHA_RELEASE);
     }
     PC_ADD("CANCEL", SHA_CANCEL);
 #undef PC_ADD
@@ -1954,11 +1938,10 @@ static void pc_update(void)
     }
 
     int old_page = pc.page, old = pc.cursor, rows = pc_rows();
-    int first = pc.moving ? 1 : 0;   /* a carried kin can't go to the team page */
     if (key_rep(KEY_LEFT) || key_rep(KEY_L))
-        pc_set_page(pc.page <= first ? SHELF_PAGES - 1 : pc.page - 1);
+        pc_set_page(pc.page <= 0 ? SHELF_PAGES - 1 : pc.page - 1);
     if (key_rep(KEY_RIGHT) || key_rep(KEY_R))
-        pc_set_page(pc.page >= SHELF_PAGES - 1 ? first : pc.page + 1);
+        pc_set_page(pc.page >= SHELF_PAGES - 1 ? 0 : pc.page + 1);
     if (old_page != pc.page) {
         pc.cursor = pc.scroll = 0;
     } else if (rows) {
@@ -1998,23 +1981,86 @@ static void pc_update(void)
     }
     if (!key_hit(KEY_A)) return;
     if (pc.moving) {
-        int same = storage[pc.move_from].box == pc_box();
-        int within = pc.move_from - storage_box_start(pc_box());
-        if (!storage_move(pc.move_from, pc_box(), pc.cursor)) {
+        const char *why = pc_drop();
+        if (why) {
             sfx_play(SFX_ERROR);
-            pc_say("That box is full.");
+            pc_say(why);
             return;
         }
         pc.moving = 0;
         sfx_play(SFX_CONFIRM);
-        if (same && within < pc.cursor) pc.cursor--;   /* select the kin where it landed */
-        if (pc.cursor >= pc_count()) pc.cursor = pc_count() - 1;
+        pc.find_type = -1;
         pc_redraw();
         return;
     }
     if (pc.cursor >= pc_count()) return;
     sfx_play(SFX_CONFIRM);
     pc_open_menu(0);
+}
+
+/* Can party[k] leave the team? Someone awake must stay behind. */
+static int pc_team_can_spare(int k)
+{
+    for (int i = 0; i < party_count; i++)
+        if (i != k && party[i].hp > 0) return 1;
+    return 0;
+}
+
+/* Puts the carried kin down in front of the row under the cursor (the last
+ * row: at the end). Team to box sends it onto the Shelf, box to team brings
+ * it along (onto a full team: the two swap places). Returns why it can't
+ * go there, or 0 when it went; the cursor ends on it. */
+static const char *pc_drop(void)
+{
+    int k = pc.cursor, from = pc.move_from;
+    if (pc.page > 0) {
+        int b = pc_box();
+        if (!pc.move_team) {
+            int same = storage[from].box == b;
+            int within = from - storage_box_start(b);
+            if (!storage_move(from, b, k)) return "That box is full.";
+            if (same && within < k) k--;
+        } else {
+            if (!pc_team_can_spare(from)) return "You can't send away your last kin that's awake!";
+            if (storage_count >= STORAGE_MAX || storage_box_count(b) >= BOX_SIZE) return "That box is full.";
+            Monster m = party[from];
+            for (int i = from; i < party_count - 1; i++) party[i] = party[i + 1];
+            party_count--;
+            BoxMon bm = box_pack(&m);
+            bm.order = storage_next_order();
+            k = clampi(k, 0, storage_box_count(b));
+            storage_insert(storage_box_start(b) + k, bm, b);
+        }
+        pc.cursor = clampi(k, 0, pc_count() - 1);
+        return 0;
+    }
+    if (pc.move_team) {
+        Monster m = party[from];
+        if (k > from) k--;
+        for (int i = from; i < party_count - 1; i++) party[i] = party[i + 1];
+        k = clampi(k, 0, party_count - 1);
+        for (int i = party_count - 1; i > k; i--) party[i] = party[i - 1];
+        party[k] = m;
+    } else if (party_count < PARTY_MAX) {
+        Monster m = storage_take(from);
+        k = clampi(k, 0, party_count);
+        for (int i = party_count; i > k; i--) party[i] = party[i - 1];
+        party[k] = m;
+        party_count++;
+    } else {
+        if (k >= party_count) return "Your team is full!";
+        if (party[k].hp > 0 && !pc_team_can_spare(k) && storage_get(from).hp == 0)
+            return "You can't send away your last kin that's awake!";
+        /* a full team: the two trade places */
+        u16 order = storage_next_order();
+        BoxMon bm = box_pack(&party[k]);
+        bm.order = order;
+        bm.box = storage[from].box;
+        party[k] = box_unpack(&storage[from]);
+        storage[from] = bm;
+    }
+    pc.cursor = k;
+    return 0;
 }
 
 static void pc_draw(void)

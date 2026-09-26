@@ -683,15 +683,17 @@ static void test_menus(void)
     tap(KEY_LEFT);
     CHECK(pc.page == 0, "LEFT / RIGHT flip between the team and the boxes");
     tap(KEY_A);
-    choice.cursor = 1; /* DEPOSIT */
+    choice.cursor = 1; /* MOVE */
     tap(KEY_A);
-    for (int f = 0; f < 200 && pc.state == SH_DIALOG; f++) step((f & 3) == 0 ? KEY_A : 0);
-    CHECK(party_count == 2 && storage_count == 1, "a kin goes to the shelf");
     tap(KEY_RIGHT);
     tap(KEY_A);
-    choice.cursor = 1; /* WITHDRAW */
+    CHECK(party_count == 2 && storage_count == 1, "a kin goes to the shelf");
+    pc.cursor = 0;
     tap(KEY_A);
-    for (int f = 0; f < 200 && pc.state == SH_DIALOG; f++) step((f & 3) == 0 ? KEY_A : 0);
+    choice.cursor = 1; /* MOVE */
+    tap(KEY_A);
+    tap(KEY_LEFT);
+    tap(KEY_A);
     CHECK(party_count == 3 && storage_count == 0, "and comes back");
     tap(KEY_B);
     CHECK(game_mode == MODE_START_MENU, "B returns to the START menu");
