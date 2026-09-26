@@ -88,6 +88,19 @@ static void flood(int sx, int sy)
     seen_cells[sy * map_w + sx] = 1;
     while (head < tail) {
         int x = qx[head], y = qy[head++];
+        /* teleport pads: standing on one takes you to its partner (same arg) */
+        const MapDef *md = &MAPS[cur_map];
+        for (int i = 0; i < md->obj_count; i++) {
+            if (md->objs[i].kind != OBJ_PAD || md->objs[i].x != x || md->objs[i].y != y) continue;
+            for (int j = 0; j < md->obj_count; j++) {
+                const MapObj *o = &md->objs[j];
+                if (j == i || o->kind != OBJ_PAD || o->arg != md->objs[i].arg) continue;
+                if (seen_cells[o->y * map_w + o->x]) continue;
+                seen_cells[o->y * map_w + o->x] = 1;
+                qx[tail] = o->x;
+                qy[tail++] = o->y;
+            }
+        }
         for (int d = 0; d < 4; d++) {
             int nx = x + DIR_DX[d], ny = y + DIR_DY[d];
             /* ledges: one-way hop south */

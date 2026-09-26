@@ -1,1 +1,12 @@
 /* world/far/script_table.inc -- Script dispatch: [SCR_X] = scr_x,. Owner: W-FAR. */
+    [SCR_FOUNDER] = scr_founder,
+    [SCR_CINDER_TENDER] = scr_far_tender,
+    [SCR_CINDER_CLERK] = scr_cinder_clerk,
+    [SCR_ANVIL_MASTER] = scr_anvil_master,
+    [SCR_TUNNEL_MINER] = scr_tunnel_miner,
+    [SCR_SLEEPER] = scr_sleeper,
+    [SCR_STARGAZER] = scr_stargazer,
+    [SCR_POET] = scr_poet,
+    [SCR_DREAM_TENDER] = scr_far_tender,
+    [SCR_DREAM_CLERK] = scr_dream_clerk,
+    [SCR_DREAM_MASTER] = scr_dream_master,
