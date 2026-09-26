@@ -2,79 +2,103 @@
 
 ## Done
 
-- The worktree branch was fast-forwarded onto the `expansion` base (6118872).
-- `tools/decor_grim.py`: the grim and crypt colour tables, the palette bank plans
-  (`GRIM_BANKS`, `CRYPT_BANKS`, 8 banks of 15 colours each) and drawing helpers
-  (`seg_mask`, `shade_mask`, `outline_mask` and others). `DECOR = []` is still
-  empty, and the module is not yet registered in `gen_field_gfx.all_decor()`.
-- No maps, NPCs, story beats, puzzles, quests, lore or tests are finished.
+- **Tilesets.**
+  - `ts_grim.py` builds (stamps are snapped to their banks by `fit_stamp`).
+  - `ts_crypt.py` is the real crypt tileset (19 terrains, 59 tiles). It has
+    walls, niches, bone walls, wisp cracks and flagstones, and bone dust (`,`,
+    A_GRASS, so wild kin roam the Ossuary). It also has the maze BLOCK, a
+    FAKE_BLOCK that looks like a block but is walkable, and a GHOST_FLOOR that
+    looks like floor but is solid. Stairs up/down and an arch are door
+    terrain; there is a pillar, a carpet and an exit mat. The legend is in the
+    module docstring and at the top of `world/grim/data.h`.
+- **Decor.** `decor_grim.py` has 26 kinds, registered in `all_decor()`:
+  - grim: sign, grave, cross, iron fence, bones, shrub, stump, burnt cart,
+    lantern post (flicker), wisp (walk-through), mire bell, mooring,
+    pumpkin, the Burning memorial.
+  - crypt: skulls, candles, sarcophagus, coffin, green-fire brazier, urn,
+    hooded statue, banner, chains, the 3x3 BONE THRONE, the crest pedestal,
+    a plaque.
+- **Maps** (`world/grim/`). The edge contracts are kept and tested.
+  - The outdoor maps are ASHEN FIELDS, GRAVEWOOD (with a fenced cemetery) and
+    DUSKMERE (a stilt town on the mire). DUSKMERE has the Hearth, Shop,
+    Apothecary, a house, the Lantern Crypt and the sealed Bone Gate.
+  - Interiors: DUSK HEARTH HALL (MF_HEAL), DUSK SHOP, APOTHECARY and MIRE
+    HOUSE (new id `MAP_DUSK_HOUSE`).
+  - LANTERN CRYPT: a dark maze (MF_DARK). A ghost-floor gap tempts you and
+    a false wall hides the way through; a test checks that the sanctum can
+    only be reached through a false wall.
+  - THE OSSUARY (2 floors, wild zones) and the BONE THRONE, with
+    `OBJ(LEGEND, 8, 3, SP_OSSUREX)`, an OSSUARY mimic chest (arg 255) and
+    berry patches 30-33.
+- **People.** There are 29 NPCs: 14 wardens (all with 6 kin or fewer), and
+  HALL MASTER MORWEN, a TT_MASTER bout through `battle_start_master` for
+  `CREST_LANTERN`.
+  - Other people: the gate warden, the bellkeeper, the surveyor, the ash
+    farmer, the sexton, the mourner, her sister, the vigil keeper, the
+    Dusk tender and clerk (with their own shop stock) and the brewer
+    (SCR_BREWER from craft).
+- **Story.** `grim_keeper_talk()` is the Keeper's post-DRAKORA beat (the
+  Hollowing).
+  - Quests: QUEST_HOLLOWING (stages 1-4 and 255), plus LIGHT FOR THE ASH and
+    A LETTER TO THE MIRE.
+  - The gate opens with all 6 crests (`field_begin_warp` to OSSUARY_1).
+  - OSSUREX is a no-run legend bout at level party max + 3, clamped to 50-70.
+    Winning or befriending it sets FLAG_OSSUREX_ANSWERED.
+  - Lore: 13 entries (the HOLLOWING chapter plus places, types, halls and
+    legends).
+- **grim_healed / MF_ASH.**
+  - `grim_ash_active(map)` returns MF_ASH && !grim_healed().
+  - `field_load_palettes` applies `grim_ash_tint` (a violet-grey haze) while
+    it is active.
+  - `draw_weather` calls `grim_draw_ash` for falling ash flakes (OBJ tile
+    640, emote palette).
+  - Both switch off once OSSUREX is answered. NPCs of the March then talk
+    about the rain.
+- **Tests.** `tools/tests/test_grim.c` has 30 checks covering edges, zones,
+  the crypt puzzle, the Keeper beat, the ash haze, the gate, Morwen and the
+  crest, the OSSUREX loss and win, the heal, both side quests, the shop and
+  the hearth.
+- `make art && make && make test` is green, and the maps were checked in
+  the real ROM with `build/shot` through the debug warp.
 
-## In progress
+## Shared files edited (minimal)
 
-- `tools/tilesets/ts_grim.py` is drafted but **breaks `python3 tools/gen_field_gfx.py`**:
-  - Drafted: the 26 terrains (ash and variants, dead grass, scorch, animated embers,
-    cobble, Gravewood soil and bracken, mud, moss, reeds, deck); three overlay trees
-    (gnarled oak, charred snag, swamp cypress); ash ledges and crags; the ash-road
-    path autotile and the animated black-water autotile.
-  - Drafted: six stamps (HOUSE, SHOP, APOTHECARY, HEARTH, CRYPT_HALL, BONE_GATE) and
-    the legend. The legend is documented in the module docstring.
-  - Failure: the error is `grim: tile HOUSE[0,0] ... fit no bank`. The ground baked
-    into the stamps uses `grm_mud_hi` and `grm_moss_dk`, and those colours are not in
-    the roof or stone banks.
-  - Fix I had planned:
-    1. Bake stamp ground with
-       `MUD_A.replace({'grm_mud_hi': 'grm_mud', 'grm_moss_dk': 'grm_mud_dk'})`.
-    2. In the stilt house, keep the timber wall at y 24-39 and span it across the full
-       stamp width. Start the stilts (bank 5 colours only, no `grm_char`) at y 40, and
-       end the door at y 39.
-    3. Bank 5 becomes: out, rf x5, wd_hi, wd, wd_dk, mud, mud_dk, peat, lamp, lamp_hi,
-       lamp_dk.
-    4. Bank 7 becomes: out, wd x3, pl x3, lamp x3, gl, char, wisp_hi, wisp, cloth.
-    5. Draw the name plates in bank 5 colours: `wd_hi` board with `grm_out` ink. There
-       may be more bank conflicts after this, since the generator stops at the first one.
+- `tools/gen_field_gfx.py`: one line in `all_decor()` registers `decor_grim.DECOR`.
+- `src/game/script.c`:
+  - forward declarations of `grim_keeper_talk`, `grim_interact` and
+    `grim_on_enter`
+  - `keeper_after` calls `grim_keeper_talk()` before the Keeper's lore
+  - `field_try_interact` calls `grim_interact()` just before
+    `obj_interact()`
+  - `field_on_enter` calls `grim_on_enter()`
+- `src/game/field.c`: forward declarations of `grim_ash_active`,
+  `grim_ash_tint` and `grim_draw_ash`. The ash tint goes in
+  `field_load_palettes`, and `grim_draw_ash()` is called at the top of
+  `draw_weather`.
 
-## Not started
+## Left / for other owners
 
-- `ts_crypt.py`, and all decor: graves, iron fences, bone piles, burnt carts, wisps,
-  fog, boardwalks, lanterns, sarcophagi, candles, the bone throne, plus apothecary
-  interior pieces.
-- All of `src/game/world/grim/`, which is still placeholders: the map rows (ASHEN
-  FIELDS, GRAVEWOOD, DUSKMERE, the interiors, LANTERN CRYPT, OSSUARY 1 and 2, BONE
-  THRONE), warps, NPCs, wardens, signs, satchels, wild zones, berry patches, the fly
-  point, lore, quests, flags and scripts.
-- The `keeper_after` post-storm branch in `src/game/script.c`.
-- `tools/tests/test_grim.c`.
-
-## Notes
-
-- **Build and test status:**
-  - `make` and `make test` are green, but only because `src/gfx_field.h` was not
-    regenerated: the generator stops before it writes anything.
-  - The art pipeline itself (`gen_field_gfx.py`) is broken until `ts_grim.py` is fixed,
-    or reverted to the placeholder (`return gf.build_wild(name)`).
-- **Edits outside the grim files:** none yet.
-  - `keeper_after` is untouched.
-  - The planned one-line registration in `all_decor()` is not added:
-    `items += __import__('decor_grim').DECOR`.
-- **Design decisions for whoever continues:**
-  - **Ossuary gate:** a gate-warden NPC checks `travel_has_crest` for CREST_VOLT through
-    CREST_DREAM. It lists what is missing, then calls `field_begin_warp` into
-    OSSUARY_1. The gate stamp is solid, with no door. A sign on the gate cell explains
-    the seal. OSSUARY_1 exits through a STAIRS_UP door cell that has its own warp back
-    to DUSKMERE. An exit mat would not work there: it would pick the OSSUARY_2 warp.
-  - **Finale:** a vigil NPC at the BONE THRONE plays the scene and starts the OSSUREX
-    bout, with no run and a level-scaled team. The bout's end hook sets the answered
-    and healed flags.
-  - **Legend object:** `OBJ(LEGEND, x, y, SP_OSSUREX)` sits on the throne. Traversal
-    should defer to grim, through a proposed `grim_legend_interact(species)` and
-    `grim_legend_answered(species, result)`.
-  - **Lantern Crypt:** FAKE walls look solid but are walkable. GHOST floor looks
-    walkable but is solid. Wardens stand in alcoves: people block the flood fill, so a
-    warden in a corridor would block it.
-- **APIs to expose (not written yet):** `grim_healed()` and
-  `grim_ash_active(map) = (MAPS[map].flags & MF_ASH) && !grim_healed()`, both in
-  `world/grim/scripts.c`. They are included after `field.c` and `time.c`, so the
-  traversal and time owners need a forward declaration
-  `static int grim_healed(void);` before their MF_ASH check.
-- **Other APIs relied on:** `quest_set`, `travel_has_crest` / `travel_award_crest`,
-  `shop_open_stock`, `SCR_BREWER` (craft), `OBJ_CHEST` mimics and `OBJ_LEGEND` (traversal).
+- **Traversal:**
+  - Draw the OBJ_LEGEND OSSUREX on the throne, and hide it when
+    `grim_legend_hidden(SP_OSSUREX)` is 1. The grim hook already handles the
+    throne interaction before `obj_interact`.
+  - The MF_DARK light circle for the LANTERN CRYPT and OSSUARY DEEPS.
+  - The mimic chest (arg 255).
+  - `travel.last_hearth` for DUSK HEARTH.
+  - If traversal adds its own MF_ASH particles, call `grim_ash_active()` and
+    drop `grim_draw_ash`.
+- **Farm:** berry patches 30-33 (OBJ_BERRY in ASHEN FIELDS and GRAVEWOOD).
+- **Craft:** place the CAULDRON decor in `MAP_APOTHECARY` next to the BREWER
+  (x 5, y 3). BONE/DUSK LANTERNs are price 0, so the shop does not sell
+  them; the story gives them.
+- **Art polish:**
+  - The stamps are still colour-snapped by `fit_stamp`; redrawing them
+    natively in their banks would look cleaner.
+  - The crypt floor is brick-like.
+  - The March could use a small grim character set (only existing CHR_ are
+    used).
+- **Balance:** the levels assume the Lantern crest comes 5th (Ashen 24-31,
+  Gravewood 27-34, crypt 34-41, Ossuary 39-48). Retune once the other Halls
+  are levelled.
+- **Base warnings:** `party.c` has 6 unused-function warnings from the UI
+  branch, not from grim.
