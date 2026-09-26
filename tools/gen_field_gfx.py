@@ -813,7 +813,8 @@ INTERIOR_BANKS = [
 
 TS_NAMES = list(SETS)
 TS_TAGS = {'town': 'T', 'wild': 'W', 'interior': 'I', 'city': 'CY', 'coast': 'CO', 'snow': 'SN',
-           'cave': 'CV', 'grim': 'GR', 'crypt': 'CR', 'volcanic': 'VO', 'dream': 'DR', 'farm': 'FA'}
+           'cave': 'CV', 'grim': 'GR', 'crypt': 'CR', 'volcanic': 'VO', 'dream': 'DR', 'farm': 'FA',
+           'tide': 'TD'}
 QUADS = ((0, 0), (8, 0), (0, 8), (8, 8))
 
 

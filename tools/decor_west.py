@@ -24,6 +24,8 @@ from pixelart import Img, Decor
 from decor_outdoor import SG, outline
 
 COAST = ['coast']
+TIDE = ['tide']            # the Current Hall and the Drowned Bell
+BOTH = ['coast', 'tide']
 INT = ['interior']
 
 # coast bank 3 legend
@@ -865,18 +867,18 @@ WEST_DECOR = [
     Decor('WHALE_ARCH', COAST, whale_arch(), top='XXX/X.X/...', solid='.../.../X.X',
           doc='arch of two whale ribs over a path (3x3; walk through the middle)',
           examine='Two ribs of a whale that beached here a century ago. Its song, they say, did not end.'),
-    Decor('SHELL_LAMP', COAST, shell_lamp(), top='X/.', doc='harbour lamp with a scallop shade (1x2)',
+    Decor('SHELL_LAMP', BOTH, shell_lamp(), top='X/.', doc='harbour lamp with a scallop shade (1x2)',
           examine='A street lamp with a scallop-shell shade. A little JELLUME sleeps inside the glass.'),
-    Decor('HALL_COLUMN', COAST, hall_column(), top='X/.', doc='Current Hall column with a wave band (1x2)'),
+    Decor('HALL_COLUMN', TIDE, hall_column(), top='X/.', doc='Current Hall column with a wave band (1x2)'),
     Decor('CRAB_SHELL', COAST, tide_pool_crab(), floor='X', doc='an empty crab shell (walkable)'),
     # the Drowned Bell grotto
-    Decor('DROWNED_BELL', COAST, drowned_bell(), top='XXX/.../...',
+    Decor('DROWNED_BELL', TIDE, drowned_bell(), top='XXX/.../...',
           doc='the Drowned Bell: great verdigris bronze bell half sunk in the grotto (3x3)'),
-    Decor('GROT_PILLAR', COAST, grot_pillar(), top='X/.', doc='fallen chapel pillar with glowing weed (1x2)',
+    Decor('GROT_PILLAR', TIDE, grot_pillar(), top='X/.', doc='fallen chapel pillar with glowing weed (1x2)',
           examine='A chapel pillar, far below any chapel. The weed on it glows when you breathe on it.'),
-    Decor('GLOW_CORAL', COAST, frames=glow_coral_frames(), period=28, doc='bioluminescent coral (pulses)',
+    Decor('GLOW_CORAL', TIDE, frames=glow_coral_frames(), period=28, doc='bioluminescent coral (pulses)',
           examine='Glow coral. It brightens in time with a slow, deep hum you feel in your teeth.'),
-    Decor('WHALE_CARVING', COAST, whale_carving(), doc='star whale carved on the grotto wall (3x2)',
+    Decor('WHALE_CARVING', TIDE, whale_carving(), doc='star whale carved on the grotto wall (3x2)',
           examine='A whale carved in the rock, with stars for eyes. Scratched beneath: SHE SINGS THE TIDE IN.'),
     # harbour interiors
     Decor('SHIP_WHEEL', INT, ship_wheel(), doc='ship\'s wheel hung on the wall',
