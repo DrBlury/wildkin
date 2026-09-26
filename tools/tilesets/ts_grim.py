@@ -1120,6 +1120,15 @@ def add_water(gf, ts, out, bank=1):
 
 
 
+def mirror_lr(img):
+    """Copy the left half onto the right, mirrored: a symmetric stamp's right
+    half then shares the left half's tiles (h-flipped), halving its cost."""
+    for y in range(img.h):
+        for x in range(img.w // 2):
+            img.p[y][img.w - 1 - x] = img.p[y][x]
+    return img
+
+
 def fit_stamp(gf, img, prefs):
     """Snap each 8x8 tile of a stamp onto one of its preferred banks: a
     colour the chosen bank lacks becomes the nearest colour it has."""
@@ -1177,8 +1186,8 @@ def build(gf, name):
         ('SHOP', fit_stamp(gf, stilt_house(gf, 'shop'), (5, 7)), (5, 7), 'DUSK SHOP, hanging lantern sign, door col 1 row 3'),
         ('APOTHECARY', fit_stamp(gf, stilt_house(gf, 'apothecary'), (5, 7)), (5, 7), 'apothecary, green window, door col 1 row 3'),
         ('HEARTH', fit_stamp(gf, stilt_house(gf, 'hearth', 5), (5, 7)), (5, 7), 'DUSKMERE HEARTH HALL, flame, door col 2 row 3'),
-        ('CRYPT_HALL', fit_stamp(gf, crypt_hall(gf), (6,)), (6,), 'the LANTERN CRYPT mausoleum, door col 2 row 3'),
-        ('BONE_GATE', fit_stamp(gf, bone_gate(), (6,)), (6,), 'the sealed OSSUARY gate (no door: the gate warden opens it)'),
+        ('CRYPT_HALL', fit_stamp(gf, mirror_lr(crypt_hall(gf)), (6,)), (6,), 'the LANTERN CRYPT mausoleum, door col 2 row 3'),
+        ('BONE_GATE', fit_stamp(gf, mirror_lr(bone_gate()), (6,)), (6,), 'the sealed OSSUARY gate (no door: the gate warden opens it)'),
     ])
     pq = path_quads()
     out['path_q'] = [[ts.add(gf.img_pix(pq[c][v]), (0,), 'grim.path[%d][%d]' % (c, v))

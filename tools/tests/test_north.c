@@ -291,11 +291,11 @@ static void test_scripts(void)
     run_dialog(400);
     game_mode = MODE_FIELD;
     /* quest 1: glowcaps */
-    talk_at(MAP_FROSTHOLLOW, 17, 16, DIR_UP);
+    talk_at(MAP_FROSTHOLLOW, 24, 16, DIR_UP);
     CHECK(quest_get(QUEST_GLOWCAPS) == 1, "the ice carver asks for GLOWCAPS");
     bag_add(ITEM_GLOWCAP, 3);
     int stars = bag[ITEM_STAR_LANTERN];
-    talk_at(MAP_FROSTHOLLOW, 17, 16, DIR_UP);
+    talk_at(MAP_FROSTHOLLOW, 24, 16, DIR_UP);
     CHECK(quest_done(QUEST_GLOWCAPS) && bag[ITEM_GLOWCAP] == 0 && bag[ITEM_STAR_LANTERN] == stars + 3,
           "three GLOWCAPS finish LAMPS FOR THE LONG NIGHT");
     int glow = 0;
