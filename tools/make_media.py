@@ -23,7 +23,11 @@ ROM = os.path.join(ROOT, 'game.gba')
 sys.path.insert(0, os.path.join(ROOT, 'tools'))
 import make_gif  # noqa: E402
 
-MAP_IDS = {'TOWN': 0, 'HOME': 1, 'LAB': 3, 'REST': 5, 'MEADOW': 7, 'RISE': 8, 'WOOD': 9, 'LAKE': 10}
+MAP_IDS = {'TOWN': 0, 'HOME': 1, 'LAB': 3, 'REST': 5, 'MEADOW': 7, 'RISE': 8, 'WOOD': 9, 'LAKE': 10,
+           'LUMEN': 14, 'VOLT_HALL': 19, 'WORKS': 20, 'PORT_BRINE': 27, 'GULL_ISLE': 29, 'CURRENT_HALL': 32,
+           'DROWNED_BELL': 36, 'FROSTHOLLOW': 39, 'SKY_ISLE': 41, 'RIME_HALL': 44, 'STARFALL': 48,
+           'DUSKMERE': 53, 'CRYPT': 57, 'BONE_THRONE': 60, 'CINDERMOOR': 63, 'DREAMSPIRE': 65,
+           'ANVIL_HALL': 69, 'CALDERA': 71, 'MIRROR_HALL': 74, 'LIBRARY': 75, 'WILLOW_ACRE': 76}
 
 
 class Script:
@@ -220,6 +224,29 @@ def clip_world():
     print('wrote world.png (%dx%d)' % (W, H))
 
 
+def clip_regions():
+    """One still per expansion town, Hall and lair (the player on its fly
+    point or just inside its door)."""
+    shots = [('lumen', 'LUMEN', 7, 17), ('brine', 'PORT_BRINE', 10, 14), ('gull', 'GULL_ISLE', 9, 11),
+             ('frosthollow', 'FROSTHOLLOW', 7, 8), ('skyisle', 'SKY_ISLE', 11, 12),
+             ('duskmere', 'DUSKMERE', 10, 12), ('cindermoor', 'CINDERMOOR', 21, 22),
+             ('dreamspire', 'DREAMSPIRE', 24, 28), ('willow', 'WILLOW_ACRE', 19, 3),
+             ('volt', 'VOLT_HALL', 7, 15), ('works', 'WORKS', 6, 8), ('current', 'CURRENT_HALL', 7, 16),
+             ('rime', 'RIME_HALL', 7, 18), ('crypt', 'CRYPT', 11, 19), ('anvil', 'ANVIL_HALL', 8, 20),
+             ('mirror', 'MIRROR_HALL', 5, 14), ('bell', 'DROWNED_BELL', 9, 16), ('starfall', 'STARFALL', 11, 18),
+             ('throne', 'BONE_THRONE', 8, 12), ('caldera', 'CALDERA', 9, 15), ('library', 'LIBRARY', 11, 18)]
+    for (name, mp, x, y) in shots:
+        save = demo_save(name, mp, x, y, calm=True)
+        run(Script().boot().wait(30).shot(name), save)
+        still(name, 'region_%s.png' % name)
+    save = demo_save('ui', 'LUMEN', 7, 17, calm=True)
+    s = Script().boot().wait(30).tap('START').wait(10).shot('clock_menu')
+    s.tap('DOWN', 3).tap('A').wait(30).shot('bag_pockets')
+    run(s, save)
+    still('clock_menu', 'ui_start_clock.png')
+    still('bag_pockets', 'ui_bag.png')
+
+
 class Canvas1:
     """Just enough of pixelart.Canvas for draw_label: 1 bit per pixel."""
     def __init__(self, w, h):
@@ -234,6 +261,7 @@ class Canvas1:
 CLIPS = {
     'title': clip_title, 'village': clip_village, 'warden': clip_warden, 'bout': clip_bout,
     'lorebook': clip_lorebook, 'menus': clip_menus, 'places': clip_places, 'world': clip_world,
+    'regions': clip_regions,
 }
 
 
