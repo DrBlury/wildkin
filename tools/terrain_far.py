@@ -27,8 +27,8 @@ FAR_COLORS = {
     'lv_w': (255, 250, 214), 'lv_y': (255, 216, 84), 'lv_o': (250, 144, 42),
     'lv_r': (216, 64, 36), 'lv_dr': (144, 36, 38),
     # --- hot spring (mineral water) --------------------------------------
-    'hs_hi': (212, 248, 240), 'hs_lt': (140, 222, 214), 'hs_base': (92, 186, 188),
-    'hs_dk': (60, 138, 152),
+    'hs_hi': (214, 250, 242), 'hs_lt': (140, 226, 216), 'hs_base': (82, 186, 194),
+    'hs_dk': (46, 132, 158),   # shared with north_palette.py
     # --- sulfur, obsidian -------------------------------------------------
     'su_y': (236, 226, 110),
     'ob_hi': (180, 168, 228), 'ob_base': (68, 58, 98), 'ob_dk': (38, 32, 60),
@@ -39,7 +39,7 @@ FAR_COLORS = {
     'rr_hi': (236, 156, 108), 'rr_lt': (212, 116, 80), 'rr_base': (178, 82, 62),
     'rr_dk': (138, 58, 50), 'rr_dkr': (98, 42, 42),
     'bk_hi': (204, 124, 98), 'bk_base': (164, 88, 70), 'bk_dk': (114, 58, 54),
-    'cw_lt': (124, 100, 92), 'cw_base': (88, 68, 64), 'cw_dk': (60, 46, 48),
+    'vcw_lt': (124, 100, 92), 'vcw_base': (88, 68, 64), 'vcw_dk': (60, 46, 48),
     # --- dream: pastel stone ground --------------------------------------
     'ds_hi': (250, 244, 250), 'ds_lt': (232, 222, 240), 'ds_base': (210, 198, 226),
     'ds_mid': (184, 170, 208), 'ds_dk': (148, 134, 180),
@@ -57,7 +57,7 @@ FAR_COLORS = {
     'dw_mid': (116, 142, 218), 'dw_dk': (92, 110, 186),
     # --- lantern light, paper, moonstone ----------------------------------
     'lg_y': (255, 238, 164), 'lg_o': (250, 186, 100), 'lp_r': (232, 104, 120),
-    'cr_hi': (226, 236, 255), 'cr_base': (160, 176, 240), 'cr_dk': (108, 112, 196),
+    'vcr_hi': (226, 236, 255), 'vcr_base': (160, 176, 240), 'vcr_dk': (108, 112, 196),
     # --- dream buildings: cream walls, indigo and rose roofs -------------
     'tw_hi': (252, 246, 232), 'tw_base': (238, 226, 204), 'tw_dk': (204, 184, 168),
     'ri_hi': (168, 170, 240), 'ri_lt': (128, 128, 220), 'ri_base': (100, 96, 196),
@@ -67,8 +67,8 @@ FAR_COLORS = {
     # --- dream interiors: mirror floor, plum wood, book spines -----------
     'mf_hi': (244, 244, 252), 'mf_lt': (214, 214, 236), 'mf_base': (184, 184, 216),
     'mf_dk': (140, 136, 184),
-    'lw_hi': (176, 120, 136), 'lw_lt': (140, 90, 112), 'lw_base': (108, 66, 92),
-    'lw_dk': (76, 46, 70), 'lw_out': (46, 28, 46),
+    'vlw_hi': (176, 120, 136), 'vlw_lt': (140, 90, 112), 'vlw_base': (108, 66, 92),
+    'vlw_dk': (76, 46, 70), 'lw_out': (46, 28, 46),
     'bo_r': (200, 76, 84), 'bo_g': (88, 150, 110), 'bo_b': (84, 110, 186),
     'bo_y': (222, 184, 92), 'pg_hi': (252, 246, 226), 'pg_base': (230, 218, 188),
     'pg_dk': (184, 166, 136),
@@ -533,7 +533,7 @@ def crag_img():
 def dead_tree_img():
     """16x32 charred tree: a black trunk and bare, twisted branches."""
     img = Img(16, 32)
-    TK = {'.': None, 'O': 'b_out', 'l': 'cw_lt', 'b': 'cw_base', 'd': 'cw_dk'}
+    TK = {'.': None, 'O': 'b_out', 'l': 'vcw_lt', 'b': 'vcw_base', 'd': 'vcw_dk'}
     art = G('''
     ................
     ..O.......O.....
@@ -610,9 +610,9 @@ def rail_img(vertical=False):
     for sy in (1, 6, 11):
         for y in (sy, sy + 1, sy + 2):
             for x in range(1, 15):
-                img.p[y][x] = 'cw_lt' if y == sy else ('cw_base' if y == sy + 1 else 'cw_dk')
-        img.p[sy + 1][0] = 'vb_out'
-        img.p[sy + 1][15] = 'vb_out'
+                img.p[y][x] = 'vcw_lt' if y == sy else ('vcw_base' if y == sy + 1 else 'vcw_dk')
+        img.p[sy + 1][0] = 'b_out'
+        img.p[sy + 1][15] = 'b_out'
     # rails
     for x in (3, 12):
         for y in range(16):

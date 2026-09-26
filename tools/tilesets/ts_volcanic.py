@@ -29,7 +29,7 @@ GROUND = ['va_hi', 'va_lt', 'va_base', 'va_mid', 'va_dk',
 LAVA = ['vb_lt', 'vb_base', 'vb_dk', 'vb_out', 'lv_w', 'lv_y', 'lv_o', 'lv_r', 'lv_dr',
         'hs_hi', 'hs_lt', 'hs_base', 'hs_dk', 'va_hi', 'va_lt']
 ROCK = ['vb_hi', 'vb_lt', 'vb_base', 'vb_dk', 'b_out', 'va_lt', 'va_base', 'va_mid', 'va_dk',
-        'ob_hi', 'ob_base', 'ob_dk', 'cw_lt', 'cw_base', 'cw_dk']
+        'ob_hi', 'ob_base', 'ob_dk', 'vcw_lt', 'vcw_base', 'vcw_dk']
 DECOR = ['b_out', 'white', 'st_lt', 'st_mid', 'st_dk', 'ru_hi', 'ru_base', 'ru_dk',
          'lv_y', 'lv_o', 'lv_r', 'ob_hi', 'ob_base', 'su_y', 'ir_dk']
 IRON = ['va_base', 'va_dk', 'b_out', 'ir_hi', 'ir_lt', 'ir_base', 'ir_dk', 'ir_dkr',
