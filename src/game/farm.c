@@ -28,7 +28,7 @@
  *   field.c cell_attr       farm_cell_attr()
  *   field.c sprites         farm_field_kin() (workers walk as kin)
  *   script.c interact       farm_interact()
- *   script.c field_draw     farm_draw()
+ *   script.c field_draw     farm_draw_fx(), farm_draw()
  *   time.c time_tick        farm_tick(), time_new_day -> farm_new_day()
  *
  * OBJ use (docs/EXPANSION.md 10.3): tiles 512-639; palette bank 8 entries
@@ -1274,10 +1274,10 @@ static void wb_redraw(void)
     text_draw(12, 8, "WORK BOARD");
     text_draw_right(228, 8, wb.state ? "PICK A KIN" : "FARM JOBS");
     if (wb.state == 0) {
-        canvas_window(0, 3, CANVAS_COLS, 11, WIN_STD);
+        canvas_window(0, 3, CANVAS_COLS, 12, WIN_STD);
         for (int i = 0; i < FARM_WORKERS; i++) {
             const FarmWorker *w = &farm.workers[i];
-            int y = 32 + i * LINE_H * 2 - 4;
+            int y = 30 + i * 18;
             if (i == wb.cursor) text_draw(10, y, "{");
             buf[0] = 0;
             str_put_int(buf, i + 1);
@@ -1295,11 +1295,11 @@ static void wb_redraw(void)
                 text_draw(100, y, "(free)");
             }
         }
-        text_draw_col(16, 94, "^/}: slot  </>: job  A: kin  B: done", INK_BLUE, INK_BLUE_SH);
-        canvas_window(0, 14, CANVAS_COLS, 6, WIN_STD);
+        text_draw_col(16, 104, "^/}: slot  </>: job  A: kin  B: done", INK_BLUE, INK_BLUE_SH);
+        canvas_window(0, 15, CANVAS_COLS, 5, WIN_STD);
         char wrapped[160];
         text_wrap(wrapped, JOB_DESC[farm.workers[wb.cursor].job], 216);
-        text_draw(12, 120, wrapped);
+        text_draw(12, 126, wrapped);
         return;
     }
     /* the Shelf list: (NOBODY) first */
@@ -1715,17 +1715,22 @@ static void farm_canvas_draw(void)
     }
 }
 
-/* Sprites and labels over the field (script.c field_draw, after the
- * field's own sprites). */
-static void farm_draw(void)
+/* Tool effects, pushed before the field's sprites so they show in front
+ * of the player (script.c field_draw). */
+static void farm_draw_fx(void)
 {
-    farm_canvas_draw();
-    /* particles */
     for (int i = 0; i < PARTICLE_MAX; i++) {
         const FarmParticle *p = &particles[i];
         if (!p->life || cur_map != MAP_WILLOW_ACRE) continue;
         spr_push(p->x / 4 - cam_x, p->y / 4 - cam_y, OT_FARM_FX + p->tile, SQ8, FARM_OBANK, 1, 0);
     }
+}
+
+/* Sprites and labels over the field (script.c field_draw, after the
+ * field's own sprites, so they sit behind people). */
+static void farm_draw(void)
+{
+    farm_canvas_draw();
     /* the plot you face */
     if (farm_here() && !player.moving && game_mode == MODE_FIELD && !dialog_active()) {
         int fx = player.x + DIR_DX[player.facing], fy = player.y + DIR_DY[player.facing];

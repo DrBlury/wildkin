@@ -987,6 +987,7 @@ static void field_update(void)
 static void field_draw(void)
 {
     field_update_camera();
+    farm_draw_fx();
     field_draw_sprites();
     farm_draw();
     if (starter_preview >= 0) {

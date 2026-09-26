@@ -15219,7 +15219,7 @@ static const char *const DECOR_EXAMINE[DK_COUNT] = {
     "A big preserves jar. Fruit goes in, jam comes out.", /* PRESERVES_JAR */
     "A fruit press. Turn the screw and juice runs out of the spout.", /* PRESS */
     "A drying rack with slatted trays. The sun does the rest.", /* DRIER */
-    "FOR SALE: WILLOW ACRE. See REEVE at the LAND OFFICE.", /* FOR_SALE */
+    "FOR SALE: WILLOW ACRE. Ask REEVE of the LAND OFFICE.", /* FOR_SALE */
     "The field gate is locked.", /* FARM_GATE */
     "A cork board for the farm jobs.", /* WORK_BOARD */
     "A big wooden storage chest.", /* FARM_CHEST */
