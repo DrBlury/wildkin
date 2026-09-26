@@ -125,9 +125,10 @@ def clip_title():
 
 
 def clip_village():
-    save = demo_save('village', 'TOWN', 20, 18, calm=True)
-    s = Script().boot().rec('village', 3)
-    s.walk('UP', 2).walk('LEFT', 3).wait(20).walk('UP', 1).wait(30).walk('RIGHT', 4).walk('DOWN', 3).stop()
+    # over the Maple Run bridge on the road, back along its lower row
+    save = demo_save('village', 'TOWN', 14, 17, calm=True)
+    s = Script().boot().rec('village', 3).tap('RIGHT')
+    s.walk('RIGHT', 9).wait(20).walk('DOWN', 1).wait(10).walk('LEFT', 9).wait(20).stop()
     s.shot('village')
     run(s, save)
     gif('village', 'village.gif')
@@ -152,7 +153,7 @@ def clip_bout():
 
 
 def clip_lorebook():
-    save = demo_save('lore', 'TOWN', 20, 18)
+    save = demo_save('lore', 'TOWN', 16, 19)
     s = Script().boot().rec('lore', 3).tap('SELECT').wait(20).tap('DOWN', 2, 16).tap('A').wait(20)
     s.tap('A').wait(30).hold('DOWN', 150).wait(20).tap('RIGHT').wait(30).hold('DOWN', 60).wait(20).stop()
     s.shot('lore_page')
@@ -162,7 +163,7 @@ def clip_lorebook():
 
 
 def clip_menus():
-    save = demo_save('menus', 'TOWN', 20, 18)
+    save = demo_save('menus', 'TOWN', 16, 19)
     s = Script().boot().tap('START').wait(10).shot('start_menu')
     s.tap('DOWN', 2).tap('A').wait(10).tap('A').tap('A').wait(10).shot('summary_info')
     s.tap('RIGHT').wait(10).shot('summary_traits').tap('RIGHT').wait(10).shot('summary_stats')
@@ -175,7 +176,7 @@ def clip_menus():
 
 def clip_places():
     shots = [('lake', 'LAKE', 24, 14, True), ('wood', 'WOOD', 20, 8, True), ('rise', 'RISE', 12, 13, False),
-             ('home', 'HOME', 6, 6, True), ('town_clear', 'TOWN', 20, 18, True)]
+             ('home', 'HOME', 6, 6, True), ('town_clear', 'TOWN', 12, 18, True)]
     for (name, mp, x, y, calm) in shots:
         save = demo_save(name, mp, x, y, calm)
         s = Script().boot().wait(30).shot(name)
@@ -195,7 +196,9 @@ def clip_world():
     layout = [('rise', 40, 0, 'STORMSTONE RISE'), ('meadow', 40, rise_h, 'WHISPER MEADOW'),
               ('town', 40, rise_h + meadow_h, 'MAPLE VILLAGE'), ('lake', 0, rise_h + meadow_h, 'MIRROR LAKE'),
               ('wood', 80, rise_h + meadow_h, 'BRAMBLEWOOD')]
-    imgs = {name: make_gif.read_png(os.path.join(mapdir, 'map_' + name + '.png')) for (name, _, _, _) in layout}
+    files = {'rise': '08_stormstone_rise', 'meadow': '07_whisper_meadow', 'town': '00_maple_village',
+             'lake': '10_mirror_lake', 'wood': '09_bramblewood'}  # render_maps.py names
+    imgs = {name: make_gif.read_png(os.path.join(mapdir, files[name] + '.png')) for (name, _, _, _) in layout}
     W = max(x * 16 + imgs[n][0] for (n, x, _, _) in layout)
     H = max(y * 16 + imgs[n][1] for (n, _, y, _) in layout)
     bg = (22, 26, 38)
@@ -247,6 +250,19 @@ def clip_regions():
     still('bag_pockets', 'ui_bag.png')
 
 
+def clip_elevation():
+    """The Maple Run bridge (docs/ELEVATION.md): in front of it, under it
+    walking north along the lane, and over it on the road."""
+    save = demo_save('elev_under', 'TOWN', 20, 22, calm=True)
+    s = Script().boot().wait(20).walk('UP', 3).wait(20).shot('elevation_front')
+    s.walk('UP', 2).wait(20).shot('elevation_under')
+    run(s, save)
+    save = demo_save('elev_over', 'TOWN', 15, 17, calm=True)
+    run(Script().boot().wait(20).tap('RIGHT').walk('RIGHT', 5).wait(20).shot('elevation_over'), save)
+    for n in ('elevation_front', 'elevation_under', 'elevation_over'):
+        still(n, n + '.png')
+
+
 class Canvas1:
     """Just enough of pixelart.Canvas for draw_label: 1 bit per pixel."""
     def __init__(self, w, h):
@@ -261,7 +277,7 @@ class Canvas1:
 CLIPS = {
     'title': clip_title, 'village': clip_village, 'warden': clip_warden, 'bout': clip_bout,
     'lorebook': clip_lorebook, 'menus': clip_menus, 'places': clip_places, 'world': clip_world,
-    'regions': clip_regions,
+    'regions': clip_regions, 'elevation': clip_elevation,
 }
 
 

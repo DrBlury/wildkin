@@ -709,6 +709,7 @@ def lab():
 import decor_outdoor
 import decor_indoor
 import terrain_wild
+import grass
 
 
 def register_colors(extra):
@@ -1013,7 +1014,7 @@ def add_overlay_terrain(ts, out, name, img, top):
 
 
 def finish_tileset(out, name, tag, attrs, ground, overlay, legend, oob, default_ground,
-                   backdrop, doors=(), legend_default='.'):
+                   backdrop, doors=(), legend_default='.', elev=None):
     """Attach attributes, flags, the map legend and misc info to a build.
 
     attrs:   {terrain or stamp name: A_* bits} (stamps default to A_SOLID)
@@ -1022,7 +1023,10 @@ def finish_tileset(out, name, tag, attrs, ground, overlay, legend, oob, default_
     legend:  {char: 'NAME' | [('NAME', weight/16), ...] | 'PATH' | 'WATER'}
     doors:   [(stamp name, col, row)] cells that are doors
     backdrop: 'ground' (bank 0 colour 1) or an (r, g, b) triple
+    elev:    None (no elevation art) or a colour-role mapping for
+             tools/elevation.py ({} = the town colour names; docs/ELEVATION.md)
     """
+    grass.install(sys.modules[__name__], out, name, attrs, legend)  # tall grass (tools/grass.py)
     ids = {n: i for i, n in enumerate(out['terrain'])}
     for (sname, sid, cw, chh, doc) in out['stamps']:
         ids[sname] = sid
@@ -1083,6 +1087,11 @@ def finish_tileset(out, name, tag, attrs, ground, overlay, legend, oob, default_
     if 'flower_first' in out:
         anims.append((out['flower_first'], out['flower_anim'], 32))
     out['anims'] = out.get('anims', []) + anims
+    import elevation
+    if elev is None:
+        elev = elevation.ROLES.get(name)
+    if elev is not None:
+        out['elev'] = elevation.elevation_art(out['ts'], elev, where=name)
     if len(out['ts'].tiles) > out['ts'].limit:
         raise ValueError('%s: %d tiles > %d' % (name, len(out['ts'].tiles), out['ts'].limit))
     return out
@@ -1140,7 +1149,7 @@ def build_town(name='town'):
                 'c': 'COURT', 'h': 'COURT_LINE_H', 'v': 'COURT_LINE_V'},
         oob='TREE_TOP', default_ground='GRASS', backdrop='ground',
         doors=[('HOUSE_RED', 2, 3), ('HOUSE_BLUE', 2, 3), ('SHOP', 2, 3), ('HEAL', 2, 3),
-               ('LAB', 3, 4)])
+               ('LAB', 3, 4)], elev={})
 
 
 WILD_OVERLAY = ('TREE_TOP', 'TREE_BOTTOM', 'PINE_TOP', 'PINE_BOTTOM')
@@ -1194,7 +1203,7 @@ def build_wild(name='wild'):
                 's': [('SAND2', 2), ('SAND', 14)], 'f': [('FOREST2', 4), ('FOREST', 12)],
                 'R': 'REEDS'},
         oob='TREE_TOP', default_ground='GRASS', backdrop='ground',
-        doors=[('CABIN', 2, 3), ('STATION', 2, 3)])
+        doors=[('CABIN', 2, 3), ('STATION', 2, 3)], elev={})
 
 
 def build_interior(name='interior'):
@@ -2682,6 +2691,17 @@ def emit_tileset(o, out, docs):
             vs = ', '.join('MT_%s_%s' % (tag, t) for (t, _) in spec)
             o.append('    [%s - 32] = { %s, %d, { %s }, { %s } },' % (cname, kind, len(spec), ws, vs))
     o.append('};')
+    if 'elev' in out:
+        ea = out['elev']
+
+        def arr(v):
+            if isinstance(v, list):
+                return '{' + ', '.join(arr(x) for x in v) + '}'
+            return '0x%04X' % v
+        o.append('static const ElevArt %s_elev = {' % prefix)
+        for k in ('face', 'rim', 'shadow', 'stairs', 'deck_h', 'deck_v', 'mouth', 'ledge'):
+            o.append('    %s, /* %s */' % (arr(ea[k]), k))
+        o.append('};')
     o.append('')
 
 
@@ -2699,9 +2719,10 @@ def emit_tileset_table(o, sets):
         o.append('    [TS_%s] = { "%s", %s_tiles, %s_TILE_COUNT, MT_%s_COUNT, %s_palettes,' % (
             P, n, n, P, P, n))
         o.append('        %s_meta_bottom, %s_meta_top, %s_attr, %s_mflags,' % (n, n, n, n))
-        o.append('        %s, %s, %s_anims, %d, %s_legend, \'%s\', %d, %d, 0x%04X,' % (
+        o.append('        %s, %s, %s_anims, %d, %s_legend, \'%s\', %d, %d, 0x%04X, %s,' % (
             ('%s_path_quads' % n) if has_q else '0', ('%s_water_quads' % n) if has_q else '0',
-            n, len(out['anims']), n, out['legend_default'], out['oob'], out['ground_default'], bdc))
+            n, len(out['anims']), n, out['legend_default'], out['oob'], out['ground_default'], bdc,
+            ('&%s_elev' % n) if 'elev' in out else '0'))
         if out['blends']:
             o.append('        %s_blend_of, %s_blend_outer, %s_blend_quads },' % (n, n, n))
         else:
@@ -2873,6 +2894,18 @@ def write_header(sets, dec, chars, item, emotes, path):
     A('/* Map character -> metatile: SIMPLE id[0]; VARIANT picks by cell hash % 16')
     A(' * through cumulative weights w[]; PATH / WATER are autotiled. */')
     A('typedef struct { u8 kind, n; u8 w[4]; u16 id[4]; } LegendEntry;')
+    A('/* Elevation art (tools/elevation.py, docs/ELEVATION.md): map entries per')
+    A(' * 8x8 quadrant (TL, TR, BL, BR), autotiled by src/game/elev.c. */')
+    A('typedef struct ElevArt {')
+    A('    u16 face[4][4];     /* cliff face: variant = continues down/up | sideways << 1 */')
+    A('    u16 rim[4][5];      /* plateau edges, path-autotile variants (0 = none) */')
+    A('    u16 shadow[4];      /* cast shadow on low ground east of a rise */')
+    A('    u16 stairs[4][4];   /* per climbing direction N, S, W, E */')
+    A('    u16 deck_h[4][4];   /* bridge walked E-W: variant = railing | end << 1 */')
+    A('    u16 deck_v[4][4];   /* bridge walked N-S: variant = railing | end << 1 */')
+    A('    u16 mouth[4];       /* tunnel mouth in a cliff face */')
+    A('    u16 ledge[4][2];    /* ledge (hop down): variant = continues sideways */')
+    A('} ElevArt;')
     A('typedef struct {')
     A('    const char *name;')
     A('    const u32 *tiles;')
@@ -2890,6 +2923,7 @@ def write_header(sets, dec, chars, item, emotes, path):
     A('    char legend_default;               /* used for unknown characters */')
     A('    u16 oob, ground;                   /* out-of-bounds cell, default ground */')
     A('    u16 backdrop;                      /* colour behind everything */')
+    A('    const struct ElevArt *elev;        /* elevation art (tools/elevation.py) or 0 */')
     A('    /* ground blends (field.c blend_quads), 0 when the tileset has none:')
     A('     * blend_of = group + 1 of each metatile (0: none); blend_outer = a bit per')
     A('     * group the metatile is the surrounding ground of (edges fade into it) */')
@@ -2905,6 +2939,7 @@ def write_header(sets, dec, chars, item, emotes, path):
         A('/* ================================================================ */')
         emit_tileset(o, sets[sname], sets[sname].get('docs', DOCS.get(sname, {})))
     emit_tileset_table(o, sets)
+    grass.emit(o, sets, TS_NAMES, pack4, fmt_u32)
     # ---------------- decor
     kinds = dec['kinds']
     A('/* ================================================================ */')

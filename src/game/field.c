@@ -43,6 +43,10 @@ enum {
     MF_SNOW = 64, MF_RAIN = 128, MF_NIGHTLESS = 256, MF_DEBUG = 512,
 };
 
+/* Elevation features over a map's height layer (elev.c, docs/ELEVATION.md). */
+typedef struct { u8 kind, x, y, w, h; } ElevFeat;
+enum { EF_BRIDGE_H = 1, EF_BRIDGE_V, EF_TUNNEL, EF_HIDDEN };
+
 /* Map objects: puzzle pieces, berry patches, ferries, legends, chests...
  * Their behaviour lives in travel.c / farm.c; kind values are OBJ_*. */
 typedef struct { u8 kind, x, y, arg; } MapObj;
@@ -69,6 +73,9 @@ typedef struct {
     u8 water_zone;                 /* WILD_ZONES index for kin on water (surf), 0 = none */
     const u16 *cells, *ground;     /* pre-decoded cells (generated viewer maps) or 0 */
     u8 song;                       /* SONG_* for this map, 0 = automatic (music.c) */
+    const char *const *elev;       /* height layer, one char per cell, or 0 (elev.c) */
+    const ElevFeat *feats;         /* bridges, tunnels, hidden passages */
+    u8 feat_count;
 } MapDef;
 
 /* Called at the end of every map load (music.c defines it; see script.c). */
@@ -128,6 +135,7 @@ typedef struct {
     s8 ox, oy;      /* pixel offset while walking */
     u8 facing, moving, anim, hop;
     u16 timer;
+    u8 level;       /* elevation the actor stands on (elev.c) */
 } Actor;
 
 typedef struct { Actor a; u8 species, lustrous, shown; } KinActor;
@@ -261,6 +269,8 @@ static u16 map_infer_ground(const MapDef *m, int x, int y)
     return t->ground;
 }
 
+#include "elev.c"
+
 static void map_decode(int id)
 {
     const MapDef *m = &MAPS[id];
@@ -290,6 +300,7 @@ static void map_decode(int id)
                 if (x < m->w && y < m->h) map_decor[y * m->w + x] = (u8)(i + 1);
             }
     }
+    elev_decode(m);
 }
 
 static u16 map_cell(int x, int y)
@@ -347,7 +358,7 @@ static int cell_attr_raw(int x, int y)
         if (d->floor & (1u << sub)) a &= ~(A_SOLID | A_WATER | A_LEDGE);
         if (d->solid & (1u << sub)) a |= A_SOLID;
     }
-    return a;
+    return elev_attr(x, y, a);
 }
 
 static int cell_attr(int x, int y)
@@ -470,6 +481,7 @@ static void render_cell(int mx, int my)
         }
         blend_quads(v, mx, my, bottom);
     }
+    elev_render_base(mx, my, mid);
     int sub;
     const DecorDef *d;
     const DecorPlace *p = decor_at(mx, my, &sub, &d);
@@ -488,6 +500,7 @@ static void render_cell(int mx, int my)
         u16 *dst = (d->top & (1u << sub)) ? top : mid;
         for (int i = 0; i < 4; i++) dst[i] = q[i];
     }
+    if (map_elevated) elev_render_cover(mx, my, bottom, mid, top);
     dyn_cell(mx, my, bottom, mid, top);
     u16 *b = VRAM_MAP(SB_FIELD_BOTTOM), *tp = VRAM_MAP(SB_FIELD_TOP), *m = VRAM_MAP(SB_PANEL);
     int idx = ry * 2 * 32 + rx * 2;
@@ -573,6 +586,12 @@ static void field_load_palettes(void)
 
 static void travel_load_gfx(void);
 
+/* ---- tall grass (grass.c): front blades over actors, rustles, wind ---- */
+static void grass_tileset_loaded(void);
+static void grass_present(void);
+static void grass_step_into(int x, int y);
+static int grass_npc_slots(void);
+
 static void field_load_tileset(void)
 {
     copy32(VRAM_SCENE_TILES, tset()->tiles, (unsigned)tset()->tile_count * 8);
@@ -594,6 +613,7 @@ static void field_load_tileset(void)
     field_load_palettes();
     ring_invalidate();
     travel_load_gfx();
+    grass_tileset_loaded();
 }
 
 /* Tile-data swaps for rippling water, swaying flowers and animated decor. */
@@ -615,6 +635,7 @@ static void field_animate_tiles(void)
         copy32(VRAM_SCENE_TILES + decor_base[k] * 8, decor_tiles + (d->tile_first + f * d->tile_count) * 8,
                (unsigned)d->tile_count * 8);
     }
+    grass_present();
 }
 
 static void travel_dark_off(void);
@@ -658,6 +679,7 @@ static void npcs_reset(void)
         a->anim = 0;
         a->hop = 0;
         a->timer = (u16)(60 + rng_range(90));
+        a->level = NPCS[i].map == cur_map ? (u8)elev_level_at(a->x, a->y, -1, a->facing) : 0;
         npc_kin[i].shown = 0;
         if (NPCS[i].kin != NO_KIN && NPCS[i].map == cur_map) {
             int bx = a->x + DIR_DX[DIR_BACK[a->facing]], by = a->y + DIR_DY[DIR_BACK[a->facing]];
@@ -666,6 +688,7 @@ static void npcs_reset(void)
                 by = a->y;
             }
             kin_place(&npc_kin[i], NPCS[i].kin, 0, bx, by, a->facing);
+            npc_kin[i].a.level = (u8)elev_level_at(bx, by, a->level, a->facing);
         }
     }
 }
@@ -757,6 +780,39 @@ static int cell_walkable(int x, int y)
     return 1;
 }
 
+/* The same, for an actor on `level` stepping onto the ground (top = 0) or
+ * onto a deck / tunnel top (top = 1, the terrain below does not matter).
+ * Only people and kin on the same level are in the way. */
+static int npc_at_lv(int x, int y, int level)
+{
+    for (int i = 0; i < NPC_COUNT; i++) {
+        if (NPCS[i].map != cur_map) continue;
+        const Actor *a = &npc_state[i];
+        if (a->level != level) continue;
+        if (a->x == x && a->y == y) return i;
+        if (a->moving && a->x - DIR_DX[a->facing] == x && a->y - DIR_DY[a->facing] == y) return i;
+    }
+    return -1;
+}
+
+static int wild_at_lv(int x, int y, int level)
+{
+    int w = wild_at(x, y);
+    return w >= 0 && wild[w].k.a.level == level ? w : -1;
+}
+
+static int cell_walkable_lv(int x, int y, int level, int top)
+{
+    if (x < 0 || y < 0 || x >= map_w || y >= map_h) return 0;
+    if (!top && (cell_attr(x, y) & (A_SOLID | A_LEDGE))) return 0;
+    if (npc_at_lv(x, y, level) >= 0) return 0;
+    int k = npc_kin_at(x, y);
+    if (k >= 0 && npc_kin[k].a.level == level) return 0;
+    if (wild_at_lv(x, y, level) >= 0) return 0;
+    if (!top && item_ball_at(x, y) >= 0) return 0;
+    return 1;
+}
+
 /* ---------------- camera ---------------- */
 
 static void field_update_camera(void)
@@ -820,7 +876,7 @@ static int kin_frame(const KinActor *k)
 
 /* kind: 0 person, 1 kin, 2 satchel, 3 emote, 4 map object (tile a, bank b,
  * drawn `dy` below the sort line y, shape `shape`) */
-typedef struct { int y, x, kind, a, b, flip, dy, shape; } FieldSprite;
+typedef struct { int y, x, kind, a, b, flip, dy, shape, prio; } FieldSprite;   /* prio 0 = 2 */
 
 /* traversal (travel.c) */
 static int travel_player_entry(FieldSprite *e, int lift);
@@ -828,6 +884,7 @@ static int travel_player_lift(void);
 static int travel_kin_actors(const KinActor **out, int max);
 static int travel_push_sprites(FieldSprite *list, int n, int max);
 static void travel_draw_floor(void);
+static int grass_push_sprites(FieldSprite *list, int n, int max);  /* grass.c */
 static int farm_field_kin(const KinActor **out);  /* farm.c: workers on WILLOW ACRE (at most 4) */
 
 static struct { int npc, kind, timer; } emote = { -1, 0, 0 };
@@ -855,15 +912,16 @@ static void draw_weather(void)
 
 static void field_draw_sprites(void)
 {
-    FieldSprite list[80];
+    FieldSprite list[96];
     int n = 0;
     int lift = actor_lift(&player) + travel_player_lift();
     if (travel_player_entry(&list[n], lift)) {
-        n++;
+        list[n++].prio = elev_obj_prio(&player);
     } else {
         copy32(VRAM_OBJ_TILES + OT_PLAYER * 8, char_gfx[CHR_PLAYER][actor_frame(&player)], 64);
         list[n++] = (FieldSprite){ player.y * 16 + player.oy, player.x * 16 + player.ox, 0,
-                                   OT_PLAYER | (lift << 16), OBANK_PLAYER, player.facing == DIR_RIGHT };
+                                   OT_PLAYER | (lift << 16), OBANK_PLAYER, player.facing == DIR_RIGHT,
+                                   0, 0, elev_obj_prio(&player) };
     }
     int slot = 0;
     for (int i = 0; i < NPC_COUNT && n < 40; i++) {
@@ -871,10 +929,11 @@ static void field_draw_sprites(void)
         const Actor *a = &npc_state[i];
         int wx = a->x * 16 + a->ox, wy = a->y * 16 + a->oy;
         if (wx - cam_x >= -16 && wx - cam_x <= SCREEN_WIDTH && wy - cam_y >= -16 &&
-            wy - cam_y <= SCREEN_HEIGHT + 16 && slot < 7) {
+            wy - cam_y <= SCREEN_HEIGHT + 16 && slot < grass_npc_slots()) {
             copy32(VRAM_OBJ_TILES + OT_NPC(slot) * 8, char_gfx[NPCS[i].chr][actor_frame(a)], 64);
             load_pal(obj_palette + (OBANK_NPC + slot) * 16, char_palettes[NPCS[i].chr]);
-            list[n++] = (FieldSprite){ wy, wx, 0, OT_NPC(slot), OBANK_NPC + slot, a->facing == DIR_RIGHT };
+            list[n++] = (FieldSprite){ wy, wx, 0, OT_NPC(slot), OBANK_NPC + slot, a->facing == DIR_RIGHT,
+                                       0, 0, elev_obj_prio(a) };
             if (emote.npc == i && emote.timer > 0)
                 list[n++] = (FieldSprite){ wy + 1, wx, 3, emote.kind, 0, 0 };
             slot++;
@@ -910,7 +969,8 @@ static void field_draw_sprites(void)
         }
         copy32(VRAM_OBJ_TILES + OT_OWKIN(kslot) * 8, kin_frame_gfx(k->species, kin_frame(k)), 16 * 8);
         list[n++] = (FieldSprite){ wy, wx, 1, OT_OWKIN(kslot) | (actor_lift(&k->a) << 16),
-                                   KIN_BANK_FIRST + bank, k->a.facing == DIR_RIGHT };
+                                   KIN_BANK_FIRST + bank, k->a.facing == DIR_RIGHT, 0, 0,
+                                   elev_obj_prio(&k->a) };
         if (emote.timer > 0 && emote.npc <= -2 && k == &wild[-2 - emote.npc].k)
             list[n++] = (FieldSprite){ wy + 1, wx, 3, emote.kind, 0, 0 };
         kslot++;
@@ -920,6 +980,7 @@ static void field_draw_sprites(void)
         list[n++] = (FieldSprite){ ITEM_BALLS[i].y * 16 - 1, ITEM_BALLS[i].x * 16, 2, 0, 0, 0 };
     }
     n = travel_push_sprites(list, n, 78);
+    n = grass_push_sprites(list, n, 96);
     /* Sort front-to-back: larger y is closer to the camera. */
     for (int i = 1; i < n; i++)
         for (int j = i; j > 0 && list[j].y > list[j - 1].y; j--) {
@@ -929,14 +990,14 @@ static void field_draw_sprites(void)
         }
     for (int i = 0; i < n; i++) {
         const FieldSprite *s = &list[i];
-        int sx = s->x - cam_x, sy = s->y - cam_y;
+        int sx = s->x - cam_x, sy = s->y - cam_y, pr = s->prio ? s->prio : 2;
         switch (s->kind) {
         case 0:
-            spr_push(sx, sy - 16 - (s->a >> 16), s->a & 0xFFFF, TALL16x32, s->b, 2,
+            spr_push(sx, sy - 16 - (s->a >> 16), s->a & 0xFFFF, TALL16x32, s->b, pr,
                      s->flip ? ATTR1_HFLIP : 0);
             break;
         case 1:
-            spr_push(sx - 8, sy - 16 - (s->a >> 16), s->a & 0xFFFF, SQ32, s->b, 2,
+            spr_push(sx - 8, sy - 16 - (s->a >> 16), s->a & 0xFFFF, SQ32, s->b, pr,
                      s->flip ? ATTR1_HFLIP : 0);
             break;
         case 2:
@@ -946,7 +1007,7 @@ static void field_draw_sprites(void)
             spr_push(sx, sy - 34, OT_EMOTE + s->a * 4, SQ16, OBANK_EMOTE, 1, 0);
             break;
         case 4:
-            spr_push(sx, sy + s->dy, s->a, s->shape, s->b, 2, s->flip ? ATTR1_HFLIP : 0);
+            spr_push(sx, sy + s->dy, s->a, s->shape, s->b, pr, s->flip ? ATTR1_HFLIP : 0);
             break;
         }
     }
@@ -1000,6 +1061,7 @@ static void actor_start_move(Actor *a, int dir)
     a->ox = (s8)(-DIR_DX[dir] * 16);
     a->oy = (s8)(-DIR_DY[dir] * 16);
     a->moving = 1;
+    grass_step_into(a->x, a->y);
 }
 
 /* Two cells at once (ledge hop). */
@@ -1012,6 +1074,7 @@ static void actor_start_hop(Actor *a, int dir)
     a->oy = (s8)(-DIR_DY[dir] * 32);
     a->moving = 1;
     a->hop = 16;
+    grass_step_into(a->x, a->y);
 }
 
 /* Direction from one cell to an adjacent one (or -1). */
@@ -1023,9 +1086,17 @@ static int dir_to(int x0, int y0, int x1, int y1)
 }
 
 /* A kin that walks to where its person just was. */
+static void kin_follow_move(KinActor *k, int tx, int ty, int hop);
+
 static void kin_follow(KinActor *k, int tx, int ty, int hop)
 {
     if (!k->shown) return;
+    kin_follow_move(k, tx, ty, hop);
+    if (map_elevated) k->a.level = (u8)elev_level_at(k->a.x, k->a.y, k->a.level, k->a.facing);
+}
+
+static void kin_follow_move(KinActor *k, int tx, int ty, int hop)
+{
     if (hop) {
         int d = dir_to(k->a.x, k->a.y, tx, ty);
         if (d >= 0) {
@@ -1079,11 +1150,13 @@ static void follower_reset(void)
 {
     follower_sync();
     int bx = player.x + DIR_DX[DIR_BACK[player.facing]], by = player.y + DIR_DY[DIR_BACK[player.facing]];
-    if (bx < 0 || by < 0 || bx >= map_w || by >= map_h || (cell_attr(bx, by) & A_SOLID)) {
+    if (bx < 0 || by < 0 || bx >= map_w || by >= map_h || (cell_attr(bx, by) & A_SOLID) ||
+        (map_elevated && elev_level_at(bx, by, player.level, -1) != player.level)) {
         bx = player.x;
         by = player.y;
     }
     kin_place(&follower, follower.species, follower.lustrous, bx, by, player.facing);
+    follower.a.level = (u8)elev_level_at(bx, by, player.level, player.facing);
     follower_sync();
 }
 
@@ -1119,10 +1192,13 @@ static void npcs_update(void)
             kin_follow(k, ox, oy, 0);
             continue;
         }
-        if (!cell_walkable(nx, ny)) continue;
+        int nl, ek = elev_enter(a->x, a->y, a->level, dir, &nl);
+        if (ek == ELEV_BLOCK || !cell_walkable_lv(nx, ny, nl, ek == ELEV_TOP)) continue;
         if (cell_attr(nx, ny) & (A_GRASS | A_EXIT)) continue;
+        if (elev_hidden(nx, ny)) continue;
         int ox = a->x, oy = a->y;
         actor_start_move(a, dir);
+        a->level = (u8)nl;
         if (k->shown) kin_follow(k, ox, oy, 0);
     }
 }
@@ -1200,39 +1276,68 @@ static int player_try_move(int dir)
         }
     }
     if ((nx < 0 || ny < 0 || nx >= map_w || ny >= map_h) && try_edge_link(dir, nx, ny)) return 1;
-    int w = wild_at(nx, ny);
+    /* elevation: cliffs, stairs, decks (elev.c); nl = the level stepped onto */
+    int nl, ek = elev_enter(player.x, player.y, player.level, dir, &nl);
+    int w = ek != ELEV_BLOCK ? wild_at_lv(nx, ny, nl) : -1;
     if (w >= 0) {
         wild_touch(w);
         return 1;
     }
     /* surfing, boulders (travel.c) */
-    int t = travel_player_move(dir, nx, ny);
-    if (t >= 0) return t;
-    /* ledges: hop down over them */
+    if (ek == ELEV_FLOOR) {
+        int t = travel_player_move(dir, nx, ny);
+        if (t > 0) player.level = (u8)nl;
+        if (t >= 0) return t;
+    }
+    /* ledges: hop down over them (off a rise onto the ground below) */
     if (dir == DIR_DOWN && nx >= 0 && ny >= 0 && nx < map_w && ny < map_h &&
-        (cell_attr(nx, ny) & A_LEDGE) && cell_walkable(nx, ny + 1)) {
-        int ox = player.x, oy = player.y;
+        (cell_attr(nx, ny) & A_LEDGE) && cell_walkable(nx, ny + 1) &&
+        (!map_elevated || player.level > elev_floor(nx, ny))) {
+        int ox = player.x, oy = player.y, ol = player.level;
         actor_start_hop(&player, dir);
+        player.level = (u8)elev_level_at(player.x, player.y, -1, dir);
         sfx_play(SFX_LEDGE);
-        if (follower_active()) kin_follow(&follower, ox, oy, 0);
+        if (follower_active()) {
+            kin_follow(&follower, ox, oy, 0);
+            follower.a.level = (u8)ol;
+        }
         actor_step(&player, 2);
         return 1;
     }
     int swap = follower_active() && follower.a.x == nx && follower.a.y == ny && !follower.a.moving &&
-               !(cell_attr(nx, ny) & (A_SOLID | A_LEDGE));
-    if (!swap && !cell_walkable(nx, ny)) {
+               follower.a.level == nl && ek != ELEV_BLOCK &&
+               (ek == ELEV_TOP || !(cell_attr(nx, ny) & (A_SOLID | A_LEDGE)));
+    if (!swap && (ek == ELEV_BLOCK || !cell_walkable_lv(nx, ny, nl, ek == ELEV_TOP))) {
         if (!player.anim) sfx_play(SFX_BUMP);
         player.anim++; /* walk in place against obstacles */
         return 0;
     }
-    int ox = player.x, oy = player.y;
+    int ox = player.x, oy = player.y, ol = player.level;
     actor_start_move(&player, dir);
-    if (follower_active()) kin_follow(&follower, ox, oy, 0);
+    player.level = (u8)nl;
+    if (follower_active()) {
+        kin_follow(&follower, ox, oy, 0);
+        if (follower.a.x == ox && follower.a.y == oy) follower.a.level = (u8)ol;
+    }
     /* advance on the same frame so consecutive steps flow without a stall */
     int speed = travel_speed(key_down(KEY_B) ? 2 : 1);
     actor_step(&player, speed);
     if (follower_active()) actor_step(&follower.a, speed);
     return 1;
+}
+
+/* The player walked into a hidden passage for the first time: a rustle
+ * and a "!" (the passage stays found while you are on the map). */
+static void elev_player_arrived(void)
+{
+    if (!map_elevated) return;
+    if (player.level != elev_level_at(player.x, player.y, player.level, player.facing))
+        player.level = (u8)elev_level_at(player.x, player.y, -1, player.facing);
+    u16 *e = &map_elev[player.y * map_w + player.x];
+    if (EV_COVER(*e) != EC_HIDDEN || (*e & EV_FOUND)) return;
+    *e |= EV_FOUND;
+    sfx_play(SFX_RUSTLE);
+    field_emote(-1, EMOTE_EXCLAIM, 30);
 }
 
 /* One frame of overworld control. */
@@ -1243,6 +1348,7 @@ static int field_player_update(void)
         int speed = travel_speed(player.hop ? 2 : key_down(KEY_B) ? 2 : 1);
         if (follower_active() && follower.a.moving) actor_step(&follower.a, speed);
         if (actor_step(&player, speed)) {
+            elev_player_arrived();
             travel_player_arrived();
             on_player_step();
             return 1;
@@ -1374,11 +1480,19 @@ static void wild_spawn(void)
         wild[slot].think = (u16)(20 + rng_range(60));
         kin_place(&wild[slot].k, wild[slot].mon.species, (wild[slot].mon.flags & MF_LUSTROUS) != 0,
                   x, y, (int)rng_range(4));
+        wild[slot].k.a.level = (u8)elev_level_at(x, y, -1, -1);
         return;
     }
 }
 
 static int field_busy(void);
+
+/* A wild kin next to the player can reach them (not across a cliff). */
+static int wild_reaches_player(const KinActor *k)
+{
+    int d = dir_to(k->a.x, k->a.y, player.x, player.y), nl;
+    return d >= 0 && elev_enter(k->a.x, k->a.y, k->a.level, d, &nl) != ELEV_BLOCK && nl == player.level;
+}
 
 static void wild_update(void)
 {
@@ -1393,7 +1507,7 @@ static void wild_update(void)
         if (k->a.moving) {
             if (actor_step(&k->a, 1) && !player.moving &&
                 absi(k->a.x - player.x) + absi(k->a.y - player.y) == 1 && wild[i].brimming &&
-                !hush_steps) {
+                !hush_steps && wild_reaches_player(k)) {
                 k->a.facing = (u8)dir_to(k->a.x, k->a.y, player.x, player.y);
                 wild_touch(i);
                 return;
@@ -1423,7 +1537,7 @@ static void wild_update(void)
         int dir;
         if (chase) {
             int dx = player.x - k->a.x, dy = player.y - k->a.y;
-            if (dist == 1) {
+            if (dist == 1 && wild_reaches_player(k)) {
                 k->a.facing = (u8)dir_to(k->a.x, k->a.y, player.x, player.y);
                 if (!player.moving) {
                     wild_touch(i);
@@ -1437,11 +1551,16 @@ static void wild_update(void)
         }
         int nx = k->a.x + DIR_DX[dir], ny = k->a.y + DIR_DY[dir];
         k->a.facing = (u8)dir;
-        int ok = chase ? ((wild[i].water ? travel_surf_cell(nx, ny) : cell_walkable(nx, ny)) &&
-                          !(nx == player.x && ny == player.y) &&
-                          !(follower_active() && nx == follower.a.x && ny == follower.a.y))
-                       : wild_cell_ok(nx, ny, wild[i].water);
-        if (ok) actor_start_move(&k->a, dir);
+        int nl, ek = elev_enter(k->a.x, k->a.y, k->a.level, dir, &nl);
+        int ok = ek == ELEV_FLOOR &&
+                 (chase ? ((wild[i].water ? travel_surf_cell(nx, ny) : cell_walkable_lv(nx, ny, nl, 0)) &&
+                           !(nx == player.x && ny == player.y) &&
+                           !(follower_active() && nx == follower.a.x && ny == follower.a.y))
+                        : wild_cell_ok(nx, ny, wild[i].water));
+        if (ok) {
+            actor_start_move(&k->a, dir);
+            k->a.level = (u8)nl;
+        }
     }
 }
 
@@ -1473,6 +1592,7 @@ static void field_enter_map(int map, int x, int y, int facing)
     player.moving = 0;
     player.hop = 0;
     player.facing = (u8)facing;
+    player.level = (u8)elev_level_at(x, y, -1, facing);
     travel_map_entered(map);
     field_load_tileset();
     follower_reset();

@@ -62,6 +62,13 @@ enum {
 #define NOBJ(a) ((u8)(sizeof(a) / sizeof(a[0])))
 #define NSLOT(a) ((u8)(sizeof(a) / sizeof(a[0])))
 #define NO_LINKS { MAP_NONE, MAP_NONE, MAP_NONE, MAP_NONE }, { 0, 0, 0, 0 }
+/* Elevation (docs/ELEVATION.md): features over the height layer, and the
+ * designated initializers that give a map its layer:
+ *   [MAP_X] = { ..., { links }, { offsets }, ELEV(X_ELEV, X_FEATS) }, */
+#define EF(K, X, Y, W, H) { EF_##K, X, Y, W, H }
+#define NFEAT(a) ((u8)(sizeof(a) / sizeof(a[0])))
+#define ELEV(ROWS, FEATS) .elev = ROWS, .feats = FEATS, .feat_count = NFEAT(FEATS)
+#define ELEV_ONLY(ROWS) .elev = ROWS
 
 #define PERSON(map, x, y, chr, face, beh, scr, lore, name, text) \
     { map, x, y, CHR_##chr, DIR_##face, BEH_##beh, SCR_##scr, lore, NO_TRAINER, 0, NO_KIN, name, text }

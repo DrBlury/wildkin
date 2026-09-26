@@ -13,6 +13,7 @@
  *   game/msg.c        typewriter message box, choices, dialog queue
  *   game/party.c      team, PC storage, bag, money, catalogue flags
  *   game/field.c      metatile maps, streaming renderer, movement, NPCs
+ *   game/grass.c      tall grass: front blades over actors, rustles, wind
  *   game/battle.c     turn rules that queue presentation events
  *   game/anim.c       move animations
  *   game/battle_ui.c  event playback, HUD, battle menus, transitions
@@ -47,6 +48,7 @@
 #include "game/msg.c"
 #include "game/party.c"
 #include "game/field.c"
+#include "game/grass.c"
 #include "game/time.c"
 #include "game/travel.c"
 #include "game/battle.c"

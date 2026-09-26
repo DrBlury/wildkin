@@ -107,7 +107,8 @@ $(TARGET).gba: $(TARGET).elf
 $(TARGET).elf: $(OBJS) gba.ld
 	$(CC) $(LDFLAGS) $(OBJS) -o $@ -nostdlib -lgcc
 
-$(BUILD)/src/main.o: $(ART) src/music_data.h $(wildcard src/*.h) $(wildcard src/game/*.c) $(wildcard src/game/*.h)
+$(BUILD)/src/main.o: $(ART) src/music_data.h $(wildcard src/*.h) $(wildcard src/game/*.c) $(wildcard src/game/*.h) \
+                    $(wildcard src/game/world/*.h src/game/world/*.inc src/game/world/*.c src/game/world/*/*)
 
 $(BUILD)/%.o: %.c
 	@mkdir -p $(dir $@)

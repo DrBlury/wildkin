@@ -9,5 +9,6 @@
 #include "craft/trainers.inc"
 #include "fusion/trainers.inc"
 #include "travel/trainers.inc"
+#include "elev/trainers.inc"
 #include "ui/trainers.inc"
 #include "debug/trainers.inc"

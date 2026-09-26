@@ -9,6 +9,10 @@
 > UI canvas moved to 0x6000 (`UI_TILE_BASE`), screenblocks are 28-31. The map budget tests now
 > count decor kinds that do not fit (field.c used to drop them silently: PORT BRINE needed 598).
 
+> **Puzzles (2026-09-27):** `tools/tests/test_puzzles.c` now proves every
+> map solvable and soft-lock free with the real movement code; see
+> `docs/handoff/puzzles.md` for what it checks and the Hall fixes.
+
 > **Update (2026-09-26, later):** every area is now implemented and merged
 > into `expansion`: the 16 first-round branches plus a second round of 11
 > agents (traversal, farm + time, crafting, fusion, UI, bouts, and the east,

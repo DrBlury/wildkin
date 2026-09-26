@@ -10,14 +10,15 @@
  *                    east  y 20-21 <-> LUMEN CITY west
  *   LUMEN CITY       north x 24-25 <-> MOONVEIL PATH south
  *                    east  y 20-21 <-> CINDER ROAD west
- *   ELDERWOOD HEART  north x 30-31 <-> BRAMBLEWOOD south (behind two STRENGTH
- *                    boulders on Bramblewood, WOOD_OBJS below)
+ *   ELDERWOOD HEART  north x 30-31 <-> BRAMBLEWOOD south (behind a STRENGTH
+ *                    boulder on Bramblewood, WOOD_OBJS below)
  * Doors: see warps.inc. The CLOCKWORK SPIRE is entered through the clock
  * tower in Lumen City (CY CLOCK_TOWER stamp).
  *
  * Legends: route maps use the wild tileset (. grass  , tall grass  = path
  * ~ water  T/t trees  P/p pines  C/c cliff  L [ ] ledges  d dirt  f forest
- * floor  R reeds); Lumen uses the city tileset (tools/tilesets/ts_city.py:
+ * floor  R reeds  w flowering tall grass  g golden tall grass -- tools/grass.py);
+ * Lumen uses the city tileset (tools/tilesets/ts_city.py:
  * . pavement  = street  ~ canal  c cobbles  p plaza  g lawn  , park grass
  * r/y flowers  T/t trees  # w city wall); interiors use W w n k walls,
  * . : floors, < = > counter, D exit mat.
@@ -37,12 +38,12 @@ static const char *const COPPERLINE_ROWS[] = {
     "PPPPPPPPPPPP..CCCCCCCCCCCCCCCCCCCCC.,,,,,,PP", /*  6 */
     "pppppppppppp..ccccccccccccccccccccc.,,,,,,pp", /*  7 */
     "PP............ccccccccccccccccccccc.,,,,,,PP", /*  8 */
-    "pp,,,,,,,,,,,,..dddddddddddddddddd..,,,,,,pp", /*  9 */
-    "PP,,,,,,,,,,,,..dddddddddddddddddd..,,,,,,PP", /* 10 */
-    "pp,,,,,,,,,,,,..dddddddddddddddddd..,,,,,,pp", /* 11 */
-    "PP,,,,,,,,,,,,..dddddddddddddddddd..,,,,,,PP", /* 12 */
-    "pp,,,,,,,,,,,,..dddddddddddddddddd..,,,,,,pp", /* 13 */
-    "PP,,,,,,,,,,,,..dddddddddddddddddd..,,,,,,PP", /* 14 */
+    "pp,,,ggggggg,,..dddddddddddddddddd..,,,,,,pp", /*  9 */
+    "PP,gggggggggg,..dddddddddddddddddd..,,,,,,PP", /* 10 */
+    "ppgggggggggggg..dddddddddddddddddd..,,,,,,pp", /* 11 */
+    "PPgggggggggg,,..dddddddddddddddddd..,,,,,,PP", /* 12 */
+    "pp,ggggggg,,,,..dddddddddddddddddd..,,,,,,pp", /* 13 */
+    "PP,,,ggg,,,,,,..dddddddddddddddddd..,,,,,,PP", /* 14 */
     "pp..................==...............rrr..pp", /* 15 */
     "PP..................==....................PP", /* 16 */
     "==================================........pp", /* 17 */
@@ -246,9 +247,9 @@ static const char *const ELDERWOOD_ROWS[] = {
     "ppppppppppff..............ffffffffffffpp", /* 19 */
     "PPffffffffff...........rr.f,,,,,,,,,,,PP", /* 20 */
     "ppfRRRRRRRff..............f,,,,,,,,,,,pp", /* 21 */
-    "PPfR~~~~~Rffy.............f,,,,,,,,,,,PP", /* 22 */
-    "ppfR~~~~~Rff..............f,,,,,,,,,,,pp", /* 23 */
-    "PPfR~~~~~Rff..............f,,,,,,,,,,,PP", /* 24 */
+    "PPfR~~~~~Rffy.............f,,,www,,,,,PP", /* 22 */
+    "ppfR~~~~~Rff..............f,,wwwww,,,,pp", /* 23 */
+    "PPfR~~~~~Rff..............f,,,wwww,,,,PP", /* 24 */
     "ppfR~~~~~Rff..............f,,,,,,,,,,,pp", /* 25 */
     "PPfR~~~~~Rff..............f,,,,,,,,,,,PP", /* 26 */
     "ppfR~~~~~Rff.............rf,,,,,,,,,,,pp", /* 27 */
@@ -295,11 +296,12 @@ static const WildSlot WILD_ELDERWOOD[] = {
     { SP_BEACONFLY, 12, 30, 33, WHEN_NIGHT }, { SP_WEBBIT, 10, 28, 31, WHEN_NIGHT },
 };
 
-/* Bramblewood's south path (x 30-31) to Elderwood Heart is blocked by two
- * STRENGTH boulders (the core owns Bramblewood; its MapDef points here).
- * Push the left one down, then the right one out to the east. */
+/* Bramblewood's south path to Elderwood Heart narrows to x 31 at row 34 (a
+ * stump, WOOD_DECOR) and a STRENGTH boulder stands in front of the gap (the
+ * core owns Bramblewood; its MapDef points here). Push it aside. One boulder,
+ * not two: two free boulders in the open wood made the reachable states
+ * explode (tools/tests/test_puzzles.c proves every map). */
 static const MapObj WOOD_OBJS[] = {
-    OBJ(BOULDER, 30, 33, 0),
     OBJ(BOULDER, 31, 33, 0),
 };
 

@@ -65,6 +65,21 @@ static void map_entry(int map, int *ex, int *ey)
             }
 }
 
+/* Boulders, plates, gates, switches, barriers, pads, ice or currents: the
+ * map's reachability is test_puzzles.c's job. */
+static int map_has_puzzle(int m)
+{
+    for (int i = 0; i < MAPS[m].obj_count; i++) {
+        int k = MAPS[m].objs[i].kind;
+        if (k == OBJ_BOULDER || k == OBJ_PLATE || k == OBJ_GATE || k == OBJ_SWITCH || k == OBJ_BARRIER || k == OBJ_PAD)
+            return 1;
+    }
+    for (int y = 0; y < map_h; y++)
+        for (int x = 0; x < map_w; x++)
+            if (cell_attr(x, y) & (A_ICE | A_CURRENT)) return 1;
+    return 0;
+}
+
 static void test_maps(void)
 {
     int rows_ok = 1, stamps_ok = 1, decor_ok = 1, budget_ok = 1;
@@ -156,10 +171,36 @@ static void test_maps(void)
         map_load(m);
         int ex, ey;
         map_entry(m, &ex, &ey);
-        /* puzzles solved (Halls behind gates, barriers and pads); water is
-         * open on maps with water kin (surf routes) */
-        flood_ex(ex, ey, FLOOD_SOLVED | (MAPS[m].water_zone ? FLOOD_SURF : 0));
-        for (int i = 0; i < NPC_COUNT; i++) {
+        /* the map as it is (gates shut, boulders in place); water is open on
+         * maps with water kin (surf routes). On puzzle maps people, satchels,
+         * doors and exits are proven by tools/tests/test_puzzles.c, which
+         * plays the real pushes, slides, switches and pads; a flood that
+         * assumed every gate open would prove nothing. */
+        int puzzle = map_has_puzzle(m);
+        int fmode = MAPS[m].water_zone ? FLOOD_SURF : FLOOD_WALK;
+        flood_ex(ex, ey, fmode);
+        if (puzzle) {
+            /* a boulder may cut one entrance off: union every way in */
+            static u8 all[MAP_MAX_W * MAP_MAX_H];
+            memcpy(all, seen_cells, sizeof(all));
+            for (int i = 0; i < WARP_COUNT; i++)
+                if (WARPS[i].dest == m) {
+                    flood_ex(WARPS[i].dx, WARPS[i].dy, fmode);
+                    for (int c = 0; c < map_w * map_h; c++) all[c] |= seen_cells[c];
+                }
+            for (int l = 0; l < 4; l++) {
+                if (MAPS[m].link[l] == MAP_NONE) continue;
+                for (int k = 0; k < (l < 2 ? map_w : map_h); k++) {
+                    int x = l < 2 ? k : (l == LINK_W ? 0 : map_w - 1);
+                    int y = l < 2 ? (l == LINK_N ? 0 : map_h - 1) : k;
+                    if (!cell_walkable(x, y) || all[y * map_w + x]) continue;
+                    flood_ex(x, y, fmode);
+                    for (int c = 0; c < map_w * map_h; c++) all[c] |= seen_cells[c];
+                }
+            }
+            memcpy(seen_cells, all, sizeof(all));
+        }
+        for (int i = 0; i < NPC_COUNT && !puzzle; i++) {
             if (NPCS[i].map != m) continue;
             int ok = reached_beside(NPCS[i].x, NPCS[i].y);
             for (int d = 0; d < 4 && !ok; d++) {
@@ -172,7 +213,7 @@ static void test_maps(void)
                        NPCS[i].x, NPCS[i].y);
             }
         }
-        for (int i = 0; i < ITEM_BALL_COUNT; i++)
+        for (int i = 0; i < ITEM_BALL_COUNT && !puzzle; i++)
             if (ITEM_BALLS[i].map == m && !reached_beside(ITEM_BALLS[i].x, ITEM_BALLS[i].y)) {
                 reach_ok = 0;
                 printf("  %s: satchel %d at %d,%d unreachable\n", MAPS[m].name, i, ITEM_BALLS[i].x, ITEM_BALLS[i].y);
@@ -183,12 +224,12 @@ static void test_maps(void)
                 reach_ok = 0;
                 printf("  %s: sign at %d,%d not solid/reachable\n", MAPS[m].name, SIGNS[i].x, SIGNS[i].y);
             }
-        for (int i = 0; i < WARP_COUNT; i++)
+        for (int i = 0; i < WARP_COUNT && !puzzle; i++)
             if (WARPS[i].map == m && !reached(WARPS[i].x, WARPS[i].y + 1)) {
                 reach_ok = 0;
                 printf("  %s: door at %d,%d unreachable\n", MAPS[m].name, WARPS[i].x, WARPS[i].y);
             }
-        for (int l = 0; l < 4; l++) {
+        for (int l = 0; l < 4 && !puzzle; l++) {
             if (MAPS[m].link[l] == MAP_NONE) continue;
             int found = 0;
             for (int k = 0; k < (l < 2 ? map_w : map_h); k++) {
@@ -238,8 +279,18 @@ static void test_maps(void)
         for (int q = 0; q < 4; q++)
             if ((interior_meta_bottom[m][q] & 0x3FF) >= INTERIOR_TILE_COUNT) tiles_ok = 0;
     CHECK(tiles_ok, "terrain metatiles point at real tiles");
-    CHECK(town_meta_top[MT_T_TALLGRASS][2] != 0 && wild_meta_top[MT_W_REEDS][2] != 0,
-          "tall grass and reeds have a front layer drawn over legs");
+    /* tall grass (grass.c): every variety's variants are wild-kin grass, drawn on
+     * BG0 only (the front blades over actors are sprites) */
+    int grass_ok = GRASS_SETS[TS_TOWN].count >= 1 && GRASS_SETS[TS_WILD].count >= 4;
+    for (int t = 0; t < TS_COUNT; t++)
+        for (int d = 0; d < GRASS_SETS[t].count; d++)
+            for (int v = 0; v < GRASS_VARIANTS; v++) {
+                int mt = GRASS_SETS[t].defs[d].meta[v];
+                if (mt >= TILESETS[t].meta_count || !(TILESETS[t].attr[mt] & A_GRASS)) grass_ok = 0;
+                for (int q = 0; q < 4; q++)
+                    if (TILESETS[t].meta_top[mt][q]) grass_ok = 0;
+            }
+    CHECK(grass_ok, "every tall-grass variant is wild-kin grass with its front blades as sprites");
 }
 
 /* ---------------- movement ---------------- */
@@ -411,12 +462,12 @@ static void test_people(void)
     CHECK(told == total, "people keep telling new lore until they run out");
 
     /* satchels are picked up once */
-    field_enter_map(MAP_TOWN, 36, 3, DIR_RIGHT);
+    field_enter_map(MAP_TOWN, 37, 6, DIR_UP);
     int t = bag[ITEM_TONIC];
     tap(KEY_A);
     run_dialog(400);
     CHECK(bag[ITEM_TONIC] == t + 2 && item_taken(0), "a satchel gives its item");
-    CHECK(cell_walkable(37, 3), "an opened satchel no longer blocks the way");
+    CHECK(cell_walkable(37, 5), "an opened satchel no longer blocks the way");
 
     /* the tender across the counter */
     party[0].hp = 1;

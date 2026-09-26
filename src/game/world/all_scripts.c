@@ -9,5 +9,6 @@
 #include "craft/scripts.c"
 #include "fusion/scripts.c"
 #include "travel/scripts.c"
+#include "elev/scripts.c"
 #include "ui/scripts.c"
 #include "debug/scripts.c"

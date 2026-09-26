@@ -9,5 +9,6 @@
 #include "craft/lore.inc"
 #include "fusion/lore.inc"
 #include "travel/lore.inc"
+#include "elev/lore.inc"
 #include "ui/lore.inc"
 #include "debug/lore.inc"
