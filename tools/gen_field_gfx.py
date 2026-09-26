@@ -1139,6 +1139,7 @@ def all_decor():
     items = items + __import__('decor_fusion').FUSION_DECOR  # FUSION (Resonance Works machines)
     items = items + __import__('decor_craft').CRAFT_DECOR  # CRAFT (stations)
     items = items + __import__('decor_grim').DECOR  # W-GRIM (grim, crypt)
+    items = items + __import__('decor_east').EAST_DECOR  # W-EAST (city, Copperline, Elderwood)
     seen = set()
     for d in items:
         if d.name in seen:

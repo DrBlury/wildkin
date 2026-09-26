@@ -200,6 +200,7 @@ static const Stamp TOWN_STAMPS[] = {
     STAMP(T, SHOP, 11, 22),       /* shop */
     STAMP(T, HOUSE_BLUE, 31, 21), /* garden house */
     STAMP(T, COURT_CIRCLE, 29, 12),
+    STAMP(T, HOUSE_RED, 22, 22),  /* LAND OFFICE (W-EAST: world/east/warps.inc) */
 };
 
 static const DecorPlace TOWN_DECOR[] = {
@@ -230,7 +231,7 @@ static const DecorPlace TOWN_DECOR[] = {
     DP(BUSH, 17, 27), DP(BUSH, 36, 2), DP(BUSH, 2, 2), DP(BENCH, 4, 27),
     DP(LILY_PADS, 5, 29), DP(LILY_PADS, 7, 30), DP(ROCK, 36, 27), DP(ROCK, 11, 27),
     DP(SMALL_FLOWERS, 22, 7), DP(SMALL_FLOWERS, 34, 4), DP(SMALL_FLOWERS, 9, 16),
-    DP(PEBBLES, 25, 25), DP(SMALL_FLOWERS, 30, 20),
+    DP(PEBBLES, 28, 25), DP(SMALL_FLOWERS, 30, 20),
 };
 
 /* ================================================================ */

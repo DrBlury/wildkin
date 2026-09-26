@@ -1,4 +1,4 @@
-/* world/east/ids.inc -- Map ids: MAP_X,. PLACEHOLDER maps: the owner replaces them. */
+/* world/east/ids.inc -- Map ids: MAP_X,. Owner: W-EAST. */
     MAP_COPPERLINE,
     MAP_LUMEN,
     MAP_ELDERWOOD,
@@ -10,3 +10,5 @@
     MAP_BIKE_SHOP,
     MAP_LUMEN_HOUSE,
     MAP_CLOCKWORK_SPIRE,
+    MAP_LUMEN_INN,
+    MAP_LUMEN_HOUSE_B,

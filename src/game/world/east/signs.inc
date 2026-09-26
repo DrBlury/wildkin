@@ -1,1 +1,11 @@
 /* world/east/signs.inc -- Signs: { MAP_X, x, y, "text" },. Owner: W-EAST. */
+    { MAP_TOWN, 23, 25, "LAND OFFICE\fDeeds, surveys and plots for sale. REEVE, land agent." },
+    { MAP_COPPERLINE, 3, 16, "COPPERLINE ROAD\fWEST: BRAMBLEWOOD. EAST: LUMEN CITY." },
+    { MAP_COPPERLINE, 23, 33, "SOUTH: ASHEN FIELDS\fThe grass turns grey past here. Carry a lantern." },
+    { MAP_COPPERLINE, 40, 19, "EAST: LUMEN CITY\fThe lamp-lit city. Home of the VOLT HALL." },
+    { MAP_LUMEN, 23, 2, "NORTH GATE\fMOONVEIL PATH climbs from here toward DREAMSPIRE." },
+    { MAP_LUMEN, 2, 19, "WEST GATE\fCOPPERLINE ROAD to BRAMBLEWOOD and the ASHEN FIELDS." },
+    { MAP_LUMEN, 45, 19, "EAST GATE\fCINDER ROAD to CINDERMOOR. Mind the heat." },
+    { MAP_LUMEN, 23, 18, "LUMEN CITY\fThe lamp-lit city. Its BEACON has not gone dark in two hundred years." },
+    { MAP_LUMEN, 16, 28, "CLOCKWORK SPIRE\fThe clockmakers' tower. Visitors welcome. Mind the gears." },
+    { MAP_ELDERWOOD, 29, 2, "ELDERWOOD HEART\fThe oldest trees in the Vale. Tread softly." },
