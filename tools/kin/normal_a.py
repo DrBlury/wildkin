@@ -37,7 +37,7 @@ SPECIES = [
     KinSpec(34, 'SNUFFLET', ('BEAST',), 'C', base=(64, 55, 52, 34, 46, 45), catch=190, xp=60,
             evo=('LEVEL', 22, 'TRUFFLOAR'),
             category='TRUFFLER', height=4, weight=90,
-            learnset=[(1, 'M_BONK'), (1, 'M_POUT'), (5, 'M_GRIT_KICK'), (9, 'M_MUD_PIE'), (13, 'M_SWIPE'),
+            learnset=[(1, 'M_POUT'), (1, 'M_BONK'), (5, 'M_GRIT_KICK'), (9, 'M_MUD_PIE'), (13, 'M_SWIPE'),
                       (17, 'M_BRACE'), (21, 'M_BELLY_FLOP'), (25, 'M_SAP_SIP')],
             traits=('HOARDER', 'STUBBORN'), field=(),
             desc='It can smell a truffle through a yard of soil. The leaf on its snout is a seedling '
@@ -212,8 +212,8 @@ SPECIES = [
     KinSpec(52, 'STATICKO', ('SPARK',), 'C', base=(42, 45, 38, 62, 40, 78), catch=190, xp=58,
             evo=('LEVEL', 25, 'FULGECKO'),
             category='WALL GECKO', height=3, weight=8,
-            learnset=[(1, 'M_STATIC_POP'), (1, 'M_POUT'), (5, 'M_DART'), (9, 'M_TINGLE'), (13, 'M_SWIPE'),
-                      (17, 'M_LIVE_WIRE'), (21, 'M_STARE_DOWN'), (25, 'M_ARC_FLASH')],
+            learnset=[(1, 'M_POUT'), (1, 'M_STATIC_POP'), (5, 'M_DART'), (9, 'M_TINGLE'), (13, 'M_LIVE_WIRE'),
+                      (17, 'M_SWIPE'), (21, 'M_STARE_DOWN'), (25, 'M_ARC_FLASH')],
             traits=('STATIC FUR', 'SLIPPERY'), field=(),
             desc='It rubs its toes on dry grass until they crackle, then strolls up walls and across '
                  'ceilings on static cling alone. Touch it and you get a snap.',
@@ -251,8 +251,8 @@ SPECIES = [
     KinSpec(56, 'TUXFLAKE', ('FROST', 'TIDE'), 'C', base=(55, 42, 52, 52, 55, 44), catch=190, xp=60,
             evo=('LEVEL', 30, 'EMPERICE'),
             category='FLUFF CHICK', height=4, weight=45,
-            learnset=[(1, 'M_BONK'), (1, 'M_POUT'), (5, 'M_FIZZ'), (9, 'M_FLURRY'), (13, 'M_SLIPSTREAM'),
-                      (17, 'M_RIME_SHOT'), (21, 'M_BELLY_FLOP'), (25, 'M_UNDERTOW'), (29, 'M_SNOWDRIFT'),
+            learnset=[(1, 'M_POUT'), (1, 'M_BONK'), (5, 'M_FIZZ'), (9, 'M_FLURRY'), (13, 'M_RIME_SHOT'),
+                      (17, 'M_SLIPSTREAM'), (21, 'M_BELLY_FLOP'), (25, 'M_UNDERTOW'), (29, 'M_SNOWDRIFT'),
                       (33, 'M_HAILSTONES')],
             traits=('THICK FUR', 'SOAKER'), field=(),
             desc='Its down is so thick that snow clings to it in a round puff. It waddles to the water and '

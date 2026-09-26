@@ -119,7 +119,7 @@ SPECIES = [
             category='SKY LION', height=19, weight=1300,
             learnset=[(1, 'M_BEAK_JAB'), (1, 'M_SWIPE'), (1, 'M_DRAFT'), (1, 'M_POUT'),
                       (9, 'M_DART'), (15, 'M_FEATHER_CUT'), (21, 'M_SNARL'), (27, 'M_UPDRAFT'),
-                      (33, 'M_BELLY_FLOP'), (39, 'M_CROSSWIND'), (45, 'M_RECKLESS_RUSH'), (51, 'M_STOOP')],
+                      (33, 'M_CROSSWIND'), (39, 'M_BELLY_FLOP'), (45, 'M_RECKLESS_RUSH'), (49, 'M_STOOP')],
             traits=('KEEN EYE', 'MOMENTUM'), field=('FLY',), fusion=('GALE', 'BEAST'),
             desc='Woven of GALE and BEAST, it has a falcon\'s eyes and a lion\'s heart. Its kernel pumps '
                  'from wind and muscle at once, so it can fly all day and still hunt at dusk.',

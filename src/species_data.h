@@ -217,7 +217,7 @@ static const LearnEntry LS_WISPIRE[] = { {1, M_STARE_DOWN}, {1, M_DAYDREAM}, {8,
 static const LearnEntry LS_DRAKORA[] = { {1, M_WYRMBREATH}, {1, M_DRAFT}, {1, M_STARE_DOWN}, {1, M_FEATHER_CUT}, {30, M_SCALE_REND}, {36, M_UPDRAFT}, {40, M_STOOP}, {46, M_FAULTLINE}, {52, M_STARFALL}, {0, 0} };
 static const LearnEntry LS_PRICKLET[] = { {1, M_BONK}, {1, M_BRACE}, {5, M_POUT}, {9, M_DART}, {13, M_BURR_VOLLEY}, {17, M_SNARL}, {21, M_BELLY_FLOP}, {25, M_CATNAP}, {0, 0} };
 static const LearnEntry LS_QUILLDRUM[] = { {1, M_BONK}, {1, M_BRACE}, {1, M_POUT}, {1, M_DART}, {13, M_BURR_VOLLEY}, {17, M_SNARL}, {20, M_ONE_TWO}, {24, M_WAR_CRY}, {29, M_PUMMEL}, {34, M_COUNTERJAB}, {40, M_RECKLESS_RUSH}, {46, M_HAYMAKER}, {0, 0} };
-static const LearnEntry LS_SNUFFLET[] = { {1, M_BONK}, {1, M_POUT}, {5, M_GRIT_KICK}, {9, M_MUD_PIE}, {13, M_SWIPE}, {17, M_BRACE}, {21, M_BELLY_FLOP}, {25, M_SAP_SIP}, {0, 0} };
+static const LearnEntry LS_SNUFFLET[] = { {1, M_POUT}, {1, M_BONK}, {5, M_GRIT_KICK}, {9, M_MUD_PIE}, {13, M_SWIPE}, {17, M_BRACE}, {21, M_BELLY_FLOP}, {25, M_SAP_SIP}, {0, 0} };
 static const LearnEntry LS_TRUFFLOAR[] = { {1, M_BONK}, {1, M_POUT}, {1, M_GRIT_KICK}, {1, M_MUD_PIE}, {13, M_SWIPE}, {17, M_BRACE}, {22, M_BRAMBLE_LASH}, {26, M_BELLY_FLOP}, {31, M_THORN_WALL}, {36, M_SAP_SIP}, {42, M_RECKLESS_RUSH}, {48, M_SUNSHAFT}, {0, 0} };
 static const LearnEntry LS_RACCOIN[] = { {1, M_SWIPE}, {1, M_POUT}, {5, M_SNAP}, {9, M_DART}, {13, M_GLINT}, {17, M_STARE_DOWN}, {21, M_TRINKET_TOSS}, {25, M_HAUNT}, {0, 0} };
 static const LearnEntry LS_BANDIRACC[] = { {1, M_SWIPE}, {1, M_POUT}, {1, M_SNAP}, {1, M_DART}, {13, M_GLINT}, {17, M_STARE_DOWN}, {21, M_TRINKET_TOSS}, {24, M_SHADE_CUT}, {28, M_TARNISH}, {33, M_GNASH}, {39, M_GILDED_GLEAM}, {46, M_GLOOM_ORB}, {0, 0} };
@@ -235,11 +235,11 @@ static const LearnEntry LS_SHROOMLET[] = { {1, M_BONK}, {1, M_SPORE_CLOUD}, {5, 
 static const LearnEntry LS_MYCOLOSSUS[] = { {1, M_BONK}, {1, M_SPORE_CLOUD}, {1, M_BARB}, {1, M_SAP_SIP}, {13, M_DROWSY_POLLEN}, {17, M_ACID_SPIT}, {21, M_BRAMBLE_LASH}, {25, M_FESTER}, {32, M_THORN_WALL}, {37, M_BOG_BOMB}, {43, M_FAULTLINE}, {50, M_SUNSHAFT}, {0, 0} };
 static const LearnEntry LS_BLINKET[] = { {1, M_STATIC_POP}, {1, M_POUT}, {5, M_PINCER}, {9, M_TINGLE}, {13, M_GLINT}, {17, M_WINGDUST}, {21, M_LIVE_WIRE}, {25, M_SWARM_RUSH}, {0, 0} };
 static const LearnEntry LS_BEACONFLY[] = { {1, M_STATIC_POP}, {1, M_POUT}, {1, M_PINCER}, {1, M_TINGLE}, {13, M_GLINT}, {17, M_WINGDUST}, {21, M_LIVE_WIRE}, {26, M_SWARM_RUSH}, {31, M_ARC_FLASH}, {37, M_FORKED_BOLT}, {44, M_UPDRAFT}, {50, M_OVERCHARGE}, {0, 0} };
-static const LearnEntry LS_STATICKO[] = { {1, M_STATIC_POP}, {1, M_POUT}, {5, M_DART}, {9, M_TINGLE}, {13, M_SWIPE}, {17, M_LIVE_WIRE}, {21, M_STARE_DOWN}, {25, M_ARC_FLASH}, {0, 0} };
+static const LearnEntry LS_STATICKO[] = { {1, M_POUT}, {1, M_STATIC_POP}, {5, M_DART}, {9, M_TINGLE}, {13, M_LIVE_WIRE}, {17, M_SWIPE}, {21, M_STARE_DOWN}, {25, M_ARC_FLASH}, {0, 0} };
 static const LearnEntry LS_FULGECKO[] = { {1, M_STATIC_POP}, {1, M_DART}, {1, M_TINGLE}, {1, M_SWIPE}, {13, M_STARE_DOWN}, {17, M_LIVE_WIRE}, {21, M_SNARL}, {25, M_ARC_FLASH}, {30, M_FORKED_BOLT}, {36, M_RECKLESS_RUSH}, {42, M_OVERCHARGE}, {48, M_PRIMAL_ROAR}, {0, 0} };
 static const LearnEntry LS_FLURRABBIT[] = { {1, M_BONK}, {1, M_POUT}, {5, M_FLURRY}, {9, M_DART}, {13, M_RIME_SHOT}, {17, M_SNOWDRIFT}, {21, M_HAILSTONES}, {26, M_CATNAP}, {31, M_WINTER_RAY}, {36, M_BELLY_FLOP}, {0, 0} };
 static const LearnEntry LS_MOONHARE[] = { {1, M_BONK}, {1, M_FLURRY}, {1, M_TWINKLE}, {1, M_RIME_SHOT}, {13, M_SNOWDRIFT}, {17, M_STARDUST}, {21, M_MOONBEAM}, {26, M_HAILSTONES}, {31, M_NEBULA_VEIL}, {36, M_COMET_DASH}, {42, M_WINTER_RAY}, {48, M_MUON_RAIN}, {0, 0} };
-static const LearnEntry LS_TUXFLAKE[] = { {1, M_BONK}, {1, M_POUT}, {5, M_FIZZ}, {9, M_FLURRY}, {13, M_SLIPSTREAM}, {17, M_RIME_SHOT}, {21, M_BELLY_FLOP}, {25, M_UNDERTOW}, {29, M_SNOWDRIFT}, {33, M_HAILSTONES}, {0, 0} };
+static const LearnEntry LS_TUXFLAKE[] = { {1, M_POUT}, {1, M_BONK}, {5, M_FIZZ}, {9, M_FLURRY}, {13, M_RIME_SHOT}, {17, M_SLIPSTREAM}, {21, M_BELLY_FLOP}, {25, M_UNDERTOW}, {29, M_SNOWDRIFT}, {33, M_HAILSTONES}, {0, 0} };
 static const LearnEntry LS_EMPERICE[] = { {1, M_BONK}, {1, M_FIZZ}, {1, M_FLURRY}, {1, M_SLIPSTREAM}, {13, M_RIME_SHOT}, {17, M_BELLY_FLOP}, {21, M_UNDERTOW}, {25, M_SNOWDRIFT}, {32, M_RIPTIDE}, {37, M_WINTER_RAY}, {43, M_SWELL}, {49, M_GEYSER}, {0, 0} };
 static const LearnEntry LS_YAKLING[] = { {1, M_BONK}, {1, M_POUT}, {5, M_FLURRY}, {9, M_BRACE}, {13, M_RIME_SHOT}, {17, M_SWIPE}, {21, M_HAILSTONES}, {25, M_BELLY_FLOP}, {29, M_SNOWDRIFT}, {33, M_RECKLESS_RUSH}, {0, 0} };
 static const LearnEntry LS_GLACIYAK[] = { {1, M_BONK}, {1, M_FLURRY}, {1, M_BRACE}, {1, M_RIME_SHOT}, {13, M_SWIPE}, {17, M_HAILSTONES}, {21, M_BELLY_FLOP}, {25, M_SNOWDRIFT}, {33, M_STONESKIN}, {38, M_RECKLESS_RUSH}, {44, M_WINTER_RAY}, {50, M_FAULTLINE}, {0, 0} };
@@ -267,7 +267,7 @@ static const LearnEntry LS_SQUEAKLE[] = { {1, M_BONK}, {1, M_POUT}, {4, M_DRAFT}
 static const LearnEntry LS_NOCTAVE[] = { {1, M_DRAFT}, {1, M_SNAP}, {1, M_STARE_DOWN}, {1, M_HAUNT}, {26, M_CROSSWIND}, {30, M_GLOOM_ORB}, {35, M_UPDRAFT}, {40, M_DREAMQUAKE}, {46, M_SHADE_CUT}, {52, M_PRIMAL_ROAR}, {0, 0} };
 static const LearnEntry LS_NOXKIT[] = { {1, M_SWIPE}, {1, M_STARE_DOWN}, {5, M_SNAP}, {9, M_DART}, {13, M_CATNAP}, {17, M_HAUNT}, {21, M_SHADE_CUT}, {26, M_GNASH}, {31, M_GLOOM_ORB}, {0, 0} };
 static const LearnEntry LS_UMBRAKAT[] = { {1, M_SWIPE}, {1, M_SNAP}, {1, M_STARE_DOWN}, {1, M_DART}, {22, M_SHADE_CUT}, {28, M_GNASH}, {33, M_SNARL}, {38, M_HAUNT}, {44, M_GLOOM_ORB}, {50, M_RECKLESS_RUSH}, {0, 0} };
-static const LearnEntry LS_CALCIPUP[] = { {1, M_BONK}, {1, M_POUT}, {4, M_BONE_RATTLE}, {8, M_DART}, {12, M_SHROUD}, {16, M_GRAVE_CHILL}, {21, M_CATNAP}, {25, M_MARROW_SIP}, {31, M_OSSIFY}, {0, 0} };
+static const LearnEntry LS_CALCIPUP[] = { {1, M_POUT}, {1, M_BONK}, {4, M_BONE_RATTLE}, {8, M_DART}, {12, M_GRAVE_CHILL}, {16, M_SHROUD}, {21, M_CATNAP}, {25, M_MARROW_SIP}, {31, M_OSSIFY}, {0, 0} };
 static const LearnEntry LS_OSSIHOUND[] = { {1, M_BONE_RATTLE}, {1, M_DART}, {1, M_SHROUD}, {1, M_GRAVE_CHILL}, {28, M_OSSIFY}, {32, M_SNARL}, {36, M_MARROW_SIP}, {40, M_SEAR_BITE}, {45, M_LAST_RITES}, {51, M_RECKLESS_RUSH}, {0, 0} };
 static const LearnEntry LS_MUDDLE[] = { {1, M_BONK}, {1, M_FIZZ}, {5, M_MUD_PIE}, {9, M_BONE_RATTLE}, {13, M_SHROUD}, {17, M_UNDERTOW}, {21, M_GRAVE_CHILL}, {26, M_LAST_RITES}, {33, M_SWELL}, {0, 0} };
 static const LearnEntry LS_BOGSHAMBLE[] = { {1, M_MUD_PIE}, {1, M_BONE_RATTLE}, {1, M_SHROUD}, {1, M_SAP_SIP}, {30, M_SPORE_CLOUD}, {34, M_OSSIFY}, {38, M_THORN_WALL}, {42, M_MARROW_SIP}, {47, M_BELLY_FLOP}, {53, M_REQUIEM}, {0, 0} };
@@ -287,7 +287,7 @@ static const LearnEntry LS_FOUNDRAKE[] = { {1, M_CINDER_FLICK}, {1, M_SEAR_BITE}
 static const LearnEntry LS_KOIRIN[] = { {1, M_BONK}, {1, M_FIZZ}, {5, M_SLIPSTREAM}, {10, M_UNDERTOW}, {15, M_RIPTIDE}, {20, M_SWELL}, {25, M_GEYSER}, {0, 0} };
 static const LearnEntry LS_RYUKOI[] = { {1, M_BONK}, {1, M_FIZZ}, {1, M_SLIPSTREAM}, {1, M_WYRM_DANCE}, {14, M_WYRMBREATH}, {20, M_UNDERTOW}, {26, M_RIPTIDE}, {32, M_SCALE_REND}, {38, M_SWELL}, {44, M_GEYSER}, {50, M_STARFALL}, {0, 0} };
 static const LearnEntry LS_TRINKIT[] = { {1, M_BONK}, {1, M_TRINKET_TOSS}, {5, M_CLATTER}, {10, M_TARNISH}, {15, M_POLTERGUST}, {20, M_GILDED_GLEAM}, {25, M_CHEST_CHOMP}, {30, M_CURSED_CURIO}, {35, M_HEIRLOOM}, {0, 0} };
-static const LearnEntry LS_HOARDMAW[] = { {1, M_BONK}, {1, M_TRINKET_TOSS}, {1, M_CLATTER}, {1, M_DART}, {14, M_SWIPE}, {20, M_BRACE}, {26, M_CATNAP}, {32, M_POUT}, {38, M_TARNISH}, {44, M_SNARL}, {50, M_GLINT}, {0, 0} };
+static const LearnEntry LS_HOARDMAW[] = { {1, M_BONK}, {1, M_TRINKET_TOSS}, {1, M_CLATTER}, {1, M_TARNISH}, {14, M_SWIPE}, {20, M_POLTERGUST}, {26, M_CATNAP}, {32, M_CHEST_CHOMP}, {38, M_GILDED_GLEAM}, {44, M_SNARL}, {50, M_CURSED_CURIO}, {0, 0} };
 static const LearnEntry LS_RATTLEBONE[] = { {1, M_BONK}, {1, M_BONE_RATTLE}, {5, M_LAST_RITES}, {10, M_SHROUD}, {15, M_GRAVE_CHILL}, {20, M_MARROW_SIP}, {25, M_OSSIFY}, {30, M_DEATH_KNELL}, {35, M_REQUIEM}, {0, 0} };
 static const LearnEntry LS_OSSIGUARD[] = { {1, M_BONK}, {1, M_RIVET_SHOT}, {1, M_BONE_RATTLE}, {1, M_IRON_TAP}, {14, M_LAST_RITES}, {20, M_MAGNET_PULL}, {26, M_SHROUD}, {32, M_STEEL_SHELL}, {38, M_GRAVE_CHILL}, {44, M_FORGE_FLASH}, {50, M_MARROW_SIP}, {0, 0} };
 static const LearnEntry LS_GAUNTLING[] = { {1, M_BONK}, {1, M_TRINKET_TOSS}, {5, M_RIVET_SHOT}, {10, M_CLATTER}, {15, M_IRON_TAP}, {20, M_MAGNET_PULL}, {25, M_STEEL_SHELL}, {30, M_TARNISH}, {35, M_FORGE_FLASH}, {40, M_POLTERGUST}, {45, M_GILDED_GLEAM}, {0, 0} };
@@ -299,17 +299,17 @@ static const LearnEntry LS_BOLIDON[] = { {1, M_BONK}, {1, M_TWINKLE}, {1, M_GRIT
 static const LearnEntry LS_KELPYRE[] = { {1, M_BONK}, {1, M_FIZZ}, {1, M_SLIPSTREAM}, {1, M_STARE_DOWN}, {14, M_SNAP}, {20, M_UNDERTOW}, {26, M_HAUNT}, {32, M_SHADE_CUT}, {38, M_RIPTIDE}, {44, M_GLOOM_ORB}, {50, M_GNASH}, {0, 0} };
 static const LearnEntry LS_TENGALE[] = { {1, M_BONK}, {1, M_PUMMEL}, {1, M_ONE_TWO}, {1, M_BEAK_JAB}, {14, M_DRAFT}, {20, M_UPDRAFT}, {26, M_WAR_CRY}, {32, M_HAMMER_FIST}, {38, M_COUNTERJAB}, {44, M_FEATHER_CUT}, {50, M_CROSSWIND}, {0, 0} };
 static const LearnEntry LS_SLUMBAKU[] = { {1, M_BONK}, {1, M_SWIPE}, {1, M_DART}, {1, M_BRACE}, {14, M_CATNAP}, {20, M_LULLABY}, {26, M_POUT}, {32, M_STILL_POND}, {38, M_DAYDREAM}, {44, M_SNARL}, {50, M_GLINT}, {0, 0} };
-static const LearnEntry LS_WENDIGAUNT[] = { {1, M_BONK}, {1, M_HAILSTONES}, {1, M_BONE_RATTLE}, {1, M_FLURRY}, {14, M_RIME_SHOT}, {20, M_LAST_RITES}, {26, M_SHROUD}, {32, M_SNOWDRIFT}, {38, M_GRAVE_CHILL}, {44, M_MARROW_SIP}, {50, M_OSSIFY}, {0, 0} };
+static const LearnEntry LS_WENDIGAUNT[] = { {1, M_BONK}, {1, M_HAILSTONES}, {1, M_BONE_RATTLE}, {1, M_FLURRY}, {14, M_RIME_SHOT}, {20, M_LAST_RITES}, {26, M_SNOWDRIFT}, {32, M_SHROUD}, {36, M_GRAVE_CHILL}, {40, M_MARROW_SIP}, {45, M_OSSIFY}, {50, M_WINTER_RAY}, {0, 0} };
 static const LearnEntry LS_LAMPJINN[] = { {1, M_BONK}, {1, M_TRINKET_TOSS}, {1, M_BEAK_JAB}, {1, M_CLATTER}, {14, M_DRAFT}, {20, M_TARNISH}, {26, M_UPDRAFT}, {32, M_FEATHER_CUT}, {38, M_POLTERGUST}, {44, M_GILDED_GLEAM}, {50, M_CROSSWIND}, {0, 0} };
 static const LearnEntry LS_GARGOLITH[] = { {1, M_BONK}, {1, M_GRIT_KICK}, {1, M_STARE_DOWN}, {1, M_STONESKIN}, {14, M_PEBBLE_PELT}, {20, M_MUD_PIE}, {26, M_SNAP}, {32, M_HAUNT}, {38, M_SANDBLAST}, {44, M_SHADE_CUT}, {50, M_ROCKFALL}, {0, 0} };
 static const LearnEntry LS_HOPSHI[] = { {1, M_BONK}, {1, M_PUMMEL}, {1, M_ONE_TWO}, {1, M_BONE_RATTLE}, {14, M_LAST_RITES}, {20, M_SHROUD}, {26, M_WAR_CRY}, {32, M_HAMMER_FIST}, {38, M_GRAVE_CHILL}, {44, M_COUNTERJAB}, {50, M_MARROW_SIP}, {0, 0} };
-static const LearnEntry LS_QILUMEN[] = { {1, M_BONK}, {1, M_STATIC_POP}, {1, M_TWINKLE}, {1, M_NEBULA_VEIL}, {14, M_STARDUST}, {20, M_TINGLE}, {26, M_LIVE_WIRE}, {32, M_MOONBEAM}, {38, M_ARC_FLASH}, {44, M_COMET_DASH}, {50, M_FORKED_BOLT}, {0, 0} };
+static const LearnEntry LS_QILUMEN[] = { {1, M_BONK}, {1, M_STATIC_POP}, {1, M_TWINKLE}, {1, M_NEBULA_VEIL}, {14, M_TINGLE}, {20, M_LIVE_WIRE}, {26, M_MOONBEAM}, {32, M_ARC_FLASH}, {38, M_COMET_DASH}, {44, M_STARDUST}, {50, M_FORKED_BOLT}, {0, 0} };
 static const LearnEntry LS_CALDERON[] = { {1, M_SEAR_BITE}, {1, M_IRON_TAP}, {1, M_CINDER_FLICK}, {1, M_MAGNET_PULL}, {12, M_FORGE_FLASH}, {20, M_STEEL_SHELL}, {28, M_EMBER_STORM}, {36, M_GEAR_GRIND}, {44, M_KILN_BREATH}, {50, M_FAULTLINE}, {56, M_ANVIL_DROP}, {62, M_SUNFLARE}, {0, 0} };
 static const LearnEntry LS_NOCTHALE[] = { {1, M_FIZZ}, {1, M_TWINKLE}, {1, M_LULLABY}, {1, M_NEBULA_VEIL}, {12, M_MOONBEAM}, {20, M_UNDERTOW}, {28, M_STILL_POND}, {36, M_SWELL}, {44, M_MUON_RAIN}, {50, M_BELLY_FLOP}, {56, M_GEYSER}, {62, M_SUPERNOVA}, {0, 0} };
 static const LearnEntry LS_HOARFANG[] = { {1, M_RIME_SHOT}, {1, M_SNAP}, {1, M_STARE_DOWN}, {1, M_FLURRY}, {12, M_HAILSTONES}, {20, M_SNOWDRIFT}, {28, M_SHADE_CUT}, {36, M_SNARL}, {44, M_GNASH}, {50, M_WINTER_RAY}, {56, M_GLOOM_ORB}, {62, M_PRIMAL_ROAR}, {0, 0} };
 static const LearnEntry LS_OSSUREX[] = { {1, M_BONE_RATTLE}, {1, M_WYRMBREATH}, {1, M_SHROUD}, {1, M_GRAVE_CHILL}, {12, M_MARROW_SIP}, {20, M_SCALE_REND}, {28, M_WYRM_DANCE}, {36, M_OSSIFY}, {40, M_LAST_RITES}, {44, M_KILN_BREATH}, {50, M_DEATH_KNELL}, {56, M_REQUIEM}, {62, M_STARFALL}, {0, 0} };
 static const LearnEntry LS_SELENOTH[] = { {1, M_TWINKLE}, {1, M_DAYDREAM}, {1, M_STARDUST}, {1, M_LULLABY}, {12, M_MOONBEAM}, {20, M_PRISM_RAY}, {28, M_NEBULA_VEIL}, {36, M_WINGDUST}, {44, M_MUON_RAIN}, {50, M_DREAMQUAKE}, {56, M_STILL_POND}, {62, M_SUPERNOVA}, {0, 0} };
-static const LearnEntry LS_SYLVARCH[] = { {1, M_BRAMBLE_LASH}, {1, M_BRACE}, {1, M_SAP_SIP}, {1, M_DROWSY_POLLEN}, {12, M_LEAF_FLURRY}, {20, M_BASK}, {28, M_SNARL}, {36, M_THORN_WALL}, {44, M_REED_BLADE}, {50, M_BELLY_FLOP}, {56, M_SUNSHAFT}, {62, M_PRIMAL_ROAR}, {0, 0} };
+static const LearnEntry LS_SYLVARCH[] = { {1, M_BRAMBLE_LASH}, {1, M_BRACE}, {1, M_SAP_SIP}, {1, M_DROWSY_POLLEN}, {12, M_LEAF_FLURRY}, {20, M_SNARL}, {28, M_BASK}, {34, M_THORN_WALL}, {38, M_SUNSHAFT}, {42, M_BELLY_FLOP}, {48, M_REED_BLADE}, {62, M_PRIMAL_ROAR}, {0, 0} };
 static const LearnEntry LS_HOROLOGOS[] = { {1, M_IRON_TAP}, {1, M_CLATTER}, {1, M_TARNISH}, {1, M_MAGNET_PULL}, {12, M_RIVET_SHOT}, {20, M_STEEL_SHELL}, {28, M_GEAR_GRIND}, {36, M_LODE_BEAM}, {44, M_CURSED_CURIO}, {50, M_FAULTLINE}, {56, M_ANVIL_DROP}, {62, M_HEIRLOOM}, {0, 0} };
 static const LearnEntry LS_SCRIPTORA[] = { {1, M_DAYDREAM}, {1, M_CLATTER}, {1, M_TARNISH}, {1, M_LULLABY}, {12, M_POLTERGUST}, {20, M_PRISM_RAY}, {28, M_SILK_SNARE}, {36, M_GILDED_GLEAM}, {44, M_STILL_POND}, {50, M_DREAMQUAKE}, {56, M_CURSED_CURIO}, {62, M_BRIM_BURST}, {0, 0} };
 static const LearnEntry LS_SKYLORN[] = { {1, M_DRAFT}, {1, M_TWINKLE}, {1, M_FEATHER_CUT}, {1, M_UPDRAFT}, {12, M_STARDUST}, {20, M_COMET_DASH}, {28, M_CROSSWIND}, {36, M_NEBULA_VEIL}, {44, M_MUON_RAIN}, {50, M_STOOP}, {56, M_METEOR_FALL}, {62, M_SUPERNOVA}, {0, 0} };
@@ -324,7 +324,7 @@ static const LearnEntry LS_VOLTSHARK[] = { {1, M_SLIPSTREAM}, {1, M_STATIC_POP},
 static const LearnEntry LS_DULLAHAN[] = { {1, M_BONK}, {1, M_BONE_RATTLE}, {1, M_DART}, {1, M_LANTERN_LURE}, {8, M_BRACE}, {14, M_GRAVE_CHILL}, {20, M_SNARL}, {26, M_OSSIFY}, {32, M_BELLY_FLOP}, {38, M_LAST_RITES}, {44, M_RECKLESS_RUSH}, {50, M_REQUIEM}, {56, M_PRIMAL_ROAR}, {0, 0} };
 static const LearnEntry LS_CHIMERAX[] = { {1, M_SWIPE}, {1, M_BARB}, {1, M_POUT}, {1, M_DART}, {8, M_SPORE_CLOUD}, {14, M_SNARL}, {20, M_ACID_SPIT}, {26, M_BELLY_FLOP}, {32, M_FESTER}, {38, M_GLINT}, {44, M_BOG_BOMB}, {50, M_RECKLESS_RUSH}, {56, M_PRIMAL_ROAR}, {0, 0} };
 static const LearnEntry LS_RIDDLEON[] = { {1, M_GRIT_KICK}, {1, M_DAYDREAM}, {1, M_STILL_POND}, {1, M_PEBBLE_PELT}, {10, M_MUD_PIE}, {16, M_LULLABY}, {22, M_PRISM_RAY}, {28, M_STONESKIN}, {34, M_SANDBLAST}, {40, M_DREAMQUAKE}, {46, M_ROCKFALL}, {52, M_FAULTLINE}, {0, 0} };
-static const LearnEntry LS_GRIFFALON[] = { {1, M_BEAK_JAB}, {1, M_SWIPE}, {1, M_DRAFT}, {1, M_POUT}, {9, M_DART}, {15, M_FEATHER_CUT}, {21, M_SNARL}, {27, M_UPDRAFT}, {33, M_BELLY_FLOP}, {39, M_CROSSWIND}, {45, M_RECKLESS_RUSH}, {51, M_STOOP}, {0, 0} };
+static const LearnEntry LS_GRIFFALON[] = { {1, M_BEAK_JAB}, {1, M_SWIPE}, {1, M_DRAFT}, {1, M_POUT}, {9, M_DART}, {15, M_FEATHER_CUT}, {21, M_SNARL}, {27, M_UPDRAFT}, {33, M_CROSSWIND}, {39, M_BELLY_FLOP}, {45, M_RECKLESS_RUSH}, {49, M_STOOP}, {0, 0} };
 static const LearnEntry LS_MANTICLAW[] = { {1, M_BARB}, {1, M_ONE_TWO}, {1, M_SWIPE}, {1, M_SPORE_CLOUD}, {10, M_HAMMER_FIST}, {16, M_PUMMEL}, {22, M_WAR_CRY}, {28, M_ACID_SPIT}, {34, M_COUNTERJAB}, {40, M_FESTER}, {46, M_BOG_BOMB}, {52, M_HAYMAKER}, {0, 0} };
 static const LearnEntry LS_INKRAKEN[] = { {1, M_FIZZ}, {1, M_SNAP}, {1, M_SLIPSTREAM}, {1, M_STARE_DOWN}, {9, M_UNDERTOW}, {15, M_HAUNT}, {21, M_GLOOM_ORB}, {27, M_RIPTIDE}, {33, M_GNASH}, {39, M_SWELL}, {45, M_SHADE_CUT}, {51, M_GEYSER}, {0, 0} };
 static const LearnEntry LS_OBSIDRAKE[] = { {1, M_GRIT_KICK}, {1, M_PEBBLE_PELT}, {1, M_WYRMBREATH}, {1, M_BRACE}, {10, M_STONESKIN}, {16, M_SCALE_REND}, {22, M_ROCKFALL}, {28, M_WYRM_DANCE}, {34, M_SANDBLAST}, {40, M_FAULTLINE}, {47, M_KILN_BREATH}, {54, M_STARFALL}, {0, 0} };
@@ -345,15 +345,15 @@ static const LearnEntry LS_BOGNEWT[] = { {1, M_FIZZ}, {1, M_BARB}, {1, M_SLIPSTR
 static const LearnEntry LS_RIMEGOLEM[] = { {1, M_RIME_SHOT}, {1, M_PEBBLE_PELT}, {1, M_BRACE}, {1, M_GRIT_KICK}, {8, M_HAILSTONES}, {14, M_MUD_PIE}, {20, M_ROCKFALL}, {26, M_SNOWDRIFT}, {32, M_STONESKIN}, {38, M_HAMMER_FIST}, {44, M_WINTER_RAY}, {50, M_FAULTLINE}, {56, M_BELLY_FLOP}, {0, 0} };
 static const LearnEntry LS_DYNAMOLE[] = { {1, M_SWIPE}, {1, M_STATIC_POP}, {1, M_IRON_TAP}, {1, M_GRIT_KICK}, {8, M_TINGLE}, {14, M_RIVET_SHOT}, {20, M_LIVE_WIRE}, {26, M_MAGNET_PULL}, {32, M_GEAR_GRIND}, {38, M_ARC_FLASH}, {44, M_STEEL_SHELL}, {50, M_LODE_BEAM}, {56, M_OVERCHARGE}, {0, 0} };
 static const LearnEntry LS_LULLABOX[] = { {1, M_CLATTER}, {1, M_LULLABY}, {1, M_DAYDREAM}, {1, M_TARNISH}, {8, M_TRINKET_TOSS}, {14, M_STILL_POND}, {20, M_POLTERGUST}, {26, M_PRISM_RAY}, {32, M_GILDED_GLEAM}, {38, M_CATNAP}, {44, M_DREAMQUAKE}, {50, M_CURSED_CURIO}, {0, 0} };
-static const LearnEntry LS_KITSUFLAME[] = { {1, M_CINDER_FLICK}, {1, M_DAYDREAM}, {1, M_DART}, {1, M_LANTERN_LURE}, {8, M_SEAR_BITE}, {14, M_PRISM_RAY}, {20, M_KILN_BREATH}, {26, M_LULLABY}, {32, M_STILL_POND}, {38, M_EMBER_STORM}, {44, M_DREAMQUAKE}, {50, M_SUNFLARE}, {0, 0} };
+static const LearnEntry LS_KITSUFLAME[] = { {1, M_CINDER_FLICK}, {1, M_DAYDREAM}, {1, M_DART}, {1, M_LANTERN_LURE}, {8, M_SEAR_BITE}, {14, M_PRISM_RAY}, {20, M_KILN_BREATH}, {26, M_STILL_POND}, {32, M_EMBER_STORM}, {38, M_DREAMQUAKE}, {44, M_LULLABY}, {50, M_SUNFLARE}, {0, 0} };
 static const LearnEntry LS_WYVERNIX[] = { {1, M_DRAFT}, {1, M_WYRMBREATH}, {1, M_FEATHER_CUT}, {1, M_STARE_DOWN}, {8, M_UPDRAFT}, {14, M_SCALE_REND}, {20, M_WYRM_DANCE}, {26, M_CROSSWIND}, {32, M_STOOP}, {38, M_RECKLESS_RUSH}, {44, M_STARFALL}, {0, 0} };
 static const LearnEntry LS_TRIHYDRA[] = { {1, M_BARB}, {1, M_SNAP}, {1, M_WYRMBREATH}, {1, M_SPORE_CLOUD}, {8, M_ACID_SPIT}, {14, M_SCALE_REND}, {20, M_FESTER}, {26, M_WYRM_DANCE}, {32, M_GNASH}, {38, M_BOG_BOMB}, {44, M_CATNAP}, {50, M_STARFALL}, {0, 0} };
-static const LearnEntry LS_PHOENEX[] = { {1, M_CINDER_FLICK}, {1, M_TWINKLE}, {1, M_DRAFT}, {1, M_STARDUST}, {8, M_SEAR_BITE}, {14, M_MOONBEAM}, {20, M_KILN_BREATH}, {26, M_NEBULA_VEIL}, {32, M_EMBER_STORM}, {38, M_COMET_DASH}, {44, M_MUON_RAIN}, {50, M_SUNFLARE}, {56, M_SUPERNOVA}, {0, 0} };
+static const LearnEntry LS_PHOENEX[] = { {1, M_CINDER_FLICK}, {1, M_TWINKLE}, {1, M_DRAFT}, {1, M_STARDUST}, {8, M_SEAR_BITE}, {14, M_MOONBEAM}, {20, M_KILN_BREATH}, {26, M_COMET_DASH}, {32, M_MUON_RAIN}, {38, M_EMBER_STORM}, {44, M_NEBULA_VEIL}, {50, M_SUNFLARE}, {56, M_SUPERNOVA}, {0, 0} };
 static const LearnEntry LS_IRONHOWL[] = { {1, M_SWIPE}, {1, M_IRON_TAP}, {1, M_SNARL}, {1, M_DART}, {8, M_RIVET_SHOT}, {14, M_GNASH}, {20, M_MAGNET_PULL}, {26, M_GEAR_GRIND}, {32, M_STEEL_SHELL}, {38, M_RECKLESS_RUSH}, {44, M_ANVIL_DROP}, {50, M_PRIMAL_ROAR}, {0, 0} };
 static const LearnEntry LS_NIMBWHALE[] = { {1, M_FIZZ}, {1, M_DRAFT}, {1, M_SLIPSTREAM}, {1, M_UPDRAFT}, {8, M_UNDERTOW}, {14, M_CATNAP}, {20, M_CROSSWIND}, {26, M_RIPTIDE}, {32, M_BELLY_FLOP}, {38, M_SWELL}, {44, M_STOOP}, {50, M_GEYSER}, {0, 0} };
 static const LearnEntry LS_JOLLYROGUE[] = { {1, M_BONE_RATTLE}, {1, M_CLATTER}, {1, M_TRINKET_TOSS}, {1, M_TARNISH}, {8, M_GRAVE_CHILL}, {14, M_CHEST_CHOMP}, {20, M_SHADE_CUT}, {26, M_OSSIFY}, {32, M_GILDED_GLEAM}, {38, M_MARROW_SIP}, {44, M_CURSED_CURIO}, {50, M_HEIRLOOM}, {56, M_REQUIEM}, {0, 0} };
 static const LearnEntry LS_RUNELITH[] = { {1, M_PEBBLE_PELT}, {1, M_CLATTER}, {1, M_GRIT_KICK}, {1, M_TARNISH}, {8, M_MUD_PIE}, {14, M_POLTERGUST}, {20, M_STONESKIN}, {26, M_SANDBLAST}, {32, M_GILDED_GLEAM}, {38, M_ROCKFALL}, {44, M_CURSED_CURIO}, {50, M_FAULTLINE}, {56, M_HEIRLOOM}, {0, 0} };
-static const LearnEntry LS_FAEFLY[] = { {1, M_SILK_SNARE}, {1, M_DAYDREAM}, {1, M_PINCER}, {1, M_LULLABY}, {8, M_WINGDUST}, {14, M_PRISM_RAY}, {20, M_SWARM_RUSH}, {26, M_STILL_POND}, {32, M_CROSSWIND}, {38, M_DREAMQUAKE}, {44, M_UPDRAFT}, {50, M_GLINT}, {0, 0} };
+static const LearnEntry LS_FAEFLY[] = { {1, M_SILK_SNARE}, {1, M_DAYDREAM}, {1, M_PINCER}, {1, M_LULLABY}, {8, M_WINGDUST}, {14, M_PRISM_RAY}, {20, M_SWARM_RUSH}, {26, M_STILL_POND}, {32, M_UPDRAFT}, {38, M_CROSSWIND}, {44, M_DREAMQUAKE}, {50, M_SWARM_RUSH}, {0, 0} };
 static const LearnEntry LS_SNOWBRUTE[] = { {1, M_RIME_SHOT}, {1, M_ONE_TWO}, {1, M_BRACE}, {1, M_FLURRY}, {8, M_HAILSTONES}, {14, M_PUMMEL}, {20, M_COUNTERJAB}, {26, M_WAR_CRY}, {32, M_SNOWDRIFT}, {38, M_HAMMER_FIST}, {44, M_BELLY_FLOP}, {50, M_HAYMAKER}, {0, 0} };
 static const LearnEntry LS_TESLAROSE[] = { {1, M_STATIC_POP}, {1, M_BRAMBLE_LASH}, {1, M_TINGLE}, {1, M_SAP_SIP}, {8, M_LIVE_WIRE}, {14, M_LEAF_FLURRY}, {20, M_ARC_FLASH}, {26, M_THORN_WALL}, {32, M_FORKED_BOLT}, {38, M_BASK}, {44, M_SUNSHAFT}, {50, M_OVERCHARGE}, {0, 0} };
 static const LearnEntry LS_NOCTMARE[] = { {1, M_STARE_DOWN}, {1, M_SNAP}, {1, M_DAYDREAM}, {1, M_LULLABY}, {8, M_HAUNT}, {14, M_PRISM_RAY}, {20, M_GLOOM_ORB}, {26, M_SHADE_CUT}, {32, M_STILL_POND}, {38, M_DREAMQUAKE}, {44, M_RECKLESS_RUSH}, {0, 0} };
@@ -655,7 +655,7 @@ static const Species SPECIES[SP_COUNT] = {
         "REAPER", 17, 380, LS_REAPMANTIS,
         "In the ash of the March its kernel stopped growing shell and began to grow bone. It stands so still that crows land on its scythes, and then it moves.",
         { TR_KEEN_EYE, TR_GLOWER }, R_UNCOMMON, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_MAGNITICK] = { "MAGNITICK", T_SWARM, T_METAL, { 45, 58, 78, 35, 50, 44 }, 190, 58, EVO_LEVEL, 28, SP_LODEHORN,
+    [SP_MAGNITICK] = { "MAGNITICK", T_SWARM, T_METAL, { 45, 54, 70, 35, 50, 44 }, 190, 58, EVO_LEVEL, 28, SP_LODEHORN,
         "IRON GRUB", 3, 90, LS_MAGNITICK,
         "Its magnetite kernel pumps from the pull of the earth. It clings to fences, kettles and belt buckles, and must be peeled off very gently.",
         { TR_STUBBORN, TR_CONDUCTOR }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
@@ -695,7 +695,7 @@ static const Species SPECIES[SP_COUNT] = {
         "SHADOW CAT", 13, 520, LS_UMBRAKAT,
         "A broadband kernel darker than any shadow. It crosses the mire without a sound; the only warning is a pair of eyes that were not there a moment ago.",
         { TR_SLIPPERY, TR_MOMENTUM }, R_UNCOMMON, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_CALCIPUP] = { "CALCIPUP", T_HOLLOW, TYPE_NONE, { 50, 55, 58, 35, 45, 62 }, 190, 58, EVO_LEVEL, 28, SP_OSSIHOUND,
+    [SP_CALCIPUP] = { "CALCIPUP", T_HOLLOW, TYPE_NONE, { 56, 64, 58, 35, 45, 62 }, 190, 58, EVO_LEVEL, 28, SP_OSSIHOUND,
         "BONE PUP", 4, 40, LS_CALCIPUP,
         "A kernel that outlived its body rebuilt it from old bone and grave dust. It rattles all over when it is happy, which is nearly always.",
         { TR_STUBBORN, TR_SELFMEND }, R_COMMON, 0, { TYPE_NONE, TYPE_NONE } },
@@ -863,7 +863,7 @@ static const Species SPECIES[SP_COUNT] = {
         "LUNAR MOTH", 38, 220, LS_SELENOTH,
         "Its wing dust is fallen starlight, each mote a tiny muon-pumped kernel. When it sleeps in the STARFALL GROTTO, the whole Vale dreams of the same moon.",
         { TR_DRIFTER, TR_FOCUSED }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
-    [SP_SYLVARCH] = { "SYLVARCH", T_BLOOM, T_BEAST, { 115, 115, 100, 90, 110, 75 }, 3, 255, EVO_NONE, 0, 0,
+    [SP_SYLVARCH] = { "SYLVARCH", T_BLOOM, T_BEAST, { 115, 122, 100, 90, 100, 92 }, 3, 255, EVO_NONE, 0, 0,
         "ELDER STAG", 44, 8200, LS_SYLVARCH,
         "The roots of ELDERWOOD HEART are one great web, and SYLVARCH is the kernel it pumps. Seeds sprout in its hoofprints, and birds nest in its antlers.",
         { TR_BASKER, TR_THICK_FUR }, R_LEGEND, 0, { TYPE_NONE, TYPE_NONE } },
@@ -1019,7 +1019,7 @@ static const Species SPECIES[SP_COUNT] = {
         "HYDRA", 19, 1600, LS_TRIHYDRA,
         "Woven from VENOM and WYRM energy, one old kernel feeds three heads that each brew their own poison. Knock one out in a bout and its motes grow it back by dusk.",
         { TR_SELFMEND, TR_SURGE }, R_FUSION, FA_SURF, { T_VENOM, T_WYRM } },
-    [SP_PHOENEX] = { "PHOENEX", T_BLAZE, T_ASTRAL, { 80, 75, 70, 130, 90, 115 }, 45, 215, EVO_NONE, 0, 0,
+    [SP_PHOENEX] = { "PHOENEX", T_BLAZE, T_ASTRAL, { 80, 75, 70, 112, 88, 100 }, 45, 215, EVO_NONE, 0, 0,
         "STARFIRE", 20, 260, LS_PHOENEX,
         "Woven from BLAZE and ASTRAL energy, it burns cosmic rays as starfire. When it dozes it crumbles to glowing embers, and it rises again with the next dawn.",
         { TR_STUBBORN, TR_FOCUSED }, R_FUSION, FA_FLY|FA_LIGHT, { T_BLAZE, T_ASTRAL } },

@@ -809,7 +809,12 @@ static void battle_events_update(void)
         }
         BEvent *e = &battle.ev[0];
         int was_started = battle.ev_started;
-        if (!bev_run(e)) return;
+        if (!bev_run(e)) {
+            /* fast bouts: a timed event (not text, not a question) runs a
+             * second step this frame */
+            if (!opt.battle_speed || !battle.ev_started || e->type == EV_TEXT || e->type == EV_LEARN) return;
+            if (!bev_run(e)) return;
+        }
         if (battle.state != BST_EVENTS) {
             bev_pop();
             return;
@@ -1269,6 +1274,7 @@ static void battle_update(void)
     switch (battle.state) {
     case BST_INTRO:
         intro_update();
+        if (opt.battle_speed && battle.state == BST_INTRO) intro_update();
         break;
     case BST_EVENTS:
         battle_events_update();
@@ -1487,6 +1493,11 @@ static void battle_draw(void)
 
     team_row_draw();
     banner_draw();
+    if (opt.battle_speed) {         /* fast bouts: a hidden step, then the shown one */
+        anim_nodraw = 1;
+        anim_update();
+        anim_nodraw = 0;
+    }
     anim_update();
 
     /* the rim of the intro's lantern light glitters */

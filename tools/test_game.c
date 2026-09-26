@@ -1193,6 +1193,88 @@ static void tier_balance(const char *name, const int *tier, int n, int level, in
     CHECK(ok, msg);
 }
 
+/* ---- the whole roster, tiered by stage and rarity (docs/EXPANSION.md 3-4) ---- */
+
+static int evolves_from_something(int sp)
+{
+    for (int s = 0; s < SP_COUNT; s++)
+        if (SPECIES[s].evo_kind != EVO_NONE && SPECIES[s].evo_into == sp) return 1;
+    return 0;
+}
+
+/* Round robin: every kin meets up to `opp` evenly spaced tier-mates,
+ * `games` times from each side. Prints the kin outside [lo, hi]. */
+static int sampled_tier(const char *name, const int *tier, int n, int level, int lo, int hi, int opp, int games)
+{
+    int ok = 1, worst_lo = 100, worst_hi = 0;
+    rng_seed(0xBA1A2CEu);
+    for (int i = 0; i < n; i++) {
+        int wins = 0, played = 0;
+        int k = opp < n - 1 ? opp : n - 1;
+        for (int j = 1; j <= k; j++) {
+            int o = tier[(i + j * (n - 1) / k) % n];
+            if (o == tier[i]) continue;
+            for (int g = 0; g < games; g++) {
+                wins += sim_battle(tier[i], o, level);
+                wins += !sim_battle(o, tier[i], level);
+                played += 2;
+            }
+        }
+        int pct = played ? wins * 100 / played : 50;
+        if (pct < worst_lo) worst_lo = pct;
+        if (pct > worst_hi) worst_hi = pct;
+        if (pct < lo || pct > hi) {
+            ok = 0;
+            printf("       %-12s %3d%%  (%s tier, Lv%d)\n", SPECIES[tier[i]].name, pct, name, level);
+        }
+    }
+    printf("     %s tier: %d kin at Lv%d, win rates %d%%..%d%%\n", name, n, level, worst_lo, worst_hi);
+    return ok;
+}
+
+static void roster_balance(void)
+{
+    static int basic[SP_COUNT], final_[SP_COUNT], rare[SP_COUNT], fusion[SP_COUNT], legend[SP_COUNT];
+    int nb = 0, nf = 0, nr = 0, nu = 0, nl = 0;
+    for (int s = 0; s < SP_COUNT; s++) {
+        const Species *sp = &SPECIES[s];
+        int from = evolves_from_something(s), into = sp->evo_kind != EVO_NONE;
+        switch (sp->rarity) {
+        case R_LEGEND: legend[nl++] = s; break;
+        case R_FUSION: fusion[nu++] = s; break;
+        case R_RARE: if (!into) rare[nr++] = s; break;
+        default:
+            if (!from && into) basic[nb++] = s;
+            if (!into) final_[nf++] = s;
+            break;
+        }
+    }
+    int ok = 1;
+    ok &= sampled_tier("basic", basic, nb, 15, 20, 85, 64, 2);
+    ok &= sampled_tier("final", final_, nf, 50, 20, 85, 64, 2);
+    if (nr > 1) ok &= sampled_tier("rare", rare, nr, 50, 20, 85, 64, 2);
+    if (nu > 1) ok &= sampled_tier("fusion", fusion, nu, 50, 20, 85, 64, 2);
+    CHECK(ok, "the whole roster stays within a 20%..85% win rate in its tier");
+    /* legends beat the regular finals most of the time */
+    int weak = 0;
+    rng_seed(0x1E6E2Du);
+    for (int i = 0; i < nl; i++) {
+        int wins = 0, played = 0;
+        for (int j = 0; j < 8 && nf; j++) {
+            int o = final_[(i * 7 + j * nf / 8) % nf];
+            wins += sim_battle(legend[i], o, 50);
+            wins += !sim_battle(o, legend[i], 50);
+            played += 2;
+        }
+        if (played && wins * 100 / played < 55) {
+            weak++;
+            printf("       legend %-12s wins only %d%% against final forms\n", SPECIES[legend[i]].name,
+                   wins * 100 / played);
+        }
+    }
+    CHECK(nl > 0 && weak == 0, "every legend beats regular final forms most of the time");
+}
+
 static void test_balance(void)
 {
     fresh_game();
@@ -1210,6 +1292,7 @@ static void test_balance(void)
     int legend = 0;
     for (int i = 0; i < 20; i++) legend += sim_battle(SP_DRAKORA, SP_GNAWLORD, 50);
     CHECK(legend >= 12, "the legendary DRAKORA beats a regular final form most of the time");
+    roster_balance();
     party_count = 0;
 }
 
