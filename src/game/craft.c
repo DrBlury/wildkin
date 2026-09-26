@@ -1293,7 +1293,7 @@ static void forge_draw(void)
     }
     /* the hammer: raised, mid, strike */
     int f = cg.hammer_t > 7 ? 1 : cg.hammer_t > 3 ? 2 : 0;
-    cg_spr(CSP_HAMMER, f, 116, 64, CB_METAL, 0);
+    cg_spr(CSP_HAMMER, f, 104, 68, CB_METAL, 0);
     int shape = RECIPES[cg.recipe].result == ITEM_SPRINKLER || RECIPES[cg.recipe].result == ITEM_HUSH_BELL ? 2 :
                 cg.phase ? 1 : 0;
     cg_spr(CSP_INGOT, shape, 94, 90, CB_FOOD, 0);
@@ -1553,6 +1553,16 @@ static int station_examine(int decor_kind)
     int st = station_of_decor(decor_kind);
     if (st < 0) return 0;
     station_pending = st;
+    if (MAPS[cur_map].flags & MF_DEBUG) {
+        /* asset viewer: every recipe and a stock of ingredients to try them */
+        for (int r = 0; r < RC_COUNT; r++) {
+            recipe_learn(r);
+            for (int k = 0; k < 3; k++)
+                if (RECIPES[r].station == st && RECIPES[r].in[k].qty && bag[RECIPES[r].in[k].item] < 20)
+                    bag[RECIPES[r].in[k].item] = 20;
+        }
+        dlg_say("(DEBUG: every recipe known, ingredients stocked.)");
+    }
     dlg_ask(STATION_ASK[st], YES_NO, 2, station_answer);
     return 1;
 }
