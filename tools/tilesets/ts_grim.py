@@ -1119,6 +1119,24 @@ def add_water(gf, ts, out, bank=1):
     out['water_q'] = water_q
 
 
+
+def fit_stamp(gf, img, prefs):
+    """Snap each 8x8 tile of a stamp onto one of its preferred banks: a
+    colour the chosen bank lacks becomes the nearest colour it has."""
+    banks = [dg.GRIM_BANKS[b] for b in prefs]
+    for ty in range(0, img.h, 8):
+        for tx in range(0, img.w, 8):
+            cells = [(x, y) for y in range(ty, min(ty + 8, img.h)) for x in range(tx, min(tx + 8, img.w))]
+            cols = set(img.p[y][x] for x, y in cells if img.p[y][x])
+            best = min(banks, key=lambda b: len(cols - set(b)))
+            for c in cols - set(best):
+                r0, g0, b0 = gf.C[c]
+                near = min(best, key=lambda k: (gf.C[k][0] - r0) ** 2 + (gf.C[k][1] - g0) ** 2 + (gf.C[k][2] - b0) ** 2)
+                for x, y in cells:
+                    if img.p[y][x] == c:
+                        img.p[y][x] = near
+    return img
+
 def build(gf, name):
     gf.register_colors(dg.ALL_COLORS)
     gf.check_banks(name, dg.GRIM_BANKS)
@@ -1155,12 +1173,12 @@ def build(gf, name):
         out['meta_b'].append(ts.meta(bottom, where='grim.' + tname))
         out['meta_t'].append(ts.meta(top, where='grim.%s.top' % tname, opaque=False) if top else [0, 0, 0, 0])
     gf.add_stamps(ts, out, [
-        ('HOUSE', stilt_house(gf, 'house'), (5, 7), 'stilt house, door (stairs) col 1 row 3'),
-        ('SHOP', stilt_house(gf, 'shop'), (5, 7), 'DUSK SHOP, hanging lantern sign, door col 1 row 3'),
-        ('APOTHECARY', stilt_house(gf, 'apothecary'), (5, 7), 'apothecary, green window, door col 1 row 3'),
-        ('HEARTH', stilt_house(gf, 'hearth', 5), (5, 7), 'DUSKMERE HEARTH HALL, flame, door col 2 row 3'),
-        ('CRYPT_HALL', crypt_hall(gf), (6,), 'the LANTERN CRYPT mausoleum, door col 2 row 3'),
-        ('BONE_GATE', bone_gate(), (6,), 'the sealed OSSUARY gate (no door: the gate warden opens it)'),
+        ('HOUSE', fit_stamp(gf, stilt_house(gf, 'house'), (5, 7)), (5, 7), 'stilt house, door (stairs) col 1 row 3'),
+        ('SHOP', fit_stamp(gf, stilt_house(gf, 'shop'), (5, 7)), (5, 7), 'DUSK SHOP, hanging lantern sign, door col 1 row 3'),
+        ('APOTHECARY', fit_stamp(gf, stilt_house(gf, 'apothecary'), (5, 7)), (5, 7), 'apothecary, green window, door col 1 row 3'),
+        ('HEARTH', fit_stamp(gf, stilt_house(gf, 'hearth', 5), (5, 7)), (5, 7), 'DUSKMERE HEARTH HALL, flame, door col 2 row 3'),
+        ('CRYPT_HALL', fit_stamp(gf, crypt_hall(gf), (6,)), (6,), 'the LANTERN CRYPT mausoleum, door col 2 row 3'),
+        ('BONE_GATE', fit_stamp(gf, bone_gate(), (6,)), (6,), 'the sealed OSSUARY gate (no door: the gate warden opens it)'),
     ])
     pq = path_quads()
     out['path_q'] = [[ts.add(gf.img_pix(pq[c][v]), (0,), 'grim.path[%d][%d]' % (c, v))
