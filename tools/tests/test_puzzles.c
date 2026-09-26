@@ -43,6 +43,8 @@
 typedef uint64_t u64;
 
 #define CELLS (MAP_MAX_W * MAP_MAX_H)
+#define LEVELS 4                    /* elevation levels (elev.c: 2 bits) */
+#define POSMAX (CELLS * LEVELS)     /* a position: level * NC + cell */
 #define KEY_MAX 40
 #define NIL 0xFFFFFFFFu
 
@@ -54,12 +56,13 @@ enum { FM_SIM = -2, FM_BLOCK = -1 };
 /* ---------------- the map being solved ---------------- */
 
 static int W, H, NC, abil;
+static int elevated;            /* the map has a height layer: every step goes through the game */
 static u16 sattr[CELLS];        /* cell_attr with the movable objects taken out */
 static u8 swalk[CELLS];         /* cell_walkable, same */
 static u8 ssurf[CELLS];         /* travel_surf_cell, same */
 static u8 special[CELLS];       /* arriving here does something */
 static u8 dyn[CELLS];           /* loaded state: 1 boulder, 2 other solid object */
-static s16 exit_cache[CELLS * 4];  /* -1 unknown, 0 bump, 1+LINK edge, 5 mat, 16+warp */
+static s16 exit_cache[POSMAX * 4];  /* -1 unknown, 0 bump, 1+LINK edge, 5 mat, 16+warp */
 
 static int nb, np, keylen;
 static int nsat;                /* satchels on the map: one more state bit, "all taken" */
@@ -141,6 +144,8 @@ static void restore(const u8 *k)
 
 static void place_player(int c)
 {
+    player.level = (u8)(c / NC);
+    c %= NC;
     player.x = (s16)(c % W);
     player.y = (s16)(c / W);
     player.ox = player.oy = 0;
@@ -356,6 +361,7 @@ static void dyn_set(u32 m)
  * FM_BLOCK (a certain bump) or FM_SIM (let the game play it). */
 static int fast_move(int c, int d)
 {
+    if (elevated) return FM_SIM;
     int x = c % W, y = c / W, nx = x + DIR_DX[d], ny = y + DIR_DY[d];
     if (nx < 0 || ny < 0 || nx >= W || ny >= H) return FM_SIM;
     int a = sattr[c];
@@ -384,10 +390,12 @@ static int sim(u32 m, int c, int d, int act, u32 *om, int *oc, int *exit_code)
     restore(macro_key(m));
     loaded = NIL;
     place_player(c);
-    int x = c % W, y = c / W, nx = x + DIR_DX[d], ny = y + DIR_DY[d];
+    int cl = c % NC, x = cl % W, y = cl / W, nx = x + DIR_DX[d], ny = y + DIR_DY[d];
     int r;
     if (act == SA_SURF) {
         player.facing = (u8)d;
+        int nl;
+        if (elev_enter(player.x, player.y, player.level, d, &nl) == ELEV_BLOCK) return R_BLOCK;
         if (travel.surfing || obj_index_at(nx, ny) >= 0 || !travel_surf_cell(nx, ny)) return R_BLOCK;
         surf_begin();
         r = 1;
@@ -408,7 +416,10 @@ static int sim(u32 m, int c, int d, int act, u32 *om, int *oc, int *exit_code)
     for (f = 0; f < 6000; f++) {
         if (travel_update()) continue;
         if (player.moving) {
-            if (actor_step(&player, travel_speed(player.hop ? 2 : 1))) travel_player_arrived();
+            if (actor_step(&player, travel_speed(player.hop ? 2 : 1))) {
+                elev_player_arrived();
+                travel_player_arrived();
+            }
             continue;
         }
         int busy = 0;
@@ -420,7 +431,7 @@ static int sim(u32 m, int c, int d, int act, u32 *om, int *oc, int *exit_code)
     u8 k[KEY_MAX];
     capture(k);
     *om = macro_intern(k);
-    *oc = player.y * W + player.x;
+    *oc = player.level * NC + player.y * W + player.x;
     if (*om == m && *oc == c) return R_BLOCK;
     return R_MOVE;
 }
@@ -483,8 +494,8 @@ static void tgt_hit_exit(int code, u32 node, int from)
 
 /* ---------------- the search ---------------- */
 
-static u32 cmark[CELLS], cgen;
-static u16 comp[CELLS];
+static u32 cmark[POSMAX], cgen;
+static u16 comp[POSMAX];
 static int ncomp;
 
 /* The component of `s` (plain steps both ways) in the state dyn[] holds;
@@ -512,10 +523,10 @@ static int flood_comp(int s)
 /* Distance between two cells of one component (plain steps). */
 static int comp_dist(u32 m, int a, int b)
 {
-    static s16 dist[CELLS];
-    static u16 q[CELLS];
+    static s16 dist[POSMAX];
+    static u16 q[POSMAX];
     dyn_set(m);
-    for (int i = 0; i < NC; i++) dist[i] = -1;
+    for (int i = 0; i < NC * LEVELS; i++) dist[i] = -1;
     int head = 0, tail = 0;
     q[tail++] = (u16)a;
     dist[a] = 0;
@@ -532,7 +543,7 @@ static int comp_dist(u32 m, int a, int b)
     return 0;
 }
 
-static u16 entr[512];
+static u16 entr[512];             /* positions */
 static int nentr;
 static u64 reentered[256];
 static int nreentered, loops_found, cache_odd;
@@ -574,11 +585,11 @@ static void mark_exit(u32 id, int c)
 
 /* Same-state targets found from one node: skip a cell whose component
  * already got an entry. */
-static u32 tmark[CELLS], tgen;
+static u32 tmark[POSMAX], tgen;
 
 static int same_seen(int t)
 {
-    static u16 q[CELLS];
+    static u16 q[POSMAX];
     if (tmark[t] == tgen) return 1;
     int n = 0;
     q[n++] = (u16)t;
@@ -599,7 +610,7 @@ static void process_node(u32 id)
 {
     tgen++;
     u32 m = nodes[id].macro, depth = nodes[id].depth;
-    static u16 cells[CELLS];
+    static u16 cells[POSMAX];
     int n = ncomp;
     memcpy(cells, comp, (size_t)n * sizeof(u16));
     u32 gen = cgen;
@@ -607,22 +618,26 @@ static void process_node(u32 id)
     memset(key, 0, sizeof(key));
     memcpy(key, macro_key(m), (size_t)keylen);
     for (int i = 0; i < n; i++) {
-        int c = cells[i], x = c % W, y = c / W;
+        int c = cells[i], cl = c % NC, lvl = c / NC, x = cl % W, y = cl / W;
         for (int d = 0; d < 4; d++) {
             int nx = x + DIR_DX[d], ny = y + DIR_DY[d];
             int inside = nx >= 0 && ny >= 0 && nx < W && ny < H;
             if (inside) {
                 int nc = ny * W + nx;
                 int t = tgt_at[nc];
+                /* people and satchels across a cliff or under a deck are out of reach
+                 * (field_try_interact); objects can still be used */
+                int nl, reach = elev_enter(x, y, lvl, d, &nl) != ELEV_BLOCK;
+                if (t >= 0 && !reach && (tgt[t].kind == T_NPC || tgt[t].kind == T_SATCHEL)) t = -1;
                 int sat_taken = nsat && ((key[2 * nb + 2 + SAT_BIT / 8] >> (SAT_BIT & 7)) & 1);
                 if (t >= 0 && !(tgt[t].kind == T_SATCHEL && sat_taken)) tgt_hit(t, id, c);
-                if (sat_at[nc] && !sat_taken) {   /* pick it up: the way is clear from now on */
+                if (sat_at[nc] && reach && !sat_taken) {   /* pick it up: the way is clear from now on */
                     u8 k[KEY_MAX];
                     memcpy(k, key, KEY_MAX);
                     k[2 * nb + 2 + SAT_BIT / 8] |= (u8)(1u << (SAT_BIT & 7));
                     add_entry(macro_intern(k), c, id, c, SA_LEGEND, d, depth, 1);
                 }
-                if (t < 0 && (sattr[nc] & A_COUNTER)) {
+                if (t < 0 && reach && (sattr[nc] & A_COUNTER)) {
                     int fx = nx + DIR_DX[d], fy = ny + DIR_DY[d];
                     if (fx >= 0 && fy >= 0 && fx < W && fy < H && tgt_at[fy * W + fx] >= 0 &&
                         tgt[tgt_at[fy * W + fx]].kind == T_NPC)
@@ -644,7 +659,7 @@ static void process_node(u32 id)
                 continue;
             }
             if (r == FM_BLOCK) continue;
-            int cacheable = !inside || (sattr[ny * W + nx] & A_DOOR) || (d == DIR_DOWN && (sattr[c] & A_EXIT));
+            int cacheable = !inside || (sattr[ny * W + nx] & A_DOOR) || (d == DIR_DOWN && (sattr[cl] & A_EXIT));
             int code = 0, oc = 0;
             u32 om = NIL;
             if (cacheable && exit_cache[c * 4 + d] >= 0) {
@@ -672,7 +687,7 @@ static void process_node(u32 id)
             }
         }
         /* SURF from the shore */
-        if ((abil & ABL_SURF) && !(sattr[c] & A_WATER))
+        if ((abil & ABL_SURF) && !(sattr[cl] & A_WATER))
             for (int d = 0; d < 4; d++) {
                 int nx = x + DIR_DX[d], ny = y + DIR_DY[d];
                 if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
@@ -680,7 +695,7 @@ static void process_node(u32 id)
                 if (!(b & A_WATER) || (b & A_DEEP)) continue;
                 int nc = ny * W + nx;
                 if (dyn[nc] || !ssurf[nc]) continue;
-                if (!(b & A_CURRENT)) {   /* the fast path: one hop onto the water */
+                if (!(b & A_CURRENT) && !elevated) {   /* the fast path: one hop onto the water */
                     if (!same_seen(nc)) add_entry(m, nc, id, c, SA_SURF, d, depth, 0);
                     continue;
                 }
@@ -738,10 +753,11 @@ static int is_hall(int m)
 /* Maps worth a line in the summary: puzzle objects or puzzle tiles. */
 static int interesting;
 
-static void entr_add(int x, int y)
+/* An entrance, on the level you arrive on facing `facing` (field_enter_map). */
+static void entr_add(int x, int y, int facing)
 {
     if (x < 0 || y < 0 || x >= W || y >= H || nentr >= 512) return;
-    int c = y * W + x;
+    int c = elev_level_at(x, y, -1, facing) * NC + y * W + x;
     for (int i = 0; i < nentr; i++)
         if (entr[i] == c) return;
     entr[nentr++] = (u16)c;
@@ -758,6 +774,7 @@ static void setup_map(int m, int ability)
     W = map_w;
     H = map_h;
     NC = W * H;
+    elevated = map_elevated;
     nb = np = 0;
     for (int a = 0; a < 256; a++)
         for (int i = 0; i < tobj_count; i++)
@@ -802,7 +819,7 @@ static void setup_map(int m, int ability)
         sat_at[sat_cell[i]] = 1;
     }
     grid_rebuild();
-    for (int i = 0; i < NC * 4; i++) exit_cache[i] = -1;
+    for (int i = 0; i < NC * LEVELS * 4; i++) exit_cache[i] = -1;
     for (int j = 0; j < np; j++)
         if (tobj[pobj[j]].kind == OBJ_LEGEND) legend_at[tobj[pobj[j]].y * W + tobj[pobj[j]].x] = (u8)(j + 1);
     capture(key_init);
@@ -842,22 +859,24 @@ static void setup_map(int m, int ability)
     /* entrances */
     nentr = 0;
     for (int i = 0; i < WARP_COUNT; i++)
-        if (WARPS[i].dest == m) entr_add(WARPS[i].dx, WARPS[i].dy);
+        if (WARPS[i].dest == m) entr_add(WARPS[i].dx, WARPS[i].dy, -1);
     for (int l = 0; l < 4; l++) {
         if (MAPS[m].link[l] == MAP_NONE) continue;
         for (int k = 0; k < (l < 2 ? W : H); k++) {
             int x = l < 2 ? k : (l == LINK_W ? 0 : W - 1);
             int y = l < 2 ? (l == LINK_N ? 0 : H - 1) : k;
             int a = sattr[y * W + x];
-            if (!(a & (A_SOLID | A_WATER | A_LEDGE)) && swalk[y * W + x]) entr_add(x, y);
-            else if ((abil & ABL_SURF) && (a & A_WATER) && !(a & A_DEEP) && travel_surf_cell(x, y)) entr_add(x, y);
+            static const s8 INWARD[4] = { DIR_DOWN, DIR_UP, DIR_RIGHT, DIR_LEFT };
+            if (!(a & (A_SOLID | A_WATER | A_LEDGE)) && swalk[y * W + x]) entr_add(x, y, INWARD[l]);
+            else if ((abil & ABL_SURF) && (a & A_WATER) && !(a & A_DEEP) && travel_surf_cell(x, y))
+                entr_add(x, y, INWARD[l]);
         }
     }
     for (int i = 0; i < tobj_count; i++)
-        if (tobj[i].kind == OBJ_FERRY) entr_add(tobj[i].x, tobj[i].y + 1);
+        if (tobj[i].kind == OBJ_FERRY) entr_add(tobj[i].x, tobj[i].y + 1, DIR_DOWN);
     if (abil & ABL_FLY)
         for (int i = 0; i < FLY_POINT_COUNT; i++)
-            if (FLY_POINTS[i].map == m) entr_add(FLY_POINTS[i].x, FLY_POINTS[i].y);
+            if (FLY_POINTS[i].map == m) entr_add(FLY_POINTS[i].x, FLY_POINTS[i].y, DIR_DOWN);
 }
 
 /* Replay every fast-path step of the starting state through the game. */
@@ -893,7 +912,8 @@ static int validate_fast_path(void)
 static void describe_state(u32 m, int c)
 {
     const u8 *k = macro_key(m);
-    printf("player %d,%d", c % W, c / W);
+    printf("player %d,%d", c % NC % W, c % NC / W);
+    if (elevated) printf(" level %d", c / NC);
     for (int i = 0; i < nb; i++) printf(" boulder %d,%d", k[2 * i], k[2 * i + 1]);
     int sw = k[2 * nb] | (k[2 * nb + 1] << 8);
     if (sw) printf(" switches %04x", sw);
@@ -914,7 +934,7 @@ static void print_path(u32 id)
     for (int i = n - 1; i >= 0; i--) {
         const Entry *e = &entries[nodes[chain[i]].entry];
         if (e->parent == NIL) printf("      start ");
-        else printf("      from %d,%d %s %s -> ", e->src % W, e->src / W, ACT[e->act], DN[e->dir]);
+        else printf("      from %d,%d %s %s -> ", e->src % NC % W, e->src % NC / W, ACT[e->act], DN[e->dir]);
         describe_state(e->macro, e->cell);
         printf("\n");
     }
@@ -959,6 +979,11 @@ static void solve(int m, int ability, int need_targets, Tally *tal, int report)
     }
     search();
     tal->maps++;
+    if (getenv("PZ_DEBUG"))
+        for (u32 i = 0; i < ncount; i++) {
+            int c = nodes[i].canon % NC;
+            if (c / W == atoi(getenv("PZ_DEBUG"))) printf("  node %u: %d,%d level %d\n", i, c % W, c / W, nodes[i].canon / NC);
+        }
     tal->loops += loops_found;
     if (overflow) {
         tal->overflow++;

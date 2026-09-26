@@ -10,7 +10,7 @@ barrier open and ignored boulders).
 For every map except the debug viewer maps (`MF_DEBUG`) and the traversal
 fixtures `TEST SHORE/ICE/HALL/DARK` (dev maps driven by `test_travel.c`):
 
-- **State**: the player's cell, every boulder (boulders with the same `arg`
+- **State**: the player's cell and elevation level (elev.c), every boulder (boulders with the same `arg`
   are interchangeable, so their positions are sorted), the 16 switch groups,
   opened gates, answered legends, and one "satchels picked up" bit.
 - **Moves are played by the real code.** The state is written into
@@ -21,7 +21,9 @@ fixtures `TEST SHORE/ICE/HALL/DARK` (dev maps driven by `test_travel.c`):
   The new state is then read back. This covers boulder pushes (STRENGTH vs
   pumice, plates, gates, blocked cells), ledge hops, ice slides, currents,
   pads, switches and barriers, surfing on and off, doors, ladders, exit mats
-  and map edges.
+  and map edges, and on maps with a height layer (elev.c: cliffs, stairs,
+  decks, tunnels) every step goes through the game (`elevated`), since the
+  level you stand on decides where you can go.
 - **Fast path, checked against the game.** A step between two plain cells
   (walkable, nothing happens on arrival, no door, mat, ledge, edge or
   object), a step between two plain water cells while surfing, and a plain
@@ -74,6 +76,7 @@ current ride or a pad jump counts as one).
 
 | map | abilities | states | hardest target | events | pushes | moves |
 | --- | --- | --- | --- | --- | --- | --- |
+| MAPLE VILLAGE | all | 2 | door to MAPLE SHOP | 0 | 0 | 326 |
 | VOLT HALL | none | 8 | MASTER FARA | 3 | 0 | 55 |
 | CURRENT HALL | none | 2 | MASTER MAREN | 0 | 0 | 15 |
 | RIME HALL | none | 1 | warden (MASTER SIGRUN: 18 moves) | 0 | 0 | 28 |
@@ -129,6 +132,13 @@ prints a line for every map with puzzle objects, puzzle tiles or ledges.
    x 31 and one STRENGTH boulder at (31,33) guards it (push it aside); the
    edge contract (x 30-31 on row 35) is unchanged. `test_east` now expects
    one boulder.
+
+6. **MAPLE VILLAGE (terraces from the elevation merge): a ledge trap.**
+   The ash ledges at x 33-35, row 28 drop into a five-cell yard (row 29,
+   x 33-37) walled by trees, the woodpile and a hay bale: one hop and there
+   was no way back (10 soft-locked states). Fix (`world/village/data.h`):
+   the hay bale moved from 32,29 to 29,29, so the yard opens west onto the
+   field below.
 
 `tools/test_field.c` no longer floods with `FLOOD_SOLVED`: it floods the
 map as it is, and on puzzle maps (boulders, plates, gates, switches,
