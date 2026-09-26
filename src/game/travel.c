@@ -1656,6 +1656,216 @@ static void worldmap_open(int fly)
 }
 
 /* ================================================================ */
+/*  The ALMANAC's AREA map: where a kin lives                       */
+/* ================================================================ */
+
+/*
+ * SELECT on an ALMANAC page shows the town map with every place the kin
+ * lives in ringed (wild grass, water while surfing, a legend's lair), once
+ * you have met it. A kin that only grows out of another shows where that
+ * one lives. LEFT/RIGHT (or UP/DOWN) step through the places; the caption
+ * gives the levels, how common it is and when it comes out.
+ */
+
+typedef struct {
+    u8 spot, map, lo, hi, share, when, water, legend;
+} KinPlace;
+
+static struct {
+    int sp, via, met, t;       /* via: the kin whose places are shown (sp or an earlier form) */
+    int n, cur;
+    KinPlace pl[WM_PTS];
+    void (*back)(void);
+} wa;
+
+/* Adds what a wild zone says about sp to *k; returns 1 if sp lives there. */
+static int zone_kin_info(int zone, int sp, KinPlace *k, int water)
+{
+    if (zone <= ZONE_NONE || zone >= ZONE_COUNT) return 0;
+    const WildZone *z = &WILD_ZONES[zone];
+    int total = 0, w = 0;
+    for (int i = 0; i < z->count; i++) {
+        total += z->slots[i].weight;
+        if (z->slots[i].species != sp) continue;
+        w += z->slots[i].weight;
+        if (!k->lo || z->slots[i].min_level < k->lo) k->lo = z->slots[i].min_level;
+        if (z->slots[i].max_level > k->hi) k->hi = z->slots[i].max_level;
+        k->when |= (u8)(1 << z->slots[i].when);
+    }
+    if (!w) return 0;
+    int share = total ? w * 100 / total : 0;
+    if (share > k->share) k->share = (u8)share;
+    if (water) k->water = 1;
+    return 1;
+}
+
+/* Every town-map place where sp can be met (one entry per spot). */
+static int kin_places(int sp, KinPlace *out)
+{
+    int n = 0;
+    for (int m = 0; m < MAP_COUNT; m++) {
+        if (MAPS[m].flags & MF_DEBUG) continue;
+        KinPlace k = { 0 };
+        int found = zone_kin_info(MAPS[m].zone, sp, &k, 0);
+        found |= zone_kin_info(MAPS[m].water_zone, sp, &k, 1);
+        for (int i = 0; i < MAPS[m].obj_count; i++)
+            if (MAPS[m].objs[i].kind == OBJ_LEGEND && MAPS[m].objs[i].arg == sp) k.legend = found = 1;
+        if (!found) continue;
+        int s = map_spot(m);
+        if (s < 0) continue;
+        int j = 0;
+        while (j < n && out[j].spot != s) j++;
+        if (j == n) {
+            if (n >= WM_PTS) break;
+            k.spot = (u8)s;
+            k.map = (u8)m;
+            out[n++] = k;
+            continue;
+        }
+        KinPlace *o = &out[j];   /* another map on the same spot (a cave's second floor) */
+        if (k.lo && (!o->lo || k.lo < o->lo)) o->lo = k.lo;
+        if (k.hi > o->hi) o->hi = k.hi;
+        if (k.share > o->share) o->share = k.share;
+        o->when |= k.when;
+        o->water |= k.water;
+        o->legend |= k.legend;
+    }
+    return n;
+}
+
+/* The caption box sits at the bottom, or at the top while the place
+ * picked is down there. */
+static int wa_caption_row(void)
+{
+    return wa.n && WM_SPOTS[wa.pl[wa.cur].spot][1] > 112 ? 0 : 16;
+}
+
+static void wa_caption(void)
+{
+    char buf[64];
+    canvas_clear();
+    int row = wa_caption_row(), y1 = row * 8 + 6, y2 = y1 + 13;
+    canvas_window(0, row, CANVAS_COLS, 4, WIN_STD);
+    const Species *s = &SPECIES[wa.sp];
+    if (!wa.met || !wa.n) {
+        text_draw(12, y1, s->name);
+        const char *why = !wa.met ? "Meet it first to learn where it lives."
+                        : s->rarity == R_FUSION ? "Only made at the FUSION LOOM."
+                        : "It isn't found in the wild.";
+        for (int i = 0; i < 3; i++)
+            if (STARTER_SPECIES[i] == wa.sp) why = "It comes in a Kindling kit.";
+        if (wa.sp == SP_DRAKORA) why = "It soars above STORMSTONE RISE.";
+        text_draw_col(12, y2, why, INK_BLUE, INK_BLUE_SH);
+        text_draw_right(228, y1, "B:BACK");
+        return;
+    }
+    const KinPlace *k = &wa.pl[wa.cur];
+    str_copy(buf, s->name);
+    str_put(buf, ": ");
+    str_put(buf, MAPS[k->map].name);
+    text_draw_fit(12, y1, buf, 180);
+    buf[0] = 0;
+    str_put_int(buf, wa.cur + 1);
+    str_put(buf, "/");
+    str_put_int(buf, wa.n);
+    text_draw_right(228, y1, buf);
+    buf[0] = 0;
+    if (wa.via != wa.sp) {
+        str_put(buf, "grows from ");
+        str_put(buf, SPECIES[wa.via].name);
+    } else if (k->hi) {
+        str_put(buf, k->share >= 15 ? "common" : k->share >= 8 ? "uncommon" : "rare");
+        int w = k->when;
+        if (!(w & (1 << WHEN_ANY)) && w == (1 << WHEN_DAY)) str_put(buf, ", day");
+        if (!(w & (1 << WHEN_ANY)) && w == (1 << WHEN_NIGHT)) str_put(buf, ", night");
+        if (k->water) str_put(buf, ", surf");
+        if (k->legend) str_put(buf, ", lair");
+    } else {
+        str_put(buf, "a legend's lair");
+    }
+    text_draw_col(12, y2, buf, INK_BLUE, INK_BLUE_SH);
+    if (k->hi) {
+        str_copy(buf, "Lv");
+        str_put_int(buf, k->lo);
+        if (k->hi != k->lo) {
+            str_put(buf, "-");
+            str_put_int(buf, k->hi);
+        }
+        text_draw_col(228 - text_width(buf), y2, buf, INK_BLUE, INK_BLUE_SH);
+    }
+}
+
+static void wa_update(void)
+{
+    wa.t++;
+    if (key_hit(KEY_B) || key_hit(KEY_A) || key_hit(KEY_START) || key_hit(KEY_SELECT)) {
+        sfx_play(SFX_CANCEL);
+        canvas_clear();
+        wa.back();
+        return;
+    }
+    int d = (key_rep(KEY_RIGHT) || key_rep(KEY_DOWN)) - (key_rep(KEY_LEFT) || key_rep(KEY_UP));
+    if (d && wa.n > 1) {
+        wa.cur = (wa.cur + d + wa.n) % wa.n;
+        sfx_play(SFX_CURSOR);
+        wa_caption();
+    }
+}
+
+static void wa_draw(void)
+{
+    if (wa.n) {
+        const KinPlace *k = &wa.pl[wa.cur];
+        int bob = (wa.t >> 3) & 1;
+        spr_push(WM_SPOTS[k->spot][0] - 8, WM_SPOTS[k->spot][1] - 18 - bob, OT_TX(TX_PIN), SQ16, OBANK_TFX, 1, 0);
+    }
+    for (int i = 0; i < wa.n; i++) {
+        const KinPlace *k = &wa.pl[i];
+        int blink = ((wa.t >> 4) + i) & 1;
+        spr_push(WM_SPOTS[k->spot][0] - 8, WM_SPOTS[k->spot][1] - 8, OT_TX(TX_CURSOR0 + blink), SQ16, OBANK_TFX, 1, 0);
+    }
+    for (int s = 0; s < WM_COUNT; s++) {
+        int kind = WM_SPOTS[s][2];
+        spr_push(WM_SPOTS[s][0] - 4, WM_SPOTS[s][1] - 4, OT_TF(kind == 3 ? TF_MARK_SKY : TF_MARK_DIM), SQ8, OBANK_TFX, 1, 0);
+    }
+}
+
+/* The AREA map for a kin; back() is called when it closes (it must set up
+ * its own screen again: this one borrows the field's BG0 tiles). */
+static void kin_area_open(int sp, void (*back)(void))
+{
+    wa.sp = wa.via = sp;
+    wa.back = back;
+    wa.met = dex_seen[sp] || dex_caught[sp];
+    wa.n = wa.cur = wa.t = 0;
+    if (wa.met) {
+        wa.n = kin_places(sp, wa.pl);
+        for (int guard = 0; !wa.n && guard < 4; guard++) {   /* grown kin: where the earlier form lives */
+            int p = species_prevo(wa.via);
+            if (p < 0) break;
+            wa.via = p;
+            wa.n = kin_places(p, wa.pl);
+        }
+        if (!wa.n) wa.via = sp;
+    }
+    dialog_clear();
+    canvas_clear();
+    travel_dark_off();
+    set_brightness(0);
+    travel_load_gfx();
+    copy32(VRAM_SCENE_TILES, travel_map_tiles, TRAVEL_MAP_TILE_COUNT * 8);
+    u16 *sb = VRAM_MAP(SB_FIELD_BOTTOM);
+    for (int y = 0; y < 32; y++)
+        for (int x = 0; x < 32; x++) sb[y * 32 + x] = (y < 20 && x < 30) ? travel_map_screen[y * 30 + x] : 0;
+    load_pal(bg_palette, travel_map_palette);
+    REG_BG0CNT = BGCNT_CHARBLOCK(0) | BGCNT_SCREENBLOCK(SB_FIELD_BOTTOM) | BGCNT_PRIO(3);
+    REG_BG0HOFS = REG_BG0VOFS = 0;
+    REG_DISPCNT = DCNT_MODE0 | DCNT_BG0 | DCNT_BG1 | DCNT_OBJ | DCNT_OBJ_1D;
+    wa_caption();
+    ext_open(wa_update, wa_draw, 0);
+}
+
+/* ================================================================ */
 /*  The crest case                                                  */
 /* ================================================================ */
 

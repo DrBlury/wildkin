@@ -128,13 +128,41 @@ class Painter:
                                       x * 16 + 8 * (c & 1), y * 16 + 8 * (c >> 1), False)
                     continue
                 if ground[y][x] is not None:
-                    self.cv.meta(self.tiles, self.pals, out['meta_b'][ground[y][x]], x * 16, y * 16)
+                    self.cv.meta(self.tiles, self.pals, self.blended(cells, ground, ground[y][x], x, y),
+                                 x * 16, y * 16)
                     self.cv.meta(self.tiles, self.pals, out['meta_b'][v], x * 16, y * 16,
                                  transparent=True)
                 else:
-                    self.cv.meta(self.tiles, self.pals, out['meta_b'][v], x * 16, y * 16)
+                    self.cv.meta(self.tiles, self.pals, self.blended(cells, ground, v, x, y), x * 16, y * 16)
                 if out['meta_t'][v] != [0, 0, 0, 0]:
                     self.tops.append((out['meta_t'][v], x * 16, y * 16))
+
+    def blended(self, cells, ground, v, x, y):
+        """The bottom entries of ground v at (x, y) with its blend edges
+        (field.c blend_quads)."""
+        out = self.out
+        ents = list(out['meta_b'][v])
+        b = out['blend_of'][v]
+        if not b:
+            return ents
+        b -= 1
+        H, W = len(cells), len(cells[0])
+
+        def same(nx, ny):
+            if not (0 <= nx < W and 0 <= ny < H):
+                return True
+            n = cells[ny][nx]
+            if isinstance(n, str):
+                return True
+            if ground[ny][nx] is not None:
+                n = ground[ny][nx]
+            return not (out['blend_outer'][n] >> b) & 1
+        h = cell_hash(x, y)
+        q = out['blends'][b]['q']
+        for c, var in enumerate(gf.autotile_variants(same, x, y)):
+            if var:
+                ents[c] = q[(h >> (c * 2 + 3)) & 1][c][var]
+        return ents
 
     def stamp(self, sid, cw, chh, sx, sy):
         for my in range(chh):

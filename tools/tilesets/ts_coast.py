@@ -1215,6 +1215,8 @@ def build(gf, name):
         'TALLGRASS': A.A_GRASS, 'DUNEGRASS': A.A_GRASS,
         'TIDEPOOL': A.A_SOLID, 'SALTPAN': A.A_SOLID, 'DUNE_LEDGE': A.A_LEDGE, 'VOID': A.A_SOLID,
     }
+    gf.add_blend(ts, out, ['SAND', 'SAND2', 'SAND3'], imgs['SAND'][0], imgs['GRASS'][0],
+                 ['GRASS', 'GRASS2', 'GRASS3', 'TALLGRASS', 'FLOWER_RED', 'FLOWER_YELLOW'], width=3.0, seed=0.7)
     return gf.finish_tileset(
         out, name, 'CO', attrs=attrs,
         ground=['GRASS', 'GRASS2', 'GRASS3', 'SAND', 'SAND2', 'SAND3', 'STONE', 'QUAY', 'SHELF'],

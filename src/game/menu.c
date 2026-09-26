@@ -1408,9 +1408,33 @@ static const u8 SHOP_STOCK[] = {
 /* What the open shop sells (every town has its own list: shop_open_stock). */
 static const u8 *shop_stock = SHOP_STOCK;
 static int shop_stock_count = (int)sizeof(SHOP_STOCK);
-#define SHOP_COUNT shop_stock_count
 
-static struct { int cursor, scroll, state, qty; } shop;
+/* Every shop also buys: L/R switch between BUY and SELL. */
+static int farm_value(int item);
+static struct { int cursor, scroll, state, qty, sell, sell_n; u8 sell_list[ITEM_COUNT]; } shop;
+
+/* Coins a shop pays for one (0 = it won't take it): farm goods fetch
+ * their full worth, anything else half of what it costs. */
+static int item_sell_price(int item)
+{
+    if (ITEMS[item].pocket == POCKET_KEY) return 0;
+    int v = farm_value(item);
+    return v ? v : ITEMS[item].price / 2;
+}
+
+static void shop_sell_build(void)
+{
+    shop.sell_n = 0;
+    for (int p = 0; p < POCKET_COUNT; p++)
+        for (int i = 0; i < ITEM_COUNT; i++)
+            if (ITEMS[i].pocket == p && bag[i] > 0 && item_sell_price(i) > 0) shop.sell_list[shop.sell_n++] = (u8)i;
+    if (shop.cursor > shop.sell_n) shop.cursor = shop.sell_n;
+    if (shop.scroll > shop.cursor) shop.scroll = shop.cursor;
+}
+
+#define SHOP_COUNT (shop.sell ? shop.sell_n : shop_stock_count)
+static int shop_item(int idx) { return idx >= SHOP_COUNT ? -1 : shop.sell ? shop.sell_list[idx] : shop_stock[idx]; }
+static int shop_unit_price(int item) { return shop.sell ? item_sell_price(item) : ITEMS[item].price; }
 
 static void shop_redraw(void)
 {
@@ -1422,12 +1446,17 @@ static void shop_redraw(void)
     text_draw_right(80, 22, buf);
     canvas_window(0, 5, 11, 9, WIN_STD);
     text_draw(12, 48, "IN BAG");
-    int sel = shop.cursor < SHOP_COUNT ? shop_stock[shop.cursor] : -1;
+    int sel = shop_item(shop.cursor);
     if (sel >= 0) {
         buf[0] = 0;
         str_put_int(buf, bag[sel]);
         text_draw_right(80, 64, buf);
     }
+    /* the BUY / SELL tabs */
+    text_draw_col(12, 82, "BUY", shop.sell ? INK_BLUE : INK_DARK, shop.sell ? INK_BLUE_SH : INK_SHADOW);
+    text_draw_col(48, 82, "SELL", shop.sell ? INK_DARK : INK_BLUE, shop.sell ? INK_SHADOW : INK_BLUE_SH);
+    text_draw(shop.sell ? 40 : 4, 82, "{");
+    text_draw_col(12, 96, "L/R switch", INK_BLUE, INK_BLUE_SH);
     canvas_window(11, 0, 19, 14, WIN_STD);
     for (int r = 0; r < BAG_ROWS && shop.scroll + r <= SHOP_COUNT; r++) {
         int idx = shop.scroll + r, y = 8 + r * LINE_H;
@@ -1436,9 +1465,9 @@ static void shop_redraw(void)
             text_draw(104, y, "QUIT");
             continue;
         }
-        int item = shop_stock[idx];
+        int item = shop.sell ? shop.sell_list[idx] : shop_stock[idx];
         text_draw(104, y, ITEMS[item].name);
-        money_text(buf, ITEMS[item].price);
+        money_text(buf, shop_unit_price(item));
         text_draw_right(228, y, buf);
     }
     canvas_window(0, 14, CANVAS_COLS, 6, WIN_STD);
@@ -1447,38 +1476,41 @@ static void shop_redraw(void)
         draw_item_icon(1, 15, sel);
         text_wrap(wrapped, ITEMS[sel].desc, 184);
         text_draw(40, 120, wrapped);
+    } else if (shop.sell && !shop.sell_n) {
+        text_draw(16, 120, "You have nothing I'd buy.");
     } else {
         text_draw(16, 120, "Please come again!");
     }
-    if (shop.state == 1) {
+    if (shop.state == 1 && sel >= 0) {
         canvas_window(16, 9, 14, 5, WIN_STD);
         str_copy(buf, "| ");
         str_put_int(buf, shop.qty);
         text_draw(136, 84, buf);
-        money_text(buf, shop.qty * ITEMS[sel].price);
+        money_text(buf, shop.qty * shop_unit_price(sel));
         text_draw_right(228, 84, buf);
         text_draw_col(136, 98, "^/} amount", INK_BLUE, INK_BLUE_SH);
     }
 }
 
-MAYBE_UNUSED static void shop_open_stock(const u8 *items, int count)
+static void shop_begin(const u8 *items, int count)
 {
     shop_stock = items;
     shop_stock_count = count;
     shop.cursor = shop.scroll = 0;
     shop.state = 0;
+    shop.sell = 0;
     game_mode = MODE_SHOP;
     shop_redraw();
 }
 
+MAYBE_UNUSED static void shop_open_stock(const u8 *items, int count)
+{
+    shop_begin(items, count);
+}
+
 static void shop_open(void)
 {
-    shop_stock = SHOP_STOCK;
-    shop_stock_count = (int)sizeof(SHOP_STOCK);
-    shop.cursor = shop.scroll = 0;
-    shop.state = 0;
-    game_mode = MODE_SHOP;
-    shop_redraw();
+    shop_begin(SHOP_STOCK, (int)sizeof(SHOP_STOCK));
 }
 
 static void shop_close(void)
@@ -1487,6 +1519,45 @@ static void shop_close(void)
     field_setup_bg();
     game_mode = MODE_FIELD;
     dlg_say("Please come again!");
+}
+
+static void shop_buy(int item)
+{
+    int cost = shop.qty * ITEMS[item].price;
+    if (cost > money) {
+        sfx_play(SFX_ERROR);
+        dlg_say("You don't have enough coins.");
+        return;
+    }
+    char msg[64];
+    money -= cost;
+    bag_add(item, shop.qty);
+    sfx_play(SFX_BUY);
+    str_copy(msg, "Here you go! ");
+    str_put_int(msg, shop.qty);
+    str_put(msg, " ");
+    str_put(msg, ITEMS[item].name);
+    str_put(msg, ". Thank you!");
+    dlg_say(msg);
+}
+
+static void shop_sell(int item)
+{
+    int qty = shop.qty < bag[item] ? shop.qty : bag[item];
+    int pay = qty * item_sell_price(item);
+    char msg[64];
+    bag[item] -= qty;
+    money = clampi(money + pay, 0, 9999999);
+    sfx_play(SFX_BUY);
+    str_copy(msg, "I'll take ");
+    str_put_int(msg, qty);
+    str_put(msg, " ");
+    str_put(msg, ITEMS[item].name);
+    str_put(msg, " for ");
+    str_put_int(msg, pay);
+    str_put(msg, "c. Pleasure!");
+    dlg_say(msg);
+    shop_sell_build();
 }
 
 static void shop_update(void)
@@ -1498,9 +1569,11 @@ static void shop_update(void)
         }
         return;
     }
-    int item = shop.cursor < SHOP_COUNT ? shop_stock[shop.cursor] : -1;
+    int item = shop_item(shop.cursor);
     if (shop.state == 1) {
-        int max = ITEMS[item].price ? money / ITEMS[item].price : 0;
+        int max;
+        if (shop.sell) max = bag[item];
+        else max = ITEMS[item].price ? money / ITEMS[item].price : 0;
         if (max > 99) max = 99;
         if (max < 1) max = 1;
         int old = shop.qty;
@@ -1513,24 +1586,18 @@ static void shop_update(void)
             shop.state = 0;
             shop_redraw();
         } else if (key_hit(KEY_A)) {
-            int cost = shop.qty * ITEMS[item].price;
             shop.state = 2;
-            if (cost > money) {
-                sfx_play(SFX_ERROR);
-                dlg_say("You don't have enough coins.");
-            } else {
-                char msg[64];
-                money -= cost;
-                bag_add(item, shop.qty);
-                sfx_play(SFX_BUY);
-                str_copy(msg, "Here you go! ");
-                str_put_int(msg, shop.qty);
-                str_put(msg, " ");
-                str_put(msg, ITEMS[item].name);
-                str_put(msg, ". Thank you!");
-                dlg_say(msg);
-            }
+            if (shop.sell) shop_sell(item);
+            else shop_buy(item);
         }
+        return;
+    }
+    if (key_hit(KEY_L) || key_hit(KEY_R)) {
+        shop.sell ^= 1;
+        shop.cursor = shop.scroll = 0;
+        if (shop.sell) shop_sell_build();
+        sfx_play(SFX_CURSOR);
+        shop_redraw();
         return;
     }
     int old = shop.cursor;

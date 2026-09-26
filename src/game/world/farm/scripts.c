@@ -51,7 +51,7 @@ static void reeve_sale_answer(int c)
 
 static void reeve_answer(int c)
 {
-    if (c == 0) shop_open_stock(FARM_SHOP_STOCK, FARM_SHOP_STOCK_COUNT);
+    if (c == 0) farm_shop_open();
     else if (c == 1) lore_reveal(LSRC_REEVE, "Rainy days are a farmer's holiday: the sky does your watering.");
     else dlg_say("Happy farming!");
 }

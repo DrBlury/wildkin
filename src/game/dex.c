@@ -2,7 +2,9 @@
  * The ALMANAC: every kin of the Vale is listed from the start; the list
  * marks the ones you have befriended. The detail page shows the portrait
  * (front/back), types, size, and a smoothly scrolling info panel with the
- * description, base stats, growth chain, level-up moves and habitat.
+ * description, base stats, growth chain, level-up moves and habitat;
+ * SELECT opens the AREA map of where a kin you have met lives (travel.c
+ * kin_area_open).
  *
  * The panel lives on BG2 as an 8-line ring buffer of panel_cols x 2 tiles
  * (tiles 600..1015), repeated twice down the 32-row map so it wraps every
@@ -250,6 +252,7 @@ static void dex_build_content(int sp)
     };
     pl_add(own >= OWN_IN_PC ? PL_GOOD : own == OWN_CAUGHT_BEFORE ? PL_TEXT : PL_BAD, OWN_TEXT[own]);
     pl_add(PL_TEXT, dex_seen[sp] ? "Met in the wild: YES" : "Met in the wild: NO");
+    pl_add(PL_GOOD, dex_seen[sp] || dex_caught[sp] ? "SELECT: where it lives" : "SELECT: the map");
     pl_add(PL_BLANK, 0);
 
     pl_add(PL_HEADER, "DESCRIPTION");
@@ -382,11 +385,11 @@ static void panel_setup_map(void)
 {
     u16 *map = VRAM_MAP(SB_PANEL);
     fill32(VRAM_UI_TILES + PANEL_BLANK_TILE * 8, 0, 8);
-    for (int i = 0; i < 32 * 32; i++) map[i] = PANEL_BLANK_TILE;
+    for (int i = 0; i < 32 * 32; i++) map[i] = PANEL_BG_BASE + PANEL_BLANK_TILE;
     for (int row = 0; row < 32; row++) {
         int r = row & 15;
         for (int c = 0; c < panel_cols; c++)
-            map[row * 32 + panel_x / 8 + c] = (u16)((PANEL_TILE_BASE + (r >> 1) * panel_cols * 2 +
+            map[row * 32 + panel_x / 8 + c] = (u16)((PANEL_BG_BASE + PANEL_TILE_BASE + (r >> 1) * panel_cols * 2 +
                                                      (r & 1) * panel_cols + c) | (BANK_UI_STD << 12));
     }
     for (int i = 0; i < 8; i++) dex.ring_line[i] = -1;
@@ -434,7 +437,7 @@ static void panel_enable(int on)
 {
     REG_BG1CNT = BGCNT_CHARBLOCK(1) | BGCNT_SCREENBLOCK(SB_UI) | BGCNT_PRIO(on ? 1 : 0);
     if (on) {
-        REG_BG2CNT = BGCNT_CHARBLOCK(1) | BGCNT_SCREENBLOCK(SB_PANEL) | BGCNT_PRIO(0);
+        REG_BG2CNT = BGCNT_CHARBLOCK(2) | BGCNT_SCREENBLOCK(SB_PANEL) | BGCNT_PRIO(0);
         /* the scrollbar column (x 226..231) stays on the canvas */
         int right = panel_x + panel_cols * 8 > 226 ? 226 : panel_x + panel_cols * 8;
         REG_WIN0H = (u16)((panel_x << 8) | right);
@@ -562,6 +565,17 @@ static void dex_detail_redraw(void)
     load_monster_gfx(0, sp, dex.back);
 }
 
+/* Back from the AREA map (travel.c kin_area_open) to the same page. */
+static void dex_area_back(void)
+{
+    field_setup_bg();
+    field_load_tileset();
+    field_update_camera();
+    game_mode = MODE_DEX;
+    dex.state = 1;
+    dex_detail_redraw();
+}
+
 static void dex_open(void)
 {
     game_mode = MODE_DEX;
@@ -658,6 +672,12 @@ static void dex_update(void)
     if (key_hit(KEY_A)) {
         dex.back ^= 1;
         load_monster_gfx(0, dex.cursor, dex.back);
+    }
+    if (key_hit(KEY_SELECT)) {
+        sfx_play(SFX_CONFIRM);
+        panel_enable(0);
+        kin_area_open(dex.cursor, dex_area_back);
+        return;
     }
     if (key_hit(KEY_B)) {
         panel_enable(0);

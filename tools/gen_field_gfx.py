@@ -166,7 +166,7 @@ def flip_idx(t, h, v):
 
 
 class TileSet:
-    def __init__(self, name, banks, limit=500):
+    def __init__(self, name, banks, limit=600):
         self.name = name
         self.banks = banks          # list of 8 lists of color names (idx 1..)
         self.limit = limit
@@ -883,6 +883,113 @@ def add_path(ts, out):
 
 
 # ---------------------------------------------------------------------
+# Ground blends: a ground laid over another (soil or sand on grass, mud on
+# ash...) fades into it instead of changing at a hard 16px edge.
+#
+# Like paths, a blend is autotiled per 8x8 quadrant from the four
+# neighbours (field.c blend_quads), with the same five variants:
+#   0 inside (the cell's own tile: its texture variants stay),
+#   1 inner corner, 2 edge on the left, 3 edge on top, 4 outer corner.
+# Only the top-left quadrant of each variant is drawn; the other quadrants
+# use it mirrored, which also makes every seam line up: across quadrants
+# and cells the edge is always the same wobble mirrored. The edge wobbles,
+# is rounded at the corners and dithered over one pixel.
+# ---------------------------------------------------------------------
+
+def _blend_wob(u, seed, alt=0):
+    """The edge's wobble along a quadrant (u = 0..8). Mirrored copies make
+    it a wave a cell long, so it must be smooth at u = 0 and u = 8; the two
+    sets (alt) share those ends, so any mix of them still joins up."""
+    k = 0.8 + 0.4 * math.sin(seed * 3.1)
+    mid = math.sin(u * math.pi / 8) ** 2
+    return (k * 1.7 * math.cos(u * math.pi / 8) + 0.7 * math.cos(u * math.pi / 4 + seed) * math.sin(u * math.pi / 8)
+            + (1.3 if alt else -0.5) * mid * math.sin(u * 0.9 + seed * 2.0 + alt))
+
+
+def _sdf_corner(a, b, r):
+    """Signed distance to the rounded region {a < 0, b < 0} (> 0 outside)."""
+    qa, qb = a + r, b + r
+    return math.hypot(max(qa, 0.0), max(qb, 0.0)) + min(max(qa, qb), 0.0) - r
+
+
+def blend_depth(variant, x, y, width, seed, alt=0, amp=1.0):
+    """How far pixel (x, y) of a top-left quadrant is inside the blended
+    ground (> 0 inside, < 0 the ground around it). amp scales the wobble."""
+    px, py = x + 0.5, y + 0.5
+    dx = px - (width + amp * _blend_wob(py, seed, alt))
+    dy = py - (width + amp * _blend_wob(px, seed, alt))
+    if variant == 2:
+        return dx
+    if variant == 3:
+        return dy
+    if variant == 4:
+        return -_sdf_corner(-dx, -dy, 2.5)
+    return _sdf_corner(dx, dy, 1.5)   # 1: inner corner
+
+
+def fit_bank_pix(ts, pix, prefer=()):
+    """Pixels whose colours fit no bank take the nearest colours of the bank
+    they fit best (edge tiles mix two grounds' textures)."""
+    cols = set(c for c in pix if c is not None)
+    if ts.bank_for(cols, prefer) is not None:
+        return pix
+    best, best_n = 0, -1
+    for b, bank in enumerate(ts.banks):
+        n = sum(1 for c in pix if c in bank)
+        if n > best_n:
+            best, best_n = b, n
+    bank = ts.banks[best]
+
+    def near(c):
+        if c is None or c in bank:
+            return c
+        r, g, bl = C[c]
+        return min(bank, key=lambda k: (C[k][0] - r) ** 2 + (C[k][1] - g) ** 2 + (C[k][2] - bl) ** 2)
+    return [near(c) for c in pix]
+
+
+def blend_quads(ts, inner, outer, width=3.0, seed=0.0, rim_in=None, rim_out=None, where='blend', alt=0):
+    """-> q[4][5] tile entries for a blend of image `inner` into `outer`
+    (16x16 each); q[c][0] is 0 (the cell's own tile is used there)."""
+    q = [[0] * 5 for _ in range(4)]
+    for v in range(1, 5):
+        pix = []
+        for y in range(8):
+            for x in range(8):
+                d = blend_depth(v, x, y, width, seed, alt)
+                # a ragged, dithered edge about two pixels wide
+                n = ((hash2(x, y, int(seed * 97) + v * 13 + alt * 7) & 255) / 255.0 - 0.5) * 1.8
+                inside = d + n > 0
+                c = inner.get(x, y) if inside else outer.get(x, y)
+                if rim_in and inside and d + n < 1.0:
+                    c = rim_in
+                if rim_out and not inside and d + n > -1.0 and hash2(x, y, 73) % 3 == 0:
+                    c = rim_out
+                pix.append(c)
+        e = ts.add(fit_bank_pix(ts, pix), where='%s[%d]' % (where, v))
+        for c in range(4):
+            q[c][v] = e ^ ((c & 1) << 10) ^ ((c >> 1) << 11)
+    return q
+
+
+def add_blend(ts, out, inner_names, inner_img, outer_img, outer_names, **kw):
+    """Make the terrains inner_names one blend group that fades into the
+    terrains outer_names where it meets them (outer_img is how they look;
+    against anything else, like water or other grounds, it keeps its edge).
+    Images may be Img or (bottom, top) pairs as the builders keep them."""
+    if isinstance(inner_img, tuple):
+        inner_img = inner_img[0]
+    if isinstance(outer_img, tuple):
+        outer_img = outer_img[0]
+    where = '%s.blend.%s' % (ts.name, inner_names[0])
+    q = [blend_quads(ts, inner_img, outer_img, where=where, alt=a, **kw) for a in (0, 1)]
+    out.setdefault('blends', []).append({'inner': list(inner_names), 'outer': list(outer_names), 'q': q})
+
+
+BLEND_MAX = 8   # blends per tileset (blend_outer[] is a bit mask)
+
+
+# ---------------------------------------------------------------------
 # Tile attributes (u16, docs/EXPANSION.md 10.2) and metatile flags
 # ---------------------------------------------------------------------
 A_SOLID, A_GRASS, A_DOOR, A_WATER, A_COUNTER, A_EXIT, A_SIGN, A_LEDGE = (1 << i for i in range(8))
@@ -959,6 +1066,19 @@ def finish_tileset(out, name, tag, attrs, ground, overlay, legend, oob, default_
                     raise KeyError('%s: legend %r: unknown terrain %s' % (name, ch, t))
     if legend_default not in leg:
         raise ValueError('%s: legend default %r missing' % (name, legend_default))
+    blend_of, blend_outer = [0] * n, [0] * n
+    if len(out.get('blends', [])) > BLEND_MAX:
+        raise ValueError('%s: more than %d blends' % (name, BLEND_MAX))
+    for bi, bl in enumerate(out.get('blends', [])):
+        for t in bl['inner'] + bl['outer']:
+            if t not in ids:
+                raise KeyError('%s: blend of unknown terrain %s' % (name, t))
+        for t in bl['inner']:
+            blend_of[ids[t]] = bi + 1
+        for t in bl['outer']:
+            blend_outer[ids[t]] |= 1 << bi
+    out['blend_of'], out['blend_outer'] = blend_of, blend_outer
+    out.setdefault('blends', [])
     out.update(name=name, tag=tag, attr=attr, mflags=mflags, legend=leg,
                legend_default=legend_default, oob=ids[oob], ground_default=ids[default_ground],
                backdrop=backdrop, ids=ids)
@@ -1066,6 +1186,10 @@ def build_wild(name='wild'):
          'lake field station (teal roof), door col 2 row 3'),
     ])
     add_path(ts, out)
+    GRASSY = ['GRASS', 'GRASS2', 'GRASS3', 'FLOWER_RED', 'FLOWER_YELLOW', 'TALLGRASS']
+    for (inner, width, seed) in ((['SAND', 'SAND2'], 3.0, 0.7), (['DIRT'], 2.5, 1.9),
+                                 (['MEADOW'], 2.0, 2.6), (['FOREST', 'FOREST2'], 2.5, 3.3)):
+        add_blend(ts, out, inner, imgs[inner[0]], imgs['GRASS'], GRASSY, width=width, seed=seed)
     return finish_tileset(
         out, name, 'W',
         attrs={'TALLGRASS': A_GRASS, 'REEDS': A_GRASS, 'CLIFF': A_SOLID, 'CLIFF_FACE': A_SOLID,
@@ -2521,6 +2645,23 @@ def emit_tileset(o, out, docs):
             for c in range(4):
                 o.append('    {' + ', '.join('0x%04X' % v for v in q[c]) + '},')
             o.append('};')
+    if out['blends']:
+        o.append('static const u8 %s_blend_of[MT_%s_COUNT] = {' % (prefix, PREFIX))
+        o.append('    ' + ', '.join(str(b) for b in out['blend_of']) + ',')
+        o.append('};')
+        o.append('static const u8 %s_blend_outer[MT_%s_COUNT] = {' % (prefix, PREFIX))
+        o.append('    ' + ', '.join(str(b) for b in out['blend_outer']) + ',')
+        o.append('};')
+        o.append('static const u16 %s_blend_quads[%d][2][4][5] = {' % (prefix, len(out['blends'])))
+        for bl in out['blends']:
+            o.append('    { /* %s into %s */' % ('/'.join(bl['inner']), '/'.join(bl['outer'])))
+            for q in bl['q']:
+                o.append('        {')
+                for c in range(4):
+                    o.append('            {' + ', '.join('0x%04X' % v for v in q[c]) + '},')
+                o.append('        },')
+            o.append('    },')
+        o.append('};')
     # tile animations: one flat block of frames x count tiles each
     anim_rows = []
     for k, (first, frames, period) in enumerate(out['anims']):
@@ -2533,6 +2674,8 @@ def emit_tileset(o, out, docs):
     o.append('static const TileAnim %s_anims[%d] = { %s };' %
              (prefix, max(1, len(anim_rows)), ', '.join(anim_rows) or '{ 0, 0, 0, 0, 0 }'))
     ids = out['ids']
+    for line in out.get('c_extra', []):
+        o.append(line)
     o.append('static const LegendEntry %s_legend[96] = {' % prefix)
     for ch in range(32, 128):
         spec = out['legend'].get(chr(ch))
@@ -2577,10 +2720,14 @@ def emit_tileset_table(o, sets):
         o.append('    [TS_%s] = { "%s", %s_tiles, %s_TILE_COUNT, MT_%s_COUNT, %s_palettes,' % (
             P, n, n, P, P, n))
         o.append('        %s_meta_bottom, %s_meta_top, %s_attr, %s_mflags,' % (n, n, n, n))
-        o.append('        %s, %s, %s_anims, %d, %s_legend, \'%s\', %d, %d, 0x%04X, %s },' % (
+        o.append('        %s, %s, %s_anims, %d, %s_legend, \'%s\', %d, %d, 0x%04X, %s,' % (
             ('%s_path_quads' % n) if has_q else '0', ('%s_water_quads' % n) if has_q else '0',
             n, len(out['anims']), n, out['legend_default'], out['oob'], out['ground_default'], bdc,
             ('&%s_elev' % n) if 'elev' in out else '0'))
+        if out['blends']:
+            o.append('        %s_blend_of, %s_blend_outer, %s_blend_quads },' % (n, n, n))
+        else:
+            o.append('        0, 0, 0 },')
     o.append('};')
     o.append('')
 
@@ -2778,6 +2925,11 @@ def write_header(sets, dec, chars, item, emotes, path):
     A('    u16 oob, ground;                   /* out-of-bounds cell, default ground */')
     A('    u16 backdrop;                      /* colour behind everything */')
     A('    const struct ElevArt *elev;        /* elevation art (tools/elevation.py) or 0 */')
+    A('    /* ground blends (field.c blend_quads), 0 when the tileset has none:')
+    A('     * blend_of = group + 1 of each metatile (0: none); blend_outer = a bit per')
+    A('     * group the metatile is the surrounding ground of (edges fade into it) */')
+    A('    const u8 *blend_of, *blend_outer;')
+    A('    const u16 (*blend_q)[2][4][5];     /* [group][edge set][quadrant][variant], variant 0 unused */')
     A('} TilesetDef;')
     A('')
     DOCS = {'town': TOWN_TERRAIN_DOC, 'wild': terrain_wild.WILD_TERRAIN_DOC,

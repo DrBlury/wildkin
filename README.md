@@ -95,8 +95,8 @@ It was developed and tested against mGBA.
 | **A** | X | Talk, read signs, check things, pick up satchels | Confirm, advance text |
 | **B** | Z | Hold to **run** | Back, cancel, speed up text |
 | **START** | Enter | Open the START menu | |
-| **SELECT** | Backspace | Use the key item you registered in the bag, else open the **Lorebook** | Change the order of a bag pocket; find by type on the Shelf |
-| **L / R** | A / S | **R** hops on and off the **BIKE**; on your farm **L/R** switch tools | Switch bag pockets and Shelf boxes; page through long lists; switch kin on the summary; **L** in a wild bout throws your best lantern |
+| **SELECT** | Backspace | Use the key item you registered in the bag, else open the **Lorebook** | Change the order of a bag pocket; find by type on the Shelf; a kin's area map in the Almanac |
+| **L / R** | A / S | **R** hops on and off the **BIKE**; on your farm **L/R** switch tools | Switch bag pockets and Shelf boxes; page through long lists; switch kin on the summary; switch a shop between BUY and SELL; **L** in a wild bout throws your best lantern |
 
 mGBA lets you change any of these under *Settings → Controllers*.
 
@@ -407,7 +407,9 @@ them wander the grass before you touch them.
 ### Day, night and weather
 
 - One game minute passes for every second on the field, and a new day starts
-  at 06:00. The START menu shows the day and time (and the HUD can too).
+  at 06:00. The year turns through **SPRING, SUMMER, AUTUMN and WINTER**,
+  10 days each. The START menu shows the season, day and time (the HUD can
+  too), e.g. `SPR 3  14:05`.
 - Outdoors, the light turns warm at dusk and dawn and blue at night. Some
   wild kin only come out by day, others only at night.
 - Some days it rains. Rain waters your crops for you.
@@ -421,12 +423,21 @@ CAN, a pack of seeds and a farmhouse.
 
 <img src="docs/images/region_willow.png" width="480" alt="The way into Willow Acre, south of Maple Village">
 
-- **Crops**: till, plant, water, fertilise and harvest 14 crops. Some grow
-  back after picking, and apple and peach trees keep fruiting. Good care gives
-  GREAT and PERFECT harvests with extra yield. Sprinklers water for you.
-- **Selling and goods**: the shipping bin pays out the next morning. The jar,
-  the press and the drying rack turn crops into preserves, pressed drinks
-  and dried goods overnight.
+- **Crops**: till, plant, water, fertilise and harvest 18 crops. Each one
+  grows through its own stages (seeded, sprout, young, growing, ripe). Some
+  grow back after picking, and apple and peach trees keep fruiting. Good care
+  gives GREAT and PERFECT harvests with extra yield. Sprinklers water for you.
+- **Seasons**: every crop has its seasons. Strawberries in spring, melons,
+  tomatoes and chilies in summer, pumpkins and eggplants in autumn, snow peas
+  and the rare motebloom in winter. Seeds only take in season, Reeve sells
+  the seeds of the season, and when the season turns, crops that don't
+  belong to it wither (clear them with any tool). Fruit trees rest in
+  winter.
+- **Selling and goods**: sell your harvest at **any shop** (L/R switches a
+  shop between BUY and SELL). Produce fetches its full worth there, and
+  anything else sells for half its price. Or leave it in the shipping bin,
+  which pays out the next morning. The jar, the press and the drying rack
+  turn crops into preserves, pressed drinks and dried goods overnight.
 - **Workers**: pin up to four kin from the Shelf on the work board. Each
   morning they water, tend, harvest, chase off crows, forage and collect
   honey, and they gain bond and XP. They walk around the farm and you can
@@ -507,7 +518,10 @@ At Lumen's **Resonance Works**, Engineer Nell shows you four machines:
   as you talk to people and examine things, and you can re-read it any time
   with SELECT.
 - **The Almanac**: every kin with its description, stats, growth, move list
-  and where it lives (with level ranges and how rare it is).
+  and where it lives (with level ranges and how rare it is). Press
+  **SELECT** on a kin you have met to see its **area map**: every place it
+  lives is ringed on the town map, with levels, rarity, and whether it comes
+  out by day, at night or on the water.
 - **Growth**: kin grow into new forms at a level or when they touch a
   **shard** (BLOOM, SPARK, DUSK, FROST).
 - **Quests**: 12 quests across the regions, from delivering the harbour post
@@ -596,7 +610,7 @@ That writes `game.gba`. Other targets:
 | Command | What it does |
 | --- | --- |
 | `make run` | Build and open the game in mGBA |
-| `make test` | Build and run the 14 host-side test suites: rules, bouts and every move, a round-robin balance simulation over the whole roster, maps, reachability (with puzzles solved and surfing), every region and Hall puzzle, traversal, farming, crafting, fusion, the UI and saves |
+| `make test` | Build and run the host-side test suites: rules, bouts and every move, a round-robin balance simulation over the whole roster, maps, reachability (with puzzles solved and surfing), every region and Hall puzzle, traversal, farming, crafting, fusion, the UI and saves |
 | `make art` | Regenerate every art header from the Python generators |
 | `make maps` | Render every map to `build/maps/*.png` |
 | `make shot` | Build the headless screenshot harness (needs libmgba: `brew install mgba`) |

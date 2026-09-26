@@ -108,7 +108,7 @@ int main(void)
 
     /* the outdoor art + tall grass + the elevation art; the Current Hall and the
      * Drowned Bell are the 'tide' tileset, so the towns keep ~100 tiles for props */
-    CHECK(TILESETS[TS_COAST].tile_count <= 410, "the coast tileset stays under ~410 tiles");
+    CHECK(TILESETS[TS_COAST].tile_count <= 420, "the coast tileset stays under ~420 tiles");
 
     /* budget, people and characters on every west map */
     int budget_ok = 1, people_ok = 1;
@@ -116,7 +116,7 @@ int main(void)
         int m = WEST_MAPS[k];
         map_load(m);
         field_load_tileset();
-        if (decor_tiles_used > 512) budget_ok = 0;
+        if (decor_tiles_wanted > SCENE_TILE_MAX) budget_ok = 0;
         /* field_load_tileset skips a kind that doesn't fit: it would draw garbage */
         for (int i = 0; i < MAPS[m].decor_count; i++)
             if (!decor_base[MAPS[m].decor[i].kind]) {

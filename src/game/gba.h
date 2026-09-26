@@ -125,22 +125,29 @@ static volatile u16 *const oam = (volatile u16 *)MEM_OAM;
 
 /*
  * VRAM layout (mode 0):
- *   charblock 0 (0x0000)  scene tiles: field tileset or battle background
- *   charblock 1-2         UI: canvas cells 0..599, scroll panel 600..1015
- *   screenblock 24        BG0 map (field bottom / battle scene)
- *   screenblock 25        BG3 map (field top layer)
- *   screenblock 26        BG1 map (UI canvas)
- *   screenblock 27        BG2 map (catalogue scroll panel)
+ *   0x0000..0x5FFF        scene tiles (SCENE_TILE_MAX): field tileset + decor,
+ *                         or the battle background; BGs use charblock 0
+ *   0x6000..0xDF1F        UI: canvas cells 0..599, scroll panel 600..1016
+ *                         (VRAM_UI_TILES; the canvas BG uses charblock 1, so
+ *                         its tile numbers are UI_TILE_BASE + cell, and the
+ *                         panel BG charblock 2, numbers PANEL_BG_BASE + tile)
+ *   screenblock 28        BG0 map (field bottom / battle scene)
+ *   screenblock 29        BG3 map (field top layer)
+ *   screenblock 30        BG1 map (UI canvas)
+ *   screenblock 31        BG2 map (field mid layer / catalogue scroll panel)
  *   0x10000..0x17FFF      OBJ tiles
  */
+#define SCENE_TILE_MAX    768
+#define UI_TILE_BASE      256    /* tile number of UI tile 0 from charblock 1 */
+#define PANEL_BG_BASE     (-256) /* ... and from charblock 2 */
 #define VRAM_SCENE_TILES  ((u32 *)(MEM_VRAM))
-#define VRAM_UI_TILES     ((u32 *)(MEM_VRAM + 0x4000))
+#define VRAM_UI_TILES     ((u32 *)(MEM_VRAM + 0x6000))
 #define VRAM_MAP(sb)      ((u16 *)(MEM_VRAM + (sb) * 2048))
 #define VRAM_OBJ_TILES    ((u32 *)(MEM_VRAM + 0x10000))
-#define SB_FIELD_BOTTOM   24
-#define SB_FIELD_TOP      25
-#define SB_UI             26
-#define SB_PANEL          27
+#define SB_FIELD_BOTTOM   28
+#define SB_FIELD_TOP      29
+#define SB_UI             30
+#define SB_PANEL          31
 
 static int clampi(int v, int lo, int hi)
 {
@@ -161,6 +168,11 @@ static void copy32(void *dst, const void *src, unsigned words)
     REG_DMA3SAD = (u32)src;
     REG_DMA3DAD = (u32)dst;
     REG_DMA3CNT = words | 0x84000000u; /* enable, 32-bit */
+    /* The transfer only starts two cycles after the enable; a copy32 right
+     * behind this one would clear DMA3CNT first and cancel it. Wait until
+     * the enable bit drops (the CPU is halted while the transfer runs). */
+    while (REG_DMA3CNT & 0x80000000u) {
+    }
 #else
     u32 *d = dst;
     const u32 *s = src;

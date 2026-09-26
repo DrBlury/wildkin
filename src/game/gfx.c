@@ -483,7 +483,7 @@ static void canvas_present(void)
         u16 *map = VRAM_MAP(SB_UI);
         for (int y = 0; y < CANVAS_ROWS; y++)
             for (int x = 0; x < CANVAS_COLS; x++)
-                map[y * 32 + x] = (u16)((y * CANVAS_COLS + x) |
+                map[y * 32 + x] = (u16)((UI_TILE_BASE + y * CANVAS_COLS + x) |
                                         (canvas_banks[y * CANVAS_COLS + x] << 12));
         canvas_banks_dirty = 0;
     }
