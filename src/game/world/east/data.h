@@ -104,21 +104,44 @@ static const WildSlot WILD_COPPERLINE[] = {
 /* ================================================================ */
 /*  LUMEN CITY                                                      */
 /* ================================================================ */
+/*
+ * A lamp-lit hill city on four levels (docs/ELEVATION.md; docs/handoff/towns_east.md):
+ *   3  THE CROWN (north): the Volt Hall, the row houses, the tinker's house and
+ *      the Spire's clock tower along the old rampart; the north gate (x 24-25).
+ *      Wooded bluff to the west, forest to the east. A 3-row cliff drops into
+ *      the Works yard; 2-row cliffs onto the west terrace and the inn strip.
+ *   2  THE BEACON TERRACE: the octagonal plaza, raised above everything
+ *      around it, with a bastion and double stairs (24-25, 26-27) down to the
+ *      canal quarter, grand stairs (24-25, 10) up to the Crown and ledges
+ *      (17-18, 11) to hop down from the Crown walk. The sunken WELL GARDEN
+ *      (28-32, 3-7) inside the Crown is reached only by the old conduit: a
+ *      TUNNEL under the Crown walk (30, 8-9) whose mouth (30, 10) is HIDDEN in
+ *      the terrace's cliff (hint: pebbles and a crate; the LAMPLIGHTER).
+ *   1  THE WEST TERRACE (Hearth, bike shop, west gate y 20-21; ledges 10-12,27
+ *      into the canal quarter), the INN STRIP, the EAST WARD (market, east gate
+ *      y 20-21) and LUMEN PARK. The Boulevard climbs onto the plaza by side
+ *      stairs (16, 20-21) and down again (32, 20-21).
+ *   0  THE CUT: the canal and its towpath in a gorge. The Boulevard crosses it
+ *      on a bridge (BRIDGE_H 40-43, 20-21); the towpath runs UNDER it from the
+ *      canal side (park stairs 45,33) north to the RESONANCE WORKS yard. The
+ *      CANAL QUARTER, the low canal, the basin and the canal gardens.
+ * A gap in the park's tree line (52, 44-45) hides the lamplighters' grove.
+ */
 
 
 static const char *const LUMEN_ROWS[] = {
-    "TTTTTT##################==###################TTTTTTTTTTT", /*  0 */
-    "ttttttwwwwwwwwwwwwwwwwww==wwwwwwwwwwwwwwwwwwwttttttttttt", /*  1 */
+    "TTTTTT##################==#########TTTTTTTTTTTTTTTTTTTTT", /*  0 */
+    "ttttttwwwwwwwwwwwwwwwwww==wwwwwwwwwttttttttttttttttttttt", /*  1 */
     "TTTTTT..................====.................cccccTTTTTT", /*  2 */
     "tttttt..................====rgggr............ccccctttttt", /*  3 */
     "TTTTT...................====ggggg............cccccTTTTTT", /*  4 */
     "ttttt...................====ggggg............ccccctttttt", /*  5 */
-    "TTTTT...........============ggggg===========.cccccccTTTT", /*  6 */
-    "ttttt.cccccccccc============ygggy===========.ccccccctttt", /*  7 */
+    "TTTTg...........============ggggg===========.cccccccTTTT", /*  6 */
+    "ttttg.cccccccccc============ygggy===========.ccccccctttt", /*  7 */
     "TTTTT.cccccccccc........=====================cccccccTTTT", /*  8 */
     "ttttt.cccccccccccccc....======.===..................tttt", /*  9 */
-    "TTTTT.cccccccccccccc................................TTTT", /* 10 */
-    "ttttt.....c.........................................tttt", /* 11 */
+    "TTTgg.cccccccccccccc................................TTTT", /* 10 */
+    "tttgg.....c.........................................tttt", /* 11 */
     "TTTTT................pppppppp...........~~~~ccccccccTTTT", /* 12 */
     "ttttt.......gggg...pppppppppppp.........~~~~cccccccctttt", /* 13 */
     "............gggg..pppppppppppppp........~~==ccccccccTTTT", /* 14 */
@@ -149,12 +172,12 @@ static const char *const LUMEN_ROWS[] = {
     "ttggrrrrgggggggggggggggggg~~~~~~~~~~~~~~~~~~~,,,,,,,,,tt", /* 39 */
     "TTggyyyygggggggggggggTTg~~~~~~~~~~~~~~~~~~~~~,,,,,,,,,TT", /* 40 */
     "ttgggggggggggggggggggttg~~~~~~~~~~~~~~~~~~~~~,,,,,,,,,tt", /* 41 */
-    "TTgggggggggggggggggggggg~~~~~~~~~~~~~~~~~~~~~gg,,,,,,,TT", /* 42 */
-    "ttg===============gggggg~~~~~~~~~~~~~~~~~~~~~gyyggggggtt", /* 43 */
-    "TTggggggggggyyyyggTTgggg~~~~~~~~~~~~~~~~~~~~~TTTTTTTTTTT", /* 44 */
-    "ttggggggggggrrrrggttgggg~~~~~~~~~~~~~~~~~~~~~ttttttttttt", /* 45 */
+    "TTggggggggggggggggggggggg~~~~~~~gTTg~~~~~~~~~gg,,,,,,,TT", /* 42 */
+    "ttg===============ggggggg~~~~~~~gttg~~~~~~~~~gyyggggggtt", /* 43 */
+    "TTggggggggggyyyyggTTgggggg~~~~~~gTTg~~~~~~~~~TTTTTTTTTTT", /* 44 */
+    "ttggggggggggrrrrggttggggg~~~~~~~gttg~~~~~~~~~ttttttttttt", /* 45 */
     "TTTTTTTTTTggggggggggyyyg~~~~~~~~~~~~~~~~~~~~~TTTTTgggrrT", /* 46 */
-    "ttttttttttgggggggggggggg~~~~~~~~~~~~~~~~~~~~~tttttgggggt", /* 47 */
+    "ttttttttttggggggggggggg~~~~~~~~~~~~~~~~~~~~~~tttttgggggt", /* 47 */
     "TTTTTTTTTTTTTTTTTTTTTTTT~~~~~~~~~~~~~~~~~~~~~TTTTTTTTTTT", /* 48 */
     "tttttttttttttttttttttttt~~~~~~~~~~~~~~~~~~~~~ttttttttttt", /* 49 */
 };
@@ -239,7 +262,7 @@ static const DecorPlace LUMEN_DECOR[] = {
     DP(SIGNPOST, 43, 7),
     /* the Crown: the Volt Hall's forecourt, the row houses, the tinker */
     DP(TESLA_COIL, 6, 8), DP(TESLA_COIL, 15, 8), DP(CITY_LAMP, 23, 4), DP(CITY_LAMP, 22, 8),
-    DP(PLANTER, 34, 3), DP(FLOWER_POT, 37, 3), DP(CITY_LAMP, 33, 4), DP(PARKED_BIKE, 43, 3),
+    DP(FLOWER_POT, 34, 3), DP(FLOWER_POT, 37, 3), DP(CITY_LAMP, 33, 4), DP(PARKED_BIKE, 43, 3),
     DP(FLOWER_POT, 14, 6), DP(BUSH, 12, 10),
     /* the sunken Well garden (only through the old conduit) */
     DP(FOUNTAIN, 29, 4), DP(CITY_LAMP, 28, 4), DP(BENCH, 31, 7), DP(SMALL_FLOWERS, 32, 3),
@@ -253,21 +276,20 @@ static const DecorPlace LUMEN_DECOR[] = {
     DP(MARKET_STALL, 19, 22), DP(MARKET_STALL, 28, 22), DP(SACKS, 22, 23), DP(BARREL, 27, 23),
     DP(BENCH, 20, 18), DP(BENCH, 28, 18), DP(TESLA_COIL, 18, 13), DP(TESLA_COIL, 31, 13),
     DP(CITY_LAMP, 22, 12), DP(CITY_LAMP, 27, 12), DP(CITY_LAMP, 34, 18), DP(CITY_LAMP, 38, 18),
-    DP(CITY_LAMP, 34, 22), DP(CITY_LAMP, 38, 22), DP(CAFE_TABLE, 33, 18), DP(CAFE_TABLE, 36, 18),
+    DP(CITY_LAMP, 34, 22), DP(CITY_LAMP, 38, 22), DP(BENCH, 36, 18), DP(FLOWER_POT, 33, 17),
     DP(PEBBLES, 30, 11), DP(CRATE, 29, 11),
     /* the Works yard */
-    DP(CRATE_STACK, 51, 17), DP(SACKS, 50, 19), DP(BARREL, 44, 19),
+    DP(BARREL, 51, 17), DP(CRATE, 51, 16), DP(SACKS, 50, 19), DP(BARREL, 44, 19),
     /* the east ward */
     DP(CITY_LAMP, 47, 28), DP(CITY_LAMP, 50, 28), DP(BARREL, 53, 28), DP(CRATE, 44, 29),
     /* LUMEN PARK and the grove */
-    DP(BIG_TREE, 46, 30), DP(BUSH, 53, 33), DP(BENCH, 50, 43), DP(PEBBLES, 52, 43),
+    DP(BUSH, 46, 30), DP(BUSH, 47, 31), DP(BUSH, 53, 33), DP(BENCH, 50, 43), DP(PEBBLES, 52, 43),
     /* the canal quarter */
     DP(FOUNTAIN, 9, 31), DP(BENCH, 9, 34), DP(FLOWER_POT, 14, 29), DP(CITY_LAMP, 21, 28),
-    DP(CITY_LAMP, 27, 29), DP(BENCH, 27, 33), DP(PLANTER, 35, 30), DP(BARREL, 38, 28),
-    DP(TESLA_COIL, 34, 32), DP(FLOWER_POT, 2, 29), DP(PLANTER, 18, 33),
-    DP(LILY_PADS, 30, 43), DP(LILY_PADS, 36, 46), DP(LILY_PADS, 20, 36),
+    DP(CITY_LAMP, 27, 29), DP(BENCH, 27, 33), DP(FLOWER_POT, 35, 30), DP(BARREL, 38, 28),
+    DP(TESLA_COIL, 34, 32), DP(FLOWER_POT, 2, 29), DP(FLOWER_POT, 18, 33),
     /* the canal gardens */
-    DP(FOUNTAIN, 7, 41), DP(BENCH, 4, 44), DP(BENCH, 15, 40), DP(BIG_TREE, 16, 46),
+    DP(FOUNTAIN, 7, 41), DP(BENCH, 4, 44), DP(BENCH, 15, 40), DP(BUSH, 16, 46),
     DP(BUSH, 23, 43), DP(SMALL_FLOWERS, 10, 45),
 };
 
