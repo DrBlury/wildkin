@@ -57,6 +57,7 @@ static void title_open(int has_save)
     title.timer = 0;
     game_mode = MODE_TITLE;
     title_draw();
+    music_play(SONG_TITLE);
 }
 
 static void title_enter_field(void)
@@ -68,6 +69,7 @@ static void title_enter_field(void)
     field_setup_bg();
     field_load_tileset();
     field_update_camera();
+    music_map_changed(cur_map);
 }
 
 /* ---------------- storybook ---------------- */

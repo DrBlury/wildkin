@@ -121,14 +121,14 @@ static s8 mus_buf[MUS_MIX_LEN * 2 + 32] __attribute__((aligned(4)));
 
 static struct {
     u8 song, next;      /* playing song, song to start after the fade */
-    u8 fading, play_buf, started, silent;
+    u8 fading, play_buf, started, silent;   /* silent: buffers cleared since the mix went quiet */
     u8 num, den;
     u16 tacc;
     s16 fade;           /* 0..256 */
     s16 duck;           /* 0..256 */
     u16 master;         /* last computed master gain */
     u32 frames;         /* frames since the song started */
-} mus = { SONG_NONE, SONG_NONE, 0, 0, 0, 1, 1, 1, 0, 256, 256, 0, 0 };
+} mus = { SONG_NONE, SONG_NONE, 0, 0, 0, 2, 1, 1, 0, 256, 256, 0, 0 };
 
 /* Requests from the game (main thread) to the interrupt. */
 enum { MREQ_FADE = 1, MREQ_NOW };
@@ -518,11 +518,13 @@ static void IWRAM_CODE mus_mix(s8 *out)
         v->pos = pos;
     }
     if (!any) {
-        if (!mus.silent) {
+        /* clear each of the two buffers once: a stale frame left in the
+         * other one would be replayed every other frame as a 30 Hz buzz */
+        if (mus.silent < 2) {
             u32 *o = (u32 *)out;
             for (int i = 0; i < MUS_MIX_LEN / 4; i++) o[i] = 0;
+            mus.silent++;
         }
-        mus.silent = 1;
         return;
     }
     mus.silent = 0;
@@ -618,14 +620,14 @@ static void music_stop(void)
 }
 
 /* The song the game asked for last (SONG_NONE after music_stop). */
-static int music_current(void)
+MAYBE_UNUSED static int music_current(void)
 {
     return mus_want;
 }
 
 /* Host builds: one frame of sequencer and mixer (the GBA does this in the
  * interrupt). Returns the rendered frame. */
-static const s8 *music_host_frame(void)
+MAYBE_UNUSED static const s8 *music_host_frame(void)
 {
     mus.play_buf ^= 1;
     mus_frame();
