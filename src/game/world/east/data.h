@@ -17,7 +17,8 @@
  *
  * Legends: route maps use the wild tileset (. grass  , tall grass  = path
  * ~ water  T/t trees  P/p pines  C/c cliff  L [ ] ledges  d dirt  f forest
- * floor  R reeds); Lumen uses the city tileset (tools/tilesets/ts_city.py:
+ * floor  R reeds  w flowering tall grass  g golden tall grass -- tools/grass.py);
+ * Lumen uses the city tileset (tools/tilesets/ts_city.py:
  * . pavement  = street  ~ canal  c cobbles  p plaza  g lawn  , park grass
  * r/y flowers  T/t trees  # w city wall); interiors use W w n k walls,
  * . : floors, < = > counter, D exit mat.

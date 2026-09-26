@@ -1817,7 +1817,6 @@ static const DecorPlace VIEW_CITY_1_DECOR[] = {
     DP(NOTICE_BOARD, 34, 22),
     DP(CART, 37, 22),
     DP(SIGN_ARROW, 1, 25),
-    DP(BEEHIVE, 3, 25),
 };
 
 static const u16 VIEW_CITY_2_CELLS[480] = {
@@ -1947,12 +1946,13 @@ static const u16 VIEW_CITY_2_GROUND[480] = {
 };
 
 static const DecorPlace VIEW_CITY_2_DECOR[] = {
-    DP(CITY_LAMP, 1, 1),
-    DP(TESLA_COIL, 3, 1),
-    DP(PARKED_BIKE, 5, 1),
-    DP(CAFE_TABLE, 7, 1),
-    DP(RAILING, 9, 1),
-    DP(BEACON, 11, 1),
+    DP(BEEHIVE, 1, 1),
+    DP(CITY_LAMP, 3, 1),
+    DP(TESLA_COIL, 5, 1),
+    DP(PARKED_BIKE, 7, 1),
+    DP(CAFE_TABLE, 9, 1),
+    DP(RAILING, 11, 1),
+    DP(BEACON, 13, 1),
 };
 
 static const u16 VIEW_COAST_1_CELLS[1200] = {

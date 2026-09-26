@@ -66,6 +66,23 @@ GRASS_C = G('''
 ''', GL)
 
 
+def _sun_patch(img, cx, cy, rx, ry, col, base='g_base'):
+    """A soft, ordered-dithered patch of col over the base colour (denser
+    in the middle, a sparse checker at the rim), kept inside the cell."""
+    B = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]
+    for y in range(img.h):
+        for x in range(img.w):
+            e = ((x + 0.5 - cx) / rx) ** 2 + ((y + 0.5 - cy) / ry) ** 2
+            if e >= 1.0 or img.p[y][x] != base:
+                continue
+            if B[y & 3][x & 3] < int((1.0 - e) * 14):
+                img.p[y][x] = col
+
+
+# the 1-in-4 grass variant carries a sunlit patch, dithered into the base
+_sun_patch(GRASS_B, 8.0, 8.5, 6.5, 4.5, 'g_lt')
+
+
 def grass_img(w, h, tex=None):
     img = Img(w, h)
     tex_fill(img, tex or GRASS_A)
@@ -215,7 +232,14 @@ def tree_img(overlay=False):
     ''', dict(TK, o='t_out'))
     img.paste(trunk, 4, 24)
     img.paste(can, 0, 0)
-    if not overlay:
+    if overlay:
+        # a checker-dithered shadow pool around the foot of the trunk
+        for y in range(26, 32):
+            for x in range(16):
+                e = ((x + 0.5 - 8) / 7.2) ** 2 + ((y + 0.5 - 29.5) / 2.7) ** 2
+                if e <= 1.0 and img.p[y][x] is None and (x + y) % 2 == 0:
+                    img.p[y][x] = 'g_dk'
+    else:
         fill_grass(img)
     return img
 

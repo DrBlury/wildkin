@@ -55,6 +55,7 @@ def style(**kw):
         gap=['g_mid', 'g_dk', 'g_dkr'],  # deep-grass shadow, top -> bottom
         ground='GRASS',                 # terrain showing between the back tips
         ground_rows=2,                  # rows of ground above the shadow
+        top_mix=0.45,                   # how much shadow is dithered into those rows
         back=['tuft', 'fan', 'pair'],   # tuft shapes of the back row
         front=['tuft', 'fan', 'pair'],  # ... and of the front row
         back_n=3, front_n=3,            # tufts per row
@@ -92,11 +93,11 @@ DUNE = style(shade='s_dk', gap=['s_mid', 's_dk', 'g_dk'], ground='SAND', ground_
 SNOWY = style(ramp=['fg_hi', 'fg_hi', 'fg_base', 'fg_dk', 'fg_dkr'], shade='fg_dkr',
               gap=['sn_mid', 'sn_dk', 'fg_dkr'], ground='SNOW', ground_rows=2, period=16,
               caps='sn_hi', cap_chance=0.6, particles=['sn_hi', 'sn_lt'], part_kind='snow')
-GLOWMOSS = style(ramp=['mo_hi', 'mo_hi', 'mo_base', 'mo_dk', 'cv_dk'], shade='cv_dkr',
+GLOWMOSS = style(ramp=['mo_hi', 'mo_base', 'mo_dk', 'cv_mid', 'cv_dk'], shade='cv_dkr',
                  gap=['cv_mid', 'cv_dk', 'cv_dkr'], ground='FLOOR',
                  rows=[('back', 5, ['moss'], 3), ('back', 10, ['moss', 'frond'], 3),
                        ('front', 15, ['moss'], 3)], ground_rows=0, period=20,
-                 heads=[(['cr_lt', 'cr_hi', 'cr_lt', 'cr_base'], 0.45, 'dot')],
+                 heads=[(['cr_lt', 'cr_hi', 'cr_lt', 'cr_base'], 0.2, 'dot')],
                  particles=['cr_hi', 'cr_lt'], part_kind='spark')
 ASHGRASS = style(ramp=['grm_straw_hi', 'grm_straw_hi', 'grm_straw', 'grm_straw_dk', 'grm_ash_dk'],
                  shade='grm_soot', gap=['grm_ash_md', 'grm_ash_dk', 'grm_ash_dkr'], ground='ASH',
@@ -114,7 +115,7 @@ MIREREEDS = style(ramp=['grm_reed_hi', 'grm_reed_hi', 'grm_reed', 'grm_moss_dk',
                   heads=[(['grm_peat', 'grm_peat', 'grm_mud_dk', 'grm_peat'], 0.0, 'cattail'),
                          (['grm_wisp', 'grm_wisp_hi', 'grm_wisp', 'grm_moss_hi'], 0.12, 'dot')],
                   particles=['grm_wisp_hi', 'grm_wisp'], part_kind='spark')
-EMBER = style(ramp=['va_lt', 'va_lt', 'va_mid', 'va_dk', 'vb_dk'], shade='vb_out',
+EMBER = style(ramp=['eb_hi', 'eb_lt', 'eb_base', 'eb_dk', 'vb_dk'], shade='vb_out',
               gap=['va_dk', 'vb_dk', 'vb_out'], ground='ASH',
               back=['pair', 'frond', 'tuft'], front=['pair', 'fan', 'frond'], period=10,
               heads=[(['eb_hi', 'su_y', 'eb_lt', 'eb_hi'], 0.35, 'dot'),
@@ -124,7 +125,7 @@ EMBERMOSS = style(ramp=['eb_lt', 'eb_lt', 'eb_base', 'eb_dk', 'vb_dk'], shade='v
                   gap=['vb_base', 'vb_dk', 'vb_out'], ground='CAVE_FLOOR',
                   rows=[('back', 5, ['moss'], 3), ('back', 10, ['moss'], 3),
                         ('front', 15, ['moss', 'frond'], 3)], ground_rows=0, period=18,
-                  heads=[(['su_y', 'eb_hi', 'su_y', 'eb_hi'], 0.45, 'dot')],
+                  heads=[(['su_y', 'eb_hi', 'su_y', 'eb_hi'], 0.25, 'dot')],
                   particles=['eb_hi', 'su_y'], part_kind='spark')
 MOONPETAL = style(ramp=['dg_hi', 'dg_lt', 'dg_base', 'dg_mid', 'dg_dk'], shade='dg_dk',
                   gap=['dg_mid', 'dg_dk', 'ds_dk'], ground='GRASS', period=20,
@@ -335,7 +336,7 @@ def render_cell(st, tufts, ground_img, wave, part=0, pose=0):
             # a wavy edge: the shadow starts a row higher or lower per column
             wob = (hash2(x, 3, int(tufts[0].ph * 999)) % 3) - 1
             d = (y - st['ground_rows'] - wob) / 7.0
-            lvl = max(0.0, d) * 3.0
+            lvl = st["top_mix"] + max(0.0, d) * (3.0 - st["top_mix"])
             k = int(lvl)
             if bayer(x, y) < (lvl - k) * 16:
                 k += 1

@@ -3,6 +3,7 @@
 checking the grass overlay, rustle and wind animations:
 
     make && make shot && python3 tools/grass_shots.py [OUTDIR]
+    python3 tools/grass_shots.py --compare BEFORE_DIR AFTER_DIR OUT_PREFIX
 
 Each spot boots a demo save standing in tall grass, waits for wild kin to
 appear, then walks through the grass (a still mid-step and one after the
@@ -77,7 +78,26 @@ def sheet(outdir, names, path, scale=1, cols=4, crop=None, half=True):
     write_png(path, cols * (W + 2), rows_n * (H + 2), out)
 
 
+def compare(before, after, out):
+    """Before/after contact sheets of two shot directories (same SPOTS):
+    out_zoom.png -- per spot, 3x close-ups: before / after standing, before /
+    after mid-step; out_full.png -- 1x screens, before | after, two spots a row."""
+    tmp = os.path.dirname(os.path.abspath(out))
+    pairs = []
+    for (name, _, _, _, _) in SPOTS:
+        for i in (0, 1):
+            pairs += [os.path.join(before, '%s_%d' % (name, i)), os.path.join(after, '%s_%d' % (name, i))]
+    sheet(tmp, [os.path.relpath(p, tmp) for p in pairs], out + '_zoom.png', 3, cols=4, crop=(64, 40, 112, 80))
+    full = []
+    for (name, _, _, _, _) in SPOTS:
+        full += [os.path.join(before, name + '_0'), os.path.join(after, name + '_0')]
+    sheet(tmp, [os.path.relpath(p, tmp) for p in full], out + '_full.png', 1, cols=4)
+
+
 def main(argv):
+    if argv and argv[0] == '--compare':
+        compare(os.path.abspath(argv[1]), os.path.abspath(argv[2]), os.path.abspath(argv[3]))
+        return
     outdir = os.path.abspath(argv[0] if argv else os.path.join(ROOT, 'build', 'grass'))
     names = shoot(outdir)
     sheet(outdir, names, os.path.join(outdir, 'sheet.png'))
