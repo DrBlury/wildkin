@@ -1,1 +1,42 @@
 /* world/grim/npcs.inc -- People: PERSON(...), PERSON_KIN(...), WARDEN(...),. Owner: W-GRIM. */
+    /* ASHEN FIELDS */
+    PERSON(MAP_ASHEN_FIELDS, 18, 6, SCIENTIST, RIGHT, LOOK, SURVEYOR, LSRC_SURVEYOR, "SURVEYOR ASH", 0),
+    PERSON(MAP_ASHEN_FIELDS, 27, 35, VILLAGER, DOWN, LOOK, ASHFARMER, LSRC_ASHFARMER, "ASH FARMER", 0),
+    PERSON_KIN(MAP_ASHEN_FIELDS, 12, 18, KID, DOWN, WANDER, GRIM_TALK, NO_LORE, SP_CALCIPUP, "KID",
+               "My CALCIPUP found a bone twice as big as itself! It's burying it for later. Later is forever."),
+    WARDEN(MAP_ASHEN_FIELDS, 24, 10, WARDEN_A, LEFT, 3, TR_ROOK, SP_DREGCROW, "The crows know you now. That's a compliment."),
+    WARDEN(MAP_ASHEN_FIELDS, 10, 24, WARDEN_B, DOWN, 4, TR_PENN, NO_KIN, "Pumpkins in the ash. Who'd have thought?"),
+    WARDEN(MAP_ASHEN_FIELDS, 34, 23, WARDEN_A, UP, 2, TR_IVO, SP_CALCIPUP, "Dig deep enough here and everything is bones."),
+    /* GRAVEWOOD */
+    PERSON_KIN(MAP_GRAVEWOOD, 21, 28, GARDENER, DOWN, LOOK, SEXTON, LSRC_SEXTON, SP_SEXTONE, "SEXTON HOBB", 0),
+    PERSON(MAP_GRAVEWOOD, 17, 32, GRAN, UP, LOOK, MOURNER, LSRC_MOURNER, "MOURNER", 0),
+    WARDEN(MAP_GRAVEWOOD, 16, 13, WARDEN_B, DOWN, 2, TR_ODA, NO_KIN, "The web holds. Mostly."),
+    WARDEN(MAP_GRAVEWOOD, 25, 19, WARDEN_A, LEFT, 4, TR_FENWICK, SP_OSSIHOUND, "My hound likes you. It only growls at the living it doesn't know."),
+    WARDEN(MAP_GRAVEWOOD, 36, 22, WARDEN_B, UP, 2, TR_MAB, NO_KIN, "DUSKMERE's east. Follow the lanterns."),
+    /* DUSKMERE */
+    PERSON(MAP_DUSKMERE, 36, 27, GUIDE, DOWN, STILL, GATEKEEPER, LSRC_GATEKEEPER, "GATE WARDEN OSRIC", 0),
+    PERSON(MAP_DUSKMERE, 27, 19, ELDER, LEFT, LOOK, BELLKEEPER, LSRC_BELLKEEPER, "BELLKEEPER", 0),
+    PERSON(MAP_DUSKMERE, 20, 14, FISHER, UP, STILL, GRIM_TALK, NO_LORE, "BOG FISHER",
+           "Black water keeps what it takes. Boots, nets, a cart once. Peat's a slow cook, but a thorough one."),
+    PERSON_KIN(MAP_DUSKMERE, 13, 21, KID_B, DOWN, WANDER, GRIM_TALK, NO_LORE, SP_NOXKIT, "KID",
+               "NOXKIT's eyes glow in the dark, so I'm never scared. Well. Less scared."),
+    PERSON(MAP_DUSKMERE, 31, 12, VILLAGER, DOWN, WANDER, GRIM_TALK, NO_LORE, "LAMPLIGHTER",
+           "I light every lantern in DUSKMERE at dusk and again at noon. The ash makes noon look like dusk."),
+    PERSON(MAP_DUSK_HEARTH, 5, 2, HEALER, DOWN, STILL, DUSK_TENDER, NO_LORE, "TENDER WREN", 0),
+    PERSON(MAP_DUSK_SHOP, 1, 2, SHOPKEEPER, DOWN, STILL, DUSK_SHOP, NO_LORE, "CLERK", 0),
+    PERSON(MAP_APOTHECARY, 5, 3, SCIENTIST, DOWN, LOOK, BREWER, NO_LORE, "BREWER", 0),
+    PERSON(MAP_APOTHECARY, 2, 5, HERMIT, RIGHT, LOOK, GRIM_TALK, LSRC_APOTHECARY, "MOTHER HENBANE",
+           "Bog, bone and a little foxfire. Everything in this shop came out of the mire."),
+    PERSON(MAP_DUSK_HOUSE, 7, 4, GRAN, DOWN, LOOK, SISTER, NO_LORE, "WIDOW MAREN", 0),
+    /* LANTERN CRYPT (dark; wardens stand clear of the only routes) */
+    PERSON(MAP_LANTERN_CRYPT, 11, 3, HERMIT, DOWN, STILL, MORWEN, NO_LORE, "HALL MASTER MORWEN", 0),
+    WARDEN(MAP_LANTERN_CRYPT, 16, 11, WARDEN_A, RIGHT, 1, TR_LUMA, NO_KIN, "In the dark, the walls lie. Trust your feet, not your eyes."),
+    WARDEN(MAP_LANTERN_CRYPT, 6, 11, WARDEN_B, RIGHT, 1, TR_TOBIN, NO_KIN, "One wall on the way up is only a shadow. Press on it."),
+    WARDEN(MAP_LANTERN_CRYPT, 8, 15, WARDEN_A, LEFT, 1, TR_SABLE, NO_KIN, "The open door in the middle? It's the one that isn't there."),
+    /* THE OSSUARY */
+    WARDEN(MAP_OSSUARY_1, 15, 9, WARDEN_A, DOWN, 3, TR_CORVIN, SP_NOCTAVE, "The deeps are down the east stair."),
+    WARDEN(MAP_OSSUARY_1, 26, 15, WARDEN_B, LEFT, 3, TR_ELSPETH, NO_KIN, "Leave the lamps as you found them, please."),
+    WARDEN(MAP_OSSUARY_2, 6, 6, WARDEN_A, RIGHT, 4, TR_GRIMSBY, NO_KIN, "The arch at the end of the red carpet. That's where it waits."),
+    WARDEN(MAP_OSSUARY_2, 15, 11, WARDEN_B, UP, 2, TR_HESTER, NO_KIN, "Go softly."),
+    /* BONE THRONE */
+    PERSON(MAP_BONE_THRONE, 6, 12, ELDER, RIGHT, LOOK, VIGIL, LSRC_VIGIL, "THE LAST VIGIL", 0),

@@ -21,6 +21,7 @@ Legend (documented again at the top of src/game/world/grim/data.h):
   S  STAIRS_DOWN     steps down into the dark, in a wall      door
   A  ARCH            a dark archway in a wall                 door
   I/i PILLAR_TOP / PILLAR  a two-cell column                  solid
+  ,  BONEDUST        drifts of bone dust (wild kin roam)       grass
 
 The FAKE_BLOCK and GHOST_FLOOR pair is the Lantern Crypt's puzzle: in the
 dark, the walls lie. Doors are terrain here (no stamps): every door cell
@@ -34,7 +35,7 @@ USES_DECOR = []
 
 TERRAIN = ['VOID', 'WALL_TOP', 'WALL', 'NICHE', 'BONE_WALL', 'WISP_WALL', 'FLOOR', 'FLOOR2',
            'BLOCK', 'FAKE_BLOCK', 'GHOST_FLOOR', 'DOORMAT', 'CARPET', 'STAIRS_UP',
-           'STAIRS_DOWN', 'ARCH', 'PILLAR_TOP', 'PILLAR']
+           'STAIRS_DOWN', 'ARCH', 'PILLAR_TOP', 'PILLAR', 'BONEDUST']
 
 TERRAIN_DOC = {
     'VOID': 'black outside the rooms',
@@ -55,6 +56,7 @@ TERRAIN_DOC = {
     'ARCH': 'a dark archway (door)',
     'PILLAR_TOP': 'column capital (upper cell)',
     'PILLAR': 'column shaft (lower cell)',
+    'BONEDUST': 'flagstones drifted with bone dust and shed bones (wild kin roam)',
 }
 
 
@@ -347,6 +349,23 @@ def pillar_imgs():
     return top, bot
 
 
+def bonedust_img():
+    img = flag_img(True)
+    for y in range(16):
+        for x in range(16):
+            h = hash2(x, y, 41) & 15
+            if h < 5:
+                img.p[y][x] = 'cry_bone_dk' if h < 3 else 'cry_bone'
+    # two shed long bones
+    for (x0, y0) in ((2, 5), (9, 12)):
+        for k in range(5):
+            img.p[y0][x0 + k] = 'cry_bone'
+            img.p[y0 + 1][x0 + k] = 'cry_bone_dk'
+        img.p[y0][x0 - 1 if x0 else 0] = 'cry_bone'
+        img.p[y0][x0 + 5] = 'cry_bone'
+    return img
+
+
 def build(gf, name):
     gf.register_colors(dg.ALL_COLORS)
     gf.check_banks(name, dg.CRYPT_BANKS)
@@ -360,7 +379,7 @@ def build(gf, name):
         'FLOOR': floor, 'FLOOR2': flag_img(True), 'BLOCK': block, 'FAKE_BLOCK': block.copy(),
         'GHOST_FLOOR': floor.copy(), 'DOORMAT': doormat_img(), 'CARPET': carpet_img(),
         'STAIRS_UP': stairs_img(False), 'STAIRS_DOWN': stairs_img(True), 'ARCH': arch_img(),
-        'PILLAR_TOP': ptop, 'PILLAR': pbot,
+        'PILLAR_TOP': ptop, 'PILLAR': pbot, 'BONEDUST': bonedust_img(),
     }
     prefer = {'NICHE': (1,), 'BONE_WALL': (1,), 'CARPET': (2,)}
     for tname in TERRAIN:
@@ -371,12 +390,12 @@ def build(gf, name):
     S, D = gf.A_SOLID, gf.A_DOOR
     attrs = {'VOID': S, 'WALL_TOP': S, 'WALL': S, 'NICHE': S, 'BONE_WALL': S, 'WISP_WALL': S,
              'BLOCK': S, 'GHOST_FLOOR': S, 'PILLAR_TOP': S, 'PILLAR': S,
-             'DOORMAT': gf.A_EXIT, 'STAIRS_UP': S | D, 'STAIRS_DOWN': S | D, 'ARCH': S | D}
+             'DOORMAT': gf.A_EXIT, 'BONEDUST': gf.A_GRASS, 'STAIRS_UP': S | D, 'STAIRS_DOWN': S | D, 'ARCH': S | D}
     return gf.finish_tileset(
         out, name, 'CR', attrs=attrs, ground=['FLOOR', 'FLOOR2'], overlay=[],
         legend={' ': 'VOID', 'W': 'WALL_TOP', 'w': 'WALL', 'n': 'NICHE', 'o': 'BONE_WALL',
                 'v': 'WISP_WALL', '.': [('FLOOR2', 3), ('FLOOR', 13)], ':': 'FLOOR2',
                 '#': 'BLOCK', '%': 'FAKE_BLOCK', '_': 'GHOST_FLOOR', 'D': 'DOORMAT',
                 '|': 'CARPET', 'U': 'STAIRS_UP', 'S': 'STAIRS_DOWN', 'A': 'ARCH',
-                'I': 'PILLAR_TOP', 'i': 'PILLAR'},
+                'I': 'PILLAR_TOP', 'i': 'PILLAR', ',': 'BONEDUST'},
         oob='VOID', default_ground='FLOOR', backdrop=(8, 6, 14), legend_default=' ')

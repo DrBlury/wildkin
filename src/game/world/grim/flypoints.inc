@@ -1,2 +1,2 @@
-/* world/grim/flypoints.inc -- Fly / town-map points: { MAP_X, x, y, map_x, map_y, "NAME" },
- * (x, y) = where you land; (map_x, map_y) = pixel on the 240x160 town map. */
+/* world/grim/flypoints.inc -- Fly / town-map points: { MAP_X, x, y, map_x, map_y, "NAME" },. Owner: W-GRIM. */
+    { MAP_DUSKMERE, 10, 12, 198, 134, "DUSKMERE" },

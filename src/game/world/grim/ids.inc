@@ -1,4 +1,4 @@
-/* world/grim/ids.inc -- Map ids: MAP_X,. PLACEHOLDER maps: the owner replaces them. */
+/* world/grim/ids.inc -- Map ids: MAP_X,. Owner: W-GRIM (the Ashen March). */
     MAP_ASHEN_FIELDS,
     MAP_GRAVEWOOD,
     MAP_DUSKMERE,
@@ -9,3 +9,4 @@
     MAP_OSSUARY_1,
     MAP_OSSUARY_2,
     MAP_BONE_THRONE,
+    MAP_DUSK_HOUSE,

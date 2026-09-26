@@ -106,6 +106,9 @@ static void keeper_confirm(int c)
 }
 
 static void relearn_pick_kin(int c);
+static int grim_keeper_talk(void);          /* world/grim/scripts.c: the Hollowing */
+static int grim_interact(int x, int y);     /* world/grim/scripts.c: the Bone Throne */
+static void grim_on_enter(void);
 
 static void keeper_after(void)
 {
@@ -126,6 +129,7 @@ static void keeper_after(void)
         dlg_say("The Stormstone waits at the top of STORMSTONE RISE, north of WHISPER MEADOW. Rest your kin first!");
         return;
     }
+    if (grim_keeper_talk()) return;
     if (lore_reveal(LSRC_KEEPER, 0)) return;
     str_copy(msg, "Your ALMANAC: ");
     str_put_int(msg, dex_caught_count());
@@ -858,6 +862,7 @@ static int field_try_interact(void)
         return 1;
     }
     if (debug_examine(fx, fy)) return 1;
+    if (grim_interact(fx, fy)) return 1;
     if (obj_interact(fx, fy)) return 1;
     return examine_cell(fx, fy);
 }
@@ -891,6 +896,7 @@ static void field_on_enter(void)
 {
     if (cur_map == MAP_RISE) lore_story(LORE_STORMSTONE_RISE);
     if (cur_map == MAP_REST && opt.autosave && party_count) save_write();
+    grim_on_enter();
 }
 
 static int field_busy(void)

@@ -6835,11 +6835,12 @@ enum {
   MT_CR_ARCH,  /* a dark archway (door) */
   MT_CR_PILLAR_TOP,  /* column capital (upper cell) */
   MT_CR_PILLAR,  /* column shaft (lower cell) */
+  MT_CR_BONEDUST,  /* flagstones drifted with bone dust and shed bones (wild kin roam) */
   MT_CR_TERRAIN_COUNT
 };
-#define MT_CRYPT_COUNT 18
+#define MT_CRYPT_COUNT 19
 
-#define CRYPT_TILE_COUNT 55
+#define CRYPT_TILE_COUNT 59
 static const u32 crypt_tiles[CRYPT_TILE_COUNT * 8] = {
     0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
     0x11111111, 0x11111111, 0x11111111, 0x11111111, 0x11111111, 0x11111111, 0x11111111, 0x11111111,
@@ -6896,6 +6897,10 @@ static const u32 crypt_tiles[CRYPT_TILE_COUNT * 8] = {
     0x343B9988, 0x344B9988, 0x443B9988, 0x444B9988, 0x434B9988, 0x454B9988, 0x555B9988, 0x666B9988,
     0x887BB344, 0x887BB444, 0x887BB454, 0x887BB444, 0x99999994, 0xAAAAAAA4, 0xAAAAAAA5, 0xBBBBBBB6,
     0x346B9988, 0x436B9988, 0x536B9988, 0x436B9988, 0x49999999, 0x4AAAAAAA, 0x5AAAAAAA, 0x6BBBBBBB,
+    0x443C333D, 0x6D45443D, 0xD444DD3C, 0x44CCC4DD, 0x45C54436, 0xCCCCCCCD, 0xCDDDDDDD, 0xCC66666C,
+    0x343343D4, 0xDD4C43D5, 0x4434446D, 0x4443446F, 0x434C4C65, 0xDC4463D5, 0xD5555365, 0x666C6C66,
+    0x4436334C, 0x4446544C, 0x44DD545D, 0x44365DC4, 0x4C4DCC4D, 0xDD36C5DD, 0x553D55D5, 0x666D6C66,
+    0xD4C4C333, 0x43D5444C, 0x5365C444, 0x436D44C4, 0x4CCCCCCC, 0x43DDDDDC, 0xD4655DD5, 0xC66C666C,
 };
 static const u16 crypt_palettes[8][16] = {
     {0x0000, 0x0401, 0x0C22, 0x45CE, 0x354B, 0x2D09, 0x20A6, 0x4E11, 0x3D8D, 0x312A, 0x24C7, 0x1884, 0x5719, 0x3E32, 0x3770, 0x2A28},
@@ -6926,6 +6931,7 @@ static const u16 crypt_meta_bottom[MT_CRYPT_COUNT][4] = {
     {0x002B, 0x002C, 0x002D, 0x002E}, /* MT_CR_ARCH */
     {0x002F, 0x0030, 0x0031, 0x0032}, /* MT_CR_PILLAR_TOP */
     {0x0033, 0x0034, 0x0035, 0x0036}, /* MT_CR_PILLAR */
+    {0x0037, 0x0038, 0x0039, 0x003A}, /* MT_CR_BONEDUST */
 };
 static const u16 crypt_meta_top[MT_CRYPT_COUNT][4] = {
     {0x0000, 0x0000, 0x0000, 0x0000}, /* MT_CR_VOID */
@@ -6946,6 +6952,7 @@ static const u16 crypt_meta_top[MT_CRYPT_COUNT][4] = {
     {0x0000, 0x0000, 0x0000, 0x0000}, /* MT_CR_ARCH */
     {0x0000, 0x0000, 0x0000, 0x0000}, /* MT_CR_PILLAR_TOP */
     {0x0000, 0x0000, 0x0000, 0x0000}, /* MT_CR_PILLAR */
+    {0x0000, 0x0000, 0x0000, 0x0000}, /* MT_CR_BONEDUST */
 };
 static const u16 crypt_attr[MT_CRYPT_COUNT] = {
     A_SOLID, /* MT_CR_VOID */
@@ -6966,15 +6973,17 @@ static const u16 crypt_attr[MT_CRYPT_COUNT] = {
     A_SOLID|A_DOOR, /* MT_CR_ARCH */
     A_SOLID, /* MT_CR_PILLAR_TOP */
     A_SOLID, /* MT_CR_PILLAR */
+    A_GRASS, /* MT_CR_BONEDUST */
 };
 static const u8 crypt_mflags[MT_CRYPT_COUNT] = {
-    0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
 static const TileAnim crypt_anims[1] = { { 0, 0, 0, 0, 0 } };
 static const LegendEntry crypt_legend[96] = {
     [' ' - 32] = { LG_SIMPLE, 1, { 16 }, { MT_CR_VOID } },
     ['#' - 32] = { LG_SIMPLE, 1, { 16 }, { MT_CR_BLOCK } },
     ['%' - 32] = { LG_SIMPLE, 1, { 16 }, { MT_CR_FAKE_BLOCK } },
+    [',' - 32] = { LG_SIMPLE, 1, { 16 }, { MT_CR_BONEDUST } },
     ['.' - 32] = { LG_VARIANT, 2, { 3, 13 }, { MT_CR_FLOOR2, MT_CR_FLOOR } },
     [':' - 32] = { LG_SIMPLE, 1, { 16 }, { MT_CR_FLOOR2 } },
     ['A' - 32] = { LG_SIMPLE, 1, { 16 }, { MT_CR_ARCH } },
