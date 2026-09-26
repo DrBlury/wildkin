@@ -826,7 +826,18 @@ static int examine_cell(int x, int y)
 static int field_try_interact(void)
 {
     int fx = player.x + DIR_DX[player.facing], fy = player.y + DIR_DY[player.facing];
-    int n = npc_at(fx, fy);
+    /* elevation (elev.c): people, kin and satchels across a cliff or below
+     * a deck are out of reach; signs and objects can still be read */
+    int nl, reach = elev_enter(player.x, player.y, player.level, player.facing, &nl) != ELEV_BLOCK;
+    if (!reach) {
+        int s = sign_at(fx, fy);
+        if (s >= 0) {
+            dlg_say(SIGNS[s].text);
+            return 1;
+        }
+        return examine_cell(fx, fy);
+    }
+    int n = map_elevated ? npc_at_lv(fx, fy, nl) : npc_at(fx, fy);
     if (n < 0 && (cell_attr(fx, fy) & A_COUNTER))
         n = npc_at(fx + DIR_DX[player.facing], fy + DIR_DY[player.facing]);
     if (n >= 0) {

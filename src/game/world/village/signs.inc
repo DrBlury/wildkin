@@ -1,6 +1,6 @@
 /* world/village/signs.inc -- Signs: { MAP_X, x, y, "text" },. Owner: core (the original Maple Village area). */
     { MAP_TOWN, 17, 19, "MAPLE VILLAGE\fHome of the Old Hearth. Every bout is a bucket of rain." },
-    { MAP_TOWN, 18, 2, "NORTH: WHISPER MEADOW\fSTORMSTONE RISE lies at the top of the meadow." },
+    { MAP_TOWN, 18, 4, "NORTH: WHISPER MEADOW\fSTORMSTONE RISE lies at the top of the meadow." },
     { MAP_TOWN, 2, 16, "WEST: MIRROR LAKE\fThe Almanac field station stands on the north shore." },
     { MAP_TOWN, 37, 16, "EAST: BRAMBLEWOOD\fMind the brambles. Mind the wisps." },
     { MAP_TOWN, 28, 7, "ALMANAC HOUSE\fKeeper Linden records every kin, every season and every storm." },

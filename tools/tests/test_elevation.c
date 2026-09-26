@@ -329,6 +329,18 @@ int main(void)
     k.a.level = 1;
     CHECK(wild_reaches_player(&k), "one beside the player on the plateau can");
 
+    int mesa = -1;
+    for (int i = 0; i < ITEM_BALL_COUNT; i++)
+        if (ITEM_BALLS[i].map == MAP_EV_TEST && ITEM_BALLS[i].x == 21 && ITEM_BALLS[i].y == 5) mesa = i;
+    enter(MAP_EV_TEST, 21, 4, DIR_DOWN);
+    tap(KEY_A);
+    run_dialog(400);
+    CHECK(mesa >= 0 && player.level == 0 && !item_taken(mesa), "a satchel up on the mesa can't be taken from below");
+    enter(MAP_EV_TEST, 21, 6, DIR_UP);
+    tap(KEY_A);
+    run_dialog(400);
+    CHECK(player.level == 2 && item_taken(mesa), "but can from beside it on the mesa");
+
     /* ---------------- render ---------------- */
     enter(MAP_EV_TEST, 13, 16, DIR_UP);
     field_redraw_cell(13, 9);

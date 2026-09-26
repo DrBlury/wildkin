@@ -213,21 +213,47 @@ def stairs_up():
     return img
 
 
+def stairs_side(up_west):
+    """Side stairs along a cliff: seen from the south, the steps climb toward
+    the high end (west for up_west) and their stepped front face shows."""
+    img = Img(16, 16)
+    for u in range(16):             # u: 0 at the high end
+        x = u if up_west else 15 - u
+        step = u // 4
+        face_top = 7 + step         # higher steps show a taller front face
+        for y in range(16):
+            if y == 0:
+                c = 't_out'
+            elif y < face_top:
+                c = 'k_lt' if (y + u) % 7 else 'k_base'
+                if u % 4 == 0 and step:        # the riser of the step above
+                    c = 'k_dk'
+                elif u % 4 == 1 and step:
+                    c = 'k_base'
+            elif y == face_top:
+                c = 't_out'
+            elif y == 15:
+                c = 't_out'
+            else:
+                c = 'k_base' if y < 13 else 'k_dk'
+                if u % 4 == 0:
+                    c = 'k_dk'
+            img.p[y][x] = c
+        if u == 0:
+            for y in range(16):
+                img.p[y][x] = 't_out'
+    return img
+
+
 def stairs_img(d):
     """d: 0 up = north, 1 up = south, 2 up = west, 3 up = east."""
+    if d >= 2:
+        return stairs_side(d == 2)
     up = stairs_up()
     img = Img(16, 16)
     for y in range(16):
         for x in range(16):
-            if d == 0:
-                c = up.p[y][x]
-            elif d == 1:
-                c = up.p[15 - y][x]
-            elif d == 2:
-                c = up.p[x][y]
-            else:
-                c = up.p[15 - x][y]
-            img.p[y][x] = c
+            img.p[y][x] = up.p[y][x] if d == 0 else up.p[15 - y][x]
     return img
 
 
