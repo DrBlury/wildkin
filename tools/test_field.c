@@ -32,6 +32,14 @@ static void map_entry(int map, int *ex, int *ey)
             }
         }
     }
+    /* no door leads here yet (a placeholder interior): start on its exit mat */
+    for (int y = 0; y < m->h; y++)
+        for (int x = 0; x < m->w; x++)
+            if (cell_attr(x, y) & A_EXIT) {
+                *ex = x;
+                *ey = y;
+                return;
+            }
     *ex = *ey = 0;
 }
 

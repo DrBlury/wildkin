@@ -693,6 +693,7 @@ static int examine_cell(int x, int y)
     const DecorPlace *p = decor_at(x, y, 0, 0);
     if (!p) return 0;
     if (station_examine(p->kind)) return 1;
+    if (fusion_examine(p->kind)) return 1;   /* the Resonance Works machines */
     switch (p->kind) {
     case DK_STORMSTONE:
         script_stormstone();
