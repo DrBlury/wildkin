@@ -1,7 +1,8 @@
 /* world/village/maps.inc -- Map definitions: [MAP_X] = { w, h, TS_..., SC_..., ROWS, ... },. Owner: core (the original Maple Village area). */
     [MAP_TOWN] = { 40, NROWS(TOWN_ROWS), TS_TOWN, SC_MEADOW, TOWN_ROWS, TOWN_STAMPS, NSTAMP(TOWN_STAMPS),
                    TOWN_DECOR, NDEC(TOWN_DECOR), "MAPLE VILLAGE", ZONE_NONE, MF_OUTDOOR | MF_TOWN,
-                   { MAP_MEADOW, MAP_WILLOW_ACRE, MAP_LAKE, MAP_WOOD }, { 0, 0, 0, 0 } },
+                   { MAP_MEADOW, MAP_WILLOW_ACRE, MAP_LAKE, MAP_WOOD }, { 0, 0, 0, 0 },
+                   ELEV(TOWN_ELEV, TOWN_FEATS) },   /* terraces, the Maple Run bridge (docs/ELEVATION.md) */
     [MAP_MEADOW] = { 40, NROWS(MEADOW_ROWS), TS_WILD, SC_MEADOW, MEADOW_ROWS, 0, 0,
                      MEADOW_DECOR, NDEC(MEADOW_DECOR), "WHISPER MEADOW", ZONE_MEADOW, MF_OUTDOOR,
                      { MAP_RISE, MAP_TOWN, MAP_NONE, MAP_NONE }, { 0, 0, 0, 0 } },

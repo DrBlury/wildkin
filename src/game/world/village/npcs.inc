@@ -3,10 +3,10 @@
     PERSON(MAP_TOWN, 16, 14, ELDER, DOWN, STILL, TALK, LSRC_ELDER, "ELDER BRAM",
            "The Old Hearth has burned here since the first Kinship. Sit a while with it."),
     PERSON_KIN(MAP_TOWN, 29, 13, GUIDE, LEFT, LOOK, MARLO, LSRC_MARLO, SP_CINDERUB, "WARDEN MARLO", 0),
-    PERSON(MAP_TOWN, 22, 13, KID, DOWN, WANDER, KID, LSRC_KID, "KID", 0),
+    PERSON(MAP_TOWN, 11, 13, KID, DOWN, WANDER, KID, LSRC_KID, "KID", 0),
     PERSON(MAP_TOWN, 10, 29, KID_B, LEFT, LOOK, TALK, NO_LORE, "KID",
            "I saw the sky flash green over the RISE last night! Something up there is BRIMMING."),
-    PERSON_KIN(MAP_TOWN, 28, 22, VILLAGER, DOWN, WANDER, TALK, NO_LORE, SP_DANDELAMB, "FARMER",
+    PERSON_KIN(MAP_TOWN, 30, 23, VILLAGER, DOWN, WANDER, TALK, NO_LORE, SP_DANDELAMB, "FARMER",
                "My DANDELAMB naps in the carrot rows. Best harvest in years, every year."),
     /* interiors */
     PERSON(MAP_HOME, 7, 4, GRAN, DOWN, LOOK, GRAN, LSRC_GRAN, "GRAN", 0),

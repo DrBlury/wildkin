@@ -104,11 +104,11 @@ def face_img(lip, base, left_cap, right_cap):
                 img.p[y][x2] = 'g_lt' if side == 0 else 'g_mid'
                 continue
             band = SIDE_L if side == 0 else SIDE_R
-            for i, c in enumerate(band[1:]):
+            for i, c in enumerate(band[1:-1]):
                 xx = x + 1 + i if side == 0 else x - 1 - i
                 if base and y >= 14:
                     c = 't_out'
-                img.p[y][xx] = _side_px(c, y, side)
+                img.p[y][xx] = _side_px(c, y, side, i + 1)
         if base:   # finish the rounded foot's shadow
             for u in range(1, 6):
                 x = u if side == 0 else 15 - u
@@ -117,16 +117,21 @@ def face_img(lip, base, left_cap, right_cap):
 
 
 # the rock band down a plateau's west / east side (outside -> inside)
-SIDE_L = ('t_out', 'k_lt', 'k_base', 't_out')
-SIDE_R = ('t_out', 'k_dk', 'k_base', 'k_dk')
+SIDE_L = ('t_out', 'k_lt', 'k_lt', 'k_base', 'k_dk', 't_out')
+SIDE_R = ('t_out', 'k_dk', 'k_base', 'k_base', 'k_dk', 't_out')
 
 
-def _side_px(c, y, side):
-    """Rock band texture: a crack or a lit chip every few rows."""
-    if c == 'k_base' and hash2(side, y, 31) % 4 == 0:
-        return 'k_dk' if side else 'k_lt'
-    if c in ('k_lt', 'k_dk') and y % 5 == 2:
-        return 't_out'
+def _side_px(c, y, side, i=0):
+    """Rock band texture: rounded stones with dark joints every few rows."""
+    joint = (y + (2 if side else 0) + (i // 3) * 3) % 6
+    if c != 't_out' and joint == 5:
+        return 't_out' if i in (2, 3) else 'k_dk'
+    if c == 'k_lt' and joint == 0:
+        return 'k_lt'
+    if c == 'k_base' and joint == 4:
+        return 'k_dk'
+    if c == 'k_lt' and joint == 4:
+        return 'k_base'
     return c
 
 
@@ -144,7 +149,7 @@ def rim_img(n, s, w, e, inner):
         for y in range(16):
             for i, c in enumerate(band):
                 x = i if side == 0 else 15 - i
-                img.p[y][x] = _side_px(c, y, side)
+                img.p[y][x] = _side_px(c, y, side, i)
             x = len(band) if side == 0 else 15 - len(band)
             img.p[y][x] = 'g_dkr' if side else 'g_hi'
     if n and w:     # rounded outer corner
@@ -180,8 +185,7 @@ def shadow_img():
     img = Img(16, 16)
     for y in range(16):
         img.p[y][0] = 't_out' if y % 2 == 0 else None
-        img.p[y][1] = 't_out' if y % 2 == 1 else None
-        img.p[y][2] = 't_out' if y % 4 == 0 else None
+        img.p[y][1] = 't_out' if y % 4 == 1 else None
     return img
 
 
