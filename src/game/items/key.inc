@@ -18,3 +18,5 @@ ITEM_DEF(ITEM_RECIPE_BOOK, "RECIPE BOOK", POCKET_KEY, IK_KEY, 7, 0, ICON_RECIPE_
          "Every recipe you have learned, and what each one needs.")
 ITEM_DEF(ITEM_ENERGY_FLASK, "ENERGY FLASK", POCKET_KEY, IK_KEY, 8, 0, ICON_ENERGY_FLASK,
          "Holds the typed energy from unbound kin.")
+ITEM_DEF(ITEM_RUNESTONE, "RUNESTONE", POCKET_KEY, IK_KEY, 9, 0, ICON_RUNESTONE,
+         "A stone carved with the rune of home. It always takes you home.")
