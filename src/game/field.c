@@ -140,7 +140,7 @@ static KinActor follower;
 static struct {
     KinActor k;
     Monster mon;
-    u8 active, brimming, noticed;
+    u8 active, brimming, noticed, water;   /* water: swims (surf zone) */
     u16 life, think;
 } wild[WILD_MAX] EWRAM_BSS;
 static int wild_spawn_timer;
@@ -335,7 +335,8 @@ static int is_door_cell(int v)
 
 static int travel_attr(int x, int y, int a);
 
-static int cell_attr(int x, int y)
+/* Terrain and decor only (no map objects). */
+static int cell_attr_raw(int x, int y)
 {
     int a = terrain_attr(map_tileset, map_cell(x, y));
     int sub;
@@ -344,7 +345,12 @@ static int cell_attr(int x, int y)
         if (d->floor & (1u << sub)) a &= ~(A_SOLID | A_WATER | A_LEDGE);
         if (d->solid & (1u << sub)) a |= A_SOLID;
     }
-    return travel_attr(x, y, a);
+    return a;
+}
+
+static int cell_attr(int x, int y)
+{
+    return travel_attr(x, y, cell_attr_raw(x, y));
 }
 
 /* ---------------- rendering ---------------- */
@@ -465,8 +471,11 @@ static int floor_div16(int v)
 }
 
 /* Write any newly visible cells; called in vblank. */
+static void travel_dark_present(void);
+
 static void field_render_view(void)
 {
+    travel_dark_present();
     int x0 = floor_div16(cam_x), y0 = floor_div16(cam_y);
     for (int my = y0; my <= y0 + 10; my++)
         for (int mx = x0; mx <= x0 + 15; mx++)
@@ -514,6 +523,8 @@ static void field_load_palettes(void)
     bg_palette[0] = field_tint(storm ? storm_tint(bd) : bd);
 }
 
+static void travel_load_gfx(void);
+
 static void field_load_tileset(void)
 {
     copy32(VRAM_SCENE_TILES, tset()->tiles, (unsigned)tset()->tile_count * 8);
@@ -533,6 +544,7 @@ static void field_load_tileset(void)
     }
     field_load_palettes();
     ring_invalidate();
+    travel_load_gfx();
 }
 
 /* Tile-data swaps for rippling water, swaying flowers and animated decor. */
@@ -556,8 +568,11 @@ static void field_animate_tiles(void)
     }
 }
 
+static void travel_dark_off(void);
+
 static void field_setup_bg(void)
 {
+    travel_dark_off();
     REG_BG0CNT = BGCNT_CHARBLOCK(0) | BGCNT_SCREENBLOCK(SB_FIELD_BOTTOM) | BGCNT_PRIO(3);
     REG_BG3CNT = BGCNT_CHARBLOCK(0) | BGCNT_SCREENBLOCK(SB_FIELD_TOP) | BGCNT_PRIO(1);
     /* BG2 = decor layer (below people) while in the field */
@@ -608,9 +623,11 @@ static void npcs_reset(void)
 
 static void wild_clear(void)
 {
-    for (int i = 0; i < WILD_MAX; i++) wild[i].active = 0;
+    for (int i = 0; i < WILD_MAX; i++) wild[i].active = wild[i].water = 0;
     wild_spawn_timer = 30;
 }
+
+static void travel_map_loaded(int map);
 
 static void map_load(int id)
 {
@@ -621,6 +638,7 @@ static void map_load(int id)
     map_decode(id);
     npcs_reset();
     wild_clear();
+    travel_map_loaded(id);
 }
 
 static int npc_at(int x, int y)
@@ -749,7 +767,16 @@ static int kin_frame(const KinActor *k)
     }
 }
 
-typedef struct { int y, x, kind, a, b, flip; } FieldSprite; /* kind: 0 person, 1 kin, 2 satchel */
+/* kind: 0 person, 1 kin, 2 satchel, 3 emote, 4 map object (tile a, bank b,
+ * drawn `dy` below the sort line y, shape `shape`) */
+typedef struct { int y, x, kind, a, b, flip, dy, shape; } FieldSprite;
+
+/* traversal (travel.c) */
+static int travel_player_entry(FieldSprite *e, int lift);
+static int travel_player_lift(void);
+static int travel_kin_actors(const KinActor **out, int max);
+static int travel_push_sprites(FieldSprite *list, int n, int max);
+static void travel_draw_floor(void);
 
 static struct { int npc, kind, timer; } emote = { -1, 0, 0 };
 static int starter_preview = -1; /* script.c: species shown while choosing a starter */
@@ -775,12 +802,16 @@ static void draw_weather(void)
 
 static void field_draw_sprites(void)
 {
-    FieldSprite list[48];
+    FieldSprite list[80];
     int n = 0;
-    int lift = actor_lift(&player);
-    copy32(VRAM_OBJ_TILES + OT_PLAYER * 8, char_gfx[CHR_PLAYER][actor_frame(&player)], 64);
-    list[n++] = (FieldSprite){ player.y * 16 + player.oy, player.x * 16 + player.ox, 0,
-                               OT_PLAYER | (lift << 16), OBANK_PLAYER, player.facing == DIR_RIGHT };
+    int lift = actor_lift(&player) + travel_player_lift();
+    if (travel_player_entry(&list[n], lift)) {
+        n++;
+    } else {
+        copy32(VRAM_OBJ_TILES + OT_PLAYER * 8, char_gfx[CHR_PLAYER][actor_frame(&player)], 64);
+        list[n++] = (FieldSprite){ player.y * 16 + player.oy, player.x * 16 + player.ox, 0,
+                                   OT_PLAYER | (lift << 16), OBANK_PLAYER, player.facing == DIR_RIGHT };
+    }
     int slot = 0;
     for (int i = 0; i < NPC_COUNT && n < 40; i++) {
         if (NPCS[i].map != cur_map) continue;
@@ -797,9 +828,10 @@ static void field_draw_sprites(void)
         }
     }
     /* kin: follower, people's companions, wild kin */
-    const KinActor *kins[1 + NPC_COUNT + WILD_MAX];
+    const KinActor *kins[1 + NPC_COUNT + WILD_MAX + 8];
     int nk = 0;
     if (follower_active() && starter_preview < 0) kins[nk++] = &follower;
+    nk += travel_kin_actors(kins + nk, 8);
     for (int i = 0; i < NPC_COUNT; i++)
         if (NPCS[i].map == cur_map && npc_kin[i].shown) kins[nk++] = &npc_kin[i];
     for (int i = 0; i < WILD_MAX; i++)
@@ -833,6 +865,7 @@ static void field_draw_sprites(void)
         if (ITEM_BALLS[i].map != cur_map || item_taken(i)) continue;
         list[n++] = (FieldSprite){ ITEM_BALLS[i].y * 16 - 1, ITEM_BALLS[i].x * 16, 2, 0, 0, 0 };
     }
+    n = travel_push_sprites(list, n, 78);
     /* Sort front-to-back: larger y is closer to the camera. */
     for (int i = 1; i < n; i++)
         for (int j = i; j > 0 && list[j].y > list[j - 1].y; j--) {
@@ -858,11 +891,15 @@ static void field_draw_sprites(void)
         case 3:
             spr_push(sx, sy - 34, OT_EMOTE + s->a * 4, SQ16, OBANK_EMOTE, 1, 0);
             break;
+        case 4:
+            spr_push(sx, sy + s->dy, s->a, s->shape, s->b, 2, s->flip ? ATTR1_HFLIP : 0);
+            break;
         }
     }
     if (emote.timer > 0 && emote.npc == -1)
         spr_push(player.x * 16 + player.ox - cam_x, player.y * 16 + player.oy - cam_y - 34,
                  OT_EMOTE + emote.kind * 4, SQ16, OBANK_EMOTE, 1, 0);
+    travel_draw_floor();
     draw_weather();
 }
 
@@ -963,9 +1000,11 @@ static void kin_follow(KinActor *k, int tx, int ty, int hop)
     actor_start_move(&k->a, d);
 }
 
+static int travel_hides_follower(void);
+
 static int follower_active(void)
 {
-    return opt.follower && follower.shown && party_count > 0;
+    return opt.follower && follower.shown && party_count > 0 && !travel_hides_follower();
 }
 
 /* The lead kin (first one still awake) walks behind the player. */
@@ -1070,6 +1109,11 @@ static int try_edge_link(int dir, int nx, int ny)
     return 1;
 }
 
+static int travel_player_move(int dir, int nx, int ny);
+static int travel_player_arrived(void);
+static int travel_speed(int base);
+static int travel_update(void);
+
 /* Returns 1 when the player started a step or triggered something. */
 static int player_try_move(int dir)
 {
@@ -1107,6 +1151,9 @@ static int player_try_move(int dir)
         wild_touch(w);
         return 1;
     }
+    /* surfing, boulders (travel.c) */
+    int t = travel_player_move(dir, nx, ny);
+    if (t >= 0) return t;
     /* ledges: hop down over them */
     if (dir == DIR_DOWN && nx >= 0 && ny >= 0 && nx < map_w && ny < map_h &&
         (cell_attr(nx, ny) & A_LEDGE) && cell_walkable(nx, ny + 1)) {
@@ -1128,7 +1175,7 @@ static int player_try_move(int dir)
     actor_start_move(&player, dir);
     if (follower_active()) kin_follow(&follower, ox, oy, 0);
     /* advance on the same frame so consecutive steps flow without a stall */
-    int speed = key_down(KEY_B) ? 2 : 1;
+    int speed = travel_speed(key_down(KEY_B) ? 2 : 1);
     actor_step(&player, speed);
     if (follower_active()) actor_step(&follower.a, speed);
     return 1;
@@ -1137,10 +1184,12 @@ static int player_try_move(int dir)
 /* One frame of overworld control. */
 static int field_player_update(void)
 {
+    if (travel_update()) return 0;
     if (player.moving) {
-        int speed = player.hop ? 2 : key_down(KEY_B) ? 2 : 1;
+        int speed = travel_speed(player.hop ? 2 : key_down(KEY_B) ? 2 : 1);
         if (follower_active() && follower.a.moving) actor_step(&follower.a, speed);
         if (actor_step(&player, speed)) {
+            travel_player_arrived();
             on_player_step();
             return 1;
         }
@@ -1182,20 +1231,32 @@ static int species_for_level(int sp, int level)
 
 static int party_max_level(void);
 
+static int travel_lure_active(void);
+static int travel_surfing(void);
+static int travel_surf_cell(int x, int y);
+
+static int wild_weight(const WildSlot *s, int lure)
+{
+    return lure && s->weight <= 5 ? s->weight * 3 : s->weight;
+}
+
 static Monster roll_wild(int zone)
 {
     const WildZone *z = &WILD_ZONES[zone];
     if (zone <= ZONE_NONE || zone >= ZONE_COUNT || !z->count) return monster_make(SP_NIBBIT, 3);
+    /* LURE INCENSE (travel.c): the rarer slots come three times as often */
+    int lure = travel_lure_active();
     int total = 0;
-    for (int i = 0; i < z->count; i++) total += z->slots[i].weight;
+    for (int i = 0; i < z->count; i++) total += wild_weight(&z->slots[i], lure);
     int r = (int)rng_range((unsigned)total);
     const WildSlot *s = &z->slots[0];
     for (int i = 0; i < z->count; i++) {
-        if (r < z->slots[i].weight) {
+        int w = wild_weight(&z->slots[i], lure);
+        if (r < w) {
             s = &z->slots[i];
             break;
         }
-        r -= z->slots[i].weight;
+        r -= w;
     }
     int level = s->min_level + (int)rng_range((unsigned)(s->max_level - s->min_level + 1));
     /* kin keep up a little with strong teams, so routes stay worth a bout */
@@ -1207,11 +1268,14 @@ static Monster roll_wild(int zone)
     return m;
 }
 
-static int wild_cell_ok(int x, int y)
+/* Where a wild kin may wander: tall grass, or open water for swimmers. */
+static int wild_cell_ok(int x, int y, int water)
 {
-    return x >= 0 && y >= 0 && x < map_w && y < map_h && (cell_attr(x, y) & A_GRASS) &&
-           cell_walkable(x, y) && !(x == player.x && y == player.y) &&
-           !(follower_active() && x == follower.a.x && y == follower.a.y);
+    if (x < 0 || y < 0 || x >= map_w || y >= map_h) return 0;
+    if (x == player.x && y == player.y) return 0;
+    if (follower_active() && x == follower.a.x && y == follower.a.y) return 0;
+    if (water) return travel_surf_cell(x, y);
+    return (cell_attr(x, y) & A_GRASS) && cell_walkable(x, y);
 }
 
 static void debug_parade_spawn(void);
@@ -1223,8 +1287,11 @@ static void wild_spawn(void)
         debug_parade_spawn();
         return;
     }
-    if (m->zone == ZONE_NONE || !(flag(FLAG_STARTER))) return;
-    const WildZone *z = &WILD_ZONES[m->zone];
+    /* surfing: the map's water kin come out instead */
+    int water = travel_surfing() && m->water_zone;
+    int zone = water ? m->water_zone : m->zone;
+    if (zone == ZONE_NONE || zone >= ZONE_COUNT || !(flag(FLAG_STARTER))) return;
+    const WildZone *z = &WILD_ZONES[zone];
     int active = 0, slot = -1;
     for (int i = 0; i < WILD_MAX; i++) {
         if (wild[i].active) active++;
@@ -1234,9 +1301,10 @@ static void wild_spawn(void)
     for (int tries = 0; tries < 12; tries++) {
         int x = player.x - 9 + (int)rng_range(19), y = player.y - 7 + (int)rng_range(15);
         if (absi(x - player.x) + absi(y - player.y) < 4) continue;
-        if (!wild_cell_ok(x, y)) continue;
-        wild[slot].mon = roll_wild(m->zone);
+        if (!wild_cell_ok(x, y, water)) continue;
+        wild[slot].mon = roll_wild(zone);
         wild[slot].active = 1;
+        wild[slot].water = (u8)water;
         wild[slot].brimming = rng_range(100) < 45;
         wild[slot].noticed = 0;
         wild[slot].life = (u16)(1200 + rng_range(900));
@@ -1306,9 +1374,10 @@ static void wild_update(void)
         }
         int nx = k->a.x + DIR_DX[dir], ny = k->a.y + DIR_DY[dir];
         k->a.facing = (u8)dir;
-        int ok = chase ? (cell_walkable(nx, ny) && !(nx == player.x && ny == player.y) &&
+        int ok = chase ? ((wild[i].water ? travel_surf_cell(nx, ny) : cell_walkable(nx, ny)) &&
+                          !(nx == player.x && ny == player.y) &&
                           !(follower_active() && nx == follower.a.x && ny == follower.a.y))
-                       : wild_cell_ok(nx, ny);
+                       : wild_cell_ok(nx, ny, wild[i].water);
         if (ok) actor_start_move(&k->a, dir);
     }
 }
@@ -1330,6 +1399,7 @@ static void field_begin_warp(int dest, int x, int y, int facing)
 }
 
 static void field_on_enter(void);
+static void travel_map_entered(int map);
 
 static void field_enter_map(int map, int x, int y, int facing)
 {
@@ -1340,6 +1410,7 @@ static void field_enter_map(int map, int x, int y, int facing)
     player.moving = 0;
     player.hop = 0;
     player.facing = (u8)facing;
+    travel_map_entered(map);
     field_load_tileset();
     follower_reset();
     field_update_camera();

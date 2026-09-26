@@ -83,7 +83,8 @@ static void start_menu_build(void)
     start_count = 0;
     for (int i = 0; i < SM_COUNT; i++) {
         if (i == SM_SHELF && !(flag(FLAG_TWIN_CRYSTAL))) continue;
-        if ((i == SM_KIN || i == SM_FIELD) && !party_count) continue;
+        if (i == SM_KIN && !party_count) continue;
+        if (i == SM_FIELD && !(party_count && (travel.crests || bag[ITEM_BIKE] > 0))) continue;   /* travel.c */
         if (i == SM_MAP && bag[ITEM_TOWN_MAP] <= 0) continue;
         start_items[start_count++] = (u8)i;
     }
@@ -92,6 +93,7 @@ static void start_menu_build(void)
     if (start_cursor >= start_scroll + START_ROWS) start_scroll = start_cursor - START_ROWS + 1;
     if (start_scroll > start_count - START_ROWS) start_scroll = start_count > START_ROWS ? start_count - START_ROWS : 0;
 }
+
 
 static void start_menu_draw(void)
 {
@@ -321,6 +323,14 @@ static void start_menu_update(void)
     case SM_LORE: lorebook_open(); break;
     case SM_KIN: party_screen_open(PCTX_FIELD, 0); break;
     case SM_BAG: bag_screen_open(BAGCTX_FIELD); break;
+    case SM_MAP:
+        start_menu_close();
+        worldmap_open(0);
+        break;
+    case SM_FIELD:
+        start_menu_close();
+        travel_field_menu_open();
+        break;
     case SM_SHELF: pc_open_from_menu(); break;
     case SM_MAP:
         worldmap_open(0);
@@ -1208,6 +1218,10 @@ static void bag_use(int item)
             return;
         }
         party_screen_open(PCTX_ITEM_BATTLE, item);
+        return;
+    }
+    if (k == IK_HUSH || k == IK_KEY) {   /* key items need no kin (travel.c, farm.c...) */
+        bag_hush(item);
         return;
     }
     if (k == IK_LANTERN || k == IK_XSTAT) {
