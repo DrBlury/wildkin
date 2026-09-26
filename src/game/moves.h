@@ -61,8 +61,35 @@ enum {
     AK_MUON,      /* thin streaks of light rain straight through everything */
     AK_METEOR,    /* one huge meteor streaks in: flash, crater, debris */
     AK_NOVA,      /* gathers starlight, the world goes dark, a blinding burst */
+    /* pseudo-3D kinds (anim3d.c) */
+    AK_VOLLEY,    /* a spread of spinning shots on arcs, with shadows; they bounce off */
+    AK_LOB,       /* a wobbling blob lobbed high, its shadow sliding; a crown of spray */
+    AK_LANCE,     /* rifling darts that pierce the foe and fly on out behind it */
+    AK_BUBBLES,   /* bubbles drift over, gather round the foe front and back, pop */
+    AK_FIRESTORM, /* a double helix of embers, a turning fire ring, a column of flame */
+    AK_WHIRLPOOL, /* a vortex opens under the foe; it spins round and is dragged down */
+    AK_CRESCENT,  /* spinning crescent blades on curving paths, crossing on the foe */
+    AK_SHIELD,    /* plates fly in and lock into a dome round the user; a glint */
+    AK_GYRE,      /* three tilted orbits spin round the target like a gyroscope */
+    AK_IMPLODE,   /* a dark orb sails over and swallows everything, then bursts */
+    AK_SPRAY,     /* a cone of specks on ballistic arcs that splash or bounce */
+    AK_BLIZZARD,  /* snow streams across at every depth and whirls round the foe */
+    AK_SPIN,      /* the user spins on the spot in a whirl of water, then drills in */
+    AK_CYCLONE,   /* a funnel of turning gusts crosses to the foe (or lifts the user) */
+    AK_PRISM,     /* a turning prism splits a beam into a fan of coloured rays */
     AK_ARC,       /* a jagged arc jumps from the user to the foe */
     AK_DANCE,     /* the user sways and turns; scales spiral up around it */
+    /* the RUNE set (anim_rune.c): rotation and pseudo-3D */
+    AK_RUNE_BOLT,    /* a spinning rune flies at the foe in perspective and bursts */
+    AK_SIGIL_SNARE,  /* a seal opens under the foe; runes rise, circle and clamp down */
+    AK_ALGIZ_WARD,   /* two tilted rings of runes spin round the user like a gyroscope */
+    AK_KENAZ_FLARE,  /* a fire rune turns, flies over the foe and ignites a pillar */
+    AK_RUNE_ORBIT,   /* eight runes orbit the foe on a precessing ring and collapse */
+    AK_THURS_SPIKE,  /* runes race along the ground; crystal thorns erupt round the foe */
+    AK_RAIDO_RUSH,   /* a rune gate stands up; the user dashes through it */
+    AK_ISA_SEAL,     /* an ice seal spins like a coin, slams on and crystals burst */
+    AK_SOWILO_BEAM,  /* a sun circle turns to face the foe and fires a beam */
+    AK_RUNE_SIPHON,  /* motes and runes spiral out of the foe into the user */
     AK_COUNT
 };
 
@@ -115,6 +142,9 @@ enum {
     M_ARC_FLASH, M_SNOWDRIFT, M_COUNTERJAB, M_ACID_SPIT,
     M_SANDBLAST, M_CROSSWIND, M_LULLABY, M_SWARM_RUSH,
     M_SHADE_CUT, M_WYRM_DANCE,
+    /* the RUNE set (docs/EXPANSION.md 5) */
+    M_RUNE_BOLT, M_SIGIL_SNARE, M_ALGIZ_WARD, M_KENAZ_FLARE, M_RUNE_ORBIT,
+    M_THURS_SPIKE, M_RAIDO_RUSH, M_ISA_SEAL, M_SOWILO_BEAM, M_RUNE_SIPHON,
     MOVE_COUNT,
     M_LAST_GASP = MOVE_COUNT, /* not learnable: used when every move is out of uses */
     MOVE_TABLE_SIZE
@@ -185,7 +215,7 @@ static const Move MOVES[MOVE_TABLE_SIZE] = {
 
     /* ---------------- TIDE ---------------- */
     [M_FIZZ] = MV("FIZZ", T_TIDE, CAT_SPEC, 40, 100, 30, 0, EF_FOE_STAT, 10, STAT_SPE, -1,
-        AK_PROJECTILE, FX_BUBBLE, FX_DROP, 4, RGB15(12, 22, 31), RGB15(28, 31, 31),
+        AK_BUBBLES, FX_BUBBLE, FX_DROP, 4, RGB15(12, 22, 31), RGB15(28, 31, 31),
         "Fizzy bubbles pop on the foe. May lower SPEED."),
     [M_SLIPSTREAM] = MV("SLIPSTREAM", T_TIDE, CAT_PHYS, 40, 100, 20, 1, EF_NONE, 0, 0, 0,
         AK_DASH, FX_IMPACT_SMALL, FX_DROP, 1, RGB15(8, 18, 31), RGB15(20, 28, 31),
@@ -211,7 +241,7 @@ static const Move MOVES[MOVE_TABLE_SIZE] = {
         AK_POWDER, FX_POWDER, FX_ZZZ, 8, RGB15(30, 28, 12), RGB15(31, 31, 26),
         "A puff of golden pollen that makes the foe sleep."),
     [M_REED_BLADE] = MV("REED BLADE", T_BLOOM, CAT_PHYS, 90, 100, 15, 0, EF_HIGHCRIT, 100, 0, 0,
-        AK_SLASH, FX_SLASH, FX_LEAF_A, 2, RGB15(8, 26, 8), RGB15(24, 31, 14),
+        AK_CRESCENT, FX_CRESCENT, FX_LEAF_A, 1, RGB15(8, 26, 8), RGB15(24, 31, 14),
         "A long reed swung like a blade. Often perfect."),
     [M_SUNSHAFT] = MV("SUNSHAFT", T_BLOOM, CAT_SPEC, 120, 100, 10, 0, EF_NONE, 0, 0, 0,
         AK_SUNSHAFT, FX_SUNRAY, FX_SPARKLE, 1, RGB15(24, 31, 8), RGB15(31, 31, 20),
@@ -228,15 +258,15 @@ static const Move MOVES[MOVE_TABLE_SIZE] = {
         AK_BOLT, FX_BOLT, FX_SPARK_A, 2, RGB15(31, 29, 6), RGB15(31, 31, 26),
         "A forked bolt from a clear sky. May numb."),
     [M_TINGLE] = MV("TINGLE", T_SPARK, CAT_STATUS, 0, 90, 20, 0, EF_STATUS, 100, STATUS_NUMB, 0,
-        AK_ORBIT, FX_SPARK_B, FX_SPARK_A, 4, RGB15(31, 30, 10), RGB15(28, 31, 31),
+        AK_GYRE, FX_SPARK_B, FX_SPARK_A, 4, RGB15(31, 30, 10), RGB15(28, 31, 31),
         "A field of pins and needles that numbs the foe."),
 
     /* ---------------- FROST ---------------- */
     [M_FLURRY] = MV("FLURRY", T_FROST, CAT_SPEC, 40, 100, 25, 0, EF_STATUS, 10, STATUS_FRZ, 0,
-        AK_RAIN, FX_SNOWFLAKE, FX_SPARKLE, 6, RGB15(24, 30, 31), RGB15(31, 31, 31),
+        AK_BLIZZARD, FX_SNOWFLAKE, FX_SPARKLE, 6, RGB15(24, 30, 31), RGB15(31, 31, 31),
         "A swirl of snow. May freeze the foe."),
     [M_RIME_SHOT] = MV("RIME SHOT", T_FROST, CAT_PHYS, 40, 100, 30, 1, EF_NONE, 0, 0, 0,
-        AK_PROJECTILE, FX_SHARD, FX_SPARKLE, 2, RGB15(16, 28, 31), RGB15(28, 31, 31),
+        AK_LANCE, FX_SHARD, FX_SPARKLE, 2, RGB15(16, 28, 31), RGB15(28, 31, 31),
         "A dart of rime ice. Always strikes first."),
     [M_WINTER_RAY] = MV("WINTER RAY", T_FROST, CAT_SPEC, 90, 100, 10, 0, EF_STATUS, 10, STATUS_FRZ, 0,
         AK_BEAM, FX_BEAM, FX_SNOWFLAKE, 1, RGB15(14, 28, 31), RGB15(28, 31, 31),
@@ -255,24 +285,24 @@ static const Move MOVES[MOVE_TABLE_SIZE] = {
 
     /* ---------------- VENOM ---------------- */
     [M_BARB] = MV("BARB", T_VENOM, CAT_PHYS, 35, 100, 35, 0, EF_STATUS, 30, STATUS_PSN, 0,
-        AK_PROJECTILE, FX_NEEDLE, FX_TEAR, 1, RGB15(24, 10, 28), RGB15(31, 28, 31),
+        AK_LANCE, FX_NEEDLE, FX_TEAR, 1, RGB15(24, 10, 28), RGB15(31, 28, 31),
         "A dripping barb. May poison the foe."),
     [M_SPORE_CLOUD] = MV("SPORE CLOUD", T_VENOM, CAT_STATUS, 0, 75, 35, 0, EF_STATUS, 100, STATUS_PSN, 0,
         AK_POWDER, FX_POWDER, FX_STEAM, 8, RGB15(22, 8, 26), RGB15(30, 20, 31),
         "A cloud of purple spores that poisons the foe."),
     [M_BOG_BOMB] = MV("BOG BOMB", T_VENOM, CAT_SPEC, 90, 100, 10, 0, EF_STATUS, 30, STATUS_PSN, 0,
-        AK_PROJECTILE, FX_GLOB, FX_SPLAT, 1, RGB15(20, 6, 24), RGB15(28, 16, 30),
+        AK_LOB, FX_GLOB, FX_SPLAT, 1, RGB15(20, 6, 24), RGB15(28, 16, 30),
         "Lobs a ball of bog muck. May poison."),
 
     /* ---------------- STONE ---------------- */
     [M_GRIT_KICK] = MV("GRIT KICK", T_STONE, CAT_STATUS, 0, 100, 15, 0, EF_FOE_STAT, 100, STAT_ACC, -1,
-        AK_DEBUFF, FX_DUST, FX_PEBBLE, 4, RGB15(28, 24, 14), RGB15(31, 30, 22),
+        AK_SPRAY, FX_DUST, FX_PEBBLE, 4, RGB15(28, 24, 14), RGB15(31, 30, 22),
         "Kicks grit into the foe's eyes. Lowers ACCURACY."),
     [M_PEBBLE_PELT] = MV("PEBBLE PELT", T_STONE, CAT_PHYS, 50, 90, 15, 0, EF_NONE, 0, 0, 0,
-        AK_PROJECTILE, FX_PEBBLE, FX_IMPACT_SMALL, 5, RGB15(20, 16, 10), RGB15(28, 26, 20),
+        AK_VOLLEY, FX_PEBBLE, FX_CHUNK, 5, RGB15(20, 16, 10), RGB15(28, 26, 20),
         "Pelts the foe with a handful of pebbles."),
     [M_MUD_PIE] = MV("MUD PIE", T_STONE, CAT_SPEC, 55, 95, 15, 0, EF_FOE_STAT, 100, STAT_SPE, -1,
-        AK_PROJECTILE, FX_GLOB, FX_SPLAT, 1, RGB15(18, 12, 6), RGB15(26, 20, 12),
+        AK_LOB, FX_GLOB, FX_PEBBLE, 1, RGB15(18, 12, 6), RGB15(26, 20, 12),
         "Splats the foe with a mud pie. Lowers SPEED."),
     [M_ROCKFALL] = MV("ROCKFALL", T_STONE, CAT_PHYS, 75, 90, 10, 0, EF_FLINCH, 30, 0, 0,
         AK_RAIN, FX_ROCK, FX_PEBBLE, 5, RGB15(18, 16, 14), RGB15(26, 24, 20),
@@ -283,7 +313,7 @@ static const Move MOVES[MOVE_TABLE_SIZE] = {
 
     /* ---------------- GALE ---------------- */
     [M_DRAFT] = MV("DRAFT", T_GALE, CAT_SPEC, 40, 100, 35, 0, EF_NONE, 0, 0, 0,
-        AK_PROJECTILE, FX_WIND, FX_WIND, 2, RGB15(26, 30, 31), RGB15(31, 31, 31),
+        AK_CYCLONE, FX_WIND, FX_SWIRL, 2, RGB15(26, 30, 31), RGB15(31, 31, 31),
         "A sudden cold draft buffets the foe."),
     [M_BEAK_JAB] = MV("BEAK JAB", T_GALE, CAT_PHYS, 35, 100, 35, 0, EF_NONE, 0, 0, 0,
         AK_CONTACT, FX_IMPACT_SMALL, FX_IMPACT_SMALL, 3, RGB15(31, 31, 26), RGB15(31, 26, 10),
@@ -300,7 +330,7 @@ static const Move MOVES[MOVE_TABLE_SIZE] = {
         AK_PSYCHIC, FX_RING, FX_SPARKLE, 1, RGB15(31, 14, 24), RGB15(31, 26, 31),
         "Traps the foe in a dizzy daydream."),
     [M_PRISM_RAY] = MV("PRISM RAY", T_DREAM, CAT_SPEC, 65, 100, 20, 0, EF_NONE, 0, 0, 0,
-        AK_BEAM, FX_BEAM, FX_SPARKLE, 1, RGB15(30, 12, 28), RGB15(24, 20, 31),
+        AK_PRISM, FX_BEAM, FX_SPARKLE, 1, RGB15(30, 12, 28), RGB15(24, 20, 31),
         "A ray split into every colour at once."),
     [M_DREAMQUAKE] = MV("DREAMQUAKE", T_DREAM, CAT_SPEC, 90, 100, 10, 0, EF_FOE_STAT, 10, STAT_SPD, -1,
         AK_WOBBLE, FX_RING, FX_RING, 3, RGB15(31, 10, 22), RGB15(31, 24, 31),
@@ -329,7 +359,7 @@ static const Move MOVES[MOVE_TABLE_SIZE] = {
         AK_DEBUFF, FX_EYES, FX_EYES, 1, RGB15(26, 24, 4), RGB15(20, 8, 24),
         "Unblinking glowing eyes. Sharply lowers SPEED."),
     [M_GLOOM_ORB] = MV("GLOOM ORB", T_DUSK, CAT_SPEC, 80, 100, 15, 0, EF_FOE_STAT, 20, STAT_SPD, -1,
-        AK_PROJECTILE, FX_ORB, FX_WISP, 1, RGB15(14, 6, 20), RGB15(24, 16, 30),
+        AK_IMPLODE, FX_ORB, FX_WISP, 1, RGB15(14, 6, 20), RGB15(24, 16, 30),
         "An orb of pooled night. May lower WILL."),
     [M_GNASH] = MV("GNASH", T_DUSK, CAT_PHYS, 80, 100, 15, 0, EF_FOE_STAT, 20, STAT_DEF, -1,
         AK_FANGS, FX_FANG_TOP, FX_IMPACT, 2, RGB15(26, 26, 30), RGB15(16, 6, 22),
@@ -372,22 +402,22 @@ static const Move MOVES[MOVE_TABLE_SIZE] = {
         AK_RAIN, FX_SHARD, FX_SNOWFLAKE, 3, RGB15(20, 28, 31), RGB15(30, 31, 31),
         "Hail rattles down 2 to 5 times."),
     [M_BURR_VOLLEY] = MV("BURR VOLLEY", T_BLOOM, CAT_PHYS, 25, 100, 20, 0, EF_MULTI, 100, 0, 0,
-        AK_PROJECTILE, FX_BURR, FX_LEAF_B, 2, RGB15(16, 22, 6), RGB15(26, 30, 12),
+        AK_VOLLEY, FX_BURR, FX_LEAF_B, 2, RGB15(16, 22, 6), RGB15(26, 30, 12),
         "Sticky burrs fly 2 to 5 times."),
     [M_OVERCHARGE] = MV("OVERCHARGE", T_SPARK, CAT_SPEC, 120, 90, 5, 0, EF_SELF_DOWN, 100, SM(STAT_SPA), -2,
         AK_CHARGE, FX_BOLT, FX_SPARK_B, 1, RGB15(31, 31, 8), RGB15(24, 28, 31),
         "Dumps every spark at once. Harshly lowers FOCUS."),
     [M_UPDRAFT] = MV("UPDRAFT", T_GALE, CAT_STATUS, 0, 0, 15, 0, EF_SELF_STAT, 100, SM(STAT_SPE), 2,
-        AK_BUFF, FX_WIND, FX_FEATHER, 4, RGB15(24, 30, 31), RGB15(31, 31, 31),
+        AK_CYCLONE, FX_WIND, FX_FEATHER, 4, RGB15(24, 30, 31), RGB15(31, 31, 31),
         "Rides a rising wind. Sharply raises SPEED."),
     [M_STONESKIN] = MV("STONESKIN", T_STONE, CAT_STATUS, 0, 0, 15, 0, EF_SELF_STAT, 100, SM(STAT_DEF), 2,
-        AK_GUARD, FX_PEBBLE, FX_SPARKLE, 4, RGB15(22, 20, 16), RGB15(30, 28, 22),
+        AK_SHIELD, FX_CHUNK, FX_PEBBLE, 4, RGB15(22, 20, 16), RGB15(30, 28, 22),
         "Its hide hardens to granite. Sharply ups DEFENSE."),
     [M_WAR_CRY] = MV("WAR CRY", T_BRAWL, CAT_STATUS, 0, 0, 15, 0, EF_SELF_STAT, 100, SM(STAT_ATK), 2,
         AK_ROAR, FX_RING, FX_NOTE, 2, RGB15(31, 16, 8), RGB15(31, 28, 16),
         "A bellow that fires it up. Sharply ups ATTACK."),
     [M_UNDERTOW] = MV("UNDERTOW", T_TIDE, CAT_PHYS, 65, 100, 15, 0, EF_FOE_STAT, 100, STAT_SPE, -1,
-        AK_WAVE, FX_WAVE, FX_BUBBLE, 4, RGB15(4, 14, 28), RGB15(20, 28, 31),
+        AK_WHIRLPOOL, FX_SWIRL, FX_BUBBLE, 4, RGB15(4, 14, 28), RGB15(20, 28, 31),
         "A sudden current drags the foe. Lowers SPEED."),
 
     /* ---------------- expansion ---------------- */
@@ -421,7 +451,7 @@ static const Move MOVES[MOVE_TABLE_SIZE] = {
         AK_CONTACT, FX_CUP, FX_IMPACT_SMALL, 2, RGB15(30, 28, 24), RGB15(10, 16, 28),
         "Bangs its lid, handle or hinge into the foe."),
     [M_TRINKET_TOSS] = MV("TRINKET TOSS", T_RELIC, CAT_PHYS, 18, 95, 20, 0, EF_MULTI, 100, 0, 0,
-        AK_PROJECTILE, FX_TRINKET, FX_COIN, 1, RGB15(28, 22, 8), RGB15(20, 30, 26),
+        AK_VOLLEY, FX_TRINKET, FX_COIN, 1, RGB15(28, 22, 8), RGB15(20, 30, 26),
         "Flings odds and ends 2 to 5 times."),
     [M_TARNISH] = MV("TARNISH", T_RELIC, CAT_STATUS, 0, 100, 30, 0, EF_FOE_STAT, 100, STAT_ATK, -1,
         AK_DEBUFF, FX_FLAKE, FX_DUST, 4, RGB15(18, 16, 10), RGB15(12, 20, 14),
@@ -449,10 +479,10 @@ static const Move MOVES[MOVE_TABLE_SIZE] = {
         AK_MAGNET, FX_MAGNET, FX_FLAKE, 3, RGB15(28, 6, 8), RGB15(26, 28, 31),
         "A magnetic grip slows the foe. Sharply lowers SPEED."),
     [M_RIVET_SHOT] = MV("RIVET SHOT", T_METAL, CAT_PHYS, 20, 95, 20, 0, EF_MULTI, 100, 0, 0,
-        AK_PROJECTILE, FX_RIVET, FX_SPARK_B, 1, RGB15(22, 24, 26), RGB15(31, 18, 4),
+        AK_VOLLEY, FX_RIVET, FX_SPARK_B, 1, RGB15(22, 24, 26), RGB15(31, 18, 4),
         "Fires hot rivets 2 to 5 times."),
     [M_STEEL_SHELL] = MV("STEEL SHELL", T_METAL, CAT_STATUS, 0, 0, 15, 0, EF_SELF_STAT, 100, SM(STAT_DEF), 2,
-        AK_GUARD, FX_FLAKE, FX_SPARKLE, 6, RGB15(20, 22, 26), RGB15(31, 31, 31),
+        AK_SHIELD, FX_HEX, FX_SPARKLE, 6, RGB15(20, 22, 26), RGB15(31, 31, 31),
         "Plates itself in iron. Sharply raises DEFENSE."),
     [M_GEAR_GRIND] = MV("GEAR GRIND", T_METAL, CAT_PHYS, 80, 95, 15, 0, EF_HIGHCRIT, 100, 0, 0,
         AK_GEARS, FX_GEAR, FX_SPARK_A, 2, RGB15(26, 22, 12), RGB15(31, 28, 16),
@@ -468,7 +498,7 @@ static const Move MOVES[MOVE_TABLE_SIZE] = {
         "A spray of forge sparks. May burn the foe."),
     /* ASTRAL: starlight, moons and falling stars (indigo, silver, gold) */
     [M_TWINKLE] = MV("TWINKLE", T_ASTRAL, CAT_SPEC, 40, 100, 30, 0, EF_NONE, 0, 0, 0,
-        AK_PROJECTILE, FX_MOTE, FX_SPARKLE, 3, RGB15(28, 28, 31), RGB15(31, 31, 18),
+        AK_LANCE, FX_MOTE, FX_SPARKLE, 3, RGB15(28, 28, 31), RGB15(31, 31, 18),
         "A tiny star darts at the foe."),
     [M_STARDUST] = MV("STARDUST", T_ASTRAL, CAT_STATUS, 0, 90, 20, 0, EF_FOE_STAT, 100, STAT_ACC, -1,
         AK_POWDER, FX_MOTE, FX_SPARKLE, 10, RGB15(28, 26, 31), RGB15(31, 31, 24),
@@ -480,7 +510,7 @@ static const Move MOVES[MOVE_TABLE_SIZE] = {
         AK_RUSH, FX_METEOR, FX_MOTE, 1, RGB15(31, 24, 12), RGB15(28, 28, 31),
         "Streaks in like a comet. The user is hurt too."),
     [M_NEBULA_VEIL] = MV("NEBULA VEIL", T_ASTRAL, CAT_STATUS, 0, 0, 15, 0, EF_SELF_STAT, 100, SM(STAT_SPA) | SM(STAT_SPD), 1,
-        AK_BUFF, FX_MOTE, FX_ORB, 6, RGB15(20, 14, 28), RGB15(30, 18, 26),
+        AK_GYRE, FX_MOTE, FX_ORB, 6, RGB15(20, 14, 28), RGB15(30, 18, 26),
         "Wraps itself in star haze. Raises FOCUS and WILL."),
     [M_MUON_RAIN] = MV("MUON RAIN", T_ASTRAL, CAT_SPEC, 90, 100, 10, 0, EF_FOE_STAT, 10, STAT_DEF, -1,
         AK_MUON, FX_STREAK, FX_SPARKLE, 12, RGB15(24, 28, 31), RGB15(26, 20, 31),
@@ -496,10 +526,10 @@ static const Move MOVES[MOVE_TABLE_SIZE] = {
         AK_ROAR, FX_RING, FX_EYES, 2, RGB15(30, 26, 18), RGB15(31, 8, 8),
         "A rough growl. Lowers the foe's FOCUS."),
     [M_EMBER_STORM] = MV("EMBER STORM", T_BLAZE, CAT_SPEC, 75, 95, 15, 0, EF_STATUS, 20, STATUS_BRN, 0,
-        AK_WHIRL, FX_FLAME_A, FX_FLAME_B, 8, RGB15(31, 14, 2), RGB15(31, 28, 10),
+        AK_FIRESTORM, FX_FLAME_A, FX_FLAME_B, 8, RGB15(31, 14, 2), RGB15(31, 28, 10),
         "A whirl of embers. May burn the foe."),
     [M_RIPTIDE] = MV("RIPTIDE", T_TIDE, CAT_PHYS, 75, 100, 15, 0, EF_NONE, 0, 0, 0,
-        AK_RUSH, FX_WAVE, FX_DROP, 1, RGB15(4, 14, 28), RGB15(20, 28, 31),
+        AK_SPIN, FX_WAVE, FX_DROP, 1, RGB15(4, 14, 28), RGB15(20, 28, 31),
         "Rides a hard current into the foe."),
     [M_THORN_WALL] = MV("THORN WALL", T_BLOOM, CAT_STATUS, 0, 0, 15, 0, EF_SELF_STAT, 100, SM(STAT_DEF) | SM(STAT_SPD), 1,
         AK_GUARD, FX_VINE, FX_LEAF_A, 5, RGB15(10, 22, 6), RGB15(20, 30, 12),
@@ -514,13 +544,13 @@ static const Move MOVES[MOVE_TABLE_SIZE] = {
         AK_DASH, FX_FIST, FX_SPEEDLINE, 1, RGB15(31, 24, 16), RGB15(31, 31, 26),
         "A snap jab thrown before the foe moves."),
     [M_ACID_SPIT] = MV("ACID SPIT", T_VENOM, CAT_SPEC, 60, 100, 20, 0, EF_FOE_STAT, 30, STAT_SPD, -1,
-        AK_PROJECTILE, FX_DROP, FX_STEAM, 3, RGB15(18, 26, 4), RGB15(28, 30, 14),
+        AK_SPRAY, FX_DROP, FX_STEAM, 3, RGB15(18, 26, 4), RGB15(28, 30, 14),
         "Sour spit that sizzles. May lower the foe's WILL."),
     [M_SANDBLAST] = MV("SANDBLAST", T_STONE, CAT_SPEC, 70, 95, 15, 0, EF_FOE_STAT, 20, STAT_ACC, -1,
         AK_STREAM, FX_DUST, FX_PEBBLE, 4, RGB15(28, 24, 14), RGB15(31, 28, 20),
         "A blast of grit. May lower ACCURACY."),
     [M_CROSSWIND] = MV("CROSSWIND", T_GALE, CAT_SPEC, 75, 100, 15, 0, EF_HIGHCRIT, 100, 0, 0,
-        AK_SLASH, FX_WIND, FX_FEATHER, 2, RGB15(24, 30, 31), RGB15(31, 31, 31),
+        AK_CRESCENT, FX_CRESCENT, FX_FEATHER, 2, RGB15(24, 30, 31), RGB15(31, 31, 31),
         "Two gusts cross at the foe. Often a perfect strike."),
     [M_LULLABY] = MV("LULLABY", T_DREAM, CAT_STATUS, 0, 60, 15, 0, EF_STATUS, 100, STATUS_SLP, 0,
         AK_ORBIT, FX_NOTE, FX_ZZZ, 4, RGB15(30, 20, 28), RGB15(28, 28, 31),
@@ -534,6 +564,38 @@ static const Move MOVES[MOVE_TABLE_SIZE] = {
     [M_WYRM_DANCE] = MV("WYRM DANCE", T_WYRM, CAT_STATUS, 0, 0, 15, 0, EF_SELF_STAT, 100, SM(STAT_ATK) | SM(STAT_SPE), 1,
         AK_DANCE, FX_SCALE, FX_SPARKLE, 6, RGB15(16, 10, 30), RGB15(12, 28, 26),
         "An ancient coiling dance. Raises ATTACK and SPEED."),
+
+    /* the RUNE set: runes of the elder row, circles and seals (anim_rune.c) */
+    [M_RUNE_BOLT] = MV("RUNE BOLT", T_ASTRAL, CAT_SPEC, 50, 100, 25, 0, EF_NONE, 0, 0, 0,
+        AK_RUNE_BOLT, FX_STAR, FX_SPARKLE, 1, RGB15(18, 11, 29), RGB15(11, 26, 31),
+        "A spinning rune flung like a spear of light."),
+    [M_SIGIL_SNARE] = MV("SIGIL SNARE", T_RELIC, CAT_STATUS, 0, 95, 20, 0, EF_FOE_STAT, 100, STAT_SPE, -2,
+        AK_SIGIL_SNARE, FX_RING, FX_SPARKLE, 1, RGB15(24, 9, 25), RGB15(31, 15, 29),
+        "A seal opens under the foe. Sharply lowers SPEED."),
+    [M_ALGIZ_WARD] = MV("ALGIZ WARD", T_RELIC, CAT_STATUS, 0, 0, 15, 0, EF_SELF_STAT, 100, SM(STAT_DEF) | SM(STAT_SPD), 1,
+        AK_ALGIZ_WARD, FX_SPARKLE, FX_RING, 1, RGB15(6, 21, 20), RGB15(31, 26, 12),
+        "Rings of warding runes. Raises DEFENSE and WILL."),
+    [M_KENAZ_FLARE] = MV("KENAZ FLARE", T_BLAZE, CAT_SPEC, 80, 100, 15, 0, EF_STATUS, 10, STATUS_BRN, 0,
+        AK_KENAZ_FLARE, FX_FLAME_A, FX_FLAME_B, 1, RGB15(28, 10, 2), RGB15(31, 21, 5),
+        "The torch rune kindles under the foe. May burn."),
+    [M_RUNE_ORBIT] = MV("RUNE ORBIT", T_ASTRAL, CAT_SPEC, 110, 85, 5, 0, EF_NONE, 0, 0, 0,
+        AK_RUNE_ORBIT, FX_STAR, FX_RING, 8, RGB15(18, 11, 29), RGB15(24, 31, 31),
+        "Eight runes circle the foe, faster, then collapse."),
+    [M_THURS_SPIKE] = MV("THURS SPIKE", T_STONE, CAT_PHYS, 85, 95, 10, 0, EF_HIGHCRIT, 100, 0, 0,
+        AK_THURS_SPIKE, FX_ROCK, FX_CRACK, 5, RGB15(21, 13, 7), RGB15(29, 12, 9),
+        "Thorn runes burst up as crystal. Often perfect."),
+    [M_RAIDO_RUSH] = MV("RAIDO RUSH", T_RELIC, CAT_PHYS, 70, 100, 15, 0, EF_SELF_STAT, 100, SM(STAT_SPE), 1,
+        AK_RAIDO_RUSH, FX_IMPACT, FX_SPEEDLINE, 1, RGB15(7, 20, 27), RGB15(27, 31, 31),
+        "Dashes through a rune gate. Raises the user's SPEED."),
+    [M_ISA_SEAL] = MV("ISA SEAL", T_FROST, CAT_SPEC, 70, 100, 15, 0, EF_STATUS, 10, STATUS_FRZ, 0,
+        AK_ISA_SEAL, FX_SHARD, FX_SNOWFLAKE, 1, RGB15(11, 18, 27), RGB15(27, 31, 31),
+        "The ice rune seals the foe in frost. May freeze."),
+    [M_SOWILO_BEAM] = MV("SOWILO BEAM", T_RELIC, CAT_SPEC, 90, 100, 10, 0, EF_STATUS, 10, STATUS_BRN, 0,
+        AK_SOWILO_BEAM, FX_BEAM, FX_SUNRAY, 1, RGB15(29, 20, 4), RGB15(31, 30, 22),
+        "The sun rune opens and fires a beam. May burn."),
+    [M_RUNE_SIPHON] = MV("RUNE SIPHON", T_ASTRAL, CAT_SPEC, 75, 100, 10, 0, EF_DRAIN, 100, 0, 0,
+        AK_RUNE_SIPHON, FX_MOTE, FX_SPARKLE, 1, RGB15(22, 12, 30), RGB15(14, 30, 28),
+        "Draws the foe's glow out rune by rune. Heals half."),
 
     [M_LAST_GASP] = MV("LAST GASP", T_BEAST, CAT_PHYS, 50, 0, 1, 0, EF_RECOIL, 100, 0, 0,
         AK_CONTACT, FX_IMPACT, FX_IMPACT_SMALL, 1, RGB15(31, 31, 31), RGB15(31, 20, 20),

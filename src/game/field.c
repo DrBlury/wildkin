@@ -140,8 +140,8 @@ typedef struct {
 
 typedef struct { Actor a; u8 species, lustrous, shown; } KinActor;
 
-static Actor npc_state[NPC_COUNT];
-static KinActor npc_kin[NPC_COUNT];
+EWRAM_BSS static Actor npc_state[NPC_COUNT];      /* EWRAM: IWRAM is kept for the stack */
+EWRAM_BSS static KinActor npc_kin[NPC_COUNT];
 static KinActor follower;
 
 #define WILD_MAX 5

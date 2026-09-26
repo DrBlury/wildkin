@@ -29,7 +29,7 @@ The **foundation is done and green** on branch `expansion`. It covers:
   SELECT+START)
 - the 174-kin roster pipeline (tools/kin → src/species_data.h +
   src/gfx_monsters.h)
-- 18 types, 120 moves and 100 items in 7 pockets
+- 18 types, 130 moves and 100 items in 7 pockets
 - save v4 (16 KB slots, a 240-slot Shelf, migration from v3/v2/v1)
 - placeholder maps for every planned region, with the edge contracts
 - stub modules with documented APIs for every system
