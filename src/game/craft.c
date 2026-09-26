@@ -567,17 +567,17 @@ enum { FROM_FIELD, FROM_BAG };
 #define CB_BAD     13
 #define CB_BUBBLE  14
 #define CG_ROWS    6
-#define GAUGE_X    40           /* the gauge in the top window */
-#define GAUGE_W    160
+#define GAUGE_X    68           /* the gauge in the top window */
+#define GAUGE_W    152
 #define GAUGE_Y    18
-#define FORGE_HIT_X 64          /* where the marks meet the anvil */
+#define FORGE_HIT_X 88          /* where the marks meet the anvil */
 #define FORGE_LEAD 60
 #define CG_PARTS   10
 
 typedef struct { s16 x, y, vx, vy; u8 life, frame; } CraftPart;
 
 static struct {
-    int state, station, tab, from;
+    int state, station, tab, from, redraw;
     int list[RC_COUNT], count, cursor, scroll;
     int batch, recipe;
     const char *note;
@@ -611,8 +611,9 @@ static void cg_upload(const u8 *ids, int n)
     }
 }
 
-/* One craft sprite (64-wide images are two 32-wide halves). */
-static void cg_spr(int id, int frame, int x, int y, int bank, int flags)
+/* One craft sprite (64-wide images are two 32-wide halves). prio 0 draws
+ * over the text windows (gauge needles), 1 under them (the scene). */
+static void cg_spr_p(int id, int frame, int x, int y, int bank, int flags, int prio)
 {
     const CraftSprite *s = &craft_sprites[id];
     int tile = cg.tile[id] + frame * s->tiles;
@@ -620,11 +621,16 @@ static void cg_spr(int id, int frame, int x, int y, int bank, int flags)
               : s->h == 32 ? SQ32 : WIDE32x16;
     if (s->w == 64) {
         int half = s->tiles / 2, flip = flags & ATTR1_HFLIP;
-        spr_push(x, y, tile + (flip ? half : 0), shape, bank, 1, flags);
-        spr_push(x + 32, y, tile + (flip ? 0 : half), shape, bank, 1, flags);
+        spr_push(x, y, tile + (flip ? half : 0), shape, bank, prio, flags);
+        spr_push(x + 32, y, tile + (flip ? 0 : half), shape, bank, prio, flags);
         return;
     }
-    spr_push(x, y, tile, shape, bank, 1, flags);
+    spr_push(x, y, tile, shape, bank, prio, flags);
+}
+
+static void cg_spr(int id, int frame, int x, int y, int bank, int flags)
+{
+    cg_spr_p(id, frame, x, y, bank, flags, 1);
 }
 
 static void cg_label(int csp, int bank)
@@ -667,10 +673,20 @@ static void cg_parts_draw(void)
     for (int i = 0; i < CG_PARTS; i++)
         if (cg.part[i].life)
             cg_spr(CSP_CHUNK, cg.part[i].frame, cg.part[i].x / 16, cg.part[i].y / 16, CB_SPARK, 0);
-    if (cg.lbl_t > 0) {
-        int w = craft_sprites[cg.lbl].w;
-        cg_spr(cg.lbl, 0, 120 - w / 2, 40 - (36 - cg.lbl_t) / 4, cg.lbl_bank, 0);
+    if (cg.lbl_t <= 0) return;
+    const CraftSprite *s = &craft_sprites[cg.lbl];
+    if (cg.state == CS_RESULT) {
+        /* the final rating: twice the size, popping in */
+        int k = clampi(cg.t * 32, 128, 512), aff = oam_affine_scale_rot(k, k, 0);
+        int halves = s->w / 32, tile = cg.tile[cg.lbl];
+        for (int h = 0; h < halves; h++) {
+            int cx = 120 + (h * 2 - (halves - 1)) * 16 * k / 256;
+            spr_push_affine(cx - 16, 52, tile + h * 8, WIDE32x16, cg.lbl_bank, 0, 0, aff, 1);
+        }
+        return;
     }
+    int rise = cg.lbl_t < 36 ? (36 - cg.lbl_t) / 4 : 0;
+    cg_spr_p(cg.lbl, 0, 120 - s->w / 2, 40 - rise, cg.lbl_bank, 0, 0);
 }
 
 /* ---------------- canvas helpers ---------------- */
@@ -683,12 +699,16 @@ static void craft_draw_icon(int cx, int cy, int item)
     canvas_image(cx, cy, 3, 3, item_icon_gfx[icon], 1, BANK_ITEM_ICON);
 }
 
+/* A text window along the bottom, as tall as the text needs. */
 static void cg_bottom(const char *text)
 {
     char wrapped[200];
-    canvas_window(0, 15, CANVAS_COLS, 5, WIN_STD);
     text_wrap(wrapped, text, 220);
-    text_draw(12, 126, wrapped);
+    int lines = 1;
+    for (const char *c = wrapped; *c; c++) lines += *c == '\n';
+    int rows = lines * 2 + 2;
+    canvas_window(0, CANVAS_ROWS - rows, CANVAS_COLS, rows, WIN_STD);
+    text_draw(12, (CANVAS_ROWS - rows) * 8 + 8, wrapped);
 }
 
 /* ---------------- the recipe list ---------------- */
@@ -746,15 +766,15 @@ static void cg_list_redraw(void)
     const Recipe *rc = &RECIPES[r];
     if (recipe_known(r)) {
         craft_draw_icon(16, 4, rc->result);
-        text_draw_fit(146, 30, ITEMS[rc->result].name, 82);
+        text_draw_fit(156, 30, ITEMS[rc->result].name, 72);
         str_copy(buf, "makes ");
         str_put_int(buf, rc->yield);
-        text_draw_col(146, 44, buf, INK_BLUE, INK_BLUE_SH);
+        text_draw_col(156, 44, buf, INK_BLUE, INK_BLUE_SH);
         for (int k = 0; k < 3; k++) {
             const Ingredient *g = &rc->in[k];
             if (!g->qty) continue;
             int y = 64 + k * 14;
-            small_text_draw(130, y + 2, ITEMS[g->item].name);
+            text_draw_fit(130, y, ITEMS[g->item].name, 72);
             buf[0] = 0;
             str_put_int(buf, bag[g->item]);
             str_put(buf, "/");
@@ -780,14 +800,14 @@ static void cg_list_redraw(void)
                       INK_BLUE, INK_BLUE_SH);
     }
     if (cg.state == CS_BATCH) {
-        canvas_window(16, 9, 14, 6, WIN_STD);
+        canvas_window(16, 7, 14, 7, WIN_STD);
         str_copy(buf, "BATCHES  x");
         str_put_int(buf, cg.batch);
-        text_draw(136, 80, buf);
+        text_draw(136, 64, buf);
         str_copy(buf, "you get ");
         str_put_int(buf, rc->yield * cg.batch);
-        text_draw(136, 94, buf);
-        small_text_draw(136, 110, "</> amount  A: go");
+        text_draw(136, 78, buf);
+        text_draw_col(136, 92, "</> amount", INK_BLUE, INK_BLUE_SH);
     }
 }
 
@@ -810,6 +830,7 @@ static void cg_open(int station, int from)
     cg_build_list();
     ext_open(craft_update, craft_draw, 0);
     cg_list_redraw();
+    cg.redraw = 1;     /* again next frame: a closing dialog clears its box after us */
 }
 
 /* Open a crafting station's screen (lent by a teacher or from its decor). */
@@ -869,7 +890,7 @@ static void cg_backdrop(int cbg)
 }
 
 static const char *const CG_HOWTO[CRAFT_STATIONS] = {
-    "Toss the pan: press A when the needle is in the gold zone, three times. Then stir by rolling the D-pad in circles!",
+    "Toss the pan: press A when the needle is in the green zone, three times. Then stir by rolling the D-pad in circles!",
     "Hold A to heat, let go to cool. Keep the needle in the green band. Then press A when the big bubble is fullest!",
     "Press A as each mark reaches the anvil line. Keep the beat, then let the iron quench!",
 };
@@ -907,9 +928,9 @@ static void cg_intro(void)
     str_copy(buf, ITEMS[RECIPES[cg.recipe].result].name);
     str_put(buf, "  x");
     str_put_int(buf, cg.batch);
-    text_draw_center(120, 10, buf);
+    text_draw(14, 11, buf);
+    text_draw_col(226 - text_width("A: start  B: back"), 11, "A: start  B: back", INK_BLUE, INK_BLUE_SH);
     cg_bottom(CG_HOWTO[st]);
-    small_text_draw(150, 148, "A: start  B: back");
     cg.t = 0;
     cg.phase = 0;
     cg.score = 0;
@@ -941,11 +962,11 @@ static void cook_gauge_draw(void)
         str_copy(buf, "TOSS ");
         str_put_int(buf, cg.toss + 1);
         str_put(buf, "/3");
-        small_text_draw(12, 10, buf);
+        text_draw(12, 11, buf);
     } else {
         int px = clampi(absi(cg.stir_acc) * GAUGE_W / 48, 0, GAUGE_W);
         if (px) canvas_fill(GAUGE_X, GAUGE_Y, px, 6, 12);
-        small_text_draw(12, 10, "STIR!");
+        text_draw(12, 11, "STIR!");
     }
 }
 
@@ -1035,7 +1056,7 @@ static void cook_draw(void)
 {
     int px = 88, py = 96;
     if (cg.state == CS_PLAY && cg.phase == 0) {
-        cg_spr(CSP_POINTER, 0, GAUGE_X + cg.needle / 16 - 8, 4, CB_METAL, 0);
+        cg_spr_p(CSP_POINTER, 0, GAUGE_X + cg.needle / 16 - 8, 5, CB_METAL, 0, 0);
     }
     /* the food: flies up while a toss is in the air */
     int fy = py + 4, flip = 0;
@@ -1091,11 +1112,11 @@ static void brew_gauge_draw(void)
         int c = cg.band * GAUGE_W / 100, hw = 10 * GAUGE_W / 100;
         canvas_fill(GAUGE_X + c - hw, GAUGE_Y, hw * 2, 6, 13);
         canvas_fill(GAUGE_X + c - 1, GAUGE_Y, 2, 6, 12);
-        small_text_draw(12, 10, "HEAT");
+        text_draw(12, 11, "HEAT");
         int px = clampi(cg.t * GAUGE_W / BREW_FRAMES, 0, GAUGE_W);
         canvas_fill(GAUGE_X, GAUGE_Y + 6, px, 1, INK_BLUE);
     } else {
-        small_text_draw(12, 10, "BOTTLE!");
+        text_draw(12, 11, "BOTTLE!");
     }
 }
 
@@ -1170,7 +1191,7 @@ static void brew_draw(void)
     int lx = 76, ly = 82;
     int bob = soft_sin(cg.t * 6) / 32;
     if (cg.state == CS_PLAY && cg.phase == 0)
-        cg_spr(CSP_POINTER, 0, GAUGE_X + clampi(cg.heat / 256, 0, 100) * GAUGE_W / 100 - 8, 4, CB_METAL, 0);
+        cg_spr_p(CSP_POINTER, 0, GAUGE_X + clampi(cg.heat / 256, 0, 100) * GAUGE_W / 100 - 8, 5, CB_METAL, 0, 0);
     if (cg.state == CS_PLAY && cg.phase == 1) {
         /* the big bubble swells to its peak, then pops */
         if (cg.bub_t <= BREW_PEAK) {
@@ -1205,7 +1226,7 @@ static void forge_gauge_draw(void)
     canvas_fill(GAUGE_X - 1, GAUGE_Y - 1, GAUGE_W + 2, 8, INK_DARK);
     canvas_fill(GAUGE_X, GAUGE_Y, GAUGE_W, 6, INK_SHADOW);
     canvas_fill(FORGE_HIT_X - 1, GAUGE_Y - 3, 3, 12, INK_RED);
-    small_text_draw(12, 10, cg.phase ? "QUENCH" : "BEAT");
+    text_draw(12, 11, cg.phase ? "QUENCH" : "BEAT");
 }
 
 static void forge_update(void)
@@ -1267,7 +1288,7 @@ static void forge_draw(void)
             if (cg.mark_state[i] != MK_WAIT) continue;
             int x = FORGE_HIT_X + (forge_mark_time(i) - cg.t) * 2;
             if (x < FORGE_HIT_X - 12 || x > 216) continue;
-            cg_spr(CSP_MARK, 0, x - 8, GAUGE_Y - 5, CB_SPARK, 0);
+            cg_spr_p(CSP_MARK, 0, x - 8, GAUGE_Y - 5, CB_SPARK, 0, 0);
         }
     }
     /* the hammer: raised, mid, strike */
@@ -1435,6 +1456,10 @@ static void cg_batch_input(void)
 static void craft_update(void)
 {
     cg_parts_update();
+    if (cg.redraw) {
+        cg.redraw = 0;
+        if (cg.state == CS_LIST) cg_list_redraw();
+    }
     switch (cg.state) {
     case CS_LIST: cg_list_input(); break;
     case CS_BATCH: cg_batch_input(); break;
