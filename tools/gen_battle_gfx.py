@@ -2958,9 +2958,10 @@ def main():
     w(" * 6 white-hot core, 7/8/9 secondary dark/mid/light. 10-15 unused.")
     w(" * FX_BOLT tiles vertically, FX_BEAM and FX_THREAD tile horizontally. */")
     import bout_fx
+    import bout_fx3d
     gmod = sys.modules[__name__]
-    fx_list = [(n, FX_BUILDERS[n]()) for n in FX_NAMES] + bout_fx.fx(gmod)
-    fxb_list = [(n, fn()) for n, fn in FX_BIG] + bout_fx.fx_big(gmod)
+    fx_list = [(n, FX_BUILDERS[n]()) for n in FX_NAMES] + bout_fx.fx(gmod) + bout_fx3d.fx(gmod)
+    fxb_list = [(n, fn()) for n, fn in FX_BIG] + bout_fx.fx_big(gmod) + bout_fx3d.fx_big(gmod)
     w("enum {")
     names = ["FX_" + n for n, _ in fx_list]
     for i in range(0, len(names), 6):

@@ -1367,6 +1367,7 @@ static void battle_draw_lines(void)
     int w = anim.wobble;
     for (int y = 0; y < SCREEN_HEIGHT; y++) {
         int hx = -shake_x, vy = -shake_y;
+        a3_cam_line(y, &hx, &vy);
         if (w) hx += soft_sin(y * 6 + (int)frame_count * 10) * w / 64;
         b0[y] = (u32)(hx & 0x1FF) | ((u32)(vy & 0x1FF) << 16);
     }
@@ -1464,7 +1465,8 @@ static void battle_draw_battlers(void)
             sx = sx * (256 - f * 5) / 256;
             sy = sy * (256 - f * 7) / 256;
         }
-        if (sx < 4 || sy < 4) continue;
+        a3_cam_battler(side, &x, &y, &sx, &sy);
+        if (absi(sx) < 4 || sy < 4) continue;   /* (a negative x scale: turned round) */
         /* keep the feet planted: scale about the bottom of the sprite */
         int anchor = side == SIDE_ENEMY ? 26 : 32;
         y += anchor * (256 - sy) / 256;
@@ -1525,6 +1527,7 @@ static void battle_draw(void)
 
     team_row_draw();
     banner_draw();
+    a3_defer_back = 1;              /* particles behind the battlers go out after them */
     if (opt.battle_speed) {         /* fast bouts: a hidden step, then the shown one */
         anim_nodraw = 1;
         anim_update();
@@ -1552,6 +1555,8 @@ static void battle_draw(void)
     load_pal(obj_palette + OBANK_CAPSULE * 16, capsule_pal[battle.lantern_kind]);
 
     battle_draw_battlers();
+    a3_flush_back();
+    a3_defer_back = 0;
     battle_draw_palettes();
 
     /* background tint eases toward what the animation wants */
