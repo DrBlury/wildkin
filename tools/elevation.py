@@ -26,12 +26,43 @@ Entry tables (the ElevArt struct in gfx_field.h, same order):
                 (TL/BL: west railing, TR/BR: east railing;
                  TL/TR: north end, BL/BR: south end + fascia)
   mouth[4]      tunnel mouth cut into a cliff face
+  ledge[4][2]   a ledge (a low face you hop down): variant = continues
+                sideways; only the top of the cell is drawn
 """
 
 from pixelart import Img, hash2
 from terrain_wild import rock_tex
 
 QUADS = ((0, 0), (8, 0), (0, 8), (8, 8))
+
+# Colour roles per tileset (town name -> the tileset's own colour); used by
+# gen_field_gfx.finish_tileset for every tileset listed here (a module can
+# also pass elev={...} itself). Each piece of art must fit one bank: the
+# rock + lip colours together, and the four wood colours together.
+ROLES = {
+    'town': {}, 'wild': {}, 'city': {}, 'coast': {}, 'farm': {},
+    # grey rock with a snow lip (bank 6)
+    'snow': {'t_out': 'rk_out', 'k_lt': 'rk_lt', 'k_base': 'rk_base', 'k_dk': 'rk_dk',
+             'g_hi': 'sn_hi', 'g_lt': 'sn_lt', 'g_base': 'sn_base', 'g_mid': 'sn_mid',
+             'g_dk': 'sn_dk', 'g_dkr': 'rk_dk'},
+    # cave walls over the cave floor (bank 2)
+    'cave': {'t_out': 'cw_out', 'k_lt': 'cw_lt', 'k_base': 'cw_base', 'k_dk': 'cw_dk',
+             'g_hi': 'cv_lt', 'g_lt': 'cv_lt', 'g_base': 'cv_base', 'g_mid': 'cv_mid',
+             'g_dk': 'cv_dk', 'g_dkr': 'cv_dkr'},
+    # basalt under an ash lip (bank 2)
+    'volcanic': {'t_out': 'b_out', 'k_lt': 'vb_lt', 'k_base': 'vb_base', 'k_dk': 'vb_dk',
+                 'g_hi': 'va_lt', 'g_lt': 'va_lt', 'g_base': 'va_base', 'g_mid': 'va_mid',
+                 'g_dk': 'va_dk', 'g_dkr': 'vb_dk'},
+    # dream stone under a dream-grass lip (bank 0)
+    'dream': {'t_out': 'b_out', 'k_lt': 'ds_lt', 'k_base': 'ds_base', 'k_dk': 'ds_dk',
+              'g_hi': 'dg_hi', 'g_lt': 'dg_lt', 'g_base': 'dg_base', 'g_mid': 'dg_mid',
+              'g_dk': 'dg_dk', 'g_dkr': 'ds_mid'},
+    # grave stone under a mud-and-moss lip (bank 6), grim planks (bank 4)
+    'grim': {'t_out': 'grm_out', 'k_lt': 'grm_st_lt', 'k_base': 'grm_st', 'k_dk': 'grm_st_dk',
+             'g_hi': 'grm_moss', 'g_lt': 'grm_moss', 'g_base': 'grm_mud', 'g_mid': 'grm_mud_dk',
+             'g_dk': 'grm_peat', 'g_dkr': 'grm_peat',
+             'b_out': 'grm_out', 'wd_lt': 'grm_wd_hi', 'wd_base': 'grm_wd', 'wd_dk': 'grm_wd_dk'},
+}
 
 # Town colour names the art is drawn with (every one must be mapped by
 # `roles` for a tileset that lacks it).
@@ -327,6 +358,41 @@ def deck_img(vertical, rail_lo, rail_hi, end_lo, end_hi):
     return img
 
 
+def ledge_img(left_cap, right_cap):
+    """A low step: a bulging grass lip over a short earth face; the ground
+    below shows under it."""
+    img = Img(16, 16)
+    tex = face_tex()
+    for x in range(16):
+        img.p[0][x] = 'g_hi' if x % 5 == 2 else 'g_lt'
+        img.p[1][x] = 'g_base' if hash2(x, 1, 13) % 3 else 'g_lt'
+        img.p[2][x] = 'g_base'
+        img.p[3][x] = 'g_mid' if hash2(x, 3, 13) & 1 else 'g_base'
+        img.p[4][x] = 'g_dkr' if x % 4 == 1 else 't_out'
+        for y in range(5, 9):
+            c = tex.p[y][x]
+            img.p[y][x] = LIGHTER.get(c, c) if y == 5 else c
+        img.p[9][x] = 't_out'
+        img.p[10][x] = 't_out' if x % 2 == 0 else None
+    for side, cap in ((0, left_cap), (1, right_cap)):
+        if not cap:
+            continue
+        prof = {0: 2, 1: 1, 8: 1, 9: 2, 10: 16}
+        for y in range(11):
+            inset = prof.get(y, 0)
+            for u in range(min(inset, 16)):
+                x = u if side == 0 else 15 - u
+                img.p[y][x] = None
+            if inset >= 16:
+                continue
+            x = inset if side == 0 else 15 - inset
+            img.p[y][x] = 't_out'
+        for u in range(1, 5):
+            x = u if side == 0 else 15 - u
+            img.p[10][x] = 't_out' if u % 2 == 0 else None
+    return img
+
+
 def mouth_img():
     img = face_img(True, True, False, False)
     for x in range(2, 14):
@@ -409,6 +475,8 @@ def elevation_art(ts, roles=None, where='elev'):
         art[key] = tab
     mo = mouth_img()
     art['mouth'] = [enc(mo, c, 'mouth') for c in range(4)]
+    art['ledge'] = [[enc(ledge_img(not v and c % 2 == 0, not v and c % 2 == 1), c, 'ledge%d' % v)
+                     for v in range(2)] for c in range(4)]
     return art
 
 
@@ -424,6 +492,7 @@ def preview(art_imgs_path=None):
     cells += [stairs_img(d) for d in range(4)]
     cells += [deck_img(False, True, True, True, True), deck_img(True, True, True, True, True)]
     cells.append(mouth_img())
+    cells.append(ledge_img(True, True))
     W = len(cells) * 18
     rows = [[(40, 40, 60)] * W for _ in range(18)]
     for i, im in enumerate(cells):

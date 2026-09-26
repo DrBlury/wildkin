@@ -967,8 +967,10 @@ def finish_tileset(out, name, tag, attrs, ground, overlay, legend, oob, default_
     if 'flower_first' in out:
         anims.append((out['flower_first'], out['flower_anim'], 32))
     out['anims'] = out.get('anims', []) + anims
+    import elevation
+    if elev is None:
+        elev = elevation.ROLES.get(name)
     if elev is not None:
-        import elevation
         out['elev'] = elevation.elevation_art(out['ts'], elev, where=name)
     if len(out['ts'].tiles) > out['ts'].limit:
         raise ValueError('%s: %d tiles > %d' % (name, len(out['ts'].tiles), out['ts'].limit))
@@ -2554,7 +2556,7 @@ def emit_tileset(o, out, docs):
                 return '{' + ', '.join(arr(x) for x in v) + '}'
             return '0x%04X' % v
         o.append('static const ElevArt %s_elev = {' % prefix)
-        for k in ('face', 'rim', 'shadow', 'stairs', 'deck_h', 'deck_v', 'mouth'):
+        for k in ('face', 'rim', 'shadow', 'stairs', 'deck_h', 'deck_v', 'mouth', 'ledge'):
             o.append('    %s, /* %s */' % (arr(ea[k]), k))
         o.append('};')
     o.append('')
@@ -2755,6 +2757,7 @@ def write_header(sets, dec, chars, item, emotes, path):
     A('    u16 deck_h[4][4];   /* bridge walked E-W: variant = railing | end << 1 */')
     A('    u16 deck_v[4][4];   /* bridge walked N-S: variant = railing | end << 1 */')
     A('    u16 mouth[4];       /* tunnel mouth in a cliff face */')
+    A('    u16 ledge[4][2];    /* ledge (hop down): variant = continues sideways */')
     A('} ElevArt;')
     A('typedef struct {')
     A('    const char *name;')

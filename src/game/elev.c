@@ -294,6 +294,10 @@ static void elev_render_base(int mx, int my, u16 mid[4])
         }
         for (int c = 0; c < 4; c++) {
             int sx = (c & 1) ? 1 : -1, sy = (c >> 1) ? 1 : -1;
+            if (kind == EK_LEDGE) {
+                mid[c] = ea->ledge[c][elev_facey(mx + sx, my)];
+                continue;
+            }
             int v = (elev_facey(mx, my + sy) ? 1 : 0) | (elev_facey(mx + sx, my) ? 2 : 0);
             mid[c] = ea->face[c][v];
         }

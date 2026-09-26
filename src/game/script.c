@@ -458,11 +458,16 @@ static void script_warden(int npc)
 static int warden_sees(int i)
 {
     const Actor *a = &npc_state[i];
-    int dx = DIR_DX[a->facing], dy = DIR_DY[a->facing];
+    int x = a->x, y = a->y, level = a->level;
     for (int k = 1; k <= NPCS[i].sight; k++) {
-        int x = a->x + dx * k, y = a->y + dy * k;
-        if (x == player.x && y == player.y) return 1;
-        if (cell_attr(x, y) & A_SOLID) return 0;
+        /* the walk up to you must be a real one: no cliffs, same level (elev.c) */
+        int nl, ek = elev_enter(x, y, level, a->facing, &nl);
+        if (ek == ELEV_BLOCK) return 0;
+        x += DIR_DX[a->facing];
+        y += DIR_DY[a->facing];
+        level = nl;
+        if (x == player.x && y == player.y) return level == player.level;
+        if (ek != ELEV_TOP && (cell_attr(x, y) & A_SOLID)) return 0;
         if (npc_at(x, y) >= 0 || npc_kin_at(x, y) >= 0) return 0;
     }
     return 0;
@@ -504,8 +509,10 @@ static int spot_update(void)
         }
         int dist = absi(a->x - player.x) + absi(a->y - player.y);
         if (dist > 1) {
-            int ox = a->x, oy = a->y;
+            int ox = a->x, oy = a->y, nl;
+            elev_enter(a->x, a->y, a->level, a->facing, &nl);
             actor_start_move(a, a->facing);
+            a->level = (u8)nl;
             if (npc_kin[spot.npc].shown) kin_follow(&npc_kin[spot.npc], ox, oy, 0);
             return 1;
         }
