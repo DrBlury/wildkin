@@ -696,6 +696,9 @@ Each region owner documents their other exits in their region header.
   - `scripts.c` / `script_ids.inc` / `script_table.inc`
   - `lore_ids.inc` / `lore.inc` / `lsrc_ids.inc`
 - **Size:** maps may be up to 64x64 cells.
+- **Elevation** (optional): a height layer with derived cliff faces,
+  stairs, ledges, bridges walked over and under, tunnels and hidden
+  passages — `ELEV(rows, features)` in `maps.inc`; see docs/ELEVATION.md.
 - **Visible characters:** at most 7 distinct NPC characters on screen per
   map, and at most 24 NPCs per map (tested).
 - **Attributes (`u16`):**

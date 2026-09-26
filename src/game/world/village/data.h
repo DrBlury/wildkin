@@ -7,6 +7,21 @@
 /*  MAPLE VILLAGE                                                   */
 /* ================================================================ */
 
+/*
+ * Maple Village sits on two terraces (height 1) either side of the Maple
+ * Run, a creek in a ravine (height 0) with the lane beside it: the lane is
+ * the north-south road (edges x 19-20 to WHISPER MEADOW and WILLOW ACRE)
+ * and passes UNDER the Maple Run bridge (rows 17-18), which carries the
+ * east-west road (edges y 17-18 to MIRROR LAKE and BRAMBLEWOOD) OVER the
+ * ravine. Side stairs climb from the lane to the west terrace (19,9) and
+ * (19,23). Height 2: the wooded ridge along the north, the NW bluff, the
+ * Almanac knoll (stairs at 30,8) and the Hearth mound (the plaza, stairs
+ * at 16,10 and 16,16). The Bout Ring is a sunken pit (height 0, steps at
+ * 29,10). South of the terraces the dell with the lily pond (stairs 7,27
+ * and 15,28) and the south-east field (stairs 28,28, ledges 33-35,28);
+ * a hidden gap in the thicket (33-34,33) leads to a satchel.
+ * docs/ELEVATION.md explains the height layer below the rows.
+ */
 static const char *const TOWN_ROWS[] = {
     "TTTTTTTTTTTTTTTTTTT==~~TTTTTTTTTTTTTTTTT", /*  0 */
     "ttttttttttttttttttt==~~ttttttttttttttttt", /*  1 */

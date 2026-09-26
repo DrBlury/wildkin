@@ -1110,7 +1110,8 @@ static void follower_reset(void)
 {
     follower_sync();
     int bx = player.x + DIR_DX[DIR_BACK[player.facing]], by = player.y + DIR_DY[DIR_BACK[player.facing]];
-    if (bx < 0 || by < 0 || bx >= map_w || by >= map_h || (cell_attr(bx, by) & A_SOLID)) {
+    if (bx < 0 || by < 0 || bx >= map_w || by >= map_h || (cell_attr(bx, by) & A_SOLID) ||
+        (map_elevated && elev_level_at(bx, by, player.level, -1) != player.level)) {
         bx = player.x;
         by = player.y;
     }
