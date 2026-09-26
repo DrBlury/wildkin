@@ -106,47 +106,111 @@ static const char *const GRAVEWOOD_ROWS[] = {
     "tttttttttttttttttttttttttttttttttttttttttttt",
 };
 
+/* DUSKMERE (44 x 40): a stilt town on peat isles in the black mere
+ * (docs/ELEVATION.md). The SQUARE ISLE (height 1) at the end of the
+ * causeway (edge y 20-21): Hearth, Shop, the mire bell on the round square,
+ * the bog fisher's pier, and the lamp jetty north to the islet where the
+ * lantern for the lost burns. Side stairs (28,10) climb LANTERN HILL (2):
+ * the graveyard and the LANTERN CRYPT; ledges (39-41,13) drop from the
+ * graves to the EAST ISLE (1) and the MIRE HOUSE. THE LONG WALK (28-38,
+ * rows 20-21) carries the square's road OVER the sunken GATE YARD (0),
+ * where the sealed OSSUARY gate is cut into the hill's two-row cliff; the
+ * only way to the gate is the lane UNDER the walk from the reed flats
+ * (stairs 18-19,27 and ledges 22-23,27 lead down from the square).
+ * HENBANE'S WALK (11-12, rows 27-30) crosses the flats to the APOTHECARY
+ * ISLE; under it, a reed nook. A gap in the cypress screen (36-37,33) hides
+ * the drowned chapel. */
 static const char *const DUSKMERE_ROWS[] = {
-    "YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY",
-    "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
-    "YYmrrrrrrmmmmmmmmmm~~~~mmmmmmmmmmmmmmmmmmmYY",
-    "yyrrrrrrrmmmmmmYmmm~~~~mmYmmmmmmmmmmmmmYmmyy",
-    "YYmrrrrrrrmmmmmymmm~~~~mmymmmmmmmmmmmmmymmYY",
-    "yyrrrrrrrrmmmmmmmmm~~~~mmmmmmmmmmmmmmmmmmmyy",
-    "YYrrrrrrrrmmmmmmmmm~~~~mmmmmmmmmmmmmmmmmmmYY",
-    "yymmrrrmmmmmmmmmmmm~~~~mmmmmYmmmmmmmmmmmmmyy",
-    "YYmmmmmmmmmmmmmmmmm~~~~mmmmmymmmmmmmmmmmmmYY",
-    "yymmmmmmmmmmmmmmmmm~~~~mmmmmmmmmmmmmmmmmmYyy",
-    "YYmmmYmmmmmmmmmmmmm~~~~ddddddddddddmmmmmmyYY",
-    "yymmmymmmmmmmmmmmmm~~~~ddddddddddddmmmmmmmyy",
-    "YYmmmmmmmm==mmmmmmm~~~~mmm==mmmmm==mmmmmmmYY",
-    "yymmmmmmmm==mmmmmmm~~~~mmm==rrrmm==m~~~mmmyy",
-    "YYmmmmmmmm==MMMMmmmmddmmrr==rrrrm==~~~~~~mYY",
-    "yymmmmmmmm==MMMMmmmmddmmrr==rrrrr==~~~~~~myy",
-    "YYmYmmmmmm==MMMMMmmmddmmmr==rrrrm==~~~~~~~YY",
-    "yymymmmmmm==MMMMMmmmddmmmr==rrrrm==~~~~~~~yy",
-    "YYmmmmmmmm==MMMMmmmmddmmmm==mmmmm==~~~~~~~YY",
-    "yymmmmmmm##########dddd########mmm~~~~~~~myy",
-    "=========##########dddd########===========YY",
-    "=========##########dddd########===========yy",
-    "YYmmmmmmm##########dddd########mmmmmmmrrrrYY",
-    "yymmmYmmm##########dddd######Y#mmmmmmmmmrryy",
-    "YYmmmymmmmmmmm==mmmmddmmmmMMMymm==mmmmmmrrYY",
-    "yymmmmmmmmmmmm==mmmmddmmmmmMMMMm==mmmmmmrryy",
-    "YYmmmmmmmmmmmm==mYmmddmmmmmMMMMm==mmmmmmrmYY",
-    "yymmmmmmmmmmmm==mymmddmmmmmMMMmm=======mmmyy",
-    "YYmmmmmmmmmmmm==mmmmddmmmmmmmmmm=======mmmYY",
-    "yymmmmmmmmmmYm==mmmmddmmmmmmmrrrrrrrrrmmmmyy",
-    "YYmmmmmrrrrryr==mmm~~~~mmmmmrrrrrrrrrrrmmmYY",
-    "yymrrrrrrrrrrrrrrmm~~~~mmmmrrrrrrrrrrrrmmmyy",
-    "YYmrrrrrrrrrrrrrrmm~~~~mmmmmrr~r~~~r~rmmmmYY",
-    "yymmm~~~~~~~~~mmmmm~~~~mmmm~~~~~~~~~~~~~~myy",
-    "YYm~~~~~~~~~~~~~~mm~~~~mmm~~~~~~~~~~~~~~~mYY",
-    "yy~~~~~~~~~~~~~~~mm~~~~mmm~~~~~~~~~~~~~~~myy",
-    "YY~~~~~~~~~~~~~~~mm~~~~mmmm~~~~~~~~~~~~~~~YY",
-    "yymm~~~~~~~~~~~~~mm~~~~mmmmm~~~~~~~~~~~~~myy",
-    "YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY",
-    "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+    "YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY", /*  0 */
+    "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy", /*  1 */
+    "~~~~~~~~~~~~~~~MMMMMM~~~~~~~YYYYYYYYYYYYYYYY", /*  2 */
+    "~~~~~~~~~~~~~~~MMddMM~YY~~~~yyyyyyyyyyyyyyyy", /*  3 */
+    "~~~~~~~~~~~~~~~..dd..~yy~~~~YYYgggggggYYYYYY", /*  4 */
+    "~~~YY~~~~~~~~~~~~dd~~~~~~~~~yyygggggggyyyyyy", /*  5 */
+    "~~~yy~~~~~~~~~~~~dd~~~~~~~~~YYYgggggggbbbbbY", /*  6 */
+    "~~~~~~~~~~~~~MMMMMMMM~~~~~~~yyygggggggbbbbby", /*  7 */
+    "~~~~~~~~~~~MMMMMMMMMMMMMM~~~ggggg###gggggggY", /*  8 */
+    "~~~~~~~~~~MMMMMMMMMMMmmmmmm~ggggg###gggggggy", /*  9 */
+    "~~~~~~~~~MMMMMMMMMMMMmmmmmmMg######ggggggggY", /* 10 */
+    "~~~~~~~~~MMMMMMMMMMMMmmmmmmMgggggggggggggggy", /* 11 */
+    "~~~~~~dddMMMMMMMMMMMMMMMMMMM..mmmmmmmmmmmmmY", /* 12 */
+    "~~~~~~...MMM=MMMM=MMMMMMMMMM...........MMM..", /* 13 */
+    "~~~~~~~~~MMM======MMMMMMMMMMmm.........MMMMY", /* 14 */
+    "~~~~~~~~~MMMMMM########MMMMMmmmmmmmmmmmMMMMy", /* 15 */
+    "~~~~~~~~~MMMMM##########MMMMmmmmmmmmmmmMMMMY", /* 16 */
+    "~~~~~~~~~MMMM############MMMmmmmmmmmmmmMMMMy", /* 17 */
+    "~~~~~~~~~MMMM############MMMmmmmmmmmmmmMMMMY", /* 18 */
+    "~~~~~~~~MMMMM############MMMmmmmmmmmmmmMMMMy", /* 19 */
+    "==============##############mmmmmmmmmmmddMMY", /* 20 */
+    "==============##############mmmmmmmmmmmddMMy", /* 21 */
+    "........MMMddMMMMM==MMMMMMMMmmmmmmmmmmMMMMMY", /* 22 */
+    "~~~~~~~~.MMddMMMMM==MMMmmmm.mrrrrmmmmmMMMMMy", /* 23 */
+    "~~~~~~~~~MMddMMMMM==MMMmmmm~mrrrrm~~~~MMMMMY", /* 24 */
+    "~~~~~~~~~.MddMMMMM==MMMmmm.~mrrrrm~~~~MMMMMy", /* 25 */
+    "~~~~~~~~~~.ddMMMMM==MMMMM.~~mrrrrm~~~~MMMMMY", /* 26 */
+    "~~~~~~~~~mm.......mm..mm.mmmmrrrrm~~~~MMMMMy", /* 27 */
+    "~~~~~~~~~rmmmmmmmmmmmmmmmmmmmrrrrm~~~~MMMMMY", /* 28 */
+    "~~~~~~~~~rmmmmrrrrmmmrrrrrrmmmmmmm~~~~MMMMMy", /* 29 */
+    "~~~~~~~~~rmmmmrrrrmmmrrrrrrmmmmmmmmmYY......", /* 30 */
+    "~~~~MMMMMMMddMrrrrmmmrrrrrr~~mmmmmmmyyMMMMMy", /* 31 */
+    "~~~MMMMMMMMddMMrrrmmmrrrrrr~~mmmmmmmYYMMMMMY", /* 32 */
+    "~~~MMMMMMMMddMMrrrmmmmmmmmm~~mmmmmmmyyMMMMMy", /* 33 */
+    "~~~MMMMMMMMMMMM~~~~~~~~~~~~~~~~~~~~~YYMMMMMY", /* 34 */
+    "~~~.MMMMMMMMMM.~~~~~~~~~~~~~~~~~~~~~yyMMMMMy", /* 35 */
+    "~~~~..........m~~~~~~~~~~~~~~~~~~~~~YY~~~~~Y", /* 36 */
+    "~~~~~~~~~~~~~~m~~~~~~~~~~~~~~~~~~~~~yy~~~~~y", /* 37 */
+    "YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY", /* 38 */
+    "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy", /* 39 */
+};
+
+/* heights (0-3), stairs (^ v < >) and ledges (_): docs/ELEVATION.md */
+static const char *const DUSKMERE_ELEV[] = {
+    "00000000000000000000000000002222222222222222", /*  0 */
+    "00000000000000000000000000002222222222222222", /*  1 */
+    "00000000000000011111100000002222222222222222", /*  2 */
+    "00000000000000011111100000002222222222222222", /*  3 */
+    "00000000000000000110000000002222222222222222", /*  4 */
+    "00000000000000000110000000002222222222222222", /*  5 */
+    "00000000000000000110000000002222222222222222", /*  6 */
+    "00000000000001111111100000002222222222222222", /*  7 */
+    "00000000000111111111111110002222222222222222", /*  8 */
+    "00000000001111111111111111102222222222222222", /*  9 */
+    "0000000001111111111111111111>222222222222222", /* 10 */
+    "00000000011111111111111111112222222222222222", /* 11 */
+    "00000011111111111111111111110022222222222222", /* 12 */
+    "000000000111111111111111111100000000000___11", /* 13 */
+    "00000000011111111111111111110000000000011111", /* 14 */
+    "00000000011111111111111111110000000000011111", /* 15 */
+    "00000000011111111111111111110000000000011111", /* 16 */
+    "00000000011111111111111111110000000000011111", /* 17 */
+    "00000000011111111111111111110000000000011111", /* 18 */
+    "00000000111111111111111111110000000000011111", /* 19 */
+    "11111111111111111111111111110000000000011111", /* 20 */
+    "11111111111111111111111111110000000000011111", /* 21 */
+    "00000000111111111111111111110000000000111111", /* 22 */
+    "00000000011111111111111111100000000000111111", /* 23 */
+    "00000000011111111111111111100000000000111111", /* 24 */
+    "00000000001111111111111111000000000000111111", /* 25 */
+    "00000000000111111111111110000000000000111111", /* 26 */
+    "000000000000000000^^00__00000000000000111111", /* 27 */
+    "00000000000000000000000000000000000000111111", /* 28 */
+    "00000000000000000000000000000000000000111111", /* 29 */
+    "00000000000000000000000000000000000000000000", /* 30 */
+    "00001111111111000000000000000000000000000000", /* 31 */
+    "00011111111111100000000000000000000000000000", /* 32 */
+    "00011111111111100000000000000000000000000000", /* 33 */
+    "00011111111111100000000000000000000000000000", /* 34 */
+    "00001111111111000000000000000000000000000000", /* 35 */
+    "00000000000000000000000000000000000000000000", /* 36 */
+    "00000000000000000000000000000000000000000000", /* 37 */
+    "00000000000000000000000000000000000000000000", /* 38 */
+    "00000000000000000000000000000000000000000000", /* 39 */
+};
+
+static const ElevFeat DUSKMERE_FEATS[] = {
+    EF(BRIDGE_H, 28, 20, 11, 2),  /* THE LONG WALK: the square to the east isle over the gate yard, the lane under it */
+    EF(BRIDGE_V, 11, 27, 2, 4),  /* HENBANE'S WALK: the square to the apothecary isle, the flats under it */
+    EF(HIDDEN, 36, 33, 2, 1),  /* a gap in the cypress screen to the drowned chapel */
 };
 
 static const char *const LANTERN_CRYPT_ROWS[] = {
@@ -344,17 +408,23 @@ static const WildSlot WILD_GRAVEWOOD[] = {
 /* ---------------- DUSKMERE ---------------- */
 
 static const Stamp DUSKMERE_STAMPS[] = {
-    STAMP(GR, HEARTH, 8, 7), STAMP(GR, SHOP, 14, 8), STAMP(GR, APOTHECARY, 7, 25),
-    STAMP(GR, HOUSE, 23, 25), STAMP(GR, CRYPT_HALL, 32, 5), STAMP(GR, BONE_GATE, 35, 23),
+    STAMP(GR, HEARTH, 10, 9), STAMP(GR, SHOP, 16, 9), STAMP(GR, APOTHECARY, 5, 31),
+    STAMP(GR, HOUSE, 39, 23), STAMP(GR, CRYPT_HALL, 32, 4), STAMP(GR, BONE_GATE, 32, 15),
 };
 static const DecorPlace DUSKMERE_DECOR[] = {
-    DP(GR_SIGN, 4, 19), DP(GR_SIGN, 31, 8),
-    DP(GR_BELL, 26, 19),
-    DP(GR_LANTERN, 9, 22), DP(GR_LANTERN, 30, 22), DP(GR_LANTERN, 12, 11), DP(GR_LANTERN, 31, 9),
-    DP(GR_LANTERN, 34, 26),
-    DP(GR_PUMPKIN, 13, 12), DP(GR_PUMPKIN, 7, 11), DP(GR_PUMPKIN, 25, 29), DP(GR_PUMPKIN, 6, 29),
-    DP(GR_MOORING, 18, 13), DP(GR_MOORING, 22, 16),
-    DP(GR_WISP, 36, 16), DP(GR_WISP, 8, 35), DP(GR_WISP, 30, 35),
+    DP(GR_SIGN, 8, 19), DP(GR_SIGN, 31, 8), DP(GR_SIGN, 31, 18),
+    DP(GR_BELL, 18, 17),
+    DP(GR_LANTERN, 10, 17), DP(GR_LANTERN, 25, 17), DP(GR_LANTERN, 21, 13), DP(GR_LANTERN, 14, 24),
+    DP(GR_LANTERN, 24, 23), DP(GR_LANTERN, 35, 10), DP(GR_LANTERN, 41, 18), DP(GR_LANTERN, 3, 32), DP(GR_LANTERN, 16, 2),
+    DP(GR_PUMPKIN, 20, 12), DP(GR_PUMPKIN, 13, 13), DP(GR_PUMPKIN, 42, 27), DP(GR_PUMPKIN, 9, 33),
+    DP(GR_MOORING, 27, 19), DP(GR_MOORING, 27, 22), DP(GR_MOORING, 13, 26), DP(GR_MOORING, 8, 13), DP(GR_MOORING, 19, 3),
+    DP(GR_WISP, 35, 33), DP(GR_WISP, 30, 16), DP(GR_WISP, 40, 31), DP(GR_WISP, 9, 30),
+    DP(GR_GRAVE, 31, 6), DP(GR_GRAVE, 37, 5), DP(GR_CROSS, 37, 8), DP(GR_GRAVE, 39, 8),
+    DP(GR_CROSS, 41, 8), DP(GR_GRAVE, 37, 10), DP(GR_CROSS, 39, 10), DP(GR_GRAVE, 41, 10), DP(GR_CROSS, 30, 9),
+    DP(GR_FENCE, 30, 12), DP(GR_FENCE, 31, 12), DP(GR_FENCE, 32, 12), DP(GR_FENCE, 33, 12), DP(GR_FENCE, 34, 12),
+    DP(GR_FENCE, 35, 12), DP(GR_FENCE, 36, 12), DP(GR_FENCE, 37, 12), DP(GR_FENCE, 38, 12),
+    DP(GR_MEMORIAL, 40, 32), DP(GR_BONES, 29, 17), DP(GR_BONES, 37, 17),
+    DP(GR_SHRUB, 24, 10), DP(GR_SHRUB, 41, 15), DP(GR_STUMP, 27, 29), DP(GR_STUMP, 4, 34),
 };
 
 static const WildSlot WILD_MIRE[] = {

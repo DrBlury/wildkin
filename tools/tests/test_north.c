@@ -291,11 +291,11 @@ static void test_scripts(void)
     run_dialog(400);
     game_mode = MODE_FIELD;
     /* quest 1: glowcaps */
-    talk_at(MAP_FROSTHOLLOW, 17, 16, DIR_UP);
+    talk_at(MAP_FROSTHOLLOW, 24, 16, DIR_UP);
     CHECK(quest_get(QUEST_GLOWCAPS) == 1, "the ice carver asks for GLOWCAPS");
     bag_add(ITEM_GLOWCAP, 3);
     int stars = bag[ITEM_STAR_LANTERN];
-    talk_at(MAP_FROSTHOLLOW, 17, 16, DIR_UP);
+    talk_at(MAP_FROSTHOLLOW, 24, 16, DIR_UP);
     CHECK(quest_done(QUEST_GLOWCAPS) && bag[ITEM_GLOWCAP] == 0 && bag[ITEM_STAR_LANTERN] == stars + 3,
           "three GLOWCAPS finish LAMPS FOR THE LONG NIGHT");
     int glow = 0;
@@ -329,9 +329,39 @@ static void test_scripts(void)
           trainer_beaten(TR_N_SIGRUN), "winning awards the RIME CREST and its Lorebook page");
 }
 
+/* Frosthollow on its levels (docs/handoff/towns_north_grim.md) */
+static void test_frosthollow(void)
+{
+    map_load(MAP_FROSTHOLLOW);
+    field_load_tileset();
+    int decor_ok = 1;
+    for (int i = 0; i < MAPS[MAP_FROSTHOLLOW].decor_count; i++)
+        if (!decor_base[MAPS[MAP_FROSTHOLLOW].decor[i].kind]) decor_ok = 0;
+    CHECK(decor_ok, "Frosthollow: every decor kind fits the scene tiles (none silently dropped)");
+    flood(19, map_h - 1);
+    CHECK(reached_lv(19, 0, 3) && reached_lv(19, 26, 1) && reached_lv(19, 26, 0),
+          "Frosthollow: the road climbs to Crownside over the Hollow Bridge; the Hollow lane runs under it");
+    int w = warp_from(MAP_FROSTHOLLOW, MAP_HOT_SPRING);
+    CHECK(w >= 0 && reached_lv(WARPS[w].x, WARPS[w].y + 1, 0) && elev_floor(WARPS[w].x, WARPS[w].y + 1) == 0,
+          "Frosthollow: the bathhouse stands down in the Steam Hollow");
+    int store = -1, watch = -1;
+    for (int i = 0; i < ITEM_BALL_COUNT; i++) {
+        if (ITEM_BALLS[i].map != MAP_FROSTHOLLOW) continue;
+        if (ITEM_BALLS[i].item == ITEM_STAR_LANTERN) store = i;
+        if (ITEM_BALLS[i].item == ITEM_WAYSTONE) watch = i;
+    }
+    CHECK(store >= 0 && watch >= 0 && reached_beside(ITEM_BALLS[store].x, ITEM_BALLS[store].y) &&
+              reached_beside(ITEM_BALLS[watch].x, ITEM_BALLS[watch].y) && elev_hidden(11, 23) && elev_hidden(8, 5),
+          "Frosthollow: the sunken store and the Watch are reached through hidden passages");
+    CHECK(elev_floor(ITEM_BALLS[store].x, ITEM_BALLS[store].y) == 0 &&
+              elev_floor(ITEM_BALLS[store].x + 2, ITEM_BALLS[store].y) == 1,
+          "Frosthollow: the sunken store is a pit in the market terrace");
+}
+
 int main(void)
 {
     test_edges();
+    test_frosthollow();
     test_rime_hall();
     test_caves();
     test_whitecrown();

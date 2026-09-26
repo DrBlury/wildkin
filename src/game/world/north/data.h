@@ -83,58 +83,127 @@ static const MapObj FROSTPINE_OBJS[] = {
     OBJ(BERRY, 3, 28, 20), OBJ(BERRY, 36, 23, 21),
 };
 
-/* FROSTHOLLOW (40 x 36) */
+/* FROSTHOLLOW (44 x 40): a valley town on four levels (docs/ELEVATION.md).
+ * CROWNSIDE (height 3) under Whitecrown: the road north (x 19-20) and its
+ * staircase (19-20, 10-11), the RIME HALL, the Watch (a clearing behind the
+ * pines; hidden gap 9-10,5). Its two-row cliff drops to the MARKET TERRACE
+ * (1): Hearth, Shop, the octagonal ice-statue plaza, the Glimmer cave under
+ * the east ridge, ledges into the Hollow (25-27,23) and the Steam Hollow
+ * (35-36,22). THE HOLLOW (0), a gorge across the town: its lane runs UNDER
+ * the Hollow Bridge that carries the road OVER it (19-20, rows 24-28), past
+ * the skating rink to the bathhouse in the Steam Hollow under the three-row
+ * east cliff; a hidden mouth in its north wall (11,24) leads through the
+ * old ice cut to the sunken store in the market (10-12, 18-20). The SOUTH
+ * TERRACE (1) with ledges (23-26,34) and side stairs (33,33) onto the
+ * STARGAZER'S KNOLL (2); the low town (0) by the frozen lake: the Alder
+ * house, the pond and the south road (x 19-20, stairs 19-20,35). */
 static const char *const FROSTHOLLOW_ROWS[] = {
-    "PPPPPPPPPPPPPPPPPPP==PPPPPPPPPPPPPPPPPPP", /*  0 */
-    "ppppppppppppppppppp==ppppppppppppppppppp", /*  1 */
-    "PPPP............PP.==.PP..........PPPPPP", /*  2 */
-    "pppp............pp.==.pp..........pppppp", /*  3 */
-    "PP..............PP.==.PP..........PPPPPP", /*  4 */
-    "pp..............pp.==.pp..........pppppp", /*  5 */
-    "PP.................==.............PPPPPP", /*  6 */
-    "pp.................==.............pppppp", /*  7 */
-    "PP.....=.....=.....==.......=.........PP", /*  8 */
-    "pp....=========================.......pp", /*  9 */
-    "PP....=========================.RRRRRRPP", /* 10 */
-    "pp.................==...........RRRRRRpp", /* 11 */
-    "PP.................==...........RRRRRRPP", /* 12 */
-    "pp.78888889........==...........CCCCCCpp", /* 13 */
-    "PP.4iiiiii6...############......ccccccPP", /* 14 */
-    "pp.4iiiiii6...############.........=..pp", /* 15 */
-    "PP.4iiiiii6...############===========.PP", /* 16 */
-    "pp.4iiiiii6...############===========.pp", /* 17 */
-    "PP.4iiiiii6...############.........P..PP", /* 18 */
-    "pp.12222223...############.........p..pp", /* 19 */
-    "PP............############............PP", /* 20 */
-    "pp.................==.................pp", /* 21 */
-    "PP.................==..PP........PPPP.PP", /* 22 */
-    "pp.............PP..==..pp........pppp.pp", /* 23 */
-    "PP.............pp..==..PP........PPPP.PP", /* 24 */
-    "pp.............PP..==..pp........pppp.pp", /* 25 */
-    "PP.................==............PPPP.PP", /* 26 */
-    "pp....=.....=......==........=...pppp.pp", /* 27 */
-    "PP....=========================..PPPP.PP", /* 28 */
-    "pp....=========================..pppp.pp", /* 29 */
-    "PPPPPP.............==............PPPP.PP", /* 30 */
-    "pppppp..PPPPPP.....==............pppp.pp", /* 31 */
-    "PP......pppppp.....==.................PP", /* 32 */
-    "pp.................==.................pp", /* 33 */
-    "PPPPPPPPPPPPPPPPPPP==PPPPPPPPPPPPPPPPPPP", /* 34 */
-    "ppppppppppppppppppp==ppppppppppppppppppp", /* 35 */
+    "PPPPPPPPPPRRPPPPPPP==PPPPPPPPRRRRRPPPPPPPPPP", /*  0 */
+    "ppppppppppRRppppppp==ppppppppRRRRRpppppppppp", /*  1 */
+    "PPPPPPPPPP..PP.....==.PP........PPRRRRRRRRRR", /*  2 */
+    "pppppppppp..pp.PP..==.pp........ppRRRRRRRRRR", /*  3 */
+    "PPP.....PP.....pp..==.PP...........RRRRRRRRR", /*  4 */
+    "ppp.,,,.pp==.......==.pp........,,.RRRRRRRRR", /*  5 */
+    "PPP.,,,.PP....,,,,.==...........,,....RRRRRR", /*  6 */
+    "ppp.....pp....,,,,.==========.........RRRRRR", /*  7 */
+    "PPP................==.............RRPPPPPPPP", /*  8 */
+    "ppp...............................RRpppppppp", /*  9 */
+    "PPP.................................PPPPPPPP", /* 10 */
+    "ppp................==.....,,,,PPP...pppppppp", /* 11 */
+    "...................==.........ppp.....PPPPPP", /* 12 */
+    "...................==######...........pppppp", /* 13 */
+    "PPP...=============##########.........PPPPPP", /* 14 */
+    "ppp..........,,,,.############........pppppp", /* 15 */
+    "PPP..........,,,,.############........PPPPPP", /* 16 */
+    "pppPPP.......,,,,.############=======.pppppp", /* 17 */
+    "PPPppp.......,,,,..##########.........PPPPPP", /* 18 */
+    "ppp..........,,,,..==######.......,,,,pppppp", /* 19 */
+    "PPPPPPPPP..........==........RRRRR,,,,......", /* 20 */
+    "ppppppppp........PP==PPPP....PPPPP..........", /* 21 */
+    ".................pp==pppp....ppppp..........", /* 22 */
+    "...........................................p", /* 23 */
+    "~~~~.....,,,,,,,,........................~~P", /* 24 */
+    "~~~~~==================================..~~p", /* 25 */
+    "~~~~~==================...............=..~~P", /* 26 */
+    "~~~~~..................78888889.......=..~~p", /* 27 */
+    "~~~~~~~................12222223.......=..~~P", /* 28 */
+    "~~~~~~~..................................~~p", /* 29 */
+    "~~~~~~~....................................R", /* 30 */
+    "~~~~~~~........PP.........................PP", /* 31 */
+    "~~~~~~~...=====pp....===========..,,,.....pp", /* 32 */
+    "~~~~~~~.......=........,,,,...==..,,,.....PP", /* 33 */
+    "~~~~~~~~788889=...............==..,,,.....pp", /* 34 */
+    "~~~~~~~~4iiii6=...................,,,.....PP", /* 35 */
+    "~~~~~~~~4iiii6=....==.............,=====..pp", /* 36 */
+    "~~~~~~~~122223=======................RRRRRRR", /* 37 */
+    "~~~~~~~~~PPPPPPPPPP==PPPPPPPPPPPPP..........", /* 38 */
+    "~~~~~~~~~pppppppppp==ppppppppppppp..........", /* 39 */
+};
+
+/* heights (0-3), stairs (^ v < >) and ledges (_): docs/ELEVATION.md */
+static const char *const FROSTHOLLOW_ELEV[] = {
+    "33333333333333333333333333333333333333333333", /*  0 */
+    "33333333333333333333333333333333333333333333", /*  1 */
+    "33333333333333333333333333333333333333333333", /*  2 */
+    "33333333333333333333333333333333333333333333", /*  3 */
+    "33333333333333333333333333333333333333333333", /*  4 */
+    "33333333333333333333333333333333333333333333", /*  5 */
+    "33333333333333333333333333333333333333333333", /*  6 */
+    "33333333333333333333333333333333333333333333", /*  7 */
+    "33311111111111133333333333333333333333333333", /*  8 */
+    "3331111111111111111^^11111111111113333333333", /*  9 */
+    "3331111111111111111^^11111111111113333333333", /* 10 */
+    "33311111111111111111111111111111113333333333", /* 11 */
+    "11111111111111111111111111111111111333333333", /* 12 */
+    "11111111111111111111111111111111111111333333", /* 13 */
+    "11111111111111111111111111111111111111333333", /* 14 */
+    "11111111111111111111111111111111111111333333", /* 15 */
+    "11111111111111111111111111111111111111333333", /* 16 */
+    "11111111111111111111111111111111111111333333", /* 17 */
+    "11111111110001111111111111111111111111333333", /* 18 */
+    "11111111110001111111111111111111111111333333", /* 19 */
+    "22222222210001111111111111111222221111000000", /* 20 */
+    "22222222211011111221122221111222221111000000", /* 21 */
+    "00000000011011111221122221111222220__0000000", /* 22 */
+    "0000000000000000000000000___0000000000000000", /* 23 */
+    "00000000000000000000000000000000000000000000", /* 24 */
+    "00000000000000000000000000000000000000000000", /* 25 */
+    "00000000000000000000000000000000000000000000", /* 26 */
+    "00000000000000000000000000000000000000000000", /* 27 */
+    "00000000000000000000000000000000000000000000", /* 28 */
+    "00000000000000000000000000000000000000000000", /* 29 */
+    "00000000000000011111111111v00000000000000000", /* 30 */
+    "00000000000000011111111111111111113333333333", /* 31 */
+    "00000000000000011111111111111111113333333333", /* 32 */
+    "00000000000000011111111111111111>>3333333333", /* 33 */
+    "00000000000000011111111111111111113333333333", /* 34 */
+    "00000000000000000001100____11111113333333333", /* 35 */
+    "0000000000000000000^^00000000011113333333333", /* 36 */
+    "00000000000000000000000000000000003333333333", /* 37 */
+    "00000000000000000000000000000000000000000000", /* 38 */
+    "00000000000000000000000000000000000000000000", /* 39 */
+};
+
+static const ElevFeat FROSTHOLLOW_FEATS[] = {
+    EF(BRIDGE_V, 19, 23, 2, 7),  /* the Hollow Bridge: the road over, the Hollow lane under */
+    EF(TUNNEL, 11, 21, 1, 2),  /* the ice-cutters' old cut under the market, to the sunken store */
+    EF(HIDDEN, 11, 23, 1, 1),  /* its mouth hides in the gorge wall */
+    EF(HIDDEN, 8, 5, 2, 1),  /* a gap in the pines to the Watch */
 };
 static const Stamp FROSTHOLLOW_STAMPS[] = {
-    STAMP(SN, HEARTH, 5, 4), STAMP(SN, SHOP, 11, 4), STAMP(SN, HALL, 25, 3), STAMP(SN, HOUSE, 4, 23), STAMP(SN, HOUSE, 10, 23), STAMP(SN, BATHS, 27, 23), STAMP(SN, CAVE, 34, 13),
+    STAMP(SN, HEARTH, 4, 10), STAMP(SN, SHOP, 10, 10), STAMP(SN, HALL, 25, 2), STAMP(SN, HOUSE, 8, 28),
+    STAMP(SN, HOUSE, 37, 32), STAMP(SN, BATHS, 36, 24), STAMP(SN, CAVE, 35, 15),
 };
 static const DecorPlace FROSTHOLLOW_DECOR[] = {
-    DP(ICE_STATUE, 16, 16), DP(ICE_STATUE, 23, 16), DP(LANTERN_POST, 14, 13),
-    DP(LANTERN_POST, 25, 13), DP(LANTERN_POST, 14, 21), DP(LANTERN_POST, 25, 21),
-    DP(SIGNPOST, 21, 31), DP(SIGNPOST, 30, 8), DP(SIGNPOST, 36, 17), DP(NOTICE_BOARD, 11, 11),
-    DP(SNOWMAN, 11, 15), DP(BENCH, 17, 18), DP(SLED, 4, 21), DP(SKI_RACK, 10, 7),
-    DP(WOODPILE, 2, 26), DP(STEAM, 31, 22), DP(STEAM, 27, 21), DP(FROZEN_TREE, 26, 18),
-    DP(ICE_BLOCKS, 32, 16), DP(BARREL, 16, 8), DP(CRATE, 17, 7),
+    DP(SIGNPOST, 22, 37), DP(SIGNPOST, 32, 7), DP(SIGNPOST, 33, 16), DP(NOTICE_BOARD, 8, 15),
+    DP(LANTERN_POST, 17, 13), DP(LANTERN_POST, 30, 13), DP(LANTERN_POST, 17, 18), DP(LANTERN_POST, 30, 18),
+    DP(ICE_STATUE, 21, 14), DP(ICE_STATUE, 27, 14), DP(BENCH, 23, 17), DP(SNOWMAN, 7, 30),
+    DP(STEAM, 41, 25), DP(STEAM, 42, 28), DP(STEAM, 39, 23), DP(SLED, 15, 36),
+    DP(FROZEN_TREE, 17, 32), DP(FROZEN_TREE, 29, 33), DP(TELESCOPE, 35, 32), DP(BENCH, 4, 7),
+    DP(ICE_CRYSTAL, 12, 24), DP(ICE_CRYSTAL, 32, 6), DP(ICE_CRYSTAL, 40, 30),
 };
 static const MapObj FROSTHOLLOW_OBJS[] = {
-    OBJ(BERRY, 37, 26, 24),
+    OBJ(BERRY, 31, 35, 24),
 };
 
 /* WHITECROWN PEAK (32 x 40) */
