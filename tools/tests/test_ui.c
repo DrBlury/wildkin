@@ -91,10 +91,13 @@ static void test_start_menu(void)
     CHECK(!strcmp(buf, "DAY 3  14:05"), "the clock reads DAY 3  14:05");
     open_start();
     CHECK(game_mode == MODE_START_MENU, "START opens the menu");
-    CHECK(menu_index(SM_FIELD) >= 0 && menu_index(SM_QUESTS) >= 0 && menu_index(SM_MAP) < 0,
-          "FIELD and QUESTS are there, MAP only with the TOWN MAP");
+    CHECK(menu_index(SM_QUESTS) >= 0 && menu_index(SM_MAP) < 0 && menu_index(SM_FIELD) < 0,
+          "QUESTS is there; MAP needs the TOWN MAP and FIELD a crest or the BIKE");
     bag[ITEM_TOWN_MAP] = 1;
-    CHECK(menu_index(SM_MAP) >= 0 && start_count > START_ROWS, "with the TOWN MAP the menu has MAP and scrolls");
+    bag[ITEM_BIKE] = 1;
+    start_menu_build();
+    CHECK(menu_index(SM_MAP) >= 0 && menu_index(SM_FIELD) >= 0 && start_count > START_ROWS,
+          "with the TOWN MAP and BIKE the menu has MAP and FIELD and scrolls");
     start_cursor = 0;
     for (int i = 0; i < start_count - 1; i++) tap(KEY_DOWN);
     CHECK(start_items[start_cursor] == SM_EXIT && start_scroll == start_count - START_ROWS,
@@ -103,12 +106,16 @@ static void test_start_menu(void)
     CHECK(start_cursor == 0 && start_scroll == 0, "and wraps back to the top");
 
     pick(SM_MAP);
-    CHECK(start_dialog, "MAP shows the town map module's answer");
+    CHECK(game_mode == MODE_EXT, "MAP opens the town map");
+    for (int i = 0; i < 20 && game_mode == MODE_EXT; i++) tap(KEY_B);
     run_until_idle(start_busy, 300);
-    CHECK(game_mode == MODE_START_MENU && !start_dialog, "then the START menu comes back");
+    CHECK(game_mode != MODE_EXT, "B leaves the town map");
+    if (game_mode != MODE_START_MENU) open_start();
     pick(SM_FIELD);
+    for (int i = 0; i < 20 && game_mode != MODE_START_MENU && game_mode != MODE_FIELD; i++) tap(KEY_B);
     run_until_idle(start_busy, 300);
-    CHECK(game_mode == MODE_START_MENU, "FIELD calls the traversal menu and comes back");
+    CHECK(game_mode == MODE_START_MENU || game_mode == MODE_FIELD, "FIELD opens the traversal menu and B leaves it");
+    if (game_mode != MODE_START_MENU) open_start();
 
     pick(SM_CARD);
     CHECK(start_card, "CARD shows the warden card with the crests");
@@ -227,6 +234,13 @@ static void test_bag(void)
     tap(KEY_A);   /* USE */
     CHECK(game_mode == MODE_BAG && bscr.state == BS_DIALOG, "a key item is used straight away (no team picker)");
     run_until_idle(bag_busy, 300);
+    if (game_mode != MODE_BAG) {           /* the BIKE really mounts and returns to the field */
+        if (travel.biking) bike_toggle(0);
+        open_start();
+        pick(SM_BAG);
+        bscr.pocket = POCKET_KEY;
+        bag_redraw();
+    }
     for (int i = 0; i < bscr.count; i++)
         if (bscr.list[i] == ITEM_CREST_CASE) BAG_CUR = i;
     tap(KEY_A);

@@ -184,7 +184,6 @@ static void start_card_draw(void)
 
 /* ---------------- the CREST CASE (key item) ---------------- */
 
-static const char *const CREST_NAMES[CREST_COUNT] = { "VOLT", "TIDE", "ANVIL", "RIME", "LANTERN", "DREAM" };
 static const char *const CREST_GIVES[CREST_COUNT] = {
     "LIGHT: a brighter circle in the dark",
     "SURF: cross open water",
@@ -258,7 +257,7 @@ static void crest_case_update(void)
 
 /* The CREST CASE screen (KEY_CREST_CASE). Opened from the bag it goes back
  * to the bag; from anywhere else, back to the field. */
-MAYBE_UNUSED static void crest_case_open(void)
+static void crest_case_open(void)
 {
     crest_case.back_mode = game_mode;
     crest_case.cursor = 0;
@@ -323,14 +322,6 @@ static void start_menu_update(void)
     case SM_LORE: lorebook_open(); break;
     case SM_KIN: party_screen_open(PCTX_FIELD, 0); break;
     case SM_BAG: bag_screen_open(BAGCTX_FIELD); break;
-    case SM_MAP:
-        start_menu_close();
-        worldmap_open(0);
-        break;
-    case SM_FIELD:
-        start_menu_close();
-        travel_field_menu_open();
-        break;
     case SM_SHELF: pc_open_from_menu(); break;
     case SM_MAP:
         worldmap_open(0);
@@ -1218,10 +1209,6 @@ static void bag_use(int item)
             return;
         }
         party_screen_open(PCTX_ITEM_BATTLE, item);
-        return;
-    }
-    if (k == IK_HUSH || k == IK_KEY) {   /* key items need no kin (travel.c, farm.c...) */
-        bag_hush(item);
         return;
     }
     if (k == IK_LANTERN || k == IK_XSTAT) {

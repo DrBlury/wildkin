@@ -343,7 +343,7 @@ int main(void)
 
     /* ---- crest case ---- */
     crest_case_open();
-    CHECK(game_mode == MODE_EXT && ext.update == cc_update, "the crest case opens");
+    CHECK(game_mode == MODE_EXT && ext.update == crest_case_update, "the crest case opens");
     step(0);
     tap(KEY_B);
     CHECK(game_mode == MODE_FIELD, "and closes");
@@ -372,7 +372,7 @@ int main(void)
         has_map |= start_items[i] == SM_MAP;
         has_field |= start_items[i] == SM_FIELD;
     }
-    CHECK(has_map && has_field && start_count <= 10, "START shows MAP and FIELD and still fits");
+    CHECK(has_map && has_field, "START shows MAP and FIELD (the menu scrolls)");
 
     /* ---- save round trip ---- */
     enter(MAP_TT_HALL, 9, 14, DIR_UP);

@@ -1390,45 +1390,8 @@ static void worldmap_open(int fly)
 /*  The crest case                                                  */
 /* ================================================================ */
 
-static void cc_update(void)
-{
-    if (key_hit(KEY_A) || key_hit(KEY_B) || key_hit(KEY_START)) {
-        sfx_play(SFX_CANCEL);
-        field_return();
-    }
-}
-
-static void cc_draw(void)
-{
-    for (int c = 0; c < CREST_COUNT; c++) {
-        int cx = 40 + (c % 3) * 80, cy = 30 + (c / 3) * 60;
-        int f = travel_has_crest(c) ? c : 6;
-        spr_push(cx - 16, cy, OT_TT(0) + f * 16, SQ32, OBANK_CREST, 0, 0);
-    }
-}
-
-static void crest_case_open(void)
-{
-    char buf[40];
-    screen_begin(0);
-    travel_dark_off();
-    copy32(VRAM_OBJ_TILES + OT_TT(0) * 8, travel_crest_gfx, 7 * 16 * 8);
-    load_pal(obj_palette + OBANK_CREST * 16, travel_crest_palette);
-    canvas_window(0, 0, CANVAS_COLS, 3, WIN_STD);
-    text_draw_col(12, 4, "CREST CASE", INK_BLUE, INK_BLUE_SH);
-    buf[0] = 0;
-    str_put_int(buf, travel_crest_count());
-    str_put(buf, " of 6");
-    text_draw_right(228, 4, buf);
-    canvas_window(0, 3, CANVAS_COLS, 17, WIN_STD);
-    static const char *const GIVES[CREST_COUNT] = { "LIGHT", "SURF", "STRENGTH", "FLY", "OSSUARY", "TELEPORT" };
-    for (int c = 0; c < CREST_COUNT; c++) {
-        int cx = 40 + (c % 3) * 80, cy = 30 + (c / 3) * 60;
-        text_draw_center(cx, cy + 32, CREST_NAMES[c]);
-        if (travel_has_crest(c)) small_text_draw(cx - small_text_width(GIVES[c]) / 2, cy + 46, GIVES[c]);
-    }
-    ext_open(cc_update, cc_draw, 0);
-}
+/* The CREST CASE screen lives in menu.c (UI). */
+static void crest_case_open(void);
 
 /* ================================================================ */
 /*  The FIELD menu (START -> FIELD)                                 */

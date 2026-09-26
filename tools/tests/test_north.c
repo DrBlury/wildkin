@@ -213,6 +213,12 @@ static void test_whitecrown(void)
         flood_block(sx, sy, bx, by);
         if (!bseen[by * map_w + px]) break;            /* can't get behind it */
         if (!cell_walkable(bx - 1, by)) break;         /* stuck */
+        int bi = boulder_at(bx, by);                   /* move traversal's boulder too */
+        if (bi >= 0) {
+            tobj[bi].x = (u8)(bx - 1);
+            grid_cell(bx, by);
+            grid_cell(bx - 1, by);
+        }
         bx--;
         pushes++;
         flood_block(sx, sy, bx, by);
