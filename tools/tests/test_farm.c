@@ -34,7 +34,9 @@ static void use_on(int pi, int tool_item)
 static void new_day(void)
 {
     gtime.weather = WEATHER_CLEAR;
+    time_weather_fixed = 1;   /* no rain: it would water the plots */
     time_new_day();
+    time_weather_fixed = 0;
     gtime.weather = WEATHER_CLEAR;
     dialog_clear();
 }

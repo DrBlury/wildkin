@@ -80,8 +80,11 @@ static int time_raining_here(void)
 }
 
 /* Today's weather: dry spells make rain likelier (about 1 day in 4). */
+static u8 time_weather_fixed;   /* set: the weather stays as it is (tests, scripted days) */
+
 static void time_roll_weather(void)
 {
+    if (time_weather_fixed) return;
     if (gtime.day <= 2) {   /* the first days are always clear */
         gtime.weather = WEATHER_CLEAR;
         return;
