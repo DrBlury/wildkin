@@ -1142,6 +1142,16 @@ static void voyage_land(void)
 
 static void voyage_update(void)
 {
+    if (voy.t == 0) {
+        /* drawn here: a dialog callback that started the trip clears the
+         * message rows when it returns */
+        char msg[64];
+        canvas_window(0, 17, CANVAS_COLS, 3, WIN_STD);
+        str_copy(msg, "Sailing to ");
+        str_put(msg, MAPS[voy.map].name);
+        str_put(msg, "...");
+        text_draw_center(120, 140, msg);
+    }
     voy.t++;
     if (voy.t > 24 && voy.t < VOY_END - 16 && (key_hit(KEY_A) || key_hit(KEY_B))) voy.t = VOY_END - 16;
     if (voy.t < 16) set_brightness(-(16 - voy.t));
@@ -1174,7 +1184,6 @@ static void voyage_present(void)
 static void boat_ride(int map, int x, int y)
 {
     if (map < 0 || map >= MAP_COUNT) return;
-    char msg[64];
     voy.t = 0;
     voy.map = map;
     voy.x = x;
@@ -1193,11 +1202,6 @@ static void boat_ride(int map, int x, int y)
     REG_BG0HOFS = REG_BG0VOFS = 0;
     REG_DISPCNT = DCNT_MODE0 | DCNT_BG0 | DCNT_BG1 | DCNT_OBJ | DCNT_OBJ_1D;
     set_brightness(-16);
-    canvas_window(0, 17, CANVAS_COLS, 3, WIN_STD);
-    str_copy(msg, "Sailing to ");
-    str_put(msg, MAPS[map].name);
-    str_put(msg, "...");
-    text_draw_center(120, 140, msg);
     ext_open(voyage_update, voyage_draw, voyage_present);
 }
 
