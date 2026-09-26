@@ -327,8 +327,11 @@ int main(void)
     CHECK(map_spot(MAP_TOWN) == WM_MAPLE && map_spot(MAP_REST) == WM_MAPLE, "interiors sit on their town's spot");
 
     /* ---- TELEPORT and WAYSTONE ---- */
+    travel.last_hearth = MAP_COUNT;   /* nothing yet */
     enter(MAP_REST, 5, 8, DIR_UP);
-    CHECK(travel.last_hearth == MAP_REST, "a Hearth Hall becomes the teleport target");
+    CHECK(travel.last_hearth != MAP_REST, "walking into a Hearth Hall alone sets nothing");
+    hearth_rest();
+    CHECK(travel.last_hearth == MAP_REST, "resting in a Hearth Hall makes it the teleport / respawn target");
     enter(MAP_TT_SHORE, 3, 12, DIR_DOWN);
     bag[ITEM_WAYSTONE] = 1;
     CHECK(travel_use_item(ITEM_WAYSTONE) && bag[ITEM_WAYSTONE] == 0, "a WAYSTONE is used up");
@@ -381,7 +384,7 @@ int main(void)
     memset(sram, 0xFF, sizeof(sram));
     CHECK(save_write_to(sram), "the game saves");
     travel_reset();
-    CHECK(save_load_from(sram) == 4 && !memcmp(&keep, &travel, sizeof(travel)), "crests, visits and puzzles come back");
+    CHECK(save_load_from(sram) == SAVE_VERSION && !memcmp(&keep, &travel, sizeof(travel)), "crests, visits and puzzles come back");
     CHECK(!(cell_attr(4, 6) & A_SOLID), "the solved gate is still open after loading");
     enter(MAP_TT_SHORE, 6, 6, DIR_RIGHT);
     save_write_to(sram);

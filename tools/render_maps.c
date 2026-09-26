@@ -8,10 +8,13 @@
  *   cc -O2 -o build/render_maps tools/render_maps.c -lz
  *   build/render_maps OUTDIR [--scale N] [--levels] [NAME_OR_ID ...]
  *
- * With no names every map is written as OUTDIR/<name>.png (lower case, '_'
- * for spaces; the map id is appended when two maps share a name). A name
- * matches maps whose file name contains it. --levels prints each cell's
- * elevation (ground height, deck, stairs) over the picture.
+ * With no names every map (but the asset viewers) is written as
+ * OUTDIR/<id>_<name>.png (e.g. 00_maple_village.png); a name selects the
+ * maps whose file name contains it. A lone digit after OUTDIR is the scale
+ * (as make_media.py passes it). --levels prints each cell's elevation
+ * (ground height; deck / stairs top) over the picture: white ground, red
+ * cliff faces and ledges, green stairs, blue decks and tunnels, magenta
+ * hidden passages.
  *
  * tools/render_maps.py (make maps) builds and runs this.
  */
@@ -206,22 +209,17 @@ static int write_png(const char *path, int scale)
     return 1;
 }
 
+/* OUTDIR/<id>_<name>.png: the id (two digits at least), then the name in
+ * lower case with '_' for anything but letters and digits. */
 static void file_name(int m, char *out, int n)
 {
-    int k = 0;
-    for (const char *s = MAPS[m].name; *s && k < n - 8; s++) {
+    int k = snprintf(out, (size_t)n, "%02d_", m);
+    for (const char *s = MAPS[m].name; *s && k < n - 1; s++) {
         char c = *s;
-        if (c >= 'A' && c <= 'Z') c = (char)(c - 'A' + 'a');
-        if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) out[k++] = c;
-        else if (k && out[k - 1] != '_') out[k++] = '_';
+        out[k++] = (c >= 'A' && c <= 'Z') ? (char)(c - 'A' + 'a')
+                 : ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) ? c : '_';
     }
-    while (k && out[k - 1] == '_') k--;
     out[k] = 0;
-    for (int o = 0; o < m; o++)
-        if (!strcmp(MAPS[o].name, MAPS[m].name)) {
-            snprintf(out + k, (size_t)(n - k), "_%d", m);
-            break;
-        }
 }
 
 int main(int argc, char **argv)
@@ -237,6 +235,7 @@ int main(int argc, char **argv)
     for (int i = 2; i < argc; i++) {
         if (!strcmp(argv[i], "--scale") && i + 1 < argc) scale = atoi(argv[++i]);
         else if (!strcmp(argv[i], "--levels")) levels = 1;
+        else if (i == 2 && argv[i][0] >= '1' && argv[i][0] <= '9' && !argv[i][1]) scale = atoi(argv[i]);
         else if (nwant < 64) want[nwant++] = argv[i];
     }
     if (scale < 1) scale = 1;
@@ -251,7 +250,7 @@ int main(int argc, char **argv)
     for (int m = 0; m < MAP_COUNT; m++) {
         char name[96], path[512];
         file_name(m, name, sizeof(name));
-        int ok = !nwant;
+        int ok = !nwant && !(MAPS[m].flags & MF_DEBUG);   /* the asset viewers only by name */
         for (int i = 0; i < nwant; i++)
             if (strstr(name, want[i]) || (want[i][0] >= '0' && want[i][0] <= '9' && atoi(want[i]) == m))
                 ok = 1;

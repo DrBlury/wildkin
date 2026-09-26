@@ -181,7 +181,7 @@ static void relearn_pick_kin(int c)
     if (c != 0) return;
     int n = 0;
     for (int i = 0; i < party_count; i++) {
-        str_copy(names[i], SPECIES[party[i].species].name);
+        str_copy(names[i], kin_name(&party[i]));
         kin[n++] = names[i];
     }
     kin[n++] = "CANCEL";
@@ -386,8 +386,10 @@ static void shop_answer(int c)
 
 static const char *const HEARTH_MENU[3] = { "REST", "CHAT", "NO THANKS" };
 
+/* Resting in a Hearth Hall also makes it the respawn point. */
 static void hearth_rest(void)
 {
+    if (MAPS[cur_map].flags & MF_HEAL) travel.last_hearth = (u8)cur_map;
     party_heal_all();
     sfx_play(SFX_HEAL);
     follower_reset();
@@ -645,7 +647,7 @@ static void follower_talk(void)
     if (lead < 0) return;
     const Monster *m = &party[lead];
     char msg[96];
-    str_copy(msg, SPECIES[m->species].name);
+    str_copy(msg, kin_name(m));
     if (m->bond >= 220) {
         str_put(msg, " leans against you and glows warmly. It trusts you completely.");
         field_emote(-1, EMOTE_HAPPY, 50);
@@ -662,12 +664,9 @@ static void follower_talk(void)
     dlg_say(msg);
 }
 
-static const char *const PC_MENU[3] = { "WITHDRAW", "DEPOSIT", "CANCEL" };
-
 static void pc_answer(int c)
 {
     if (c == 0) pc_open(0);
-    else if (c == 1) pc_open(1);
 }
 
 static void bed_answer(int c)
@@ -716,7 +715,7 @@ static int examine_cell(int x, int y)
         }
         return 0;
     case DK_PC:
-        dlg_ask("A LANTERN SHELF terminal. Its twin crystal glows softly. Which service?", PC_MENU, 3, pc_answer);
+        dlg_ask("A LANTERN SHELF terminal. Its twin crystal glows softly. Open the Shelf?", YES_NO, 2, pc_answer);
         return 1;
     case DK_BOOKSHELF:
         lore_reveal(book_source(), "It's packed with books about kin, weather and the old Kinship.");
@@ -898,7 +897,7 @@ static void edge_blocked(void)
 static void field_on_enter(void)
 {
     if (cur_map == MAP_RISE) lore_story(LORE_STORMSTONE_RISE);
-    if (cur_map == MAP_REST && opt.autosave && party_count) save_write();
+    if (cur_map == travel.last_hearth && opt.autosave && party_count) save_write();
     grim_on_enter();
 }
 
@@ -957,6 +956,7 @@ static void storm_update(void)
 static void field_update(void)
 {
     if (emote.timer > 0) emote.timer--;
+    if (travel_rune_update()) return;   /* the RUNESTONE's spell freezes the field */
     if (dialog_active()) {
         dialog_update();
         return;
@@ -1021,6 +1021,7 @@ static void new_game(void)
     step_counter = 0;
     evo_count = 0;
     lore_reset();
+    bag[ITEM_RUNESTONE] = 1;   /* always takes you home (travel.c) */
     follower.shown = 0;
     field_enter_map(MAP_HOME, 9, 3, DIR_DOWN);
 }

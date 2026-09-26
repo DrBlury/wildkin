@@ -3,7 +3,7 @@
  * host: one WAV per song plus level statistics, so the mix can be checked
  * without an emulator.
  *
- *   make songs                        (all songs -> build/music/*.wav)
+ *   make songs                        (all songs -> build/music/<title>.wav)
  *   build/render_music [-s SECONDS] [-o DIR] [SONG...]
  *
  * SONG is a name like VILLAGE (see src/music_data.h). By default a song

@@ -98,7 +98,7 @@ static void qlog_list_redraw(void)
         int k = qlog.scroll + r, q = qlog.ids[k];
         int y = 30 + r * 16;
         if (k == qlog.cursor) {
-            canvas_fill(14, y - 2, 212, 14, 7);
+            canvas_glow(14, y - 2, 212, 14);
             text_draw(15, y - 2, "{");
         }
         if (quest_stage_of(q) == 255) {

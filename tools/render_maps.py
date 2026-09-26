@@ -6,9 +6,9 @@ and runs it:
 
     python3 tools/render_maps.py OUTDIR [--scale N] [--levels] [NAME_OR_ID ...]
 
-With no names every map is written to OUTDIR/<map_name>.png; names select
-maps whose file name contains them (e.g. maple_village). --levels prints
-each cell's elevation over the picture (docs/ELEVATION.md).
+With no names every map is written to OUTDIR/<id>_<map_name>.png; names
+select maps whose file name contains them (e.g. maple_village). --levels
+prints each cell's elevation over the picture (docs/ELEVATION.md).
 """
 
 import os

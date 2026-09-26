@@ -380,6 +380,13 @@ static int worker_slot(const FarmWorker *w)
     return -1;
 }
 
+/* A worker's name: its Shelf kin's nickname, or its species. */
+static const char *worker_name(const FarmWorker *w)
+{
+    int s = worker_slot(w);
+    return s >= 0 ? box_name(&storage[s]) : SPECIES[w->species].name;
+}
+
 /* ================================================================ */
 /*  Cells: look and solidity                                        */
 /* ================================================================ */
@@ -1284,7 +1291,7 @@ static void wb_redraw(void)
             text_draw(20, y, buf);
             text_draw_col(36, y, JOB_NAMES[w->job], INK_BLUE, INK_BLUE_SH);
             if (w->job) {
-                str_copy(buf, SPECIES[w->species].name);
+                str_copy(buf, worker_name(w));
                 str_put(buf, " Lv");
                 str_put_int(buf, w->level);
                 text_draw(100, y, buf);
@@ -1315,7 +1322,7 @@ static void wb_redraw(void)
             continue;
         }
         const BoxMon *b = &storage[idx - 1];
-        str_copy(buf, SPECIES[b->species].name);
+        str_copy(buf, box_name(b));
         text_draw(20, y, buf);
         buf[0] = 0;
         str_put(buf, "Lv");
@@ -1774,7 +1781,7 @@ static int farm_worker_talk(int i)
 {
     const FarmWorker *w = &farm.workers[i];
     char msg[120];
-    str_copy(msg, SPECIES[w->species].name);
+    str_copy(msg, worker_name(w));
     switch (w->job) {
     case JOB_WATER: str_put(msg, " splashes water over the rows. It looks very pleased with itself."); break;
     case JOB_TEND: str_put(msg, " pats the soil around a sprout, very gently."); break;

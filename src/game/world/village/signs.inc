@@ -3,7 +3,7 @@
     { MAP_TOWN, 18, 2, "NORTH: WHISPER MEADOW\fSTORMSTONE RISE lies at the top of the meadow." },
     { MAP_TOWN, 2, 16, "WEST: MIRROR LAKE\fThe Almanac field station stands on the north shore." },
     { MAP_TOWN, 37, 16, "EAST: BRAMBLEWOOD\fMind the brambles. Mind the wisps." },
-    { MAP_TOWN, 26, 7, "ALMANAC HOUSE\fKeeper Linden records every kin, every season and every storm." },
+    { MAP_TOWN, 28, 7, "ALMANAC HOUSE\fKeeper Linden records every kin, every season and every storm." },
     { MAP_TOWN, 8, 26, "HEARTH HALL\fRest your kin by the hearth. Free, as it has always been." },
     { MAP_TOWN, 16, 25, "MAPLE SHOP\fLanterns, tonics, tuning forks and shards." },
     { MAP_TOWN, 23, 16, "BOUT RING\fWarden Marlo takes on all comers!" },

@@ -193,6 +193,16 @@ static void canvas_window(int cx, int cy, int cw, int ch, int style)
     canvas_set_banks(cx, cy, cw, ch, style == WIN_BATTLE ? BANK_UI_BATTLE : BANK_UI_STD);
 }
 
+/* Selection glow: a lantern-amber bar with softened ends and a pale top
+ * rim (colour 7, rim 14 in banks 15 and 14); replaces a flat highlight. */
+static void canvas_glow(int x, int y, int w, int h)
+{
+    canvas_fill(x + 1, y, w - 2, h, 7);
+    canvas_fill(x, y + 1, 1, h - 2, 7);
+    canvas_fill(x + w - 1, y + 1, 1, h - 2, 7);
+    canvas_fill(x + 2, y, w - 4, 1, 14);
+}
+
 /* Paper-fill the inside of a window (cells), keeping the frame. */
 static void canvas_window_clear(int cx, int cy, int cw, int ch)
 {
@@ -220,6 +230,8 @@ static void canvas_backdrop(int pattern)
 #define INK_GREEN  12
 #define INK_GREEN_SH 13
 #define LINE_H     16
+/* The '{' cursor glyph is drawn as a crimson rune rather than in ink. */
+#define CURSOR_CH  '{'
 
 static void glyph_rows(int x, int y, const u8 *bits, int rows, int ink, int shadow)
 {
@@ -280,7 +292,10 @@ static int text_draw_col(int x, int y, const char *s, int ink, int shadow)
             continue;
         }
         int g = glyph_index(*s);
-        if (*s != ' ') glyph_rows(x, y, font_bits[g], FONT_HEIGHT, ink, shadow);
+        if (*s == CURSOR_CH && ink == INK_DARK)
+            glyph_rows(x, y, font_bits[g], FONT_HEIGHT, INK_RED, INK_SHADOW);
+        else if (*s != ' ')
+            glyph_rows(x, y, font_bits[g], FONT_HEIGHT, ink, shadow);
         x += font_width[g];
     }
     canvas_mark_px(top, y + FONT_HEIGHT + 1);
@@ -386,7 +401,14 @@ static void text_wrap(char *dst, const char *src, int max_w)
 
 /* ---------------- bars, badges, icons ---------------- */
 
-/* HP bar: 3 px tall, colors from the HUD palette by remaining fraction. */
+/* Notches every 8 px split a vitality bar into segments. */
+static void bar_segments(int x, int y, int w, int h)
+{
+    for (int i = 7; i < w - 1; i += 8) canvas_fill(x + i, y, 1, h, 15);
+}
+
+/* Vitality bar: 3 px tall and segmented; colours from the HUD palette by
+ * the remaining fraction (teal, amber, crimson). */
 static void draw_hp_bar(int x, int y, int w, int cur, int max)
 {
     int px = max > 0 ? (cur * w + max - 1) / max : 0;
@@ -400,6 +422,7 @@ static void draw_hp_bar(int x, int y, int w, int cur, int max)
         canvas_fill(x, y, px, 1, shade);
         canvas_fill(x, y + 1, px, 2, light);
     }
+    bar_segments(x, y, w, 3);
 }
 
 /* HP bar inside a standard window: its cells switch to the bar palette. */
@@ -441,6 +464,7 @@ static void draw_item_icon(int cx, int cy, int item)
 {
     int icon = item_icon_index(item);
     for (int i = 0; i < 16; i++) bg_palette[BANK_ITEM_ICON * 16 + i] = item_icon_pal[icon][i];
+    bg_palette[BANK_ITEM_ICON * 16 + 1] = ui_pal_std[1]; /* sit on the page */
     canvas_image(cx, cy, 3, 3, item_icon_gfx[icon], 1, BANK_ITEM_ICON);
 }
 

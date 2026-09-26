@@ -17,7 +17,8 @@
  *
  * Legends: route maps use the wild tileset (. grass  , tall grass  = path
  * ~ water  T/t trees  P/p pines  C/c cliff  L [ ] ledges  d dirt  f forest
- * floor  R reeds); Lumen uses the city tileset (tools/tilesets/ts_city.py:
+ * floor  R reeds  w flowering tall grass  g golden tall grass -- tools/grass.py);
+ * Lumen uses the city tileset (tools/tilesets/ts_city.py:
  * . pavement  = street  ~ canal  c cobbles  p plaza  g lawn  , park grass
  * r/y flowers  T/t trees  # w city wall); interiors use W w n k walls,
  * . : floors, < = > counter, D exit mat.
@@ -37,12 +38,12 @@ static const char *const COPPERLINE_ROWS[] = {
     "PPPPPPPPPPPP..CCCCCCCCCCCCCCCCCCCCC.,,,,,,PP", /*  6 */
     "pppppppppppp..ccccccccccccccccccccc.,,,,,,pp", /*  7 */
     "PP............ccccccccccccccccccccc.,,,,,,PP", /*  8 */
-    "pp,,,,,,,,,,,,..dddddddddddddddddd..,,,,,,pp", /*  9 */
-    "PP,,,,,,,,,,,,..dddddddddddddddddd..,,,,,,PP", /* 10 */
-    "pp,,,,,,,,,,,,..dddddddddddddddddd..,,,,,,pp", /* 11 */
-    "PP,,,,,,,,,,,,..dddddddddddddddddd..,,,,,,PP", /* 12 */
-    "pp,,,,,,,,,,,,..dddddddddddddddddd..,,,,,,pp", /* 13 */
-    "PP,,,,,,,,,,,,..dddddddddddddddddd..,,,,,,PP", /* 14 */
+    "pp,,,ggggggg,,..dddddddddddddddddd..,,,,,,pp", /*  9 */
+    "PP,gggggggggg,..dddddddddddddddddd..,,,,,,PP", /* 10 */
+    "ppgggggggggggg..dddddddddddddddddd..,,,,,,pp", /* 11 */
+    "PPgggggggggg,,..dddddddddddddddddd..,,,,,,PP", /* 12 */
+    "pp,ggggggg,,,,..dddddddddddddddddd..,,,,,,pp", /* 13 */
+    "PP,,,ggg,,,,,,..dddddddddddddddddd..,,,,,,PP", /* 14 */
     "pp..................==...............rrr..pp", /* 15 */
     "PP..................==....................PP", /* 16 */
     "==================================........pp", /* 17 */
@@ -246,9 +247,9 @@ static const char *const ELDERWOOD_ROWS[] = {
     "ppppppppppff..............ffffffffffffpp", /* 19 */
     "PPffffffffff...........rr.f,,,,,,,,,,,PP", /* 20 */
     "ppfRRRRRRRff..............f,,,,,,,,,,,pp", /* 21 */
-    "PPfR~~~~~Rffy.............f,,,,,,,,,,,PP", /* 22 */
-    "ppfR~~~~~Rff..............f,,,,,,,,,,,pp", /* 23 */
-    "PPfR~~~~~Rff..............f,,,,,,,,,,,PP", /* 24 */
+    "PPfR~~~~~Rffy.............f,,,www,,,,,PP", /* 22 */
+    "ppfR~~~~~Rff..............f,,wwwww,,,,pp", /* 23 */
+    "PPfR~~~~~Rff..............f,,,wwww,,,,PP", /* 24 */
     "ppfR~~~~~Rff..............f,,,,,,,,,,,pp", /* 25 */
     "PPfR~~~~~Rff..............f,,,,,,,,,,,PP", /* 26 */
     "ppfR~~~~~Rff.............rf,,,,,,,,,,,pp", /* 27 */

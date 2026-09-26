@@ -354,13 +354,13 @@ int main(void)
     memset(sram, 0xFF, sizeof(sram));
     CHECK(save_write_to(sram), "save on the deck");
     player.level = 0;
-    CHECK(save_load_from(sram) == 4 && at(13, 9, 1), "loading puts you back on the deck (level 1)");
+    CHECK(save_load_from(sram) == SAVE_VERSION && at(13, 9, 1), "loading puts you back on the deck (level 1)");
     enter(MAP_EV_TEST, 13, 8, DIR_DOWN);
     go(DIR_DOWN);
     CHECK(at(13, 9, 0), "stand under the deck");
     save_write_to(sram);
     player.level = 1;
-    CHECK(save_load_from(sram) == 4 && at(13, 9, 0), "loading puts you back under it (level 0)");
+    CHECK(save_load_from(sram) == SAVE_VERSION && at(13, 9, 0), "loading puts you back under it (level 0)");
     static SaveData old;
     save_capture(&old);
     old.level = 0;               /* a save from before elevation */

@@ -709,6 +709,7 @@ def lab():
 import decor_outdoor
 import decor_indoor
 import terrain_wild
+import grass
 
 
 def register_colors(extra):
@@ -918,6 +919,7 @@ def finish_tileset(out, name, tag, attrs, ground, overlay, legend, oob, default_
     elev:    None (no elevation art) or a colour-role mapping for
              tools/elevation.py ({} = the town colour names; docs/ELEVATION.md)
     """
+    grass.install(sys.modules[__name__], out, name, attrs, legend)  # tall grass (tools/grass.py)
     ids = {n: i for i, n in enumerate(out['terrain'])}
     for (sname, sid, cw, chh, doc) in out['stamps']:
         ids[sname] = sid
@@ -2782,6 +2784,7 @@ def write_header(sets, dec, chars, item, emotes, path):
         A('/* ================================================================ */')
         emit_tileset(o, sets[sname], sets[sname].get('docs', DOCS.get(sname, {})))
     emit_tileset_table(o, sets)
+    grass.emit(o, sets, TS_NAMES, pack4, fmt_u32)
     # ---------------- decor
     kinds = dec['kinds']
     A('/* ================================================================ */')

@@ -68,7 +68,9 @@ static void test_items(void)
     for (int i = 0; i < ITEM_COUNT; i++) {
         if (item_icon_index(i) != ITEMS[i].icon) ok = 0;
         draw_item_icon(1, 15, i);
-        if (bg_palette[BANK_ITEM_ICON * 16 + 1] != item_icon_pal[ITEMS[i].icon][1]) ok = 0;
+        for (int c = 2; c < 16; c++)
+            if (bg_palette[BANK_ITEM_ICON * 16 + c] != item_icon_pal[ITEMS[i].icon][c]) ok = 0;
+        if (bg_palette[BANK_ITEM_ICON * 16 + 1] != ui_pal_std[1]) ok = 0; /* the page's paper */
     }
     CHECK(ok, "draw_item_icon uses each item's own icon (no out-of-bounds read)");
     CHECK(item_battle_usable(item_of_kind(IK_HEAL_CURE)) && item_battle_usable(item_of_kind(IK_TEA_ALL)) &&
@@ -292,29 +294,52 @@ static void test_shelf(void)
     tap(KEY_LEFT);
     CHECK(pc.page == SHELF_PAGES - 1, "and the pages wrap");
 
-    /* deposit goes to the box last viewed */
+    /* MOVE from the team onto the Shelf */
     opt.shelf_box = 2;
     pc_set_page(0);
     pc.cursor = 3;
     pc_redraw();
     int sp = party[3].species;
     tap(KEY_A);
-    choice.cursor = 1; /* DEPOSIT */
+    CHECK(pc.act_n == 4 && pc.act_id[0] == SHA_SUMMARY && pc.act_id[1] == SHA_MOVE && pc.act_id[2] == SHA_NAME,
+          "the team page offers SUMMARY, MOVE and NAME (no DEPOSIT / WITHDRAW)");
+    choice.cursor = 1; /* MOVE */
     tap(KEY_A);
-    run_until_idle(pc_busy, 300);
-    CHECK(party_count == 3 && storage_box_count(2) == 11 &&
+    CHECK(pc.moving && pc.move_team, "MOVE picks a team kin up");
+    tap(KEY_RIGHT);
+    tap(KEY_RIGHT);
+    tap(KEY_RIGHT);
+    CHECK(pc.page == 3 && pc_rows() == 11, "carried kin can go to any box");
+    pc.cursor = 10;
+    tap(KEY_A);
+    CHECK(!pc.moving && party_count == 3 && storage_box_count(2) == 11 &&
               storage[storage_box_start(2) + 10].species == sp,
-          "DEPOSIT puts the kin at the end of the box last viewed");
+          "putting a team kin down in a box sends it to the Shelf");
 
-    /* withdraw */
-    pc_set_page(3);
+    /* and MOVE brings it back to the team */
     pc.cursor = 10;
     pc_redraw();
     tap(KEY_A);
-    choice.cursor = 1; /* WITHDRAW */
+    choice.cursor = 1; /* MOVE */
     tap(KEY_A);
-    run_until_idle(pc_busy, 300);
-    CHECK(party_count == 4 && party[3].species == sp && storage_count == 70, "WITHDRAW brings it back");
+    tap(KEY_LEFT);
+    tap(KEY_LEFT);
+    tap(KEY_LEFT);
+    CHECK(pc.page == 0 && pc_rows() == 4, "the team page shows a spot at the end");
+    pc.cursor = 3;
+    tap(KEY_A);
+    CHECK(party_count == 4 && party[3].species == sp && storage_count == 70, "putting it on the team brings it along");
+
+    /* reorder the team */
+    int lead = party[0].species;
+    pc.cursor = 0;
+    pc_redraw();
+    tap(KEY_A);
+    choice.cursor = 1;
+    tap(KEY_A);
+    pc.cursor = 4;
+    tap(KEY_A);
+    CHECK(party_count == 4 && party[3].species == lead && party[2].species == sp, "MOVE reorders the team");
 
     /* move a kin from box 1 to the end of box 3 */
     pc_set_page(1);
@@ -322,7 +347,7 @@ static void test_shelf(void)
     pc_redraw();
     int moved = storage[0].species;
     tap(KEY_A);
-    choice.cursor = 2; /* MOVE */
+    choice.cursor = 1; /* MOVE */
     tap(KEY_A);
     CHECK(pc.moving, "MOVE picks the kin up");
     tap(KEY_RIGHT);
@@ -337,7 +362,7 @@ static void test_shelf(void)
     pc_set_page(3);
     pc.cursor = 0;
     tap(KEY_A);
-    choice.cursor = 2;
+    choice.cursor = 1;
     tap(KEY_A);
     tap(KEY_LEFT);
     pc.cursor = 0;
@@ -442,7 +467,7 @@ static void test_shelf(void)
     opt.registered = ITEM_HOE + 1;
     save_write_to(sram);
     new_game();
-    CHECK(save_load_from(sram) == 4 && storage_box_count(1) == b2 && opt.registered == ITEM_HOE + 1,
+    CHECK(save_load_from(sram) == SAVE_VERSION && storage_box_count(1) == b2 && opt.registered == ITEM_HOE + 1,
           "boxes and the registered item survive a save");
     opt.registered = 0;
 }

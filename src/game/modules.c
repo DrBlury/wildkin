@@ -24,7 +24,7 @@ static void modules_validate(void)
 
 /* KEY item params (items/key.inc) and who handles them. */
 enum { KEY_BIKE, KEY_WATERING_CAN, KEY_HOE, KEY_FARM_DEED, KEY_FERRY_PASS, KEY_TOWN_MAP,
-       KEY_CREST_CASE, KEY_RECIPE_BOOK, KEY_ENERGY_FLASK };
+       KEY_CREST_CASE, KEY_RECIPE_BOOK, KEY_ENERGY_FLASK, KEY_RUNESTONE };
 
 static int key_item_use(int key)
 {
@@ -33,6 +33,6 @@ static int key_item_use(int key)
     case KEY_RECIPE_BOOK: return craft_key_use(key);
     case KEY_ENERGY_FLASK: return fusion_key_use(key);
     case KEY_CREST_CASE: crest_case_open(); return 1;   /* menu.c */
-    default: return travel_key_use(key);
+    default: return travel_key_use(key);   /* BIKE, FERRY PASS, TOWN MAP, RUNESTONE */
     }
 }

@@ -27,14 +27,14 @@
  * Field OBJ VRAM while traversal runs (docs/EXPANSION.md 10.3):
  *   256-335 16x32 objects   336-367 banner (voyage: the boat)
  *   384-399 the bike        640-691 16x16 objects   692-751 16x16 effects
- *   752-765 8x8 particles
+ *   752-765 8x8 particles   400-491 the RUNESTONE spell (while it plays)
  */
 
 typedef struct {
     u8 visited[16];     /* maps you have been to (fly points), bit per map */
     u8 crests;          /* bit per Hall crest (CREST_*) */
     u8 biking, surfing;
-    u8 last_hearth;     /* map of the last Hearth Hall (teleport / WAYSTONE) */
+    u8 last_hearth;     /* Hearth Hall the party last rested in (respawn / teleport / WAYSTONE) */
     u8 puzzle[16];      /* solved gates, opened chests, answered legends */
     u8 lure_lo, lure_hi;/* LURE INCENSE steps left */
     u8 mount;           /* species that carries you while surfing */
@@ -91,6 +91,7 @@ static void travel_validate(void)
     travel.surfing &= 1;   /* re-derived from the player's cell every frame */
     if (travel.mount >= SP_COUNT) travel.mount = 0;
     travel.crests &= (1u << CREST_COUNT) - 1;
+    if (bag[ITEM_RUNESTONE] <= 0) bag[ITEM_RUNESTONE] = 1;   /* saves from before the RUNESTONE get one */
 }
 
 /* ---- entry points other modules call ---- */
@@ -155,7 +156,7 @@ static struct {
     int ask_obj;
 } tv = { .banner_map = -1, .ask_obj = -1 };
 
-enum { PEND_NONE, PEND_TELEPORT, PEND_FLY, PEND_MAP };
+enum { PEND_NONE, PEND_TELEPORT, PEND_FLY, PEND_MAP, PEND_HOME };
 
 #define LEGEND_MAX 4
 static KinActor legend_kin[LEGEND_MAX];
@@ -620,7 +621,7 @@ static void surf_ask(void)
     static char msg[MSG_TEXT_MAX];
     int k = travel_ability_kin(AB_SURF);
     str_copy(msg, "The water is calm and deep blue. SURF on ");
-    str_put(msg, SPECIES[party[k].species].name);
+    str_put(msg, kin_name(&party[k]));
     str_put(msg, "?");
     dlg_ask(msg, YES_NO, 2, surf_answer);
 }
@@ -630,7 +631,7 @@ static void strength_use(void)
     char msg[MSG_TEXT_MAX];
     int k = travel_ability_kin(AB_STRENGTH);
     tv.strength_on = 1;
-    str_copy(msg, SPECIES[party[k].species].name);
+    str_copy(msg, kin_name(&party[k]));
     str_put(msg, " used STRENGTH! It can push heavy boulders now.");
     sfx_play(SFX_ROCK);
     dlg_say(msg);
@@ -646,7 +647,7 @@ static void light_use(void)
     char msg[MSG_TEXT_MAX];
     int k = travel_ability_kin(AB_LIGHT);
     tv.light_on = 1;
-    str_copy(msg, SPECIES[party[k].species].name);
+    str_copy(msg, kin_name(&party[k]));
     str_put(msg, " used LIGHT! Its glow pushes the dark back.");
     sfx_play(SFX_SPARKLE);
     dlg_say(msg);
@@ -683,6 +684,272 @@ static void travel_arrive(int map, int x, int y, int facing)
     warp.active = 1;
     warp.timer = 9;
     set_brightness(-16);
+}
+
+/* ================================================================ */
+/*  The RUNESTONE: spun home in a ring of runes                     */
+/* ================================================================ */
+
+/*
+ * Using the RUNESTONE (a KEY item, unlimited) sets PEND_HOME; once the
+ * player stands still the spell plays and the field is frozen:
+ *
+ *   charge (RUNE_CHARGE frames)  a magic circle opens under the feet
+ *       (an affine sprite turned in its plane, then squashed flat), eight
+ *       runes appear one by one and orbit on an ellipse (bright in front
+ *       of the player, dim behind), the ring shrinks, rises and speeds up
+ *       while the player spins on the spot and floats, sparkles rise; at
+ *       the end a column of light engulfs the player and the screen burns
+ *       white.
+ *   arrive (RUNE_ARRIVE frames)  at home (MAP_HOME 9,3 facing down) the
+ *       screen fades back from white while the circle and the runes burst
+ *       outward and the player settles.
+ *
+ * OBJ tiles RUNE_OT.. (400-491, unused in the field) hold the art; OBJ
+ * bank 15 (the fx bank) shows travel_rune_palette while the spell plays (it
+ * keeps the emote colours) and gets travel_fx_palette back afterwards.
+ */
+
+#define RUNE_OT       400
+#define RUNE_CHARGE   104
+#define RUNE_ARRIVE   44
+#define RUNE_SPARKS   20
+#define HOME_X        9
+#define HOME_Y        3
+
+typedef struct { s16 x, y, vx, vy; u8 life, max; } RuneSpark;   /* 1/16 px */
+
+static struct {
+    u8 active;          /* 0 idle, 1 charging, 2 arriving */
+    u8 t;
+    u32 seed;
+    RuneSpark spark[RUNE_SPARKS];
+} rune;
+
+MAYBE_UNUSED static int travel_rune_active(void) { return rune.active != 0; }
+
+static int rune_sin(int a) { return travel_sin[a & 255]; }
+static int rune_cos(int a) { return travel_sin[(a + 64) & 255]; }
+
+/* A private generator, so the spell never shifts the game's RNG. */
+static int rune_rand(int n)
+{
+    rune.seed = rune.seed * 1103515245u + 12345u;
+    return (int)((rune.seed >> 16) % (u32)n);
+}
+
+static void rune_load_gfx(void)
+{
+    copy32(VRAM_OBJ_TILES + RUNE_OT * 8, travel_rune_gfx, TR_TILE_COUNT * 8);
+    load_pal(obj_palette + OBANK_TFX * 16, travel_rune_palette);
+}
+
+/* Why the RUNESTONE will not work here, or 0 when it will. */
+static const char *runestone_refusal(void)
+{
+    if (MAPS[cur_map].flags & MF_DEBUG) return "The RUNESTONE stays silent here.";
+    if (cur_map == MAP_HOME) return "You're already home. The RUNESTONE hums softly.";
+    return 0;
+}
+
+static int runestone_use(void)
+{
+    const char *no = runestone_refusal();
+    if (no) {
+        dlg_say(no);
+        return 0;
+    }
+    if (rune.active || tv.pending) return 0;
+    tv.pending = PEND_HOME;
+    return 1;
+}
+
+static void rune_spark_add(int x, int y, int vx, int vy, int life)
+{
+    for (int i = 0; i < RUNE_SPARKS; i++) {
+        RuneSpark *s = &rune.spark[i];
+        if (s->life) continue;
+        *s = (RuneSpark){ (s16)x, (s16)y, (s16)vx, (s16)vy, (u8)life, (u8)life };
+        return;
+    }
+}
+
+static void rune_start(void)
+{
+    rune.active = 1;
+    rune.t = 0;
+    rune.seed = 0x52554E45u ^ (u32)(player.x * 977 + player.y * 131 + cur_map);
+    for (int i = 0; i < RUNE_SPARKS; i++) rune.spark[i].life = 0;
+    rune_load_gfx();
+    sfx_play(SFX_CHARGE);
+}
+
+/* The player's feet in world pixels (x centred). */
+static int rune_feet_x(void) { return player.x * 16 + player.ox + 8; }
+static int rune_feet_y(void) { return player.y * 16 + player.oy + 14; }
+
+static void rune_arrive(void)
+{
+    travel.surfing = 0;
+    travel.biking = 0;
+    field_enter_map(MAP_HOME, HOME_X, HOME_Y, DIR_DOWN);
+    rune_load_gfx();
+    set_brightness(16);
+    sfx_play(SFX_DREAM);
+    rune.active = 2;
+    rune.t = 0;
+    for (int i = 0; i < RUNE_SPARKS; i++) rune.spark[i].life = 0;
+    int fx = rune_feet_x() * 16, fy = (rune_feet_y() - 10) * 16;
+    for (int k = 0; k < 16; k++) {
+        int a = k * 16 + rune_rand(8), sp = 24 + rune_rand(16);
+        rune_spark_add(fx, fy, rune_cos(a) * sp / 256, rune_sin(a) * sp / 512 - 6, 22 + rune_rand(12));
+    }
+}
+
+static void rune_end(void)
+{
+    rune.active = 0;
+    set_brightness(0);
+    load_pal(obj_palette + OBANK_TFX * 16, travel_fx_palette);
+    player.facing = DIR_DOWN;
+}
+
+/* Brighten toward white; with `obj` 0 the sprites stay out of it, so the
+ * runes and the light keep burning while the world fades. */
+static void rune_glow(int level, int obj)
+{
+    if (level <= 0) {
+        set_brightness(0);
+        return;
+    }
+    REG_BLDCNT = (u16)((obj ? 0x3F : 0x2F) | 0x80);
+    REG_BLDY = (u16)clampi(level, 0, 16);
+}
+
+/* The ring's turn (256 = one turn): it keeps accelerating. */
+static int rune_angle(int t) { return 2 * t + t * t * t / 2400; }
+
+/* Once per field frame before anything else (script.c field_update).
+ * Returns 1 while the spell plays: input and the world are frozen. */
+static int travel_rune_update(void)
+{
+    static const u8 SPIN[4] = { DIR_RIGHT, DIR_DOWN, DIR_LEFT, DIR_UP };
+    if (!rune.active) return 0;
+    int t = ++rune.t;
+    for (int i = 0; i < RUNE_SPARKS; i++) {
+        RuneSpark *s = &rune.spark[i];
+        if (!s->life) continue;
+        s->life--;
+        s->x = (s16)(s->x + s->vx);
+        s->y = (s16)(s->y + s->vy);
+        if (rune.active == 2) s->vx = (s16)(s->vx * 15 / 16);
+    }
+    if (rune.active == 1) {
+        /* the player turns on the spot, faster and faster */
+        int period = t < 28 ? 12 : t < 52 ? 7 : t < 74 ? 4 : 2;
+        if (t % period == 0) {
+            int k = 0;
+            while (k < 4 && SPIN[k] != player.facing) k++;
+            player.facing = SPIN[(k + 1) & 3];
+        }
+        /* sparkles rise from the ring at the feet */
+        if (t % (t < 50 ? 4 : 2) == 0 && t < RUNE_CHARGE - 6) {
+            int a = rune_rand(256), rx = 18 + rune_rand(10);
+            int x = rune_feet_x() * 16 + rune_cos(a) * rx / 16;
+            int y = (rune_feet_y() - 2) * 16 + rune_sin(a) * rx * 3 / 128;
+            rune_spark_add(x, y, -rune_cos(a) / 64, -(10 + rune_rand(14)), 24 + rune_rand(14));
+        }
+        if (t == 36) sfx_play(SFX_SPARKLE);
+        if (t == 72) sfx_play(SFX_ASTRAL);
+        if (t >= RUNE_CHARGE - 26) rune_glow((t - (RUNE_CHARGE - 26)) * 16 / 22, t >= RUNE_CHARGE - 5);
+        if (t >= RUNE_CHARGE) rune_arrive();
+        return 1;
+    }
+    set_brightness(t < 26 ? 16 - t * 16 / 26 : 0);
+    if (t == 4) sfx_play(SFX_SPARKLE);
+    if (t >= RUNE_ARRIVE) rune_end();
+    return 1;
+}
+
+/* How high the player floats during the spell. */
+static int rune_lift(void)
+{
+    if (rune.active == 1) return rune.t < 40 ? 0 : clampi((rune.t - 40) / 6, 0, 7) + ((rune.t >> 3) & 1);
+    if (rune.active == 2) return rune.t < 14 ? 7 - rune.t / 2 : 0;
+    return 0;
+}
+
+/* A matrix that turns a flat image by `ang` in its own plane, then
+ * squashes it (sx, sy in 8.8): the ground circle seen at an angle. */
+static int rune_affine_flat(int sx, int sy, int ang)
+{
+    if (sx < 8) sx = 8;
+    if (sy < 8) sy = 8;
+    int s = rune_sin(ang), c = rune_cos(ang);
+    return oam_affine(c * 256 / sx, s * 256 / sy, -s * 256 / sx, c * 256 / sy);
+}
+
+static void rune_draw_ring(int cx, int cy, int rx, int ry, int base, int count, int glyph_shift)
+{
+    for (int i = 0; i < count; i++) {
+        int a = base + i * (256 / TR_RUNES);
+        int sn = rune_sin(a);
+        int x = cx + rune_cos(a) * rx / 256 - 8;
+        int y = cy + sn * ry / 256 - 8 + rune_sin(a * 3 + i * 40) * 2 / 256;
+        int g = (i + glyph_shift) % TR_RUNES;
+        if (sn >= 0)
+            spr_push(x, y, RUNE_OT + TR_FRONT + g * 4, SQ16, OBANK_TFX, 1, 0);
+        else
+            spr_push(x, y, RUNE_OT + TR_BACK + g * 4, SQ16, OBANK_TFX, 2, 0);
+    }
+}
+
+/* From travel_draw_floor, after the actors: prio-2 sprites pushed here sit
+ * behind the player, prio-1 ones in front. */
+static void rune_draw(void)
+{
+    if (!rune.active) return;
+    load_pal(obj_palette + OBANK_TFX * 16, travel_rune_palette);
+    int t = rune.t;
+    int cx = rune_feet_x() - cam_x, fy = rune_feet_y() - cam_y;
+    for (int i = 0; i < RUNE_SPARKS; i++) {
+        const RuneSpark *s = &rune.spark[i];
+        if (!s->life) continue;
+        int f = 3 - s->life * 4 / (s->max + 1);
+        spr_push(s->x / 16 - cam_x - 4, s->y / 16 - cam_y - 4, RUNE_OT + TR_SPARK + clampi(f, 0, 3), SQ8,
+                 OBANK_TFX, 1, 0);
+    }
+    if (rune.active == 1) {
+        int p = t * 256 / RUNE_CHARGE;                        /* 0..256 */
+        /* the column of light at the climax */
+        if (t >= RUNE_CHARGE - 34) {
+            int bw = clampi((t - (RUNE_CHARGE - 34)) * 256 / 16, 16, 256) + rune_sin(t * 16) * 24 / 256;
+            int aff = oam_affine(256 * 256 / bw, 0, 0, 256);
+            int prio = t >= RUNE_CHARGE - 10 ? 1 : 2;           /* behind the player, then over */
+            for (int y = fy - 30; y > -40; y -= 32)
+                spr_push_affine(cx - 8, y, RUNE_OT + TR_BEAM, TALL16x32, OBANK_TFX, prio, 0, aff, 1);
+        }
+        int count = clampi(t / 3 + 1, 0, TR_RUNES);
+        int rx = 34 - 22 * p * p / 65536, ry = rx * 3 / 8 + 2;
+        int cy = fy - 6 - 14 * p / 256;
+        if (t < RUNE_CHARGE - 10 || (t & 1)) rune_draw_ring(cx, cy, rx, ry, rune_angle(t), count, 0);
+        /* the circle on the ground: opens, breathes, spins up */
+        int grow = t < 18 ? t * 256 / 18 : 256;
+        int sc = grow * 400 / 256 + rune_sin(t * 6) * 18 / 256;
+        int aff = rune_affine_flat(sc, sc * 7 / 16, t * 2 + t * t / 90);
+        spr_push_affine(cx - 16, fy - 16, RUNE_OT + TR_CIRCLE, SQ32, OBANK_TFX, 2, 0, aff, 1);
+        return;
+    }
+    /* arriving: the runes and the circle burst outward and fade */
+    if (t < 22 && (t < 14 || (t & 1))) {
+        int rx = 10 + t * 4, ry = rx * 3 / 8 + 2;
+        rune_draw_ring(cx, fy - 20 + t / 2, rx, ry, rune_angle(RUNE_CHARGE) + t * 6, TR_RUNES, 3);
+    }
+    if (t < 30 && (t < 20 || (t & 1))) {
+        int sc = 256 + t * 256 / 30;
+        int aff = rune_affine_flat(sc, sc * 7 / 16, t * 5);
+        spr_push_affine(cx - 16, fy - 16, RUNE_OT + TR_CIRCLE, SQ32, OBANK_TFX, 2, 0, aff, 1);
+    }
 }
 
 /* ================================================================ */
@@ -822,7 +1089,6 @@ static void travel_dark_off(void)
 static void travel_map_entered(int map)
 {
     bit_set(travel.visited, map);
-    if (MAPS[map].flags & MF_HEAL) travel.last_hearth = (u8)map;
     travel.surfing = (cell_attr(player.x, player.y) & A_WATER) != 0;
     if (travel.surfing) {
         travel.biking = 0;
@@ -869,6 +1135,7 @@ static int travel_update(void)
         if (p == PEND_TELEPORT) teleport_go();
         if (p == PEND_FLY) worldmap_open(1);
         if (p == PEND_MAP) worldmap_open(0);
+        if (p == PEND_HOME) rune_start();
         return 1;
     }
     if (key_hit(KEY_R) && !player.moving && !(MAPS[cur_map].flags & MF_DEBUG)) {
@@ -893,6 +1160,7 @@ static int travel_player_entry(FieldSprite *e, int lift)
 /* Surfing: the player rides a little higher, bobbing on the kin's back. */
 static int travel_player_lift(void)
 {
+    if (rune.active) return rune_lift();
     if (!travel.surfing) return 0;
     return 5 + ((field_anim_frame >> 4) & 1);
 }
@@ -959,6 +1227,7 @@ static int travel_push_sprites(FieldSprite *list, int n, int max)
 /* Floor objects and effects: drawn after (under) everything else. */
 static void travel_draw_floor(void)
 {
+    rune_draw();
     for (int i = 0; i < tobj_count; i++) {
         const TObj *o = &tobj[i];
         int wx = o->x * 16, wy = o->y * 16, tile = -1;
@@ -1489,7 +1758,7 @@ static int travel_use_item(int item)
     return 0;
 }
 
-/* KEY items owned by traversal: BIKE, FERRY PASS, TOWN MAP, CREST CASE. */
+/* KEY items owned by traversal: BIKE, FERRY PASS, TOWN MAP, CREST CASE, RUNESTONE. */
 static int travel_key_use(int key)
 {
     if (key == ITEMS[ITEM_BIKE].param) return bike_toggle(0);
@@ -1501,6 +1770,7 @@ static int travel_key_use(int key)
         crest_case_open();
         return 1;
     }
+    if (key == ITEMS[ITEM_RUNESTONE].param) return runestone_use();
     if (key == ITEMS[ITEM_FERRY_PASS].param) {
         dlg_say("Show it at any ferry post to sail for free.");
         return 0;

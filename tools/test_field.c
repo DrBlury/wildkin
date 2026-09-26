@@ -238,8 +238,18 @@ static void test_maps(void)
         for (int q = 0; q < 4; q++)
             if ((interior_meta_bottom[m][q] & 0x3FF) >= INTERIOR_TILE_COUNT) tiles_ok = 0;
     CHECK(tiles_ok, "terrain metatiles point at real tiles");
-    CHECK(town_meta_top[MT_T_TALLGRASS][2] != 0 && wild_meta_top[MT_W_REEDS][2] != 0,
-          "tall grass and reeds have a front layer drawn over legs");
+    /* tall grass (grass.c): every variety's variants are wild-kin grass, drawn on
+     * BG0 only (the front blades over actors are sprites) */
+    int grass_ok = GRASS_SETS[TS_TOWN].count >= 1 && GRASS_SETS[TS_WILD].count >= 4;
+    for (int t = 0; t < TS_COUNT; t++)
+        for (int d = 0; d < GRASS_SETS[t].count; d++)
+            for (int v = 0; v < GRASS_VARIANTS; v++) {
+                int mt = GRASS_SETS[t].defs[d].meta[v];
+                if (mt >= TILESETS[t].meta_count || !(TILESETS[t].attr[mt] & A_GRASS)) grass_ok = 0;
+                for (int q = 0; q < 4; q++)
+                    if (TILESETS[t].meta_top[mt][q]) grass_ok = 0;
+            }
+    CHECK(grass_ok, "every tall-grass variant is wild-kin grass with its front blades as sprites");
 }
 
 /* ---------------- movement ---------------- */
@@ -683,15 +693,17 @@ static void test_menus(void)
     tap(KEY_LEFT);
     CHECK(pc.page == 0, "LEFT / RIGHT flip between the team and the boxes");
     tap(KEY_A);
-    choice.cursor = 1; /* DEPOSIT */
+    choice.cursor = 1; /* MOVE */
     tap(KEY_A);
-    for (int f = 0; f < 200 && pc.state == SH_DIALOG; f++) step((f & 3) == 0 ? KEY_A : 0);
-    CHECK(party_count == 2 && storage_count == 1, "a kin goes to the shelf");
     tap(KEY_RIGHT);
     tap(KEY_A);
-    choice.cursor = 1; /* WITHDRAW */
+    CHECK(party_count == 2 && storage_count == 1, "a kin goes to the shelf");
+    pc.cursor = 0;
     tap(KEY_A);
-    for (int f = 0; f < 200 && pc.state == SH_DIALOG; f++) step((f & 3) == 0 ? KEY_A : 0);
+    choice.cursor = 1; /* MOVE */
+    tap(KEY_A);
+    tap(KEY_LEFT);
+    tap(KEY_A);
     CHECK(party_count == 3 && storage_count == 0, "and comes back");
     tap(KEY_B);
     CHECK(game_mode == MODE_START_MENU, "B returns to the START menu");
@@ -714,7 +726,7 @@ static void test_saves(void)
     Monster before = party[0];
     new_game();
     opt.text_speed = TEXT_MID;
-    CHECK(save_load() == 4, "a version 4 save loads back");
+    CHECK(save_load() == SAVE_VERSION, "a current save loads back");
     CHECK(cur_map == MAP_LAKE && player.x == 30 && party_count == 1 &&
           memcmp(&party[0], &before, sizeof(Monster)) == 0 && lore_is_known(LORE_POLARITONS) &&
           trainer_beaten(0) && !trainer_beaten(1) && trainer_beaten(2) && opt.text_speed == TEXT_FAST,
@@ -756,10 +768,10 @@ static void test_saves(void)
     v3.magic = SAVE_MAGIC;
     v3.version = 3;
     v3.party_count = 1;
-    v3.party[0] = monster_make(SP_AXOLURK, 22);
+    { Monster t = monster_make(SP_AXOLURK, 22); v3.party[0] = monster_to_v4(&t); }
     v3.storage_count = 2;
-    v3.storage[0] = monster_make(SP_GOLEMIT, 9);
-    v3.storage[1] = monster_make(SP_ZAPPET, 11);
+    { Monster t = monster_make(SP_GOLEMIT, 9); v3.storage[0] = monster_to_v4(&t); }
+    { Monster t = monster_make(SP_ZAPPET, 11); v3.storage[1] = monster_to_v4(&t); }
     v3.storage[1].flags |= MF_LUSTROUS;
     v3.bag[ITEM_HUSH_BELL] = 2;
     v3.money = 4321;
@@ -784,7 +796,7 @@ static void test_saves(void)
           lore_known[0] == 0x81 && opt.text_speed == TEXT_FAST && cur_map == MAP_WOOD &&
           player.x == 20 && player.y == 8,
           "the whole version 3 game carries over");
-    CHECK(save_write() && save_load() == 4, "and it saves back as version 4");
+    CHECK(save_write() && save_load() == SAVE_VERSION, "and it saves back as the current version");
     opt.text_speed = TEXT_MID;
 }
 

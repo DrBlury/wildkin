@@ -544,14 +544,14 @@ static void test_save(void)
     CHECK(!save_load_from(sram), "blank SRAM loads nothing");
     CHECK(save_write_to(sram), "saving writes and verifies both slots");
     fresh_game();
-    CHECK(save_load_from(sram) == 4 && party_count == 6 && storage_count == 4 &&
+    CHECK(save_load_from(sram) == SAVE_VERSION && party_count == 6 && storage_count == 4 &&
           bag[ITEM_GLOW_LANTERN] == 7 && money == 4321 && cur_map == MAP_SHOP &&
           player.x == 3 && player.y == 5 && player.facing == DIR_LEFT &&
           flag(FLAG_LEAF_STONE) && item_taken(0) && !item_taken(1) && item_taken(2) && party[0].species == SP_AQUAPO,
           "loading restores team, PC storage, bag, money, flags and position");
     sram[20] ^= 0x55;
     fresh_game();
-    CHECK(save_load_from(sram) == 4 && party_count == 6, "a damaged primary slot falls back to the backup");
+    CHECK(save_load_from(sram) == SAVE_VERSION && party_count == 6, "a damaged primary slot falls back to the backup");
     sram[SAVE_BACKUP_OFFSET + 20] ^= 0x55;
     fresh_game();
     CHECK(!save_load_from(sram), "two damaged slots are rejected");
@@ -776,6 +776,39 @@ static void test_traits(void)
         if (battle.result == BR_RUN) escaped++;
     }
     CHECK(escaped == 20, "SLIPPERY always escapes from wild bouts");
+
+    /* no fleeing a bout with another keeper, not even when SLIPPERY */
+    duel(SP_GOLEMIT, 5, SP_VOLTUX, 40);
+    battle.kind = BK_TRAINER;
+    party[0].trait = TR_SLIPPERY;
+    battle_try_run();
+    CHECK(battle.result == BR_NONE && battle_run_chance() == 0, "keeper bouts can't be fled");
+
+    /* lantern odds: better lanterns and a weaker foe both raise them */
+    duel(SP_FLARIX, 20, SP_NIBBIT, 5);
+    foe = side_mon(SIDE_ENEMY);
+    int plain = lantern_catch_pct(ITEM_LANTERN), star = lantern_catch_pct(ITEM_STAR_LANTERN);
+    foe->hp = 1;
+    int tired = lantern_catch_pct(ITEM_LANTERN);
+    CHECK(plain >= 0 && plain <= star && plain <= tired && tired <= 100, "lantern odds rise with finesse and fatigue");
+    int got = 0;
+    rng_seed(77);
+    for (int i = 0; i < 400; i++) got += catch_shakes(foe, lantern_finesse(ITEM_LANTERN)) == 4;
+    CHECK(got / 4 >= tired - 8 && got / 4 <= tired + 8, "the shown odds match the real catch rate");
+    battle.kind = BK_TRAINER;
+    CHECK(lantern_catch_pct(ITEM_LANTERN) < 0, "no odds are shown in keeper bouts");
+
+    /* blacking out wakes you in the Hearth Hall you last rested in */
+    duel(SP_FLARIX, 20, SP_NIBBIT, 5);
+    field_enter_map(MAP_LUMEN_HEARTH, 5, 5, DIR_UP);
+    hearth_rest();
+    field_enter_map(MAP_TOWN, 6, 8, DIR_DOWN);
+    party[0].hp = 1;
+    battle.result = BR_LOSE;
+    battle_exit();
+    CHECK(cur_map == MAP_LUMEN_HEARTH && party[0].hp == party[0].max_hp, "a blackout returns you to the last Hearth Hall, healed");
+    dialog_clear();
+    game_mode = MODE_FIELD;
 
     /* KEEN EYE: perfect strikes about twice as often */
     int crit_plain = 0, crit_keen = 0;

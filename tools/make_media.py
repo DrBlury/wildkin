@@ -144,7 +144,7 @@ def clip_warden():
 def clip_bout():
     save = demo_save('bout', 'MEADOW', 21, 38, low=True)
     s = Script().boot().walk('UP', 3).wait(120).tap('A', 3, 40).wait(150)
-    # A on "What will X do?" opens FIGHT, A again uses the remembered move
+    # A on "X awaits your call." opens MOVES, A again uses the remembered move
     s.rec('bout', 4).tap('A').wait(16).tap('DOWN').wait(16).shot('bout_moves').tap('A', 15, 40).stop()
     run(s, save)
     gif('bout', 'bout.gif', delay=5)
@@ -195,7 +195,9 @@ def clip_world():
     layout = [('rise', 40, 0, 'STORMSTONE RISE'), ('meadow', 40, rise_h, 'WHISPER MEADOW'),
               ('town', 40, rise_h + meadow_h, 'MAPLE VILLAGE'), ('lake', 0, rise_h + meadow_h, 'MIRROR LAKE'),
               ('wood', 80, rise_h + meadow_h, 'BRAMBLEWOOD')]
-    imgs = {name: make_gif.read_png(os.path.join(mapdir, 'map_' + name + '.png')) for (name, _, _, _) in layout}
+    files = {'rise': '08_stormstone_rise', 'meadow': '07_whisper_meadow', 'town': '00_maple_village',
+             'lake': '10_mirror_lake', 'wood': '09_bramblewood'}  # render_maps.py names
+    imgs = {name: make_gif.read_png(os.path.join(mapdir, files[name] + '.png')) for (name, _, _, _) in layout}
     W = max(x * 16 + imgs[n][0] for (n, x, _, _) in layout)
     H = max(y * 16 + imgs[n][1] for (n, _, y, _) in layout)
     bg = (22, 26, 38)

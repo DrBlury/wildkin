@@ -103,11 +103,11 @@ static const char *const MEADOW_ROWS[] = {
     "TT.,,,,,,,.==============.............TT", /*  8 */
     "tt.,,,,,,,.............==.............tt", /*  9 */
     "TT.,,,,,,,.............==..,,,,,,,,,,.TT", /* 10 */
-    "tt.....mmmmm....rrrr...==..,,,,,,,,,,.tt", /* 11 */
-    "TTTTTT..mmmmm...rrrr...==..,,,,,,,,,,.TT", /* 12 */
-    "tttttt.rrr......rrrr...==..,,,,,,,,,,.tt", /* 13 */
-    "TTTTTT.rrr.............==..,,,,,,,,,,.TT", /* 14 */
-    "tttttt.rrr.............==dd,,,,,,,,,,.tt", /* 15 */
+    "tt.....mmmmm....rrrr...==..,,,www,,,,.tt", /* 11 */
+    "TTTTTT..mmmmm...rrrr...==..,,wwwwww,,.TT", /* 12 */
+    "tttttt.rrr......rrrr...==..,wwwwwww,,.tt", /* 13 */
+    "TTTTTT.rrr.............==..,,wwwww,,,.TT", /* 14 */
+    "tttttt.rrr.............==dd,,,ww,,,,,.tt", /* 15 */
     "TT.....................==dd,,,,,,,,,,.TT", /* 16 */
     "tt............===========..,,,,,,,,,,.tt", /* 17 */
     "TT............===========..,,,,,,,,,,.TT", /* 18 */
@@ -257,10 +257,10 @@ static const DecorPlace TOWN_DECOR[] = {
     /* market */
     DP(MARKET_STALL, 6, 10), DP(BARREL, 9, 10), DP(CRATE, 9, 11), DP(SACKS, 5, 11),
     /* homes */
-    DP(MAILBOX, 4, 7), DP(FLOWER_POT, 5, 7), DP(FLOWER_POT, 16, 6), DP(PLANTER, 27, 7),
-    DP(PLANTER, 32, 7), DP(WELL, 2, 22), DP(FLOWER_POT, 9, 25), DP(FLOWER_POT, 3, 25),
+    DP(MAILBOX, 4, 7), DP(FLOWER_POT, 5, 7), DP(FLOWER_POT, 16, 6), DP(PLANTER, 26, 7),
+    DP(PLANTER, 33, 7), DP(WELL, 2, 22), DP(FLOWER_POT, 9, 25), DP(FLOWER_POT, 3, 25),
     /* signs */
-    DP(SIGNPOST, 16, 7), DP(SIGNPOST, 26, 7), DP(SIGNPOST, 17, 19), DP(SIGNPOST, 18, 2),
+    DP(SIGNPOST, 16, 7), DP(SIGNPOST, 28, 7), DP(SIGNPOST, 17, 19), DP(SIGNPOST, 18, 2),
     DP(SIGNPOST, 2, 16), DP(SIGNPOST, 37, 16), DP(SIGNPOST, 8, 26), DP(SIGNPOST, 16, 25),
     DP(SIGNPOST, 23, 16),
     /* lights */
