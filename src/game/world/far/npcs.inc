@@ -26,10 +26,10 @@
     PERSON(MAP_FORGE, 10, 5, KID_B, LEFT, LOOK, TALK, LSRC_APPRENTICE, "APPRENTICE",
            "I've swept the forge nine times today. The coal dust always wins."),
     /* the anvil hall */
-    PERSON(MAP_ANVIL_HALL, 13, 20, GUIDE, UP, LOOK, TALK, LSRC_FAR_HALL_GUIDE, "HALL GUIDE",
+    PERSON(MAP_ANVIL_HALL, 7, 20, GUIDE, DOWN, LOOK, TALK, LSRC_FAR_HALL_GUIDE, "HALL GUIDE",
            "Push the pumice boulders onto the plates. Stuck? Step outside and they're reset."),
-    WARDEN(MAP_ANVIL_HALL, 14, 17, WARDEN_A, LEFT, 3, TR_AH_TOMAS, NO_KIN, "Two plates down. Plenty to go."),
-    WARDEN(MAP_ANVIL_HALL, 1, 10, WARDEN_B, RIGHT, 3, TR_AH_IRIS, NO_KIN, "Mind the corners. Boulders never come out of them."),
+    WARDEN(MAP_ANVIL_HALL, 9, 16, WARDEN_A, LEFT, 3, TR_AH_TOMAS, NO_KIN, "Two plates down. Plenty to go."),
+    WARDEN(MAP_ANVIL_HALL, 7, 8, WARDEN_B, DOWN, 3, TR_AH_IRIS, NO_KIN, "Mind the corners. Boulders never come out of them."),
     WARDEN(MAP_ANVIL_HALL, 3, 4, WARDEN_A, RIGHT, 3, TR_AH_KORR, NO_KIN, "BRONWEN's waiting. Don't keep a smith waiting."),
     PERSON(MAP_ANVIL_HALL, 8, 3, GARDENER, DOWN, STILL, ANVIL_MASTER, NO_LORE, "MASTER BRONWEN", 0),
     /* ember tunnel */

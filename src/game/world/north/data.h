@@ -237,7 +237,7 @@ static const char *const RIME_HALL_ROWS[] = {
     "oiiiiiiiiiiiiii", /* 12 */
     "iiiiiiiiiiiFFii", /* 13 */
     "iiiiiiiiiiiiiii", /* 14 */
-    "iiiiiiiiiiiiiii", /* 15 */
+    "iiiiiiioiiiiiii", /* 15: the rock beside the way out */
     "ooooooioooooooo", /* 16 */
     "FFFFFFFFFFFFFFF", /* 17 */
     "FFFFFFFFFFFFFFF", /* 18 */
