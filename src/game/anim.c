@@ -478,8 +478,9 @@ static void big3(int x, int y, int z, int fxb, int bank, int mul, int rot, int r
  * A ring lying on the ground (or at height y) centred on world (x, z),
  * radius r world units, turned `spin` in its own plane: an FXB_* image
  * (its ring drawn 13 px from the centre) up to 26 px on screen (the
- * double-size box); use bead_ring3 for wider ones. back: draw it behind the
- * battlers (a ring under a battler's feet shows round them).
+ * double-size box); use bead_ring3 for wider ones. back: it lies on the
+ * ground: drawn behind the battlers (a ring under a battler's feet shows
+ * round them) and semi-transparent, like light on the grass.
  */
 static void ring3(int x, int y, int z, int r, int fxb, int bank, int spin, int back)
 {

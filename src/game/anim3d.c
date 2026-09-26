@@ -1,6 +1,7 @@
 /*
- * Pseudo-3D toolkit for the battle animations (anim.c includes nothing
- * from here it could not do itself; main.c includes this file first).
+ * Pseudo-3D toolkit for the battle animations (main.c includes it right
+ * before anim.c, which draws with it; battle_ui.c calls the camera hooks
+ * and a3_flush_back).
  *
  * The bout is seen by a camera standing behind the ally: the ally is near
  * (back-left, low, big), the foe is far (front-right, high, smaller). This
