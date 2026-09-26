@@ -670,7 +670,8 @@ static void bed_answer(int c)
 {
     if (c == 0) {
         hearth_rest();
-        dlg_say("You took a short nap. Your kin curled up beside you and woke up full of vigor!");
+        time_sleep();
+        dlg_say("You slept until morning. Your kin curled up beside you and woke up full of vigor!");
     }
 }
 
@@ -858,6 +859,7 @@ static int field_try_interact(void)
         return 1;
     }
     if (debug_examine(fx, fy)) return 1;
+    if (farm_interact(fx, fy)) return 1;
     if (obj_interact(fx, fy)) return 1;
     return examine_cell(fx, fy);
 }
@@ -985,7 +987,9 @@ static void field_update(void)
 static void field_draw(void)
 {
     field_update_camera();
+    farm_draw_fx();
     field_draw_sprites();
+    farm_draw();
     travel_dark_frame(game_mode == MODE_FIELD && !warp.active);
     if (starter_preview >= 0) {
         /* follow the cursor of the three-way choice; keep showing the pick

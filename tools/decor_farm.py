@@ -210,7 +210,7 @@ FARM_DECOR = [
     Decor('DRIER', F, DRIER, doc='drying rack for chilies, fruit and seeds',
           examine='A drying rack with slatted trays. The sun does the rest.'),
     Decor('FOR_SALE', F, FOR_SALE, doc='FOR SALE sign on a post (WILLOW ACRE before you buy it)',
-          examine='FOR SALE: WILLOW ACRE. See REEVE at the LAND OFFICE.'),
+          examine='FOR SALE: WILLOW ACRE. Ask REEVE of the LAND OFFICE.'),
     Decor('FARM_GATE', F, FARM_GATE, doc='field gate (matches the farm fence)',
           examine='The field gate is locked.'),
     Decor('WORK_BOARD', I, WORK_BOARD, solid='XX/XX', doc='farm work board on the back wall (2x2)',

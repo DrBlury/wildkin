@@ -1,69 +1,80 @@
 # Farming and time: handoff
 
-Owner: FARM system (docs/EXPANSION.md 7.1, 7.2). Branch is based on `expansion` (6118872).
+Owner: FARM system (docs/EXPANSION.md 7.1, 7.2). Branch based on `expansion` (d918146).
+`make art && make && make test` is green. The 6 `-Wunused-function` warnings in party.c
+(storage_move, storage_sort_*...) already exist on `expansion` (UI owner's helpers); farm/time
+add none. `tools/tests/test_farm.c` has 45 checks.
 
 ## Done
 
-- **Farm tileset** (`tools/tilesets/ts_farm.py`). It replaces the placeholder copy of the wild tileset and uses 291 tiles and 87 metatiles. It has:
-  - ground: grass, flowers, path, pond water, dirt yard, and field soil `SOIL`/`SOIL2` (A_SOIL)
-  - soil states for `dyn_cell`: `TILLED`, `TILLED_WET`, `TILLED_FERT`, `TILLED_WET_FERT`
-  - mounds: `ORCHARD` (A_SOIL) and `BERRY_MOUND` (solid)
-  - fence overlays: `FENCE_H`, `FENCE_V`, `FENCE_END`, `FENCE_SW`, `FENCE_SE`
-  - crop overlays, drawn on transparency: `SEEDED`, `SPROUT`, `SAPLING`, and `<CROP>_GROW` / `<CROP>_RIPE` for all 12 field crops
-  - fruit trees as `YOUNG`, `FRUIT`, `APPLE`, `PEACH` with `_TOP`/`_BOTTOM` pairs. The crown goes on BG3 of the cell above the orchard cell.
-  - `SPRINKLER` overlay
-  - `FARMHOUSE` stamp, 6x5 cells, door at column 2, row 4
-  - The map legend and palette-bank plan are documented at the top of the file.
-- **Decor catalog** (`tools/decor_farm.py`), registered in `gen_field_gfx.all_decor()`:
-  - outdoor: `SHIPPING_BIN`, `PRESERVES_JAR`, `PRESS`, `DRIER`, `FOR_SALE`, `FARM_GATE`
-  - interior: `WORK_BOARD`, `FARM_CHEST`
-  - The farm tileset also reuses village props through `USES_DECOR`, including `BEEHIVE`, `SCARECROW` and `HAY_BALE`.
-- The art is regenerated: `src/gfx_field.h` and the viewer maps in `world/debug/`. The art lint passes and `make test` is green.
+**Time (`src/game/time.c`)**
+- The clock: 1 game minute per field second, day 24 min, day counter turns at 06:00.
+  `time_text(buf)` gives "DAY 3  14:05"; `time_is_night()` is 20:00-05:59.
+- Tint via `field_tint()`: dusk 18:00-20:40 (warm, then blue), night, dawn 04:00-06:40, grey
+  under rain. Only MF_OUTDOOR maps that are not MF_NIGHTLESS/MF_DEBUG. Palettes are reloaded
+  when the 10-minute tint band changes (`time_update_tint`). Stacks with the storm tint.
+- Weather: rolled each new day (day 1-2 always clear, ~1 in 4 rain). MF_RAIN maps always rain.
+  Rain streaks are drawn by farm.c when it rains and the storm isn't on.
+- `time_sleep()`: to 06:00 the next day, runs the new day, fades by re-entering the map.
+  Called from every bed (script.c `bed_answer`) and the farmhouse bed.
+- `WildSlot.when` is honoured in `roll_wild` (field.c): day-only / night-only slots.
+- START menu shows the clock (menu.c); a HUD clock top-left when `opt.hud_clock` is on.
 
-## In progress
+**Farm (`src/game/farm.c`)**
+- 152 plots on WILLOW ACRE (144 soil + 8 orchard mounds), numbered row-major from the map rows.
+- Tool ring on the farm: L/R cycle HOE, CAN, every seed/sapling, the 3 fertilisers and the
+  sprinkler you carry (label top-right); A uses it on the faced plot (white corner cursor).
+  Effects (clods, drops, seeds, sparks) with SFX; the player pauses 12 frames per action.
+- Rules: till -> plant -> water -> grows 4 units/day when wet (+1 FERTILIZER); dry crops don't
+  grow and never die. 12 field crops + apple/peach trees (12 days, no water, then fruit every
+  3 days, solid). Regrowing crops (berries, chili, tomato, corn). RICH COMPOST/tending raise
+  GREAT/PERFECT odds (+1/+2 yield); GROW MULCH keeps soil wet a second day. Sprinklers water
+  the 8 plots around them each morning (pick up again with A).
+- Shipping bin (SHIP ALL / KEEP ONE EACH), paid next morning. Processors: PRESERVES JAR
+  (jam, pickles), FRUIT PRESS (BERRY JUICE / APPLE PRESS / PEACH NECTAR, craft's items),
+  DRYING RACK (2 days: dried chili, dried fruit, sun seeds), up to 5 batches.
+- Storage chest (STORE PRODUCE / TAKE ALL), keyed by item_code.
+- Workers: WORK BOARD screen (ext_open) assigns 4 Shelf kin to WATER/TEND/HARVEST/GUARD/FORAGE/
+  HONEY; suited types work twice as hard; they gain bond + XP each morning; found on the Shelf by
+  species + pot (a withdrawn kin loses its job). They walk on the farm as overworld kin, are solid
+  and can be talked to. Crows peck crops when nobody GUARDs.
+- Berry patches (OBJ_BERRY, arg = patch id): pick 2-3, regrow in 3 days. On the farm they are
+  BG overlays on the mounds; elsewhere OBJ sprites built at map load from the ts_farm crop art,
+  squeezed into satchel bank colours 9-15. One berry kind per region range (farm.c berry_crop).
+- A morning report dialog (only once you own the farm): pay, rain, worker results, crows,
+  processors done.
+- Items: 5 new goods in items/farm.inc (FRUIT JAM, PICKLES, DRIED CHILI, DRIED FRUIT,
+  SUN SEEDS); SPRINKLER now sells for 800c. 36 icons in tools/icons/icons_farm.py.
 
-Nothing is half-written in the C code. The design below is worked out but not coded:
+**World (`src/game/world/farm/`)**: real WILLOW ACRE (40x36: yard, farmhouse stamp, pond,
+4 wild glowberry bushes 50-53, fence + FARM_GATE decor, fields, work yard, orchard) and the
+FARMHOUSE (work board, chest, bed, stove, bookshelf). REEVE (SCR_REEVE) stands by the FOR SALE
+sign: deed 15,000c, or 10,000c after QUEST_REEVE_BERRIES (3 GLOWBERRY); the deed opens the gate
+and gives FARM DEED, HOE, WATERING CAN, 5 radish + 3 carrot seeds; afterwards she sells
+FARM_SHOP_STOCK. 7 lore entries (LSRC_REEVE, LSRC_FARM_NOTES = farmhouse bookshelf).
 
-- **FarmState** (at most 3072 bytes, with a version byte):
-  - plots: 144 x {crop, growth, flags (tilled, wet, fert, mulch), care}. Each plot is an A_SOIL cell of WILLOW ACRE, indexed in row-major order.
-  - 64 berry patches: {berry, growth, flags}
-  - 4 workers: {job, species, slot, pot}. A worker is re-identified on the Shelf by its species and pot, because Shelf slots shift.
-  - 3 processors
-  - shipping bin counts and pending coins
-  - storage chest
-  - quality counts per crop: GREAT and PERFECT
-- **Growth**: plots that are wet at the day rollover grow +4 units, or +5 with FERTILIZER. After growth, WET is cleared. Then rain, sprinklers, mulch and WATER workers wet the plots again for the new day.
-- **Berry patches**: the art must use OBJ sprites off the farm, because other tilesets' BG palettes are not ours. Use OBJ bank 8 entries 9-15 (the item-ball palette uses only 1-8) and OBJ tiles 512-639.
+Verified in the ROM with `build/shot` (noon/dusk/night/rain tints, tilling/planting, workers
+walking, REEVE, work board, START clock).
 
-## Not started
+## Left
 
-- `time.c`:
-  - tint: dusk, night, dawn and rain for `MF_OUTDOOR` maps that are not `MF_NIGHTLESS`
-  - re-tint with `field_load_palettes()` when the tint band changes
-  - weather roll each day
-  - `time_sleep`, `time_text`, and the HUD clock on the canvas
-- `farm.c`:
-  - the whole farming loop, tool ring (L/R), animations, harvest and quality
-  - shipping bin, workers and the work board screen, processors, berry patches
-  - `FARM_SHOP_STOCK`
-- The real WILLOW ACRE and FARMHOUSE maps in `world/farm/data.h`. They are still placeholders.
-- `scr_reeve` (the deed for 15,000c, or 10,000c after a quest to bring 3 GLOWBERRY), farm NPCs, lore entries, the quest, and the farm item icons (`icons_farm.py`).
-- `tools/tests/test_farm.c`.
+- REEVE belongs in MAP_LAND_OFFICE (east owns it; it has no door in Maple Village yet). Move her
+  NPC line from world/farm/npcs.inc once the Land Office is reachable.
+- traversal: `obj_interact` should leave OBJ_BERRY to farm.c (farm_interact runs first today).
+  BIKE on R clashes with the tool ring only on WILLOW ACRE (farm.c reads L/R there only).
+- UI: an options row for `opt.hud_clock`; START menu entry layout may want the clock elsewhere.
+- Craft: jam/pickles/dried goods are IK_CROP (sellable); craft may want them as recipe inputs.
+- World owners: place OBJ_BERRY patches on routes (ids per region, see farm.c berry_crop).
+- No per-crop seasons; no quality stored in the bag (quality becomes extra yield).
 
-## APIs other owners should call (planned; they do not exist yet)
+## Shared files touched
 
-- `time_text(char *buf)` returns text like "DAY 3  14:05" for the START menu.
-- `time_sleep()` should be called from `script.c` `bed_answer` after `hearth_rest()`. It skips to 06:00 the next day and runs `farm_new_day()`.
-- `farm_interact(fx, fy)` should be one line in `field_try_interact`, placed before `obj_interact`. It handles soil, water refill, farm decor and OBJ_BERRY.
-- `farm_draw(0)` goes before `field_draw_sprites()` and `farm_draw(1)` after it. They draw workers, berry sprites, effects and rain.
-- `FARM_SHOP_STOCK` / `FARM_SHOP_STOCK_COUNT` are for `shop_open_stock()`.
-- `farm_berry_interact(patch)` is for OBJ_BERRY.
-  - Patch ids: east 0-9, west 10-19, north 20-29, grim 30-39, far 40-49, village/farm 50-63.
-
-## Notes
-
-- `make test` is green. `make` was not re-run after the art change, but it compiled before and the header changes only add data.
-- Edits outside my files: one line in `tools/gen_field_gfx.py` `all_decor()` appends `decor_farm.FARM_DECOR`. The generated files `src/gfx_field.h` and `src/game/world/debug/*` were regenerated.
-- The existing `field_tint()` stub in `time.c` returns the colour unchanged.
-- L/R are planned as the farm tool ring on the farm map only. This may clash with a BIKE registered to R.
-- WILLOW ACRE still uses the placeholder rows. Its fence gate should be `FARM_GATE` decor. After purchase, clear its `map_decor` entry at run time so the gate opens.
+- `src/main.c`: moved `#include "game/farm.c"` to after quest.c (needs menu/lore/quest APIs).
+- `src/game/field.c`: `cell_attr` -> `farm_cell_attr(...)`; `map_load` -> `farm_map_loaded()`;
+  kin sprite list gets `farm_field_kin()` (+4 slots); `roll_wild` honours `WildSlot.when`;
+  prototypes.
+- `src/game/script.c`: `farm_interact()` before `obj_interact`; `farm_draw_fx()` /
+  `farm_draw()` around `field_draw_sprites()`; `bed_answer` calls `time_sleep()`.
+- `src/game/menu.c`: 4 lines in `start_menu_draw` (clock window).
+- Generated: `src/gfx_battle.h` (icons), `src/gfx_field.h` (decor text). No save layout change
+  (FarmState 1.1 KB of the 3072 blob, TimeState 8 bytes).
