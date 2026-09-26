@@ -45,7 +45,7 @@
     WARDEN(MAP_MOONVEIL, 30, 7, WARDEN_A, UP, 2, TR_MV_ORIN, SP_MANDRAGOR, "The petals will open again tomorrow night."),
     WARDEN(MAP_MOONVEIL, 38, 24, WARDEN_B, LEFT, 3, TR_MV_SELA, NO_KIN, "Wide awake now. Thanks for that."),
     /* dreamspire */
-    PERSON(MAP_DREAMSPIRE, 21, 15, GRAN, RIGHT, LOOK, POET, NO_LORE, "POET ISOLDE", 0),
+    PERSON(MAP_DREAMSPIRE, 21, 14, GRAN, RIGHT, LOOK, POET, NO_LORE, "POET ISOLDE", 0),
     PERSON(MAP_DREAMSPIRE, 9, 37, KID_B, DOWN, STILL, SLEEPER, NO_LORE, "DOZING BOY", 0),
     PERSON(MAP_DREAMSPIRE, 22, 21, HERMIT, DOWN, LOOK, TALK, LSRC_DREAMREADER, "DREAM READER",
            "Tell me your dream and I'll tell you your kin. You dreamed of a lantern? Of course you did."),
