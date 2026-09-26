@@ -815,6 +815,291 @@ FX16 = [
 
 
 # =====================================================================
+# The RUNESTONE's homeward spell (OBJ bank 15 while it plays)
+# =====================================================================
+
+# The spell swaps OBJ bank 15 for this palette while it plays: the emote
+# colours stay at 1-6 (rain and emotes still look right), then arcane
+# violets and cyans.
+RUNE_EXTRA = [('i', (36, 20, 84)), ('V', (84, 44, 164)), ('v', (144, 88, 236)), ('L', (206, 168, 255)),
+              ('C', (32, 128, 200)), ('c', (88, 212, 252)), ('P', (196, 248, 255)), ('m', (236, 104, 224)),
+              ('Y', (255, 228, 140))]
+RUNE = Pal(list(gf.EMOTE_PAL) + RUNE_EXTRA)
+
+# Elder-futhark-like glyphs, drawn at 7x9 inside a 16x16 sprite.
+RUNE_GLYPHS = [
+    ('OTHALA', '''
+        ...#...
+        ..#.#..
+        .#...#.
+        ..#.#..
+        ...#...
+        ..#.#..
+        .#...#.
+        #.....#
+        .......
+    '''),
+    ('RAIDO', '''
+        ####...
+        #...#..
+        #...#..
+        ####...
+        #.#....
+        #..#...
+        #...#..
+        #....#.
+        .......
+    '''),
+    ('ALGIZ', '''
+        #..#..#
+        .#.#.#.
+        ..###..
+        ...#...
+        ...#...
+        ...#...
+        ...#...
+        ...#...
+        .......
+    '''),
+    ('DAGAZ', '''
+        .......
+        #.....#
+        ##...##
+        #.#.#.#
+        #..#..#
+        #.#.#.#
+        ##...##
+        #.....#
+        .......
+    '''),
+    ('KENAZ', '''
+        ....#..
+        ...#...
+        ..#....
+        .#.....
+        ..#....
+        ...#...
+        ....#..
+        .....#.
+        .......
+    '''),
+    ('TIWAZ', '''
+        ...#...
+        ..#.#..
+        .#.#.#.
+        #..#..#
+        ...#...
+        ...#...
+        ...#...
+        ...#...
+        .......
+    '''),
+    ('INGWAZ', '''
+        .......
+        ...#...
+        ..#.#..
+        .#...#.
+        #..#..#
+        .#...#.
+        ..#.#..
+        ...#...
+        .......
+    '''),
+    ('SOWILO', '''
+        .....#.
+        ....#..
+        ...#...
+        ..####.
+        .....#.
+        ....#..
+        ...#...
+        ..#....
+        .......
+    '''),
+]
+
+
+def rune_glyph(text, front):
+    """A 16x16 rune: bright core strokes, a cyan rim and a dithered violet
+    halo in front of the player; dim lilac strokes behind."""
+    R = RUNE
+    rows = [r.strip() for r in text.strip('\n').split('\n') if r.strip()]
+    img = blank(16, 16)
+    ox, oy = 4, 3
+    core = set()
+    for y, r in enumerate(rows):
+        for x, ch in enumerate(r):
+            if ch == '#':
+                core.add((ox + x, oy + y))
+    if front:
+        for (x, y) in core:
+            img[y][x] = R['w']
+        rim = set()
+        for (x, y) in core:
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                p = (x + dx, y + dy)
+                if p not in core:
+                    rim.add(p)
+        for (x, y) in rim:
+            put(img, x, y, R['c'])
+        for y in range(16):
+            for x in range(16):
+                if img[y][x]:
+                    continue
+                d = min((abs(x - cx) + abs(y - cy) for (cx, cy) in core), default=99)
+                if d == 2:
+                    img[y][x] = R['v']
+                elif d == 3 and (x + y) % 2 == 0:
+                    img[y][x] = R['V']
+    else:
+        for (x, y) in core:
+            img[y][x] = R['L']
+        for (x, y) in core:
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                if get(img, x + dx, y + dy) == 0:
+                    put(img, x + dx, y + dy, R['V'])
+    return img
+
+
+def rune_circle():
+    """A 32x32 magic circle (drawn flat on the ground with an affine
+    squash): two rings, tick marks, a six-point star."""
+    R = RUNE
+    img = blank(32, 32)
+    c = 15.5
+    for y in range(32):
+        for x in range(32):
+            r = math.hypot(x + 0.5 - 16, y + 0.5 - 16)
+            a = math.atan2(y + 0.5 - 16, x + 0.5 - 16)
+            if 14.2 <= r < 15.4:
+                img[y][x] = R['c']
+            elif 13.2 <= r < 14.2:
+                img[y][x] = R['C']
+            elif 10.4 <= r < 11.4:
+                img[y][x] = R['v']
+            elif 11.4 <= r < 13.2:
+                k = (a + math.pi) / (2 * math.pi) * 24
+                if abs(k - round(k)) < 0.12:
+                    img[y][x] = R['P']
+                elif (int(k) % 3 == 0) and abs(k - int(k) - 0.5) < 0.2 and 11.8 <= r < 12.8:
+                    img[y][x] = R['L']
+    # six-point star: two triangles inside the inner ring
+    for tri in range(2):
+        pts = []
+        for k in range(3):
+            ang = math.radians(-90 + tri * 60 + k * 120)
+            pts.append((16 + 10.2 * math.cos(ang), 16 + 10.2 * math.sin(ang)))
+        for k in range(3):
+            (x0, y0), (x1, y1) = pts[k], pts[(k + 1) % 3]
+            n = 40
+            for s in range(n + 1):
+                x = int(x0 + (x1 - x0) * s / n)
+                y = int(y0 + (y1 - y0) * s / n)
+                if img[y][x] == 0:
+                    img[y][x] = R['V'] if tri else R['v']
+    for y in range(32):
+        for x in range(32):
+            if math.hypot(x + 0.5 - 16, y + 0.5 - 16) < 2.0:
+                img[y][x] = R['P']
+    del c
+    return img
+
+
+def rune_beam():
+    """A 16x32 column of light that tiles vertically."""
+    R = RUNE
+    img = blank(16, 32)
+    for y in range(32):
+        for x in range(16):
+            d = abs(x + 0.5 - 8)
+            if d < 1.6:
+                v = R['w']
+            elif d < 3.0:
+                v = R['P']
+            elif d < 4.4:
+                v = R['c']
+            elif d < 5.8:
+                v = R['v'] if (x + y) % 2 else R['c']
+            elif d < 7.2:
+                v = R['V'] if (x * 3 + y) % 4 == 0 else 0
+            else:
+                v = 0
+            img[y][x] = v
+    for k in range(6):            # motes drifting up the beam
+        x = 4 + (k * 5) % 8
+        y = (k * 11) % 32
+        put(img, x, y, R['w'])
+    return img
+
+
+def rune_spark(text):
+    return grid(text, RUNE)
+
+
+RUNE_SPARKS = [
+    rune_spark('''
+        ...w....
+        ...c....
+        ..cPc...
+        wcPwPcw.
+        ..cPc...
+        ...c....
+        ...w....
+        ........
+    '''),
+    rune_spark('''
+        ........
+        ...c....
+        ..cwc...
+        ...c....
+        ........
+        ........
+        ........
+        ........
+    '''),
+    rune_spark('''
+        ........
+        ...L....
+        ..LmL...
+        ...L....
+        ........
+        ........
+        ........
+        ........
+    '''),
+    rune_spark('''
+        ........
+        ........
+        ...v....
+        ........
+        ........
+        ........
+        ........
+        ........
+    '''),
+]
+
+
+def rune_sheet():
+    """Every rune tile in upload order, and the named offsets."""
+    tiles, offs = [], {}
+    offs['FRONT'] = len(tiles)
+    for (_, g) in RUNE_GLYPHS:
+        tiles += tiles_of(rune_glyph(g, True))
+    offs['BACK'] = len(tiles)
+    for (_, g) in RUNE_GLYPHS:
+        tiles += tiles_of(rune_glyph(g, False))
+    offs['CIRCLE'] = len(tiles)
+    tiles += tiles_of(rune_circle())
+    offs['BEAM'] = len(tiles)
+    tiles += tiles_of(rune_beam())
+    offs['SPARK'] = len(tiles)
+    for s in RUNE_SPARKS:
+        tiles += tiles_of(s)
+    return tiles, offs
+
+
+# =====================================================================
 # The player on a BIKE (OBJ bank 0, the player's palette)
 # =====================================================================
 
@@ -1505,6 +1790,7 @@ def build():
     ]
     out['fx8'] = [(n, FX8[n]) for n in FX8_NAMES]
     out['fx16'] = FX16
+    out['rune_tiles'], out['rune_offs'] = rune_sheet()
     out['bike'] = bike_frames()
     out['boat'] = [boat(0), boat(1)]
     out['crests'] = [crest(k) for k in CRESTS]
@@ -1555,6 +1841,27 @@ def write_header(out, path):
     emit_frames(o, 'u32', 'travel_fx8', [f for _, f in out['fx8']], 8, '8x8 particles (OBJ bank 15)')
     A('enum { ' + ', '.join('TX_%s' % n for n, _ in out['fx16']) + ', TX_COUNT };')
     emit_frames(o, 'u32', 'travel_fx16', [f for _, f in out['fx16']], 32, '16x16 effects (OBJ bank 15)')
+    A('/* The RUNESTONE spell: OBJ bank 15 while it plays (emote colours kept at')
+    A(' * 1-%d), then its tiles: 8 runes 16x16 in front (bright) and behind (dim),' % len(gf.EMOTE_PAL))
+    A(' * a 32x32 magic circle, a 16x32 light beam that tiles vertically and four')
+    A(' * 8x8 sparkles (big to small). */')
+    A('static const u16 travel_rune_palette[16] = {')
+    A(fmt_u16(RUNE.c15s()))
+    A('};')
+    A('#define TR_RUNES %d' % len(RUNE_GLYPHS))
+    for k in ('FRONT', 'BACK', 'CIRCLE', 'BEAM', 'SPARK'):
+        A('#define TR_%s %d' % (k, out['rune_offs'][k]))
+    A('#define TR_TILE_COUNT %d' % len(out['rune_tiles']))
+    A('static const u32 travel_rune_gfx[TR_TILE_COUNT][8] = {')
+    for t in out['rune_tiles']:
+        A('    { ' + ', '.join('0x%08X' % w for w in t) + ' },')
+    A('};')
+    A('/* sine, one turn = 256 steps, 256 = 1.0 */')
+    A('static const s16 travel_sin[256] = {')
+    A(fmt_u16([round(math.sin(i * 2 * math.pi / 256) * 256) & 0xFFFF for i in range(256)], 16)
+      .replace('0x', '(s16)0x'))
+    A('};')
+    A('')
     emit_frames(o, 'u32', 'travel_bike_gfx', out['bike'], 128,
                 'the player on the BIKE, 32x32 in the player palette: down 0/1, up 2/3, left 4/5')
     emit_frames(o, 'u32', 'travel_boat_gfx', out['boat'], 128, 'the ferry boat, 32x32 facing right (OBJ bank 8)')
@@ -1636,6 +1943,9 @@ def previews(out, d):
     sheet([f for _, f in out['obj16']], q(MISC), os.path.join(d, 'travel_obj16.png'))
     sheet([f for _, f in out['obj32']], q(MISC), os.path.join(d, 'travel_obj32.png'))
     sheet([f for _, f in out['fx8']] + [f for _, f in out['fx16']], q(FX), os.path.join(d, 'travel_fx.png'))
+    runes = [rune_glyph(g, True) for (_, g) in RUNE_GLYPHS] + [rune_glyph(g, False) for (_, g) in RUNE_GLYPHS]
+    sheet(runes + [rune_circle(), rune_beam()] + RUNE_SPARKS, q(RUNE), os.path.join(d, 'travel_rune.png'),
+          bg=(40, 48, 40))
     pp = [c15_to_rgb(c) for c in PLAYER_PAL15]
     sheet(out['bike'], pp, os.path.join(d, 'travel_bike.png'), cols=6)
     sheet(out['boat'], q(MISC), os.path.join(d, 'travel_boat.png'), cols=2, bg=(80, 140, 210))

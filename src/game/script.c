@@ -956,6 +956,7 @@ static void storm_update(void)
 static void field_update(void)
 {
     if (emote.timer > 0) emote.timer--;
+    if (travel_rune_update()) return;   /* the RUNESTONE's spell freezes the field */
     if (dialog_active()) {
         dialog_update();
         return;
@@ -1020,6 +1021,7 @@ static void new_game(void)
     step_counter = 0;
     evo_count = 0;
     lore_reset();
+    bag[ITEM_RUNESTONE] = 1;   /* always takes you home (travel.c) */
     follower.shown = 0;
     field_enter_map(MAP_HOME, 9, 3, DIR_DOWN);
 }
