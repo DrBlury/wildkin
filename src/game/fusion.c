@@ -480,9 +480,9 @@ static void fzp_update(void)
         if (p->tx >= 0) {
             /* seek: steer toward the target, arrive and vanish */
             int dx = (p->tx << 8) - p->x, dy = (p->ty << 8) - p->y;
-            p->vx = (p->vx * 7 + dx / 6) / 8;
-            p->vy = (p->vy * 7 + dy / 6) / 8;
-            if (absi(dx) < 0x200 && absi(dy) < 0x200) p->life = 0;
+            p->vx = (p->vx * 3 + dx / 8) / 4;
+            p->vy = (p->vy * 3 + dy / 8) / 4;
+            if (absi(dx) < 0x600 && absi(dy) < 0x600) p->life = 0;
         }
         p->vy += p->grav;
         p->x += p->vx;
@@ -518,7 +518,7 @@ static void fz_load_objects(void)
 {
     copy32(VRAM_OBJ_TILES + OT_FZ_GLYPH(0) * 8, fz_glyph_gfx, TYPE_COUNT * 4 * 8);
     for (int s = 0; s < 2; s++)
-        copy32(VRAM_OBJ_TILES + OT_FZ_PART(s, 0) * 8, fz_particle_gfx[s], FZP_COUNT * 8);
+        for (int k = 0; k < FZP_COUNT * 8; k++) VRAM_OBJ_TILES[OT_FZ_PART(s, 0) * 8 + k] = fz_particle_gfx[s][k / 8][k % 8];
     copy32(VRAM_OBJ_TILES + OT_FZ_CORNER * 8, fz_corner_gfx, 8);
     for (int b = 0; b < 3; b++) load_pal(obj_palette + (OBANK_FZ_GLYPH + b) * 16, fz_glyph_pal[b]);
     for (int b = 0; b < 3; b++) load_pal(bg_palette + b * 16, fz_glyph_pal[b]);
@@ -826,6 +826,7 @@ static void ub_finish(void)
     char msg[160];
     fz.ub_state = UB_PICK;
     REG_MOSAIC = 0;
+    fzp_clear();
     str_copy(msg, SPECIES[fz.ub_species].name);
     str_put(msg, "'s kernel came unbound: ");
     for (int i = 0; i < fz.ub_ntypes; i++) {
@@ -965,7 +966,7 @@ static void ub_draw(void)
 
 static void en_cell(int t, int *cx, int *cy)
 {
-    *cx = 1 + (t % 3) * 10;
+    *cx = 1 + (t % 3) * 9;
     *cy = 1 + (t / 3) * 2;
 }
 
@@ -982,7 +983,7 @@ static void en_redraw(void)
         text_draw(cx * 8 + 19, cy * 8 + 1, TYPE_NAMES[t]);
         buf[0] = 0;
         str_put_int(buf, fusion.energy[t]);
-        small_text_draw(cx * 8 + 76 - small_text_width(buf), cy * 8 + 5, buf);
+        small_text_draw(cx * 8 + 69 - small_text_width(buf), cy * 8 + 5, buf);
     }
     canvas_window(0, 14, CANVAS_COLS, 6, WIN_STD);
     int t = fz.en_cursor;
@@ -1002,9 +1003,12 @@ static void en_redraw(void)
     for (int sp = 0; sp < SP_COUNT; sp++) {
         const Species *s = &SPECIES[sp];
         if (s->rarity != R_FUSION || (s->fusion[0] != t && s->fusion[1] != t)) continue;
+        if (str_len(buf) > 26) {
+            str_put(buf, " ...");
+            break;
+        }
         if (any++) str_put(buf, " ");
         str_put(buf, TYPE_NAMES[s->fusion[0] == t ? s->fusion[1] : s->fusion[0]]);
-        if (str_len(buf) > 60) break;
     }
     if (!any) str_put(buf, "nothing");
     text_draw_fit(12, 136, buf, 216);
@@ -1028,7 +1032,7 @@ static void en_draw(void)
 {
     int cx, cy;
     en_cell(fz.en_cursor, &cx, &cy);
-    fz_corners(cx * 8 - 2, cy * 8 - 1, cx * 8 + 78, cy * 8 + 17);
+    fz_corners(cx * 8 - 2, cy * 8 - 1, cx * 8 + 72, cy * 8 + 17);
 }
 
 /* ================================================================ */
@@ -1095,22 +1099,18 @@ static void tn_draw_text(void)
 {
     char buf[40];
     canvas_window(0, 16, CANVAS_COLS, 4, WIN_STD);
-    str_copy(buf, "MATCH ");
-    str_put_int(buf, fz.tn_match);
-    str_put(buf, "%");
-    text_draw(16, 136, buf);
     str_copy(buf, "YIELD ");
     str_put_int(buf, tn_yield(fz.tn_match));
     str_put(buf, "%");
-    text_draw_col(88, 136, buf, INK_BLUE, INK_BLUE_SH);
-    text_draw_right(224, 136, "A: lock");
+    text_draw_col(16, 136, buf, INK_BLUE, INK_BLUE_SH);
+    text_draw_right(224, 136, "</> pitch  ^v phase  A lock");
 }
 
 static void tn_redraw(void)
 {
     fz_scene_begin(FZ_SCENE_TUNER);
+    fz_ramp_load(0, T_TIDE);
     fz_text_light(6, 2, fz.tn_title ? fz.tn_title : "TUNING");
-    fz_text_light(130, 2, "</>: pitch  ^/v: phase");
     tn_draw_scope();
     tn_draw_meter();
     tn_draw_text();
@@ -1178,7 +1178,7 @@ static void tn_draw(void)
         int v = k ? fz.tn_p * 256 / TN_PHASES : 160 + fz.tn_f * 192 / TN_FREQS;
         int x = fz_knob[k][0] + fz_sin[(v + 64) & 255] * 7 / 256;
         int y = fz_knob[k][1] + fz_sin[v & 255] * 7 / 256;
-        spr_push(x - 4, y - 4, OT_FZ_PART(1, FZP_ORB), SQ8, OBANK_FZ_PART + 1, 0, 0);
+        spr_push(x - 4, y - 4, OT_FZ_PART(0, FZP_ORB), SQ8, OBANK_FZ_PART, 0, 0);
     }
 }
 
@@ -1568,8 +1568,7 @@ static void lm_draw(void)
         int pulse = spin && ((t >> 2) & 1) && t < LM_REEL2_STOP;
         fz_glyph_spr(fz_loom_socket[i][0] - 8, fz_loom_socket[i][1] - 8 - pulse, fz.lm_types[i], 0);
     }
-    if (!spin) {
-        if (dialog_active()) return;
+    if (!dialog_active()) {
         int sc = lm_scroll();
         for (int i = 0; i < LM_STRIP_N; i++) {
             int ty = sc + i;
@@ -1578,7 +1577,10 @@ static void lm_draw(void)
             if (lm_picked(ty)) spr_push(x + 4, LM_STRIP_Y + 13, OT_FZ_PART(1, FZP_DOT), SQ8, OBANK_FZ_PART + 1, 0, 0);
         }
         int x = LM_STRIP_X + (fz.lm_cursor - sc) * LM_PITCH;
-        fz_corners(x - 1, LM_STRIP_Y - 4, x + 17, LM_STRIP_Y + 27);
+        if (!spin) fz_corners(x - 1, LM_STRIP_Y - 4, x + 17, LM_STRIP_Y + 27);
+    }
+    if (!spin) {
+        if (dialog_active()) return;
         /* a lazy orbit while you choose */
         for (int i = 0; i < fz.lm_n * 2; i++) {
             int a = fz.frame * 2 + i * 256 / (fz.lm_n * 2);
