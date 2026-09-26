@@ -199,9 +199,9 @@ static void dex_habitat(int sp)
         str_put(buf, "-");
         str_put_int(buf, hi);
         str_put(buf, w * 100 / total >= 15 ? "  common" : w * 100 / total >= 8 ? "  uncommon" : "  rare");
-        if (!(when & (1 << WHEN_ANY)) && when == (1 << WHEN_DAY)) str_put(buf, "  DAY");
-        if (!(when & (1 << WHEN_ANY)) && when == (1 << WHEN_NIGHT)) str_put(buf, "  NIGHT");
         pl_add(PL_TEXT, buf);
+        if (!(when & (1 << WHEN_ANY)) && when == (1 << WHEN_DAY)) pl_add(PL_TEXT, "  by day only");
+        if (!(when & (1 << WHEN_ANY)) && when == (1 << WHEN_NIGHT)) pl_add(PL_TEXT, "  at night only");
         any = 1;
     }
     for (int m = 0; m < MAP_COUNT; m++) {
