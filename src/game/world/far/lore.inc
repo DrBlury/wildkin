@@ -79,7 +79,7 @@
         "Hammer on the beat! That's the whole secret. Well, most of it.\f"
         "Here, let me show you how the forge works." },
 
-    [LORE_ANVIL_HALL] = { LCH_HALLS, LSRC_HALL_GUIDE, "THE ANVIL HALL",
+    [LORE_ANVIL_HALL] = { LCH_HALLS, LSRC_FAR_HALL_GUIDE, "THE ANVIL HALL",
         "The ANVIL HALL of Cindermoor trains wardens of METAL and BLAZE kin. Its Master, BRONWEN, "
         "was a smith before she was a warden.\n\n"
         "The Hall is three chambers stacked behind iron gates. Each gate rises when every pressure "
@@ -91,7 +91,7 @@
         "Welcome to the ANVIL HALL! First time?\f"
         "Then listen: the gates, the plates, and the boulders that float." },
 
-    [LORE_EMBER_TUNNEL] = { LCH_PLACES, LSRC_MINER, "THE EMBER TUNNEL",
+    [LORE_EMBER_TUNNEL] = { LCH_PLACES, LSRC_FAR_MINER, "THE EMBER TUNNEL",
         "The EMBER TUNNEL is an old lava tube north of Cindermoor: a cave that formed when the outside "
         "of a lava river cooled into a crust while the inside kept flowing and drained away.\n\n"
         "Miners dug side passages for iron ore, and laid rails for their carts. Lava still seeps "
@@ -102,7 +102,7 @@
         "Keep your lantern lit in there. It's dark, and the rails are loose.\f"
         "I'll tell you how that tunnel got there. It's a good story." },
 
-    [LORE_MOONVEIL] = { LCH_PLACES, LSRC_STARGAZER, "MOONVEIL PATH",
+    [LORE_MOONVEIL] = { LCH_PLACES, LSRC_FAR_STARGAZER, "MOONVEIL PATH",
         "MOONVEIL PATH climbs north from Lumen City to Dreamspire through meadows of mint moon grass "
         "and pink moonpetals, with blossom trees along the way and a still pond that holds the stars.\n\n"
         "The air is quiet here. Travellers say they dream more vividly after walking it, and that the "

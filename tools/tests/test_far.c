@@ -176,7 +176,8 @@ static int anvil_hall_solvable(int tx, int ty)
         }
     for (int y = 0; y < map_h; y++)
         for (int x = 0; x < map_w; x++)
-            ah_wall[y * map_w + x] = (cell_attr(x, y) & A_SOLID) || npc_at(x, y) >= 0 || item_ball_at(x, y) >= 0;
+            /* the solver models boulders and gates itself: raw cells, not traversal's */
+            ah_wall[y * map_w + x] = (cell_attr_raw(x, y) & A_SOLID) || npc_at(x, y) >= 0 || item_ball_at(x, y) >= 0;
     memset(ah_gate, 0, sizeof(ah_gate));
     for (int i = 0; i < ah_nobj; i++)
         if (ah_obj[i].kind == OBJ_GATE) ah_gate[ah_obj[i].y * map_w + ah_obj[i].x] = (u8)(ah_obj[i].arg + 1);
@@ -277,7 +278,7 @@ int main(void)
 
     /* the Mirror Hall: its rooms are joined by pads only */
     map_load(MAP_MIRROR_HALL);
-    flood(5, 15);
+    flood_ex(5, 15, FLOOD_SOLVED);   /* pads followed */
     int m_ves = npc_index(MAP_MIRROR_HALL, SCR_DREAM_MASTER);
     CHECK(m_ves >= 0 && reached_beside(NPCS[m_ves].x, NPCS[m_ves].y), "the MIRROR HALL's pads lead to VESPER");
     {

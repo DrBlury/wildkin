@@ -4255,7 +4255,7 @@ static const DecorPlace VIEW_VOLCANIC_1_DECOR[] = {
     DP(STEAM_VENT, 28, 16),
     DP(OBSIDIAN, 30, 16),
     DP(EMBER_ROCK, 32, 16),
-    DP(ORE_CART, 34, 16),
+    DP(LAVA_ORE_CART, 34, 16),
     DP(FORGE_ANVIL, 36, 16),
     DP(FURNACE, 1, 19),
     DP(BIG_BELL, 4, 19),

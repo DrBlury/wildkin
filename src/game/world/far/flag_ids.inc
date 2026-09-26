@@ -4,5 +4,5 @@
     FLAG_VERSE_1,        /* THE DRIFTING VERSES: the sleepwalker on Moonveil Path */
     FLAG_VERSE_2,        /* ... the dozing boy in Dreamspire */
     FLAG_VERSE_3,        /* ... the sleeping reader in the Dust Library */
-    FLAG_MINER_GIFT,     /* the tunnel miner's HEAVY LANTERN */
+    FLAG_FAR_MINER_GIFT,     /* the tunnel miner's HEAVY LANTERN */
     FLAG_STARGAZER_GIFT, /* the stargazer's STARDUST CHIP */

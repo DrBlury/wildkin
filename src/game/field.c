@@ -30,7 +30,7 @@ static const u8 DIR_BACK[4] = { DIR_UP, DIR_DOWN, DIR_RIGHT, DIR_LEFT };
 typedef struct { u16 base; u8 w, h, x, y; } Stamp;
 #define STAMP(TS, NAME, X, Y) { MT_##TS##_##NAME, MT_##TS##_##NAME##_W, MT_##TS##_##NAME##_H, X, Y }
 
-typedef struct { u8 kind, x, y, flags; } DecorPlace;
+typedef struct { u16 kind; u8 x, y, flags; } DecorPlace;   /* kind: DK_* (more than 255) */
 enum { DF_HFLIP = 1 };
 
 enum { LINK_N, LINK_S, LINK_W, LINK_E };

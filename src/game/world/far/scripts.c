@@ -175,19 +175,19 @@ static void scr_founder(int npc)
 static void scr_tunnel_miner(int npc)
 {
     (void)npc;
-    if (!flag(FLAG_MINER_GIFT)) {
-        flag_set(FLAG_MINER_GIFT);
+    if (!flag(FLAG_FAR_MINER_GIFT)) {
+        flag_set(FLAG_FAR_MINER_GIFT);
         dlg_say("OLD MINER: Heading deeper? Take these. Heavy kin are easier to befriend with a heavy lantern.");
         give_item(ITEM_HEAVY_LANTERN, 2);
         return;
     }
-    lore_reveal(LSRC_MINER, "OLD MINER: The boulders past the lava chamber? Only a strong kin with the ANVIL CREST shifts those.");
+    lore_reveal(LSRC_FAR_MINER, "OLD MINER: The boulders past the lava chamber? Only a strong kin with the ANVIL CREST shifts those.");
 }
 
-static void scr_stargazer(int npc)
+static void scr_far_stargazer(int npc)
 {
     (void)npc;
-    if (lore_reveal(LSRC_STARGAZER, 0)) return;
+    if (lore_reveal(LSRC_FAR_STARGAZER, 0)) return;
     if (!flag(FLAG_STARGAZER_GIFT)) {
         flag_set(FLAG_STARGAZER_GIFT);
         dlg_say("STARGAZER: I found these in the grass after a meteor shower. Starlight you can hold!");

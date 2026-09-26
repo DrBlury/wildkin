@@ -5,7 +5,7 @@
     [SCR_ANVIL_MASTER] = scr_anvil_master,
     [SCR_TUNNEL_MINER] = scr_tunnel_miner,
     [SCR_SLEEPER] = scr_sleeper,
-    [SCR_STARGAZER] = scr_stargazer,
+    [SCR_FAR_STARGAZER] = scr_far_stargazer,
     [SCR_POET] = scr_poet,
     [SCR_DREAM_TENDER] = scr_far_tender,
     [SCR_DREAM_CLERK] = scr_dream_clerk,

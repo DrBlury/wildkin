@@ -12,7 +12,7 @@ ts_dream.py):
                        TOOL_RACK, SALAMANDER_STATUE)
   volcanic 4 decor     steam, stone, rust copper, fire, sulfur (STEAM_VENT,
                        FURNACE, BIG_BELL, BRAZIER, SMOKE)
-  volcanic 5 iron      iron and brick (ORE_CART, FORGE_ANVIL)
+  volcanic 5 iron      iron and brick (LAVA_ORE_CART, FORGE_ANVIL)
   volcanic 6 rust      rust cloth (HALL_BANNER)
   dream    0 ground    moonstone (DREAM_STATUE)
   dream    2 blossom   petals, mirror glass, moonstone crystal (PETALS,
@@ -165,7 +165,7 @@ def ember_rock_frames():
     return [a, a, b, a]
 
 
-ORE_CART = SG('''
+LAVA_ORE_CART = SG('''
 ................
 ................
 ................
@@ -789,7 +789,7 @@ FAR_DECOR = [
     Decor('EMBER_ROCK', VO, frames=ember_rock_frames(), period=20,
           doc='a cooling lava boulder with glowing cracks',
           examine='A lump of cooling lava. It is still glowing inside, and far too hot to touch.'),
-    Decor('ORE_CART', VO, ORE_CART, doc='mine cart heaped with iron ore',
+    Decor('LAVA_ORE_CART', VO, LAVA_ORE_CART, doc='mine cart heaped with iron ore',
           examine='A mine cart full of iron ore, waiting for the Forge.'),
     Decor('FORGE_ANVIL', VO, ANVIL, doc='iron anvil on a brick block',
           examine='A heavy anvil, polished by a thousand hammer blows.'),
