@@ -21,3 +21,17 @@ static void modules_validate(void)
     travel_validate();
     quest_validate();
 }
+
+/* KEY item params (items/key.inc) and who handles them. */
+enum { KEY_BIKE, KEY_WATERING_CAN, KEY_HOE, KEY_FARM_DEED, KEY_FERRY_PASS, KEY_TOWN_MAP,
+       KEY_CREST_CASE, KEY_RECIPE_BOOK, KEY_ENERGY_FLASK };
+
+static int key_item_use(int key)
+{
+    switch (key) {
+    case KEY_WATERING_CAN: case KEY_HOE: case KEY_FARM_DEED: return farm_key_use(key);
+    case KEY_RECIPE_BOOK: return craft_key_use(key);
+    case KEY_ENERGY_FLASK: return fusion_key_use(key);
+    default: return travel_key_use(key);
+    }
+}

@@ -857,6 +857,7 @@ static int field_try_interact(void)
         return 1;
     }
     if (debug_examine(fx, fy)) return 1;
+    if (obj_interact(fx, fy)) return 1;
     return examine_cell(fx, fy);
 }
 

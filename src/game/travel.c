@@ -72,3 +72,27 @@ MAYBE_UNUSED static void worldmap_open(int fly)
     (void)fly;
     dlg_say("A map of the Vale.");
 }
+
+/* LURE INCENSE and WAYSTONE. */
+static int travel_use_item(int item)
+{
+    (void)item;
+    dlg_say("Nothing happens.");
+    return 0;
+}
+
+/* KEY items owned by traversal: BIKE, FERRY PASS, TOWN MAP, CREST CASE. */
+static int travel_key_use(int key)
+{
+    (void)key;
+    dlg_say("Not now.");
+    return 0;
+}
+
+/* Something the player faces that is a map object (boulder, chest, legend,
+ * ferry, berry patch...). Return 1 when handled. */
+static int obj_interact(int x, int y)
+{
+    (void)x; (void)y;
+    return 0;
+}

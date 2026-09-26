@@ -44,3 +44,26 @@ static int dyn_cell(int mx, int my, u16 bottom[4], u16 mid[4], u16 top[4])
 {
     return farm_dyn_cell(mx, my, bottom, mid, top) || travel_dyn_cell(mx, my, bottom, mid, top);
 }
+
+/* Using a farm item from the bag (seeds and fertiliser work on the farm). */
+static int farm_use_item(int item)
+{
+    (void)item;
+    dlg_say("That's for the farm. Use it on tilled soil.");
+    return 0;
+}
+
+/* KEY items owned by the farm: WATERING CAN, HOE, FARM DEED. */
+static int farm_key_use(int key)
+{
+    (void)key;
+    dlg_say("You'll need to be on your farm to use that.");
+    return 0;
+}
+
+/* A wild berry patch (OBJ_BERRY, arg = patch id 0..63) was examined. */
+MAYBE_UNUSED static int farm_berry_interact(int patch)
+{
+    (void)patch;
+    return 0;
+}

@@ -33,3 +33,11 @@ MAYBE_UNUSED static void fusion_open(int screen)
     (void)screen;
     dlg_say("The machines are still warming up.");
 }
+
+/* KEY item ENERGY FLASK: shows the stored energy. */
+static int fusion_key_use(int key)
+{
+    (void)key;
+    dlg_say("The ENERGY FLASK is empty.");
+    return 0;
+}

@@ -44,3 +44,19 @@ MAYBE_UNUSED static int meal_stat_stage(int stat) { (void)stat; return 0; }   /*
 MAYBE_UNUSED static int meal_xp_percent(void) { return 100; }
 MAYBE_UNUSED static int meal_catch_bonus(void) { return 0; }                  /* added to the lantern roll, x10 */
 MAYBE_UNUSED static void meal_bout_finished(void) {}
+
+/* Eating a meal or drink from the bag (slot = the kin it was used on). */
+static int craft_use_food(int item, int slot)
+{
+    (void)item; (void)slot;
+    dlg_say("Save it for later.");
+    return 0;
+}
+
+/* KEY item RECIPE BOOK. */
+static int craft_key_use(int key)
+{
+    (void)key;
+    dlg_say("The RECIPE BOOK is empty.");
+    return 0;
+}

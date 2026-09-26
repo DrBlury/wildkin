@@ -268,9 +268,24 @@ static void evo_request(int slot, int into)
 
 /* Returns 1 if the item did something (and was consumed). Messages are
  * queued on the dialog system. */
+/* Items whose use belongs to a system module (defined later). */
+static int farm_use_item(int item);                /* seeds, fertiliser, sprinkler, crops */
+static int craft_use_food(int item, int slot);     /* meals and drinks */
+static int travel_use_item(int item);              /* LURE INCENSE, WAYSTONE */
+static int key_item_use(int key);                  /* KEY_* (modules.c dispatches) */
+
 static int item_use_field(int item, int slot)
 {
     const Item *it = &ITEMS[item];
+    if (bag[item] <= 0) return 0;
+    switch (it->kind) {
+    case IK_PLANT: case IK_FERTILIZER: case IK_PLACE: case IK_CROP: return farm_use_item(item);
+    case IK_LURE: case IK_WAYSTONE: return travel_use_item(item);
+    case IK_KEY: return key_item_use(it->param);
+    case IK_FOOD: return craft_use_food(item, slot);
+    case IK_MATERIAL: return 0;
+    default: break;
+    }
     Monster *m = &party[slot];
     const char *name = SPECIES[m->species].name;
     char msg[MSG_TEXT_MAX];
