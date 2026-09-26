@@ -534,6 +534,12 @@ static void field_load_palettes(void)
 
 static void travel_load_gfx(void);
 
+/* ---- tall grass (grass.c): front blades over actors, rustles, wind ---- */
+static void grass_tileset_loaded(void);
+static void grass_present(void);
+static void grass_step_into(int x, int y);
+static int grass_npc_slots(void);
+
 static void field_load_tileset(void)
 {
     copy32(VRAM_SCENE_TILES, tset()->tiles, (unsigned)tset()->tile_count * 8);
@@ -554,6 +560,7 @@ static void field_load_tileset(void)
     field_load_palettes();
     ring_invalidate();
     travel_load_gfx();
+    grass_tileset_loaded();
 }
 
 /* Tile-data swaps for rippling water, swaying flowers and animated decor. */
@@ -575,6 +582,7 @@ static void field_animate_tiles(void)
         copy32(VRAM_SCENE_TILES + decor_base[k] * 8, decor_tiles + (d->tile_first + f * d->tile_count) * 8,
                (unsigned)d->tile_count * 8);
     }
+    grass_present();
 }
 
 static void travel_dark_off(void);
@@ -788,6 +796,7 @@ static int travel_player_lift(void);
 static int travel_kin_actors(const KinActor **out, int max);
 static int travel_push_sprites(FieldSprite *list, int n, int max);
 static void travel_draw_floor(void);
+static int grass_push_sprites(FieldSprite *list, int n, int max);  /* grass.c */
 static int farm_field_kin(const KinActor **out);  /* farm.c: workers on WILLOW ACRE (at most 4) */
 
 static struct { int npc, kind, timer; } emote = { -1, 0, 0 };
@@ -815,7 +824,7 @@ static void draw_weather(void)
 
 static void field_draw_sprites(void)
 {
-    FieldSprite list[80];
+    FieldSprite list[96];
     int n = 0;
     int lift = actor_lift(&player) + travel_player_lift();
     if (travel_player_entry(&list[n], lift)) {
@@ -831,7 +840,7 @@ static void field_draw_sprites(void)
         const Actor *a = &npc_state[i];
         int wx = a->x * 16 + a->ox, wy = a->y * 16 + a->oy;
         if (wx - cam_x >= -16 && wx - cam_x <= SCREEN_WIDTH && wy - cam_y >= -16 &&
-            wy - cam_y <= SCREEN_HEIGHT + 16 && slot < 7) {
+            wy - cam_y <= SCREEN_HEIGHT + 16 && slot < grass_npc_slots()) {
             copy32(VRAM_OBJ_TILES + OT_NPC(slot) * 8, char_gfx[NPCS[i].chr][actor_frame(a)], 64);
             load_pal(obj_palette + (OBANK_NPC + slot) * 16, char_palettes[NPCS[i].chr]);
             list[n++] = (FieldSprite){ wy, wx, 0, OT_NPC(slot), OBANK_NPC + slot, a->facing == DIR_RIGHT };
@@ -880,6 +889,7 @@ static void field_draw_sprites(void)
         list[n++] = (FieldSprite){ ITEM_BALLS[i].y * 16 - 1, ITEM_BALLS[i].x * 16, 2, 0, 0, 0 };
     }
     n = travel_push_sprites(list, n, 78);
+    n = grass_push_sprites(list, n, 96);
     /* Sort front-to-back: larger y is closer to the camera. */
     for (int i = 1; i < n; i++)
         for (int j = i; j > 0 && list[j].y > list[j - 1].y; j--) {
@@ -960,6 +970,7 @@ static void actor_start_move(Actor *a, int dir)
     a->ox = (s8)(-DIR_DX[dir] * 16);
     a->oy = (s8)(-DIR_DY[dir] * 16);
     a->moving = 1;
+    grass_step_into(a->x, a->y);
 }
 
 /* Two cells at once (ledge hop). */
@@ -972,6 +983,7 @@ static void actor_start_hop(Actor *a, int dir)
     a->oy = (s8)(-DIR_DY[dir] * 32);
     a->moving = 1;
     a->hop = 16;
+    grass_step_into(a->x, a->y);
 }
 
 /* Direction from one cell to an adjacent one (or -1). */

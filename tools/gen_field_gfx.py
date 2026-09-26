@@ -709,6 +709,7 @@ def lab():
 import decor_outdoor
 import decor_indoor
 import terrain_wild
+import grass
 
 
 def register_colors(extra):
@@ -916,6 +917,7 @@ def finish_tileset(out, name, tag, attrs, ground, overlay, legend, oob, default_
     doors:   [(stamp name, col, row)] cells that are doors
     backdrop: 'ground' (bank 0 colour 1) or an (r, g, b) triple
     """
+    grass.install(sys.modules[__name__], out, name, attrs, legend)  # tall grass (tools/grass.py)
     ids = {n: i for i, n in enumerate(out['terrain'])}
     for (sname, sid, cw, chh, doc) in out['stamps']:
         ids[sname] = sid
@@ -2753,6 +2755,7 @@ def write_header(sets, dec, chars, item, emotes, path):
         A('/* ================================================================ */')
         emit_tileset(o, sets[sname], sets[sname].get('docs', DOCS.get(sname, {})))
     emit_tileset_table(o, sets)
+    grass.emit(o, sets, TS_NAMES, pack4, fmt_u32)
     # ---------------- decor
     kinds = dec['kinds']
     A('/* ================================================================ */')

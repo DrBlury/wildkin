@@ -238,8 +238,18 @@ static void test_maps(void)
         for (int q = 0; q < 4; q++)
             if ((interior_meta_bottom[m][q] & 0x3FF) >= INTERIOR_TILE_COUNT) tiles_ok = 0;
     CHECK(tiles_ok, "terrain metatiles point at real tiles");
-    CHECK(town_meta_top[MT_T_TALLGRASS][2] != 0 && wild_meta_top[MT_W_REEDS][2] != 0,
-          "tall grass and reeds have a front layer drawn over legs");
+    /* tall grass (grass.c): every variety's variants are wild-kin grass, drawn on
+     * BG0 only (the front blades over actors are sprites) */
+    int grass_ok = GRASS_SETS[TS_TOWN].count >= 1 && GRASS_SETS[TS_WILD].count >= 4;
+    for (int t = 0; t < TS_COUNT; t++)
+        for (int d = 0; d < GRASS_SETS[t].count; d++)
+            for (int v = 0; v < GRASS_VARIANTS; v++) {
+                int mt = GRASS_SETS[t].defs[d].meta[v];
+                if (mt >= TILESETS[t].meta_count || !(TILESETS[t].attr[mt] & A_GRASS)) grass_ok = 0;
+                for (int q = 0; q < 4; q++)
+                    if (TILESETS[t].meta_top[mt][q]) grass_ok = 0;
+            }
+    CHECK(grass_ok, "every tall-grass variant is wild-kin grass with its front blades as sprites");
 }
 
 /* ---------------- movement ---------------- */
