@@ -536,7 +536,7 @@ static void wild_touch(int slot)
         return;
     }
     wild_battle_slot = slot;
-    set_battle_scene(MAPS[cur_map].scene);
+    set_battle_scene(travel.surfing || wild[slot].water ? SC_SEA : MAPS[cur_map].scene);
     battle_end_hook = wild_end;
     battle_start_wild(wild[slot].mon);
     steps_since_battle = 0;
@@ -986,6 +986,7 @@ static void field_draw(void)
 {
     field_update_camera();
     field_draw_sprites();
+    travel_dark_frame(game_mode == MODE_FIELD && !warp.active);
     if (starter_preview >= 0) {
         /* follow the cursor of the three-way choice; keep showing the pick
          * while the Keeper asks you to confirm it */

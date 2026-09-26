@@ -66,11 +66,11 @@ static int menu_bob(int selected)
 /*  START menu                                                      */
 /* ================================================================ */
 
-enum { SM_ALMANAC, SM_LORE, SM_KIN, SM_BAG, SM_SHELF, SM_CARD, SM_OPTIONS, SM_SAVE, SM_EXIT };
+enum { SM_ALMANAC, SM_LORE, SM_KIN, SM_BAG, SM_MAP, SM_FIELD, SM_SHELF, SM_CARD, SM_OPTIONS, SM_SAVE, SM_EXIT };
 static const char *const START_NAMES[] = {
-    "ALMANAC", "LOREBOOK", "KIN", "BAG", "SHELF", "CARD", "OPTIONS", "SAVE", "EXIT",
+    "ALMANAC", "LOREBOOK", "KIN", "BAG", "MAP", "FIELD", "SHELF", "CARD", "OPTIONS", "SAVE", "EXIT",
 };
-static u8 start_items[9];
+static u8 start_items[11];
 static int start_count, start_cursor, start_card;
 
 static void start_menu_build(void)
@@ -79,17 +79,22 @@ static void start_menu_build(void)
     for (int i = SM_ALMANAC; i <= SM_EXIT; i++) {
         if (i == SM_SHELF && !(flag(FLAG_TWIN_CRYSTAL))) continue;
         if (i == SM_KIN && !party_count) continue;
+        if (i == SM_MAP && bag[ITEM_TOWN_MAP] <= 0) continue;                        /* travel.c */
+        if (i == SM_FIELD && !(party_count && (travel.crests || bag[ITEM_BIKE] > 0))) continue;
+        if (i == SM_EXIT && start_count > 9) continue;   /* B closes the menu too */
         start_items[start_count++] = (u8)i;
     }
     if (start_cursor >= start_count) start_cursor = 0;
 }
 
+static int start_pitch(void) { return start_count > 9 ? 14 : LINE_H; }
+
 static void start_menu_draw(void)
 {
     start_menu_build();
-    canvas_window(20, 0, 10, start_count * 2 + 2, WIN_STD);
+    canvas_window(20, 0, 10, (start_count * start_pitch() + 16 + 7) / 8, WIN_STD);
     for (int i = 0; i < start_count; i++) {
-        int y = 8 + i * LINE_H;
+        int y = 8 + i * start_pitch();
         text_draw(172, y, START_NAMES[start_items[i]]);
         if (start_items[i] == SM_LORE && lore_unread_count())
             text_draw_col(224, y, "*", INK_RED, INK_RED_SH);
@@ -173,6 +178,14 @@ static void start_menu_update(void)
     case SM_LORE: lorebook_open(); break;
     case SM_KIN: party_screen_open(PCTX_FIELD, 0); break;
     case SM_BAG: bag_screen_open(BAGCTX_FIELD); break;
+    case SM_MAP:
+        start_menu_close();
+        worldmap_open(0);
+        break;
+    case SM_FIELD:
+        start_menu_close();
+        travel_field_menu_open();
+        break;
     case SM_SHELF: pc_open_from_menu(); break;
     case SM_CARD:
         start_card = 1;
@@ -879,7 +892,7 @@ static void bag_use(int item)
         party_screen_open(PCTX_ITEM_BATTLE, item);
         return;
     }
-    if (k == IK_HUSH) {
+    if (k == IK_HUSH || k == IK_KEY) {   /* key items need no kin (travel.c, farm.c...) */
         bag_hush(item);
         return;
     }
