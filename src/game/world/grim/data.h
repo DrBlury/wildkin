@@ -109,24 +109,26 @@ static const char *const GRAVEWOOD_ROWS[] = {
 /* DUSKMERE (44 x 40): a stilt town on peat isles in the black mere
  * (docs/ELEVATION.md). The SQUARE ISLE (height 1) at the end of the
  * causeway (edge y 20-21): Hearth, Shop, the mire bell on the round square,
- * the bog fisher's pier. Side stairs (28,10) climb LANTERN HILL (2): the
- * graveyard and the LANTERN CRYPT; ledges (39-41,13) drop from the graves
- * to the EAST ISLE (1) and the MIRE HOUSE. THE LONG WALK (28-38, rows
- * 20-21) carries the square's road OVER the sunken GATE YARD (0), where the
- * sealed OSSUARY gate is cut into the hill's two-row cliff; the only way to
- * the gate is the lane UNDER the walk from the reed flats (stairs 18-19,27
- * and ledges 22-23,27 lead down from the square). HENBANE'S WALK (11-12,
- * rows 27-30) crosses the flats to the APOTHECARY ISLE; under it, a reed
- * nook. A gap in the cypress screen (36-37,33) hides the drowned chapel. */
+ * the bog fisher's pier, and the lamp jetty north to the islet where the
+ * lantern for the lost burns. Side stairs (28,10) climb LANTERN HILL (2):
+ * the graveyard and the LANTERN CRYPT; ledges (39-41,13) drop from the
+ * graves to the EAST ISLE (1) and the MIRE HOUSE. THE LONG WALK (28-38,
+ * rows 20-21) carries the square's road OVER the sunken GATE YARD (0),
+ * where the sealed OSSUARY gate is cut into the hill's two-row cliff; the
+ * only way to the gate is the lane UNDER the walk from the reed flats
+ * (stairs 18-19,27 and ledges 22-23,27 lead down from the square).
+ * HENBANE'S WALK (11-12, rows 27-30) crosses the flats to the APOTHECARY
+ * ISLE; under it, a reed nook. A gap in the cypress screen (36-37,33) hides
+ * the drowned chapel. */
 static const char *const DUSKMERE_ROWS[] = {
     "YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY", /*  0 */
     "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy", /*  1 */
-    "~~~~~~~~~~~~~~YY~~~~~~~~~~~~CCCCCCCCCCYYYYYY", /*  2 */
-    "~~~~~~~~~~~~~~yy~~~~~~YY~~~~CCCCCCCCCCyyyyyy", /*  3 */
-    "~~~~~~~~~~~~~~~~~~~~~~yy~~~~CCCgggggggYYYYYY", /*  4 */
-    "~~~YY~~~~~~~~~~~~~~~~~~~~~~~CCCgggggggyyyyyy", /*  5 */
-    "~~~yy~~~~~~~~~~~~~~~~~~~~~~~CCCgggggggbbbbbY", /*  6 */
-    "~~~~~~~~~~~~~MMMMMMMM~~~~~~~CCCgggggggbbbbby", /*  7 */
+    "~~~~~~~~~~~~~~~MMMMMM~~~~~~~YYYYYYYYYYYYYYYY", /*  2 */
+    "~~~~~~~~~~~~~~~MMddMM~YY~~~~yyyyyyyyyyyyyyyy", /*  3 */
+    "~~~~~~~~~~~~~~~..dd..~yy~~~~YYYgggggggYYYYYY", /*  4 */
+    "~~~YY~~~~~~~~~~~~dd~~~~~~~~~yyygggggggyyyyyy", /*  5 */
+    "~~~yy~~~~~~~~~~~~dd~~~~~~~~~YYYgggggggbbbbbY", /*  6 */
+    "~~~~~~~~~~~~~MMMMMMMM~~~~~~~yyygggggggbbbbby", /*  7 */
     "~~~~~~~~~~~MMMMMMMMMMMMMM~~~ggggg###gggggggY", /*  8 */
     "~~~~~~~~~~MMMMMMMMMMMmmmmmm~ggggg###gggggggy", /*  9 */
     "~~~~~~~~~MMMMMMMMMMMMmmmmmmMg######ggggggggY", /* 10 */
@@ -165,11 +167,11 @@ static const char *const DUSKMERE_ROWS[] = {
 static const char *const DUSKMERE_ELEV[] = {
     "00000000000000000000000000002222222222222222", /*  0 */
     "00000000000000000000000000002222222222222222", /*  1 */
-    "00000000000000000000000000002222222222222222", /*  2 */
-    "00000000000000000000000000002222222222222222", /*  3 */
-    "00000000000000000000000000002222222222222222", /*  4 */
-    "00000000000000000000000000002222222222222222", /*  5 */
-    "00000000000000000000000000002222222222222222", /*  6 */
+    "00000000000000011111100000002222222222222222", /*  2 */
+    "00000000000000011111100000002222222222222222", /*  3 */
+    "00000000000000000110000000002222222222222222", /*  4 */
+    "00000000000000000110000000002222222222222222", /*  5 */
+    "00000000000000000110000000002222222222222222", /*  6 */
     "00000000000001111111100000002222222222222222", /*  7 */
     "00000000000111111111111110002222222222222222", /*  8 */
     "00000000001111111111111111102222222222222222", /*  9 */
@@ -413,9 +415,9 @@ static const DecorPlace DUSKMERE_DECOR[] = {
     DP(GR_SIGN, 8, 19), DP(GR_SIGN, 31, 8), DP(GR_SIGN, 31, 18),
     DP(GR_BELL, 18, 17),
     DP(GR_LANTERN, 10, 17), DP(GR_LANTERN, 25, 17), DP(GR_LANTERN, 21, 13), DP(GR_LANTERN, 14, 24),
-    DP(GR_LANTERN, 24, 23), DP(GR_LANTERN, 35, 10), DP(GR_LANTERN, 41, 18), DP(GR_LANTERN, 3, 32),
+    DP(GR_LANTERN, 24, 23), DP(GR_LANTERN, 35, 10), DP(GR_LANTERN, 41, 18), DP(GR_LANTERN, 3, 32), DP(GR_LANTERN, 16, 2),
     DP(GR_PUMPKIN, 20, 12), DP(GR_PUMPKIN, 13, 13), DP(GR_PUMPKIN, 42, 27), DP(GR_PUMPKIN, 9, 33),
-    DP(GR_MOORING, 27, 19), DP(GR_MOORING, 27, 22), DP(GR_MOORING, 13, 26), DP(GR_MOORING, 8, 13),
+    DP(GR_MOORING, 27, 19), DP(GR_MOORING, 27, 22), DP(GR_MOORING, 13, 26), DP(GR_MOORING, 8, 13), DP(GR_MOORING, 19, 3),
     DP(GR_WISP, 35, 33), DP(GR_WISP, 30, 16), DP(GR_WISP, 40, 31), DP(GR_WISP, 9, 30),
     DP(GR_GRAVE, 31, 6), DP(GR_GRAVE, 37, 5), DP(GR_CROSS, 37, 8), DP(GR_GRAVE, 39, 8),
     DP(GR_CROSS, 41, 8), DP(GR_GRAVE, 37, 10), DP(GR_CROSS, 39, 10), DP(GR_GRAVE, 41, 10), DP(GR_CROSS, 30, 9),

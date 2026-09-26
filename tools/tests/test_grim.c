@@ -147,7 +147,7 @@ static void test_story(void)
           "after DRAKORA the Keeper tells you about the Hollowing");
 
     /* the haze: MF_ASH tints the palette until OSSUREX is answered */
-    field_enter_map(MAP_DUSKMERE, 10, 12, DIR_DOWN);
+    field_enter_map(MAP_DUSKMERE, 12, 13, DIR_DOWN);
     CHECK(quest_get(QUEST_HOLLOWING) >= 2, "reaching DUSKMERE moves the Hollowing on");
     u16 raw = TILESETS[TS_GRIM].palettes[0][3];
     CHECK(grim_ash_active(MAP_DUSKMERE) && bg_palette[3] == field_tint(grim_ash_tint(raw)) &&
@@ -254,11 +254,41 @@ static void test_quests(void)
     CHECK(grim_ash_active(MAP_GRAVEWOOD), "ash falls in GRAVEWOOD");
 }
 
+/* Duskmere on its levels (docs/handoff/towns_north_grim.md) */
+static void test_duskmere(void)
+{
+    map_load(MAP_DUSKMERE);
+    field_load_tileset();
+    int decor_ok = 1;
+    for (int i = 0; i < MAPS[MAP_DUSKMERE].decor_count; i++)
+        if (!decor_base[MAPS[MAP_DUSKMERE].decor[i].kind]) decor_ok = 0;
+    CHECK(decor_ok, "DUSKMERE: every decor kind (lanterns, bell, graves...) fits the scene tiles");
+    flood(0, 20);
+    CHECK(reached_lv(33, 21, 1) && reached_lv(33, 21, 0),
+          "DUSKMERE: the Long Walk crosses the gate yard on top; the lane runs under it");
+    int gate = find_npc(MAP_DUSKMERE, "GATE WARDEN OSRIC");
+    int gx = NPCS[gate].x, gy = NPCS[gate].y;
+    CHECK(elev_floor(gx, gy) == 0 && reached_lv(gx + 1, gy, 0) && elev_floor(gx, gy - 7) == 2,
+          "DUSKMERE: the Ossuary gate waits in the sunken yard under Lantern Hill");
+    int chapel = -1;
+    for (int i = 0; i < ITEM_BALL_COUNT; i++)
+        if (ITEM_BALLS[i].map == MAP_DUSKMERE && ITEM_BALLS[i].item == ITEM_REVIVAL_BREW) chapel = i;
+    CHECK(chapel >= 0 && reached_beside(ITEM_BALLS[chapel].x, ITEM_BALLS[chapel].y) && elev_hidden(36, 33),
+          "DUSKMERE: the drowned chapel lies behind a hidden gap in the cypress");
+    int back = -1;
+    for (int i = 0; i < WARP_COUNT; i++)
+        if (WARPS[i].map == MAP_OSSUARY_1 && WARPS[i].dest == MAP_DUSKMERE) back = i;
+    CHECK(back >= 0 && cell_walkable(WARPS[back].dx, WARPS[back].dy) && elev_floor(WARPS[back].dx, WARPS[back].dy) == 0 &&
+              absi(WARPS[back].dx - gx) + absi(WARPS[back].dy - gy) == 1,
+          "DUSKMERE: climbing out of the Ossuary lands beside the gate warden");
+}
+
 int main(void)
 {
     setvbuf(stdout, NULL, _IONBF, 0);
     game_init();
     test_maps();
+    test_duskmere();
     test_crypt();
     test_story();
     test_quests();
