@@ -769,6 +769,204 @@ ICON_EMPTY = from_rows([
 
 
 # ---------------------------------------------------------------------------
+# rarity gems (8x8 OBJ tiles, one shared OBJ palette): the Almanac, the
+# LANTERN SHELF and the summary show a kin's rarity as a coloured gem --
+# grey common, green uncommon, blue rare, gold legend, purple spiral fusion
+# (docs/EXPANSION.md 3).
+# ---------------------------------------------------------------------------
+
+GEM_PAL = [
+    c15(0, 0, 0),       # 0 transparent
+    c15(4, 4, 9),       # 1 outline
+    c15(31, 31, 31),    # 2 sparkle
+    c15(25, 25, 27),    # 3 grey light
+    c15(14, 15, 18),    # 4 grey dark
+    c15(15, 30, 13),    # 5 green light
+    c15(3, 17, 6),      # 6 green dark
+    c15(14, 23, 31),    # 7 blue light
+    c15(3, 8, 25),      # 8 blue dark
+    c15(31, 30, 14),    # 9 gold light
+    c15(30, 20, 2),     # 10 gold mid
+    c15(19, 10, 1),     # 11 gold dark
+    c15(28, 20, 31),    # 12 purple light
+    c15(19, 7, 27),     # 13 purple mid
+    c15(10, 3, 17),     # 14 purple dark
+    c15(0, 0, 0),       # 15 spare
+]
+
+GEM_CUT = [          # L light, M mid, D dark, W sparkle, O outline
+    "........",
+    ".OOOOOO.",
+    "OLWLLMMO",
+    "OLLMMMDO",
+    ".OMMMDO.",
+    "..OMDO..",
+    "...OO...",
+    "........",
+]
+GEM_STAR = [         # legend: a gold star-cut gem
+    "...OO...",
+    "..OLWO..",
+    "OOOLLMOO",
+    "OLWLMMDO",
+    ".OLMMDO.",
+    ".OMMODDO",
+    "OMDO.ODO",
+    "OOO...OO",
+]
+GEM_SPIRAL = [       # fusion: a purple spiral
+    "..OOOO..",
+    ".OLLLLO.",
+    "OLDDDDLO",
+    "ODLLLDLO",
+    "ODLDWDLO",
+    "ODLDDDLO",
+    ".OLLLLO.",
+    "..OOOO..",
+]
+
+
+def make_gem(rows, light, mid, dark):
+    cmap = {".": 0, "O": 1, "W": 2, "L": light, "M": mid, "D": dark}
+    return from_rows(rows, cmap)
+
+
+GEMS = [
+    make_gem(GEM_CUT, 3, 3, 4),        # R_COMMON
+    make_gem(GEM_CUT, 5, 5, 6),        # R_UNCOMMON
+    make_gem(GEM_CUT, 7, 7, 8),        # R_RARE
+    make_gem(GEM_STAR, 9, 10, 11),     # R_LEGEND
+    make_gem(GEM_SPIRAL, 12, 13, 14),  # R_FUSION
+]
+
+
+# ---------------------------------------------------------------------------
+# Hall crests (16x16 medallions, drawn in the badge bank of their Hall's
+# type so no extra palette is needed) and an empty crest slot (bank 15)
+# ---------------------------------------------------------------------------
+
+CREST_TYPES = [("VOLT", "SPARK"), ("TIDE", "TIDE"), ("ANVIL", "METAL"),
+               ("RIME", "FROST"), ("LANTERN", "BLAZE"), ("DREAM", "DREAM")]
+
+CREST_SYMBOLS = {
+    "VOLT": [
+        ".....WW..",
+        "....WW...",
+        "...WW....",
+        "..WWWWW..",
+        "....WW...",
+        "...WW....",
+        "..WW.....",
+        "..W......",
+        ".........",
+    ],
+    "TIDE": [
+        ".........",
+        ".WW...WW.",
+        "W..W.W..W",
+        "....W....",
+        ".........",
+        ".WW...WW.",
+        "W..W.W..W",
+        "....W....",
+        ".........",
+    ],
+    "ANVIL": [
+        ".........",
+        "WWWWWWWW.",
+        ".WWWWWWWW",
+        "...WWWW..",
+        "....WW...",
+        "....WW...",
+        "..WWWWWW.",
+        "..WWWWWW.",
+        ".........",
+    ],
+    "RIME": [
+        "....W....",
+        ".W..W..W.",
+        "..W.W.W..",
+        "...WWW...",
+        "WWWWWWWWW",
+        "...WWW...",
+        "..W.W.W..",
+        ".W..W..W.",
+        "....W....",
+    ],
+    "LANTERN": [
+        "...WWW...",
+        "...W.W...",
+        "..WWWWW..",
+        ".WW...WW.",
+        ".W..W..W.",
+        ".W.WW..W.",
+        ".W.WWW.W.",
+        ".WW...WW.",
+        "..WWWWW..",
+    ],
+    "DREAM": [
+        "....WWW..",
+        "..WWW....",
+        ".WWW...W.",
+        ".WW.....W",
+        ".WW....W.",
+        ".WWW.....",
+        "..WWW....",
+        "....WWW..",
+        ".........",
+    ],
+}
+
+
+def crest_disc(fill, dark, white, rim_only=False):
+    """16x16 medallion: dark rim, fill inside, a white glint top-left."""
+    img = Img(16, 16)
+    cx = cy = 7.5
+    inside = [[(x - cx) ** 2 + (y - cy) ** 2 <= 7.6 ** 2 for x in range(16)] for y in range(16)]
+    for y in range(16):
+        for x in range(16):
+            if not inside[y][x]:
+                continue
+            edge = any(not (0 <= x + dx < 16 and 0 <= y + dy < 16 and inside[y + dy][x + dx])
+                       for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+            if edge:
+                img.p[y][x] = dark
+            elif not rim_only:
+                img.p[y][x] = fill
+    if not rim_only:
+        for (x, y) in ((4, 2), (3, 3), (2, 4)):
+            img.p[y][x] = white
+    return img
+
+
+def make_crest(name, t):
+    fi, di = TYPE_IDX[t]
+    white = BANK9_WHITE if t in BANK9_TYPES else 1
+    img = crest_disc(fi, di, white)
+    for yy, row in enumerate(CREST_SYMBOLS[name]):
+        for xx, ch in enumerate(row):
+            if ch == "W":
+                img.set(4 + xx, 3 + yy, white)
+    return img, TYPE_BANK[TYPES.index(t)], white
+
+
+CRESTS = [make_crest(n, t) for n, t in CREST_TYPES]
+
+
+def make_crest_empty():
+    """An unearned crest: a dotted grey ring (bank 15: 3 shadow, 6 frame light)."""
+    ring = crest_disc(0, 3, 0, rim_only=True)
+    for y in range(16):
+        for x in range(16):
+            if ring.p[y][x] == 3 and (x + y) % 3 == 0:
+                ring.p[y][x] = 6
+    return ring
+
+
+CREST_EMPTY = make_crest_empty()
+
+
+# ---------------------------------------------------------------------------
 # header output
 # ---------------------------------------------------------------------------
 
@@ -939,6 +1137,34 @@ def write_header():
       ", ".join("0x%08X" % v for v in ICON_CAUGHT.tile(0, 0)))
     A("static const u32 ui_icon_empty[8] = { %s };" %
       ", ".join("0x%08X" % v for v in ICON_EMPTY.tile(0, 0)))
+    A("")
+    # --- rarity gems
+    A("/* ---- rarity gems: 8x8 OBJ tiles in R_* order (common, uncommon, rare,")
+    A(" * legend, fusion) sharing one OBJ palette ------------------------------ */")
+    A("#define GEM_COUNT %d" % len(GEMS))
+    A("static const u32 gem_obj_gfx[%d][8] = {" % len(GEMS))
+    for img in GEMS:
+        A("    { " + ", ".join("0x%08X" % v for v in img.tile(0, 0)) + " },")
+    A("};")
+    A("static const u16 gem_obj_pal[16] = { %s };" % fmt_u16(GEM_PAL))
+    A("")
+    # --- crests
+    A("/* ---- Hall crests: 16x16 (2x2 tiles) medallions drawn in their Hall")
+    A(" * type's badge bank (crest_bank); crest_paper = that bank's white, used")
+    A(" * to fill the transparent corners. Order: " + " ".join(n for n, _ in CREST_TYPES) + ".")
+    A(" * crest_empty_gfx: an unearned slot, bank 15 (fill with paper, 1). */")
+    A("#define CREST_ART_COUNT %d" % len(CRESTS))
+    A("static const u32 crest_gfx[%d][4 * 8] = {" % len(CRESTS))
+    for (n, _), (img, _, _) in zip(CREST_TYPES, CRESTS):
+        A("    { /* %s */" % n)
+        A(fmt_u32_rows([v for tl in img.tiles() for v in tl], "        ", 8))
+        A("    },")
+    A("};")
+    A("static const u8 crest_bank[%d] = { " % len(CRESTS) + ", ".join(str(b) for _, b, _ in CRESTS) + " };")
+    A("static const u8 crest_paper[%d] = { " % len(CRESTS) + ", ".join(str(w) for _, _, w in CRESTS) + " };")
+    A("static const u32 crest_empty_gfx[4 * 8] = {")
+    A(fmt_u32_rows([v for tl in CREST_EMPTY.tiles() for v in tl], "    ", 8))
+    A("};")
     A("")
     A("#endif /* GFX_UI_H */")
     text = "\n".join(L) + "\n"
@@ -1218,6 +1444,20 @@ def preview_badges(path):
     cv.save(path)
 
 
+def preview_gems_crests(path):
+    cv = Canvas(160, 64, rgb8(PAL_STD[1]))
+    for i, img in enumerate(GEMS):
+        cv.blit(img, GEM_PAL, 8 + i * 14, 6)
+        cv.rect(8 + i * 14, 18, 15 + i * 14, 29, rgb8(PAL_STD[7]))
+        cv.blit(img, GEM_PAL, 8 + i * 14, 20)
+    menu9 = MENU_PAL[0][:5] + BANK9_EXTRA[5:]
+    for i, (img, bank, white) in enumerate(CRESTS):
+        pal = menu9 if bank == 9 else BADGE_PAL[0 if bank == 12 else 1]
+        cv.blit(img, pal, 8 + i * 20, 40, skip0=False, fill0=white)
+    cv.blit(CREST_EMPTY, PAL_STD, 128, 40, skip0=False, fill0=1)
+    cv.save(path, 4)
+
+
 def preview_frames(path):
     cv = Canvas(240, 120, (96, 176, 72))
     cv.blit(assemble_box(FRAME_STD, 10, 5), PAL_STD, 8, 8)
@@ -1237,6 +1477,7 @@ def main():
         preview_battle(os.path.join(d, "battle.png"))
         preview_badges(os.path.join(d, "badges.png"))
         preview_frames(os.path.join(d, "frames.png"))
+        preview_gems_crests(os.path.join(d, "gems_crests.png"))
     print("wrote", OUT_H)
 
 
