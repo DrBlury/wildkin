@@ -335,28 +335,28 @@ static const LearnEntry LS_CLOCKOWL[] = { {1, M_IRON_TAP}, {1, M_DAYDREAM}, {1, 
 static const LearnEntry LS_CINDERANT[] = { {1, M_CINDER_FLICK}, {1, M_PINCER}, {1, M_BONK}, {1, M_LAST_EMBER}, {9, M_SEAR_BITE}, {15, M_BRACE}, {21, M_SWARM_RUSH}, {27, M_EMBER_STORM}, {33, M_WAR_CRY}, {39, M_KILN_BREATH}, {45, M_RECKLESS_RUSH}, {51, M_SUNFLARE}, {0, 0} };
 static const LearnEntry LS_STARWEAVER[] = { {1, M_TWINKLE}, {1, M_SILK_SNARE}, {1, M_STARDUST}, {1, M_BARB}, {8, M_PINCER}, {14, M_MOONBEAM}, {20, M_NEBULA_VEIL}, {26, M_SWARM_RUSH}, {32, M_MUON_RAIN}, {38, M_COMET_DASH}, {44, M_METEOR_FALL}, {50, M_SUPERNOVA}, {0, 0} };
 static const LearnEntry LS_NOSFERBAT[] = { {1, M_SNAP}, {1, M_STARE_DOWN}, {1, M_BONE_RATTLE}, {1, M_SHROUD}, {9, M_GRAVE_CHILL}, {15, M_MARROW_SIP}, {21, M_HAUNT}, {27, M_GNASH}, {33, M_DEATH_KNELL}, {39, M_GLOOM_ORB}, {45, M_LAST_RITES}, {51, M_REQUIEM}, {0, 0} };
-static const LearnEntry LS_BARKOLEM[] = { {1, M_BONK}, {1, M_BURR_VOLLEY}, {1, M_BASK}, {1, M_BRAMBLE_LASH}, {14, M_DROWSY_POLLEN}, {20, M_GRIT_KICK}, {26, M_STONESKIN}, {32, M_THORN_WALL}, {38, M_PEBBLE_PELT}, {44, M_SAP_SIP}, {50, M_LEAF_FLURRY}, {0, 0} };
-static const LearnEntry LS_PORCELYNX[] = { {1, M_BONK}, {1, M_TRINKET_TOSS}, {1, M_HAILSTONES}, {1, M_CLATTER}, {14, M_FLURRY}, {20, M_RIME_SHOT}, {26, M_SNOWDRIFT}, {32, M_TARNISH}, {38, M_POLTERGUST}, {44, M_GILDED_GLEAM}, {50, M_CHEST_CHOMP}, {0, 0} };
-static const LearnEntry LS_KABUTORAI[] = { {1, M_BONK}, {1, M_PUMMEL}, {1, M_RIVET_SHOT}, {1, M_ONE_TWO}, {14, M_IRON_TAP}, {20, M_MAGNET_PULL}, {26, M_STEEL_SHELL}, {32, M_WAR_CRY}, {38, M_HAMMER_FIST}, {44, M_COUNTERJAB}, {50, M_FORGE_FLASH}, {0, 0} };
-static const LearnEntry LS_DROWNJELLY[] = { {1, M_BONK}, {1, M_BONE_RATTLE}, {1, M_FIZZ}, {1, M_SLIPSTREAM}, {14, M_LAST_RITES}, {20, M_SHROUD}, {26, M_GRAVE_CHILL}, {32, M_MARROW_SIP}, {38, M_UNDERTOW}, {44, M_RIPTIDE}, {50, M_OSSIFY}, {0, 0} };
-static const LearnEntry LS_SUNMANE[] = { {1, M_BONK}, {1, M_BURR_VOLLEY}, {1, M_CINDER_FLICK}, {1, M_LAST_EMBER}, {14, M_BASK}, {20, M_BRAMBLE_LASH}, {26, M_DROWSY_POLLEN}, {32, M_LANTERN_LURE}, {38, M_THORN_WALL}, {44, M_SAP_SIP}, {50, M_LEAF_FLURRY}, {0, 0} };
-static const LearnEntry LS_DREAMKITE[] = { {1, M_BONK}, {1, M_BEAK_JAB}, {1, M_DRAFT}, {1, M_LULLABY}, {14, M_STILL_POND}, {20, M_UPDRAFT}, {26, M_DAYDREAM}, {32, M_FEATHER_CUT}, {38, M_PRISM_RAY}, {44, M_CROSSWIND}, {50, M_DREAMQUAKE}, {0, 0} };
-static const LearnEntry LS_BOGNEWT[] = { {1, M_BONK}, {1, M_BARB}, {1, M_FIZZ}, {1, M_SLIPSTREAM}, {14, M_SPORE_CLOUD}, {20, M_ACID_SPIT}, {26, M_FESTER}, {32, M_UNDERTOW}, {38, M_RIPTIDE}, {44, M_BOG_BOMB}, {50, M_SWELL}, {0, 0} };
-static const LearnEntry LS_RIMEGOLEM[] = { {1, M_BONK}, {1, M_HAILSTONES}, {1, M_FLURRY}, {1, M_RIME_SHOT}, {14, M_GRIT_KICK}, {20, M_SNOWDRIFT}, {26, M_STONESKIN}, {32, M_PEBBLE_PELT}, {38, M_MUD_PIE}, {44, M_SANDBLAST}, {50, M_ROCKFALL}, {0, 0} };
-static const LearnEntry LS_DYNAMOLE[] = { {1, M_BONK}, {1, M_RIVET_SHOT}, {1, M_IRON_TAP}, {1, M_STATIC_POP}, {14, M_MAGNET_PULL}, {20, M_STEEL_SHELL}, {26, M_TINGLE}, {32, M_FORGE_FLASH}, {38, M_LIVE_WIRE}, {44, M_ARC_FLASH}, {50, M_GEAR_GRIND}, {0, 0} };
-static const LearnEntry LS_LULLABOX[] = { {1, M_BONK}, {1, M_TRINKET_TOSS}, {1, M_CLATTER}, {1, M_LULLABY}, {14, M_STILL_POND}, {20, M_TARNISH}, {26, M_DAYDREAM}, {32, M_POLTERGUST}, {38, M_PRISM_RAY}, {44, M_GILDED_GLEAM}, {50, M_CHEST_CHOMP}, {0, 0} };
-static const LearnEntry LS_KITSUFLAME[] = { {1, M_BONK}, {1, M_CINDER_FLICK}, {1, M_LAST_EMBER}, {1, M_LANTERN_LURE}, {14, M_LULLABY}, {20, M_STILL_POND}, {26, M_DAYDREAM}, {32, M_PRISM_RAY}, {38, M_SEAR_BITE}, {44, M_EMBER_STORM}, {50, M_DREAMQUAKE}, {0, 0} };
-static const LearnEntry LS_WYVERNIX[] = { {1, M_BONK}, {1, M_BEAK_JAB}, {1, M_DRAFT}, {1, M_UPDRAFT}, {14, M_WYRM_DANCE}, {20, M_FEATHER_CUT}, {26, M_WYRMBREATH}, {32, M_CROSSWIND}, {38, M_SCALE_REND}, {44, M_STOOP}, {50, M_STARFALL}, {0, 0} };
-static const LearnEntry LS_TRIHYDRA[] = { {1, M_BONK}, {1, M_BARB}, {1, M_SPORE_CLOUD}, {1, M_WYRM_DANCE}, {14, M_ACID_SPIT}, {20, M_WYRMBREATH}, {26, M_FESTER}, {32, M_SCALE_REND}, {38, M_BOG_BOMB}, {44, M_STARFALL}, {0, 0} };
-static const LearnEntry LS_PHOENEX[] = { {1, M_BONK}, {1, M_CINDER_FLICK}, {1, M_LAST_EMBER}, {1, M_TWINKLE}, {14, M_LANTERN_LURE}, {20, M_NEBULA_VEIL}, {26, M_STARDUST}, {32, M_MOONBEAM}, {38, M_SEAR_BITE}, {44, M_EMBER_STORM}, {50, M_COMET_DASH}, {0, 0} };
-static const LearnEntry LS_IRONHOWL[] = { {1, M_BONK}, {1, M_RIVET_SHOT}, {1, M_DART}, {1, M_IRON_TAP}, {14, M_SWIPE}, {20, M_BRACE}, {26, M_CATNAP}, {32, M_MAGNET_PULL}, {38, M_POUT}, {44, M_STEEL_SHELL}, {50, M_SNARL}, {0, 0} };
-static const LearnEntry LS_NIMBWHALE[] = { {1, M_BONK}, {1, M_BEAK_JAB}, {1, M_DRAFT}, {1, M_FIZZ}, {14, M_SLIPSTREAM}, {20, M_UPDRAFT}, {26, M_FEATHER_CUT}, {32, M_UNDERTOW}, {38, M_CROSSWIND}, {44, M_RIPTIDE}, {50, M_SWELL}, {0, 0} };
-static const LearnEntry LS_JOLLYROGUE[] = { {1, M_BONK}, {1, M_TRINKET_TOSS}, {1, M_BONE_RATTLE}, {1, M_CLATTER}, {14, M_LAST_RITES}, {20, M_SHROUD}, {26, M_TARNISH}, {32, M_GRAVE_CHILL}, {38, M_MARROW_SIP}, {44, M_POLTERGUST}, {50, M_GILDED_GLEAM}, {0, 0} };
-static const LearnEntry LS_RUNELITH[] = { {1, M_BONK}, {1, M_TRINKET_TOSS}, {1, M_CLATTER}, {1, M_GRIT_KICK}, {14, M_STONESKIN}, {20, M_TARNISH}, {26, M_PEBBLE_PELT}, {32, M_MUD_PIE}, {38, M_POLTERGUST}, {44, M_GILDED_GLEAM}, {50, M_SANDBLAST}, {0, 0} };
-static const LearnEntry LS_FAEFLY[] = { {1, M_BONK}, {1, M_LULLABY}, {1, M_SILK_SNARE}, {1, M_STILL_POND}, {14, M_DAYDREAM}, {20, M_PINCER}, {26, M_WINGDUST}, {32, M_PRISM_RAY}, {38, M_SWARM_RUSH}, {44, M_DREAMQUAKE}, {0, 0} };
-static const LearnEntry LS_SNOWBRUTE[] = { {1, M_BONK}, {1, M_PUMMEL}, {1, M_HAILSTONES}, {1, M_ONE_TWO}, {14, M_FLURRY}, {20, M_RIME_SHOT}, {26, M_SNOWDRIFT}, {32, M_WAR_CRY}, {38, M_HAMMER_FIST}, {44, M_COUNTERJAB}, {50, M_WINTER_RAY}, {0, 0} };
-static const LearnEntry LS_TESLAROSE[] = { {1, M_BONK}, {1, M_BURR_VOLLEY}, {1, M_STATIC_POP}, {1, M_BASK}, {14, M_BRAMBLE_LASH}, {20, M_DROWSY_POLLEN}, {26, M_THORN_WALL}, {32, M_TINGLE}, {38, M_SAP_SIP}, {44, M_LEAF_FLURRY}, {50, M_LIVE_WIRE}, {0, 0} };
-static const LearnEntry LS_NOCTMARE[] = { {1, M_BONK}, {1, M_LULLABY}, {1, M_STARE_DOWN}, {1, M_STILL_POND}, {14, M_DAYDREAM}, {20, M_SNAP}, {26, M_PRISM_RAY}, {32, M_HAUNT}, {38, M_SHADE_CUT}, {44, M_GLOOM_ORB}, {50, M_GNASH}, {0, 0} };
+static const LearnEntry LS_BARKOLEM[] = { {1, M_BRAMBLE_LASH}, {1, M_PEBBLE_PELT}, {1, M_BRACE}, {1, M_BURR_VOLLEY}, {8, M_MUD_PIE}, {14, M_SAP_SIP}, {20, M_ROCKFALL}, {26, M_THORN_WALL}, {32, M_REED_BLADE}, {38, M_STONESKIN}, {44, M_BASK}, {50, M_FAULTLINE}, {56, M_SUNSHAFT}, {0, 0} };
+static const LearnEntry LS_PORCELYNX[] = { {1, M_SWIPE}, {1, M_RIME_SHOT}, {1, M_CLATTER}, {1, M_TARNISH}, {8, M_FLURRY}, {14, M_TRINKET_TOSS}, {20, M_SNOWDRIFT}, {26, M_GILDED_GLEAM}, {32, M_HAILSTONES}, {38, M_POLTERGUST}, {44, M_WINTER_RAY}, {50, M_CURSED_CURIO}, {0, 0} };
+static const LearnEntry LS_KABUTORAI[] = { {1, M_IRON_TAP}, {1, M_ONE_TWO}, {1, M_PINCER}, {1, M_BRACE}, {8, M_RIVET_SHOT}, {14, M_COUNTERJAB}, {20, M_STEEL_SHELL}, {26, M_HAMMER_FIST}, {32, M_GEAR_GRIND}, {38, M_WAR_CRY}, {44, M_PUMMEL}, {50, M_ANVIL_DROP}, {56, M_HAYMAKER}, {0, 0} };
+static const LearnEntry LS_DROWNJELLY[] = { {1, M_FIZZ}, {1, M_BONE_RATTLE}, {1, M_SHROUD}, {1, M_LANTERN_LURE}, {8, M_GRAVE_CHILL}, {14, M_UNDERTOW}, {20, M_MARROW_SIP}, {26, M_LAST_RITES}, {32, M_SWELL}, {38, M_DEATH_KNELL}, {44, M_GEYSER}, {50, M_REQUIEM}, {0, 0} };
+static const LearnEntry LS_SUNMANE[] = { {1, M_CINDER_FLICK}, {1, M_BRAMBLE_LASH}, {1, M_SNARL}, {1, M_BASK}, {8, M_SEAR_BITE}, {14, M_SAP_SIP}, {20, M_LEAF_FLURRY}, {26, M_KILN_BREATH}, {32, M_EMBER_STORM}, {38, M_REED_BLADE}, {44, M_SUNSHAFT}, {50, M_SUNFLARE}, {56, M_PRIMAL_ROAR}, {0, 0} };
+static const LearnEntry LS_DREAMKITE[] = { {1, M_DRAFT}, {1, M_DAYDREAM}, {1, M_LULLABY}, {1, M_UPDRAFT}, {8, M_PRISM_RAY}, {14, M_FEATHER_CUT}, {20, M_STILL_POND}, {26, M_CROSSWIND}, {32, M_DREAMQUAKE}, {38, M_GLINT}, {44, M_STOOP}, {0, 0} };
+static const LearnEntry LS_BOGNEWT[] = { {1, M_FIZZ}, {1, M_BARB}, {1, M_SLIPSTREAM}, {1, M_MUD_PIE}, {8, M_ACID_SPIT}, {14, M_SPORE_CLOUD}, {20, M_UNDERTOW}, {26, M_FESTER}, {32, M_BOG_BOMB}, {38, M_SWELL}, {44, M_RIPTIDE}, {50, M_GEYSER}, {0, 0} };
+static const LearnEntry LS_RIMEGOLEM[] = { {1, M_RIME_SHOT}, {1, M_PEBBLE_PELT}, {1, M_BRACE}, {1, M_GRIT_KICK}, {8, M_HAILSTONES}, {14, M_MUD_PIE}, {20, M_ROCKFALL}, {26, M_SNOWDRIFT}, {32, M_STONESKIN}, {38, M_HAMMER_FIST}, {44, M_WINTER_RAY}, {50, M_FAULTLINE}, {56, M_BELLY_FLOP}, {0, 0} };
+static const LearnEntry LS_DYNAMOLE[] = { {1, M_SWIPE}, {1, M_STATIC_POP}, {1, M_IRON_TAP}, {1, M_GRIT_KICK}, {8, M_TINGLE}, {14, M_RIVET_SHOT}, {20, M_LIVE_WIRE}, {26, M_MAGNET_PULL}, {32, M_GEAR_GRIND}, {38, M_ARC_FLASH}, {44, M_STEEL_SHELL}, {50, M_LODE_BEAM}, {56, M_OVERCHARGE}, {0, 0} };
+static const LearnEntry LS_LULLABOX[] = { {1, M_CLATTER}, {1, M_LULLABY}, {1, M_DAYDREAM}, {1, M_TARNISH}, {8, M_TRINKET_TOSS}, {14, M_STILL_POND}, {20, M_POLTERGUST}, {26, M_PRISM_RAY}, {32, M_GILDED_GLEAM}, {38, M_CATNAP}, {44, M_DREAMQUAKE}, {50, M_CURSED_CURIO}, {0, 0} };
+static const LearnEntry LS_KITSUFLAME[] = { {1, M_CINDER_FLICK}, {1, M_DAYDREAM}, {1, M_DART}, {1, M_LANTERN_LURE}, {8, M_SEAR_BITE}, {14, M_PRISM_RAY}, {20, M_KILN_BREATH}, {26, M_LULLABY}, {32, M_STILL_POND}, {38, M_EMBER_STORM}, {44, M_DREAMQUAKE}, {50, M_SUNFLARE}, {0, 0} };
+static const LearnEntry LS_WYVERNIX[] = { {1, M_DRAFT}, {1, M_WYRMBREATH}, {1, M_FEATHER_CUT}, {1, M_STARE_DOWN}, {8, M_UPDRAFT}, {14, M_SCALE_REND}, {20, M_WYRM_DANCE}, {26, M_CROSSWIND}, {32, M_STOOP}, {38, M_RECKLESS_RUSH}, {44, M_STARFALL}, {0, 0} };
+static const LearnEntry LS_TRIHYDRA[] = { {1, M_BARB}, {1, M_SNAP}, {1, M_WYRMBREATH}, {1, M_SPORE_CLOUD}, {8, M_ACID_SPIT}, {14, M_SCALE_REND}, {20, M_FESTER}, {26, M_WYRM_DANCE}, {32, M_GNASH}, {38, M_BOG_BOMB}, {44, M_CATNAP}, {50, M_STARFALL}, {0, 0} };
+static const LearnEntry LS_PHOENEX[] = { {1, M_CINDER_FLICK}, {1, M_TWINKLE}, {1, M_DRAFT}, {1, M_STARDUST}, {8, M_SEAR_BITE}, {14, M_MOONBEAM}, {20, M_KILN_BREATH}, {26, M_NEBULA_VEIL}, {32, M_EMBER_STORM}, {38, M_COMET_DASH}, {44, M_MUON_RAIN}, {50, M_SUNFLARE}, {56, M_SUPERNOVA}, {0, 0} };
+static const LearnEntry LS_IRONHOWL[] = { {1, M_SWIPE}, {1, M_IRON_TAP}, {1, M_SNARL}, {1, M_DART}, {8, M_RIVET_SHOT}, {14, M_GNASH}, {20, M_MAGNET_PULL}, {26, M_GEAR_GRIND}, {32, M_STEEL_SHELL}, {38, M_RECKLESS_RUSH}, {44, M_ANVIL_DROP}, {50, M_PRIMAL_ROAR}, {0, 0} };
+static const LearnEntry LS_NIMBWHALE[] = { {1, M_FIZZ}, {1, M_DRAFT}, {1, M_SLIPSTREAM}, {1, M_UPDRAFT}, {8, M_UNDERTOW}, {14, M_CATNAP}, {20, M_CROSSWIND}, {26, M_RIPTIDE}, {32, M_BELLY_FLOP}, {38, M_SWELL}, {44, M_STOOP}, {50, M_GEYSER}, {0, 0} };
+static const LearnEntry LS_JOLLYROGUE[] = { {1, M_BONE_RATTLE}, {1, M_CLATTER}, {1, M_TRINKET_TOSS}, {1, M_TARNISH}, {8, M_GRAVE_CHILL}, {14, M_CHEST_CHOMP}, {20, M_SHADE_CUT}, {26, M_OSSIFY}, {32, M_GILDED_GLEAM}, {38, M_MARROW_SIP}, {44, M_CURSED_CURIO}, {50, M_HEIRLOOM}, {56, M_REQUIEM}, {0, 0} };
+static const LearnEntry LS_RUNELITH[] = { {1, M_PEBBLE_PELT}, {1, M_CLATTER}, {1, M_GRIT_KICK}, {1, M_TARNISH}, {8, M_MUD_PIE}, {14, M_POLTERGUST}, {20, M_STONESKIN}, {26, M_SANDBLAST}, {32, M_GILDED_GLEAM}, {38, M_ROCKFALL}, {44, M_CURSED_CURIO}, {50, M_FAULTLINE}, {56, M_HEIRLOOM}, {0, 0} };
+static const LearnEntry LS_FAEFLY[] = { {1, M_SILK_SNARE}, {1, M_DAYDREAM}, {1, M_PINCER}, {1, M_LULLABY}, {8, M_WINGDUST}, {14, M_PRISM_RAY}, {20, M_SWARM_RUSH}, {26, M_STILL_POND}, {32, M_CROSSWIND}, {38, M_DREAMQUAKE}, {44, M_UPDRAFT}, {50, M_GLINT}, {0, 0} };
+static const LearnEntry LS_SNOWBRUTE[] = { {1, M_RIME_SHOT}, {1, M_ONE_TWO}, {1, M_BRACE}, {1, M_FLURRY}, {8, M_HAILSTONES}, {14, M_PUMMEL}, {20, M_COUNTERJAB}, {26, M_WAR_CRY}, {32, M_SNOWDRIFT}, {38, M_HAMMER_FIST}, {44, M_BELLY_FLOP}, {50, M_HAYMAKER}, {0, 0} };
+static const LearnEntry LS_TESLAROSE[] = { {1, M_STATIC_POP}, {1, M_BRAMBLE_LASH}, {1, M_TINGLE}, {1, M_SAP_SIP}, {8, M_LIVE_WIRE}, {14, M_LEAF_FLURRY}, {20, M_ARC_FLASH}, {26, M_THORN_WALL}, {32, M_FORKED_BOLT}, {38, M_BASK}, {44, M_SUNSHAFT}, {50, M_OVERCHARGE}, {0, 0} };
+static const LearnEntry LS_NOCTMARE[] = { {1, M_STARE_DOWN}, {1, M_SNAP}, {1, M_DAYDREAM}, {1, M_LULLABY}, {8, M_HAUNT}, {14, M_PRISM_RAY}, {20, M_GLOOM_ORB}, {26, M_SHADE_CUT}, {32, M_STILL_POND}, {38, M_DREAMQUAKE}, {44, M_RECKLESS_RUSH}, {0, 0} };
 
 static const Species SPECIES[SP_COUNT] = {
     [SP_FLARIX] = { "FLARIX", T_BLAZE, TYPE_NONE, { 41, 55, 42, 58, 47, 66 }, 45, 62, EVO_LEVEL, 16, SP_PYREFOX,
@@ -967,94 +967,94 @@ static const Species SPECIES[SP_COUNT] = {
         "NIGHT NOBLE", 16, 520, LS_NOSFERBAT,
         "Woven from DUSK and HOLLOW, a noble bat that sips coherence, never blood. It bows before every bout and takes only what it needs. Its cape drinks starlight.",
         { TR_SELFMEND, TR_GLOWER }, R_FUSION, FA_FLY, { T_DUSK, T_HOLLOW } },
-    [SP_BARKOLEM] = { "BARKOLEM", T_BLOOM, T_STONE, { 92, 79, 118, 79, 105, 52 }, 45, 210, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_BARKOLEM,
-        "Stump golem with a birdhouse.",
-        { TR_BASKER, TR_STUBBORN }, R_FUSION, 0, { T_BLOOM, T_STONE } },
-    [SP_PORCELYNX] = { "PORCELYNX", T_RELIC, T_FROST, { 52, 51, 140, 128, 90, 64 }, 45, 210, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_PORCELYNX,
-        "Porcelain lynx with frost glaze.",
-        { TR_HOARDER, TR_SURGE }, R_FUSION, 0, { T_RELIC, T_FROST } },
-    [SP_KABUTORAI] = { "KABUTORAI", T_METAL, T_BRAWL, { 75, 138, 125, 50, 75, 62 }, 45, 210, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_KABUTORAI,
-        "Samurai beetle.",
-        { TR_BEDROCK, TR_STUBBORN }, R_FUSION, 0, { T_METAL, T_BRAWL } },
-    [SP_DROWNJELLY] = { "DROWNJELLY", T_TIDE, T_HOLLOW, { 120, 54, 108, 81, 108, 54 }, 45, 210, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_DROWNJELLY,
-        "Drowned jellyfish lantern.",
-        { TR_SURGE, TR_SELFMEND }, R_FUSION, 0, { T_TIDE, T_HOLLOW } },
-    [SP_SUNMANE] = { "SUNMANE", T_BLOOM, T_BLAZE, { 80, 67, 81, 108, 108, 81 }, 45, 210, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_SUNMANE,
-        "Lion with a sunflower mane.",
-        { TR_BASKER, TR_EMBERSKIN }, R_FUSION, 0, { T_BLOOM, T_BLAZE } },
-    [SP_DREAMKITE] = { "DREAMKITE", T_DREAM, T_GALE, { 53, 81, 54, 135, 108, 94 }, 45, 210, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_DREAMKITE,
-        "Kite-shaped dream spirit.",
-        { TR_FOCUSED, TR_MOMENTUM }, R_FUSION, 0, { T_DREAM, T_GALE } },
-    [SP_BOGNEWT] = { "BOGNEWT", T_VENOM, T_TIDE, { 108, 81, 67, 94, 121, 54 }, 45, 210, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_BOGNEWT,
-        "Toxic bog newt.",
-        { TR_SPORESKIN, TR_SOAKER }, R_FUSION, 0, { T_VENOM, T_TIDE } },
-    [SP_RIMEGOLEM] = { "RIMEGOLEM", T_FROST, T_STONE, { 65, 79, 118, 105, 79, 79 }, 45, 210, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_RIMEGOLEM,
-        "Ice golem.",
-        { TR_THICK_FUR, TR_STUBBORN }, R_FUSION, 0, { T_FROST, T_STONE } },
-    [SP_DYNAMOLE] = { "DYNAMOLE", T_METAL, T_SPARK, { 51, 102, 128, 77, 77, 90 }, 45, 210, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_DYNAMOLE,
-        "Mole with a dynamo.",
-        { TR_BEDROCK, TR_CONDUCTOR }, R_FUSION, 0, { T_METAL, T_SPARK } },
-    [SP_LULLABOX] = { "LULLABOX", T_RELIC, T_DREAM, { 53, 51, 128, 140, 102, 51 }, 45, 210, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_LULLABOX,
-        "Music box that sings lullabies.",
-        { TR_HOARDER, TR_WAKEFUL }, R_FUSION, 0, { T_RELIC, T_DREAM } },
-    [SP_KITSUFLAME] = { "KITSUFLAME", T_BLAZE, T_DREAM, { 55, 83, 56, 140, 82, 109 }, 45, 210, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_KITSUFLAME,
-        "Nine-tailed fox of foxfire.",
-        { TR_SURGE, TR_WAKEFUL }, R_FUSION, 0, { T_BLAZE, T_DREAM } },
-    [SP_WYVERNIX] = { "WYVERNIX", T_GALE, T_WYRM, { 66, 135, 54, 81, 54, 135 }, 45, 210, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_WYVERNIX,
-        "Wyvern.",
-        { TR_DRIFTER, TR_SURGE }, R_FUSION, 0, { T_GALE, T_WYRM } },
-    [SP_TRIHYDRA] = { "TRIHYDRA", T_VENOM, T_WYRM, { 93, 108, 54, 108, 108, 54 }, 45, 210, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_TRIHYDRA,
-        "Three-headed hydra.",
-        { TR_SPORESKIN, TR_SURGE }, R_FUSION, 0, { T_VENOM, T_WYRM } },
-    [SP_PHOENEX] = { "PHOENEX", T_BLAZE, T_ASTRAL, { 82, 83, 56, 140, 55, 109 }, 45, 210, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_PHOENEX,
-        "Phoenix of starfire.",
-        { TR_SURGE, TR_QUICK_STUDY }, R_FUSION, 0, { T_BLAZE, T_ASTRAL } },
-    [SP_IRONHOWL] = { "IRONHOWL", T_METAL, T_BEAST, { 75, 112, 125, 50, 88, 75 }, 45, 210, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_IRONHOWL,
-        "Armoured wolf.",
-        { TR_BEDROCK, TR_MOMENTUM }, R_FUSION, 0, { T_METAL, T_BEAST } },
-    [SP_NIMBWHALE] = { "NIMBWHALE", T_GALE, T_TIDE, { 81, 108, 67, 67, 67, 135 }, 45, 210, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_NIMBWHALE,
-        "Cloud whale.",
-        { TR_DRIFTER, TR_SOAKER }, R_FUSION, 0, { T_GALE, T_TIDE } },
-    [SP_JOLLYROGUE] = { "JOLLYROGUE", T_HOLLOW, T_RELIC, { 81, 53, 140, 80, 119, 52 }, 45, 210, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_JOLLYROGUE,
-        "Skeleton pirate with a ship in a bottle.",
-        { TR_STUBBORN, TR_BEDROCK }, R_FUSION, 0, { T_HOLLOW, T_RELIC } },
-    [SP_RUNELITH] = { "RUNELITH", T_RELIC, T_STONE, { 68, 80, 140, 104, 79, 54 }, 45, 210, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_RUNELITH,
-        "Walking rune stone.",
-        { TR_HOARDER, TR_STUBBORN }, R_FUSION, 0, { T_RELIC, T_STONE } },
-    [SP_FAEFLY] = { "FAEFLY", T_DREAM, T_SWARM, { 53, 81, 54, 135, 108, 94 }, 45, 210, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_FAEFLY,
-        "Fairy dragonfly.",
-        { TR_FOCUSED, TR_MOMENTUM }, R_FUSION, 0, { T_DREAM, T_SWARM } },
-    [SP_SNOWBRUTE] = { "SNOWBRUTE", T_FROST, T_BRAWL, { 78, 92, 79, 105, 79, 92 }, 45, 210, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_SNOWBRUTE,
-        "Yeti brawler.",
-        { TR_THICK_FUR, TR_STUBBORN }, R_FUSION, 0, { T_FROST, T_BRAWL } },
-    [SP_TESLAROSE] = { "TESLAROSE", T_BLOOM, T_SPARK, { 80, 54, 81, 108, 108, 94 }, 45, 210, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_TESLAROSE,
-        "Rose that sparks.",
-        { TR_BASKER, TR_CONDUCTOR }, R_FUSION, 0, { T_BLOOM, T_SPARK } },
-    [SP_NOCTMARE] = { "NOCTMARE", T_DUSK, T_DREAM, { 60, 61, 61, 140, 88, 115 }, 45, 210, EVO_NONE, 0, 0,
-        "KIN", 10, 100, LS_NOCTMARE,
-        "The nightmare horse.",
-        { TR_FOCUSED, TR_WAKEFUL }, R_FUSION, 0, { T_DUSK, T_DREAM } },
+    [SP_BARKOLEM] = { "BARKOLEM", T_BLOOM, T_STONE, { 105, 110, 125, 55, 90, 40 }, 45, 205, EVO_NONE, 0, 0,
+        "BIRDHOUSE", 21, 2400, LS_BARKOLEM,
+        "Woven from BLOOM and STONE energy, its roots grip a granite heart that stores the sun. Songbirds nest in the house on its crown; it will not budge while chicks are inside.",
+        { TR_BASKER, TR_BEDROCK }, R_FUSION, FA_STRENGTH, { T_BLOOM, T_STONE } },
+    [SP_PORCELYNX] = { "PORCELYNX", T_RELIC, T_FROST, { 70, 75, 85, 115, 90, 110 }, 45, 205, EVO_NONE, 0, 0,
+        "GLAZE LYNX", 11, 380, LS_PORCELYNX,
+        "Woven from RELIC and FROST energy, it is glazed like old porcelain that sheds heat. Its cracks were mended with gold, and frost ferns bloom wherever it sits still.",
+        { TR_KEEN_EYE, TR_GLOWER }, R_FUSION, 0, { T_RELIC, T_FROST } },
+    [SP_KABUTORAI] = { "KABUTORAI", T_METAL, T_BRAWL, { 80, 140, 120, 45, 75, 75 }, 45, 210, EVO_NONE, 0, 0,
+        "RONIN BUG", 17, 1450, LS_KABUTORAI,
+        "Woven from METAL and BRAWL energy. Magnetite laced its shell into iron lamellae, and the strain of every parry pumps its kernel. It bows before each bout.",
+        { TR_BRUISER, TR_STUBBORN }, R_FUSION, FA_STRENGTH, { T_METAL, T_BRAWL } },
+    [SP_DROWNJELLY] = { "DROWNJELLY", T_TIDE, T_HOLLOW, { 125, 50, 85, 95, 115, 55 }, 45, 205, EVO_NONE, 0, 0,
+        "DROWN LAMP", 14, 90, LS_DROWNJELLY,
+        "Woven from TIDE and HOLLOW energy, it pumps on the slow heat of sunken bones. The drowned lantern in its bell guides lost boats home, or down, as it pleases.",
+        { TR_DRIFTER, TR_SOAKER }, R_FUSION, FA_SURF|FA_LIGHT, { T_TIDE, T_HOLLOW } },
+    [SP_SUNMANE] = { "SUNMANE", T_BLOOM, T_BLAZE, { 90, 100, 75, 110, 80, 95 }, 45, 210, EVO_NONE, 0, 0,
+        "SUN LION", 16, 1900, LS_SUNMANE,
+        "Woven from BLOOM and BLAZE energy, it drinks the sun twice: its petal mane gathers daylight and its kernel burns it like a hearth. Its roar smells of warm honey.",
+        { TR_BASKER, TR_GLOWER }, R_FUSION, FA_LIGHT, { T_BLOOM, T_BLAZE } },
+    [SP_DREAMKITE] = { "DREAMKITE", T_DREAM, T_GALE, { 70, 55, 70, 120, 95, 125 }, 45, 205, EVO_NONE, 0, 0,
+        "DREAM KITE", 15, 12, LS_DREAMKITE,
+        "Woven from DREAM and GALE energy, it rides the wind that rises off sleeping minds. Children who dream of flying wake with its string tied round one finger.",
+        { TR_DRIFTER, TR_FOCUSED }, R_FUSION, FA_FLY|FA_TELEPORT, { T_DREAM, T_GALE } },
+    [SP_BOGNEWT] = { "BOGNEWT", T_VENOM, T_TIDE, { 100, 85, 85, 100, 105, 60 }, 45, 205, EVO_NONE, 0, 0,
+        "BOG NEWT", 13, 520, LS_BOGNEWT,
+        "Woven from VENOM and TIDE energy, it pumps on the fizz of rotting reeds. Its orange belly warns foes off, and the pools it wallows in glow green all night.",
+        { TR_SPORESKIN, TR_SOAKER }, R_FUSION, FA_SURF, { T_VENOM, T_TIDE } },
+    [SP_RIMEGOLEM] = { "RIMEGOLEM", T_FROST, T_STONE, { 100, 120, 130, 50, 80, 45 }, 45, 210, EVO_NONE, 0, 0,
+        "PERMAFROST", 24, 4800, LS_RIMEGOLEM,
+        "Woven from FROST and STONE energy. Its kernel sheds heat so fast that meltwater freezes in its cracks, prying the rock apart and binding it again in blue ice.",
+        { TR_BEDROCK, TR_STUBBORN }, R_FUSION, FA_STRENGTH, { T_FROST, T_STONE } },
+    [SP_DYNAMOLE] = { "DYNAMOLE", T_METAL, T_SPARK, { 85, 105, 110, 95, 70, 70 }, 45, 205, EVO_NONE, 0, 0,
+        "DYNAMO", 10, 780, LS_DYNAMOLE,
+        "Woven from METAL and SPARK energy, it tunnels through magnetite lodes. The copper coil on its back turns every dig into current, and its headlamp never goes out.",
+        { TR_CONDUCTOR, TR_STATIC_FUR }, R_FUSION, FA_LIGHT|FA_STRENGTH, { T_METAL, T_SPARK } },
+    [SP_LULLABOX] = { "LULLABOX", T_RELIC, T_DREAM, { 85, 50, 100, 115, 115, 60 }, 45, 205, EVO_NONE, 0, 0,
+        "MUSIC BOX", 8, 60, LS_LULLABOX,
+        "Woven from RELIC and DREAM energy. A century of bedtime songs is pinned to its drum; when it plays, every mind nearby falls into step and drifts off to sleep.",
+        { TR_FOCUSED, TR_HOARDER }, R_FUSION, FA_TELEPORT, { T_RELIC, T_DREAM } },
+    [SP_KITSUFLAME] = { "KITSUFLAME", T_BLAZE, T_DREAM, { 75, 70, 75, 125, 100, 115 }, 45, 215, EVO_NONE, 0, 0,
+        "FOXFIRE", 13, 240, LS_KITSUFLAME,
+        "Woven from BLAZE and DREAM energy, its pale foxfire glows but never scorches. Each of its nine tails keeps one dream, and it shows them to travellers who get lost.",
+        { TR_FOCUSED, TR_GLOWER }, R_FUSION, FA_LIGHT|FA_TELEPORT, { T_BLAZE, T_DREAM } },
+    [SP_WYVERNIX] = { "WYVERNIX", T_GALE, T_WYRM, { 80, 125, 75, 80, 70, 120 }, 45, 210, EVO_NONE, 0, 0,
+        "SKY WYVERN", 20, 780, LS_WYVERNIX,
+        "Woven from GALE and WYRM energy, its ancient kernel couples to the jet stream. It hardly beats its wings; it hangs on the high wind, then stoops like a falcon.",
+        { TR_MOMENTUM, TR_KEEN_EYE }, R_FUSION, FA_FLY, { T_GALE, T_WYRM } },
+    [SP_TRIHYDRA] = { "TRIHYDRA", T_VENOM, T_WYRM, { 105, 100, 85, 100, 85, 65 }, 45, 210, EVO_NONE, 0, 0,
+        "HYDRA", 19, 1600, LS_TRIHYDRA,
+        "Woven from VENOM and WYRM energy, one old kernel feeds three heads that each brew their own poison. Knock one out in a bout and its motes grow it back by dusk.",
+        { TR_SELFMEND, TR_SURGE }, R_FUSION, FA_SURF, { T_VENOM, T_WYRM } },
+    [SP_PHOENEX] = { "PHOENEX", T_BLAZE, T_ASTRAL, { 80, 75, 70, 130, 90, 115 }, 45, 215, EVO_NONE, 0, 0,
+        "STARFIRE", 20, 260, LS_PHOENEX,
+        "Woven from BLAZE and ASTRAL energy, it burns cosmic rays as starfire. When it dozes it crumbles to glowing embers, and it rises again with the next dawn.",
+        { TR_STUBBORN, TR_FOCUSED }, R_FUSION, FA_FLY|FA_LIGHT, { T_BLAZE, T_ASTRAL } },
+    [SP_IRONHOWL] = { "IRONHOWL", T_METAL, T_BEAST, { 85, 115, 105, 55, 75, 110 }, 45, 210, EVO_NONE, 0, 0,
+        "IRON WOLF", 14, 1350, LS_IRONHOWL,
+        "Woven from METAL and BEAST energy, magnetite in its blood grows iron plates over its fur. When a pack howls together, their plates ring like far-off bells.",
+        { TR_GLOWER, TR_MOMENTUM }, R_FUSION, FA_STRENGTH, { T_METAL, T_BEAST } },
+    [SP_NIMBWHALE] = { "NIMBWHALE", T_GALE, T_TIDE, { 140, 85, 80, 90, 95, 55 }, 45, 210, EVO_NONE, 0, 0,
+        "SKY WHALE", 30, 1800, LS_NIMBWHALE,
+        "Woven from GALE and TIDE energy, it swims the sky on rising air. Its cloud mantle soaks up mist until it rains, and a rainbow trails it whenever it spouts.",
+        { TR_DRIFTER, TR_SOAKER }, R_FUSION, FA_FLY|FA_SURF, { T_GALE, T_TIDE } },
+    [SP_JOLLYROGUE] = { "JOLLYROGUE", T_HOLLOW, T_RELIC, { 80, 110, 90, 95, 80, 75 }, 45, 210, EVO_NONE, 0, 0,
+        "BONE PIRATE", 15, 180, LS_JOLLYROGUE,
+        "Woven from HOLLOW and RELIC energy, its bones grew around an old bottled ship. It guards the bottle with its life, and the tiny sails fill in any wind.",
+        { TR_HOARDER, TR_STUBBORN }, R_FUSION, FA_SURF, { T_HOLLOW, T_RELIC } },
+    [SP_RUNELITH] = { "RUNELITH", T_RELIC, T_STONE, { 95, 70, 135, 105, 105, 35 }, 45, 210, EVO_NONE, 0, 0,
+        "RUNESTONE", 22, 3900, LS_RUNELITH,
+        "Woven from RELIC and STONE energy, it grew into a carved standing stone. Its runes glow as it thinks, and every hundred years they spell out one new word.",
+        { TR_BEDROCK, TR_QUICK_STUDY }, R_FUSION, FA_STRENGTH, { T_RELIC, T_STONE } },
+    [SP_FAEFLY] = { "FAEFLY", T_DREAM, T_SWARM, { 65, 65, 65, 120, 90, 135 }, 45, 205, EVO_NONE, 0, 0,
+        "FAIRY FLY", 9, 18, LS_FAEFLY,
+        "Woven from DREAM and SWARM energy, its four wings flash in time with every sleeper nearby. A field of dreamers shimmers like a pond wherever it hovers.",
+        { TR_KEEN_EYE, TR_MOMENTUM }, R_FUSION, FA_TELEPORT|FA_LIGHT, { T_DREAM, T_SWARM } },
+    [SP_SNOWBRUTE] = { "SNOWBRUTE", T_FROST, T_BRAWL, { 105, 130, 85, 50, 75, 85 }, 45, 210, EVO_NONE, 0, 0,
+        "YETI", 23, 2900, LS_SNOWBRUTE,
+        "Woven from FROST and BRAWL energy. Each punch strains its bones and pumps its kernel, which sheds the heat as frost, so its fists grow ice gauntlets mid-bout.",
+        { TR_THICK_FUR, TR_BRUISER }, R_FUSION, FA_STRENGTH, { T_FROST, T_BRAWL } },
+    [SP_TESLAROSE] = { "TESLAROSE", T_BLOOM, T_SPARK, { 70, 65, 80, 120, 95, 105 }, 45, 205, EVO_NONE, 0, 0,
+        "ARC ROSE", 12, 95, LS_TESLAROSE,
+        "Woven from BLOOM and SPARK energy, its petals hold charge like a capacitor. Anyone who stoops to smell it gets a jolt, and its thorns crackle blue in a storm.",
+        { TR_STATIC_FUR, TR_BASKER }, R_FUSION, FA_LIGHT, { T_BLOOM, T_SPARK } },
+    [SP_NOCTMARE] = { "NOCTMARE", T_DUSK, T_DREAM, { 80, 80, 70, 130, 85, 115 }, 45, 215, EVO_NONE, 0, 0,
+        "NIGHTMARE", 17, 700, LS_NOCTMARE,
+        "Woven from DUSK and DREAM energy, it drinks starlight and bad dreams. Its mane is the smoke of nightmares it has eaten, so the sleeper it visits wakes up rested.",
+        { TR_GLOWER, TR_FOCUSED }, R_FUSION, FA_TELEPORT, { T_DUSK, T_DREAM } },
 };
 
 #endif
