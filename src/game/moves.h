@@ -63,6 +63,17 @@ enum {
     AK_NOVA,      /* gathers starlight, the world goes dark, a blinding burst */
     AK_ARC,       /* a jagged arc jumps from the user to the foe */
     AK_DANCE,     /* the user sways and turns; scales spiral up around it */
+    /* the RUNE set (anim_rune.c): rotation and pseudo-3D */
+    AK_RUNE_BOLT,    /* a spinning rune flies at the foe in perspective and bursts */
+    AK_SIGIL_SNARE,  /* a seal opens under the foe; runes rise, circle and clamp down */
+    AK_ALGIZ_WARD,   /* two tilted rings of runes spin round the user like a gyroscope */
+    AK_KENAZ_FLARE,  /* a fire rune turns, flies over the foe and ignites a pillar */
+    AK_RUNE_ORBIT,   /* eight runes orbit the foe on a precessing ring and collapse */
+    AK_THURS_SPIKE,  /* runes race along the ground; crystal thorns erupt round the foe */
+    AK_RAIDO_RUSH,   /* a rune gate stands up; the user dashes through it */
+    AK_ISA_SEAL,     /* an ice seal spins like a coin, slams on and crystals burst */
+    AK_SOWILO_BEAM,  /* a sun circle turns to face the foe and fires a beam */
+    AK_RUNE_SIPHON,  /* motes and runes spiral out of the foe into the user */
     AK_COUNT
 };
 
@@ -115,6 +126,9 @@ enum {
     M_ARC_FLASH, M_SNOWDRIFT, M_COUNTERJAB, M_ACID_SPIT,
     M_SANDBLAST, M_CROSSWIND, M_LULLABY, M_SWARM_RUSH,
     M_SHADE_CUT, M_WYRM_DANCE,
+    /* the RUNE set (docs/EXPANSION.md 5) */
+    M_RUNE_BOLT, M_SIGIL_SNARE, M_ALGIZ_WARD, M_KENAZ_FLARE, M_RUNE_ORBIT,
+    M_THURS_SPIKE, M_RAIDO_RUSH, M_ISA_SEAL, M_SOWILO_BEAM, M_RUNE_SIPHON,
     MOVE_COUNT,
     M_LAST_GASP = MOVE_COUNT, /* not learnable: used when every move is out of uses */
     MOVE_TABLE_SIZE
@@ -534,6 +548,38 @@ static const Move MOVES[MOVE_TABLE_SIZE] = {
     [M_WYRM_DANCE] = MV("WYRM DANCE", T_WYRM, CAT_STATUS, 0, 0, 15, 0, EF_SELF_STAT, 100, SM(STAT_ATK) | SM(STAT_SPE), 1,
         AK_DANCE, FX_SCALE, FX_SPARKLE, 6, RGB15(16, 10, 30), RGB15(12, 28, 26),
         "An ancient coiling dance. Raises ATTACK and SPEED."),
+
+    /* the RUNE set: runes of the elder row, circles and seals (anim_rune.c) */
+    [M_RUNE_BOLT] = MV("RUNE BOLT", T_ASTRAL, CAT_SPEC, 50, 100, 25, 0, EF_NONE, 0, 0, 0,
+        AK_RUNE_BOLT, FX_STAR, FX_SPARKLE, 1, RGB15(18, 11, 29), RGB15(11, 26, 31),
+        "A spinning rune flung like a spear of light."),
+    [M_SIGIL_SNARE] = MV("SIGIL SNARE", T_RELIC, CAT_STATUS, 0, 95, 20, 0, EF_FOE_STAT, 100, STAT_SPE, -2,
+        AK_SIGIL_SNARE, FX_RING, FX_SPARKLE, 1, RGB15(24, 9, 25), RGB15(31, 15, 29),
+        "A seal opens under the foe. Sharply lowers SPEED."),
+    [M_ALGIZ_WARD] = MV("ALGIZ WARD", T_RELIC, CAT_STATUS, 0, 0, 15, 0, EF_SELF_STAT, 100, SM(STAT_DEF) | SM(STAT_SPD), 1,
+        AK_ALGIZ_WARD, FX_SPARKLE, FX_RING, 1, RGB15(6, 21, 20), RGB15(31, 26, 12),
+        "Rings of warding runes. Raises DEFENSE and WILL."),
+    [M_KENAZ_FLARE] = MV("KENAZ FLARE", T_BLAZE, CAT_SPEC, 80, 100, 15, 0, EF_STATUS, 10, STATUS_BRN, 0,
+        AK_KENAZ_FLARE, FX_FLAME_A, FX_FLAME_B, 1, RGB15(28, 10, 2), RGB15(31, 21, 5),
+        "The torch rune kindles under the foe. May burn."),
+    [M_RUNE_ORBIT] = MV("RUNE ORBIT", T_ASTRAL, CAT_SPEC, 110, 85, 5, 0, EF_NONE, 0, 0, 0,
+        AK_RUNE_ORBIT, FX_STAR, FX_RING, 8, RGB15(18, 11, 29), RGB15(24, 31, 31),
+        "Eight runes circle the foe, faster, then collapse."),
+    [M_THURS_SPIKE] = MV("THURS SPIKE", T_STONE, CAT_PHYS, 85, 95, 10, 0, EF_HIGHCRIT, 100, 0, 0,
+        AK_THURS_SPIKE, FX_ROCK, FX_CRACK, 5, RGB15(21, 13, 7), RGB15(29, 12, 9),
+        "Thorn runes burst up as crystal. Often perfect."),
+    [M_RAIDO_RUSH] = MV("RAIDO RUSH", T_RELIC, CAT_PHYS, 70, 100, 15, 0, EF_SELF_STAT, 100, SM(STAT_SPE), 1,
+        AK_RAIDO_RUSH, FX_IMPACT, FX_SPEEDLINE, 1, RGB15(7, 20, 27), RGB15(27, 31, 31),
+        "Dashes through a rune gate. Raises the user's SPEED."),
+    [M_ISA_SEAL] = MV("ISA SEAL", T_FROST, CAT_SPEC, 70, 100, 15, 0, EF_STATUS, 10, STATUS_FRZ, 0,
+        AK_ISA_SEAL, FX_SHARD, FX_SNOWFLAKE, 1, RGB15(11, 18, 27), RGB15(27, 31, 31),
+        "The ice rune seals the foe in frost. May freeze."),
+    [M_SOWILO_BEAM] = MV("SOWILO BEAM", T_RELIC, CAT_SPEC, 90, 100, 10, 0, EF_STATUS, 10, STATUS_BRN, 0,
+        AK_SOWILO_BEAM, FX_BEAM, FX_SUNRAY, 1, RGB15(29, 20, 4), RGB15(31, 30, 22),
+        "The sun rune opens and fires a beam. May burn."),
+    [M_RUNE_SIPHON] = MV("RUNE SIPHON", T_ASTRAL, CAT_SPEC, 75, 100, 10, 0, EF_DRAIN, 100, 0, 0,
+        AK_RUNE_SIPHON, FX_MOTE, FX_SPARKLE, 1, RGB15(10, 23, 15), RGB15(22, 16, 31),
+        "Draws the foe's glow out rune by rune. Heals half."),
 
     [M_LAST_GASP] = MV("LAST GASP", T_BEAST, CAT_PHYS, 50, 0, 1, 0, EF_RECOIL, 100, 0, 0,
         AK_CONTACT, FX_IMPACT, FX_IMPACT_SMALL, 1, RGB15(31, 31, 31), RGB15(31, 20, 20),

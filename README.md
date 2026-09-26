@@ -485,7 +485,7 @@ At Lumen's **Resonance Works**, Engineer Nell shows you four machines:
 - **Wardens and Masters**: 84 warden teams of up to six kin, plus six Hall
   Masters. A Master's bout opens with a banner, and winning it plays a
   victory fanfare.
-- **Bouts that feel good**: 120 moves, each with its own animation. Blows
+- **Bouts that feel good**: 130 moves, each with its own animation. Blows
   freeze for a beat, flash, squash the target and shake the screen (harder on
   weak spots and perfect strikes). Big moves tint the sky with their type, HP
   bars drain smoothly and change colour, and every bout opens with the field

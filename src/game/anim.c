@@ -403,8 +403,13 @@ static void anim_reset_offsets(void)
     anim.bright = 0;
 }
 
+/* The RUNE set lives in anim_rune.c (included right after this file). */
+static int anim_rune_duration(int kind);
+static void anim_rune_frame(void);
+
 static int anim_duration(int kind, int count, int variant)
 {
+    if (kind >= AK_RUNE_BOLT) return anim_rune_duration(kind);
     switch (kind) {
     case AK_CONTACT: return 34 + count * 8;
     case AK_SLASH: return 30 + count * 10;
@@ -1888,6 +1893,9 @@ static void anim_move_frame(void)
         self_pulse_when(44);
         break;
     }
+    default:
+        anim_rune_frame();
+        break;
     }
     (void)fx2;
 }
