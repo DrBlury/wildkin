@@ -620,7 +620,7 @@ static void surf_ask(void)
     static char msg[MSG_TEXT_MAX];
     int k = travel_ability_kin(AB_SURF);
     str_copy(msg, "The water is calm and deep blue. SURF on ");
-    str_put(msg, SPECIES[party[k].species].name);
+    str_put(msg, kin_name(&party[k]));
     str_put(msg, "?");
     dlg_ask(msg, YES_NO, 2, surf_answer);
 }
@@ -630,7 +630,7 @@ static void strength_use(void)
     char msg[MSG_TEXT_MAX];
     int k = travel_ability_kin(AB_STRENGTH);
     tv.strength_on = 1;
-    str_copy(msg, SPECIES[party[k].species].name);
+    str_copy(msg, kin_name(&party[k]));
     str_put(msg, " used STRENGTH! It can push heavy boulders now.");
     sfx_play(SFX_ROCK);
     dlg_say(msg);
@@ -646,7 +646,7 @@ static void light_use(void)
     char msg[MSG_TEXT_MAX];
     int k = travel_ability_kin(AB_LIGHT);
     tv.light_on = 1;
-    str_copy(msg, SPECIES[party[k].species].name);
+    str_copy(msg, kin_name(&party[k]));
     str_put(msg, " used LIGHT! Its glow pushes the dark back.");
     sfx_play(SFX_SPARKLE);
     dlg_say(msg);

@@ -463,6 +463,16 @@ static struct {
 } pscr;
 
 static void summary_open(int slot, int return_mode);
+static void naming_open(int where, int idx, void (*done)(void));   /* naming.c */
+static void party_redraw(void);
+
+/* Back from the name slate to the team screen. */
+static void party_after_naming(void)
+{
+    game_mode = MODE_PARTY;
+    for (int i = 0; i < party_count; i++) load_monster_icon(i, party[i].species);
+    party_redraw();
+}
 
 /* Panels are whole-cell windows so their palette never mixes with the
  * backdrop: slot 0 is the big card on the left, 1..5 are rows. */
@@ -492,12 +502,12 @@ static void party_draw_panel(int i)
         small_text_draw(48, 28, buf);
         if (m->status) draw_status_badge(6, 5, m->status);
         else if (m->hp == 0) text_draw_col(44, 38, "DOZE", INK_RED, INK_RED_SH);
-        text_draw(12, 56, SPECIES[m->species].name);
+        text_draw(12, 56, kin_name(m));
         menu_hp_bar(40, 74, 48, m->hp, m->max_hp);
         mon_hp_text(buf, m);
         small_text_draw(90 - small_text_width(buf), 78, buf);
     } else {
-        text_draw(138, y + 3, SPECIES[m->species].name);
+        text_draw(138, y + 3, kin_name(m));
         if (m->status) text_draw_col(206, y + 3, STATUS_NAMES[m->status], INK_RED, INK_RED_SH);
         else if (m->hp == 0) text_draw_col(200, y + 3, "DOZE", INK_RED, INK_RED_SH);
         mon_level_text(buf, m);
@@ -573,6 +583,7 @@ static void party_open_submenu(void)
     if (pscr.ctx == PCTX_FIELD) {
         pscr.submenu[n++] = "SUMMARY";
         if (party_count > 1) pscr.submenu[n++] = "SWITCH";
+        pscr.submenu[n++] = "NAME";
     } else {
         pscr.submenu[n++] = "SHIFT";
         pscr.submenu[n++] = "SUMMARY";
@@ -590,6 +601,10 @@ static void party_submenu_choose(int c)
     pscr.state = PS_SELECT;
     if (str_eq(pick, "SUMMARY")) {
         summary_open(pscr.cursor, MODE_PARTY);
+        return;
+    }
+    if (str_eq(pick, "NAME")) {
+        naming_open(0, pscr.cursor, party_after_naming);   /* NM_TEAM */
         return;
     }
     if (str_eq(pick, "SWITCH")) {
@@ -756,12 +771,14 @@ static void summary_redraw(void)
     canvas_window(0, 3, 10, 10, WIN_STD);
     if (sum.page != SUM_MOVES && sum.page != SUM_TRAITS) {
         canvas_window(0, 13, 10, 7, WIN_STD);
-        text_draw(8, 112, s->name);
+        int ly = m->name[0] ? 8 : 0;      /* a nickname adds the species below it */
+        text_draw_fit(8, 112 - ly / 4, kin_name(m), 72);
+        if (ly) text_draw_fit(8, 124, s->name, 72);
         mon_level_text(buf, m);
-        small_text_draw(8, 132, buf);
-        if (m->flags & MF_LUSTROUS) text_draw_col(66, 128, "*", INK_RED, INK_RED_SH);
-        if (m->status) draw_status_badge(5, 16, m->status);
-        else if (m->hp == 0) text_draw_col(36, 128, "DOZE", INK_RED, INK_RED_SH);
+        small_text_draw(8, 132 + ly, buf);
+        if (m->flags & MF_LUSTROUS) text_draw_col(66, 128 + ly, "*", INK_RED, INK_RED_SH);
+        if (m->status) draw_status_badge(5, 16 + ly / 8, m->status);
+        else if (m->hp == 0) text_draw_col(36, 128 + ly, "DOZE", INK_RED, INK_RED_SH);
     }
 
     int right_h = sum.page == SUM_MOVES || sum.page == SUM_TRAITS ? 12 : 17;
@@ -966,10 +983,25 @@ static void summary_open_shelf(int i)
 
 static void pc_summary_back(int slot);
 
+/* Back from the name slate to the summary. */
+static void summary_after_naming(void)
+{
+    game_mode = MODE_SUMMARY;
+    gems_load();
+    summary_redraw();
+}
+
 static void summary_update(void)
 {
     int redraw = 0;
     int n = sum_count();
+    /* SELECT: give it a name (not in the middle of a bout) */
+    if (key_hit(KEY_SELECT) && (sum.return_mode == MODE_PC || pscr.ctx == PCTX_FIELD) && sum.slot < n) {
+        sfx_play(SFX_CONFIRM);
+        if (sum.src == SUMSRC_SHELF) naming_open(1, storage_box_start(sum.box) + sum.slot, summary_after_naming);
+        else naming_open(0, sum.slot, summary_after_naming);
+        return;
+    }
     if (key_hit(KEY_B)) {
         sfx_play(SFX_CANCEL);
         if (sum.return_mode == MODE_PC) {
@@ -1583,7 +1615,7 @@ static void pc_draw_left(const Monster *m, const char *label)
 {
     char buf[24];
     const Species *s = &SPECIES[m->species];
-    text_draw_fit(8, 96, s->name, 80);
+    text_draw_fit(8, 96, kin_name(m), 80);
     mon_level_text(buf, m);
     small_text_draw(8, 116, buf);
     if (m->flags & MF_LUSTROUS) text_draw_col(40, 112, "*", INK_RED, INK_RED_SH);
@@ -1660,11 +1692,11 @@ static void pc_redraw(void)
         const Species *s = &SPECIES[m.species];
         int match = pc.find_type >= 0 && (s->type1 == pc.find_type || s->type2 == pc.find_type);
         if (pc.moving && pc.page > 0 && pc_index(k) == pc.move_from)
-            text_draw_col(142, y, s->name, INK_SHADOW, INK_SHADOW);
+            text_draw_col(142, y, kin_name(&m), INK_SHADOW, INK_SHADOW);
         else if (match)
-            text_draw_col(142, y, s->name, INK_GREEN, INK_GREEN_SH);
+            text_draw_col(142, y, kin_name(&m), INK_GREEN, INK_GREEN_SH);
         else
-            text_draw_fit(142, y, s->name, 60);
+            text_draw_fit(142, y, kin_name(&m), 60);
         mon_level_text(buf, &m);
         small_text_draw(226 - small_text_width(buf), y + 4, buf);
         pc.row_sp[r] = (s16)m.species;
@@ -1724,7 +1756,7 @@ static void pc_release_final(int c)
     if (c != 0 || pc.pending < 0 || pc.pending >= storage_count) return;
     char msg[96];
     Monster m = storage_take(pc.pending);
-    const char *name = SPECIES[m.species].name;
+    const char *name = kin_name(&m);
     str_copy(msg, name);
     str_put(msg, " went back to its home in the wild. Farewell, ");
     str_put(msg, name);
@@ -1740,7 +1772,7 @@ static void pc_release_confirm(int c)
     char msg[96];
     const Species *s = &SPECIES[storage[pc.pending].species];
     str_copy(msg, "Really? ");
-    str_put(msg, s->name);
+    str_put(msg, box_name(&storage[pc.pending]));
     str_put(msg, s->rarity == R_LEGEND ? " is a legend. It won't come back." : " won't come back.");
     dlg_ask(msg, YES_NO, 2, pc_release_final);
 }
@@ -1767,7 +1799,7 @@ static void pc_act(int act)
             pc_say("The LANTERN SHELF is full.");
             return;
         }
-        str_copy(msg, SPECIES[party[k].species].name);
+        str_copy(msg, kin_name(&party[k]));
         str_put(msg, " went across the wire to BOX ");
         str_put_int(msg, b + 1);
         str_put(msg, ".");
@@ -1782,7 +1814,7 @@ static void pc_act(int act)
             return;
         }
         party[party_count++] = storage_take(pc_index(k));
-        str_copy(msg, SPECIES[party[party_count - 1].species].name);
+        str_copy(msg, kin_name(&party[party_count - 1]));
         str_put(msg, " joined your team!");
         pc.find_type = -1;
         pc_say(msg);
@@ -1796,7 +1828,7 @@ static void pc_act(int act)
     case SHA_RELEASE:
         pc.pending = pc_index(k);
         str_copy(msg, "Release ");
-        str_put(msg, SPECIES[storage[pc.pending].species].name);
+        str_put(msg, box_name(&storage[pc.pending]));
         str_put(msg, "? It will go back to its home in the wild.");
         pc.state = SH_DIALOG;
         dlg_ask(msg, YES_NO, 2, pc_release_confirm);

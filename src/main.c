@@ -18,6 +18,7 @@
  *   game/battle_ui.c  event playback, HUD, battle menus, transitions
  *   game/menu.c       START menu, team, summary, bag, shop, PC
  *   game/dex.c        monster catalogue with scrolling detail pages
+ *   game/naming.c     the name slate (kin nicknames)
  *   game/evolve.c     evolution scene
  *   game/script.c     people, signs, items and field glue
  *   save_game.h       checked SRAM save slots (+ v1 migration)
@@ -50,6 +51,7 @@
 #include "game/menu.c"
 #include "game/dex.c"
 #include "game/lorebook.c"
+#include "game/naming.c"
 #include "game/evolve.c"
 #include "game/craft.c"
 #include "game/fusion.c"

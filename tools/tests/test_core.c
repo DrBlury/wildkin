@@ -88,7 +88,7 @@ int main(void)
     CHECK(storage_count == STORAGE_MAX && save_write_to(sram), "a full LANTERN SHELF saves");
     new_game();
     Monster back;
-    CHECK(save_load_from(sram) == 4 && storage_count == STORAGE_MAX &&
+    CHECK(save_load_from(sram) == SAVE_VERSION && storage_count == STORAGE_MAX &&
               (back = storage_get(STORAGE_MAX - 1), back.species == keep.species && back.level == keep.level &&
                back.xp == keep.xp && back.pot[5] == keep.pot[5] && back.hp == back.max_hp),
           "all 240 stored kin come back exactly (and rested)");

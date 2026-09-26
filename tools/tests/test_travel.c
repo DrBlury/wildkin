@@ -381,7 +381,7 @@ int main(void)
     memset(sram, 0xFF, sizeof(sram));
     CHECK(save_write_to(sram), "the game saves");
     travel_reset();
-    CHECK(save_load_from(sram) == 4 && !memcmp(&keep, &travel, sizeof(travel)), "crests, visits and puzzles come back");
+    CHECK(save_load_from(sram) == SAVE_VERSION && !memcmp(&keep, &travel, sizeof(travel)), "crests, visits and puzzles come back");
     CHECK(!(cell_attr(4, 6) & A_SOLID), "the solved gate is still open after loading");
     enter(MAP_TT_SHORE, 6, 6, DIR_RIGHT);
     save_write_to(sram);

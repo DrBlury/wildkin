@@ -43,7 +43,7 @@ static void evolve_start_next(void)
     build_fx_palette(OBANK_FX_HIT, RGB15(31, 31, 22), RGB15(26, 28, 31));
     char msg[64];
     str_copy(msg, "Huh? ");
-    str_put(msg, SPECIES[evo.from].name);
+    str_put(msg, kin_name(&party[evo.slot]));
     str_put(msg, " is growing!");
     dlg_say(msg);
 }
@@ -81,7 +81,7 @@ static void evolve_update(void)
             evolve_whiten(0);
             evo.show_new = 0;
             str_copy(msg, "Huh? ");
-            str_put(msg, SPECIES[evo.from].name);
+            str_put(msg, kin_name(&party[evo.slot]));
             str_put(msg, " settled back down. It stopped growing.");
             dlg_say(msg);
             evo.state = EVS_OUTRO;
@@ -92,12 +92,14 @@ static void evolve_update(void)
             evolve_whiten(0);
             evo.show_new = 1;
             Monster *m = &party[evo.slot];
+            char was[KIN_NAME_LEN + 16];
+            str_copy(was, kin_name(m));
             monster_evolve(m, evo.into);
             sfx_play(SFX_GROW);
             dex_seen[evo.into] = 1;
             dex_caught[evo.into] = 1;
             str_copy(msg, "Your ");
-            str_put(msg, SPECIES[evo.from].name);
+            str_put(msg, was);
             str_put(msg, " grew into ");
             str_put(msg, SPECIES[evo.into].name);
             str_put(msg, "!");

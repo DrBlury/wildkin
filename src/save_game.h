@@ -1,6 +1,6 @@
 /*
  * Two checked SRAM slots of up to 16 KB (primary at 0, backup at 16384),
- * each verified by reading it back. Version 4 stores the whole expanded
+ * each verified by reading it back. Version 5 stores the whole expanded
  * game (docs/EXPANSION.md 10.4):
  *
  *   - the team as full Monsters, the 240-slot LANTERN SHELF packed (BoxMon)
@@ -11,11 +11,13 @@
  *     matches its struct is reset instead of failing the whole load, and
  *     every module clamps what it loads (X_validate)
  *
- * Older saves are migrated: version 3 keeps everything it had; version 2
+ * Version 5 added kin nicknames (Monster.name, BoxMon.name: 56- and
+ * 36-byte kin). Older saves are migrated: version 4 keeps everything (its
+ * kin just have no nicknames); version 3 keeps everything it had; version 2
  * keeps the team, the shelf, the bag and the Almanac (each kin gets rolled
  * individuality and wakes up at home); version 1 keeps team, bag, Almanac.
  */
-#define SAVE_VERSION 4u
+#define SAVE_VERSION 5u
 #define SAVE_MAGIC 0x4D515354u
 #define SAVE_SLOT_SIZE 16384u
 #define SAVE_BACKUP_OFFSET SAVE_SLOT_SIZE
@@ -67,12 +69,150 @@ typedef char ModFusionFits[sizeof(FusionState) <= MOD_FUSION_MAX ? 1 : -1];
 typedef char ModTravelFits[sizeof(TravelState) <= MOD_TRAVEL_MAX ? 1 : -1];
 typedef char ModQuestFits[sizeof(QuestState) <= MOD_QUEST_MAX ? 1 : -1];
 
+/* ---- version 4 layout (read-only, for migration): kin without names ---- */
+typedef struct {
+    u8 species, level, status, sleep_turns;
+    u8 moves[MAX_MOVES];
+    u8 pp[MAX_MOVES];
+    u16 hp, max_hp;
+    u16 stat[5];
+    u32 xp;
+    u8 pot[6];
+    u8 temper, trait;
+    u8 size;
+    u8 flags;
+    u8 bond;
+    u8 met_map, met_level;
+    u8 pad;
+} MonsterV4;
+typedef char MonsterV4Is48[sizeof(MonsterV4) == 48 ? 1 : -1];
+
+typedef struct {
+    u8 species, level, flags, bond;
+    u8 moves[MAX_MOVES];
+    u32 xp;
+    u32 pot;
+    u8 temper, trait, size, met_map;
+    u8 met_level;
+    u8 box;
+    u16 order;
+} BoxMonV4;
+typedef char BoxMonV4Is24[sizeof(BoxMonV4) == 24 ? 1 : -1];
+
+/* SaveData as version 4 wrote it: the same fields, unnamed kin. Its sizes
+ * are frozen (64 flag bytes each, the module blobs as they were). */
+typedef struct {
+    u32 magic, version;
+    u32 size;
+    u8 party_count, map, player_x, player_y;
+    u16 storage_count, bag_count;
+    u8 facing, pad0[3];
+    MonsterV4 party[PARTY_MAX];
+    BoxMonV4 storage[240];
+    BagEntry bag[200];
+    u32 money;
+    u8 seen[32], caught[32];
+    u8 flags[64], satchels[64], wardens[64];
+    u8 lore_known[32], lore_unread[32];
+    u16 hush_steps, step_counter;
+    u8 options[16];
+    u16 mod_size[8];
+    u8 time[32];
+    u8 farm[3072];
+    u8 craft[256];
+    u8 fusion[256];
+    u8 travel[256];
+    u8 quest[128];
+    u32 checksum;
+} SaveDataV4;
+typedef char SaveDataV4Is11236[sizeof(SaveDataV4) == 11236 ? 1 : -1];
+
+/* A version-4 kin as a current one (no nickname), and back (tests). */
+static Monster monster_from_v4(const MonsterV4 *o)
+{
+    Monster m;
+    u8 *raw = (u8 *)&m;
+    for (unsigned i = 0; i < sizeof(m); i++) raw[i] = 0;
+    m.species = o->species;
+    m.level = o->level;
+    m.status = o->status;
+    m.sleep_turns = o->sleep_turns;
+    for (int i = 0; i < MAX_MOVES; i++) {
+        m.moves[i] = o->moves[i];
+        m.pp[i] = o->pp[i];
+    }
+    m.hp = o->hp;
+    m.max_hp = o->max_hp;
+    for (int i = 0; i < 5; i++) m.stat[i] = o->stat[i];
+    m.xp = o->xp;
+    for (int i = 0; i < 6; i++) m.pot[i] = o->pot[i];
+    m.temper = o->temper;
+    m.trait = o->trait;
+    m.size = o->size;
+    m.flags = o->flags;
+    m.bond = o->bond;
+    m.met_map = o->met_map;
+    m.met_level = o->met_level;
+    return m;
+}
+
+MAYBE_UNUSED static MonsterV4 monster_to_v4(const Monster *m)
+{
+    MonsterV4 o;
+    u8 *raw = (u8 *)&o;
+    for (unsigned i = 0; i < sizeof(o); i++) raw[i] = 0;
+    o.species = m->species;
+    o.level = m->level;
+    o.status = m->status;
+    o.sleep_turns = m->sleep_turns;
+    for (int i = 0; i < MAX_MOVES; i++) {
+        o.moves[i] = m->moves[i];
+        o.pp[i] = m->pp[i];
+    }
+    o.hp = m->hp;
+    o.max_hp = m->max_hp;
+    for (int i = 0; i < 5; i++) o.stat[i] = m->stat[i];
+    o.xp = m->xp;
+    for (int i = 0; i < 6; i++) o.pot[i] = m->pot[i];
+    o.temper = m->temper;
+    o.trait = m->trait;
+    o.size = m->size;
+    o.flags = m->flags;
+    o.bond = m->bond;
+    o.met_map = m->met_map;
+    o.met_level = m->met_level;
+    return o;
+}
+
+/* A version-4 Shelf kin with no nickname. */
+static BoxMon boxmon_from_v4(const BoxMonV4 *o)
+{
+    BoxMon b;
+    u8 *raw = (u8 *)&b;
+    for (unsigned i = 0; i < sizeof(b); i++) raw[i] = 0;
+    b.species = o->species;
+    b.level = o->level;
+    b.flags = o->flags;
+    b.bond = o->bond;
+    for (int i = 0; i < MAX_MOVES; i++) b.moves[i] = o->moves[i];
+    b.xp = o->xp;
+    b.pot = o->pot;
+    b.temper = o->temper;
+    b.trait = o->trait;
+    b.size = o->size;
+    b.met_map = o->met_map;
+    b.met_level = o->met_level;
+    b.box = o->box;
+    b.order = o->order;
+    return b;
+}
+
 /* ---- version 3 layout (read-only, for migration) ---- */
 typedef struct {
     u32 magic, version;
     int party_count, storage_count;
-    Monster party[6];
-    Monster storage[30];
+    MonsterV4 party[6];
+    MonsterV4 storage[30];
     u16 bag[17];
     int money;
     u8 seen[32], caught[32];
@@ -166,6 +306,9 @@ static int monster_valid(const Monster *m)
         return 0;
     for (int i = 0; i < 6; i++)
         if (m->pot[i] > POT_MAX) return 0;
+    if (m->name[KIN_NAME_LEN]) return 0;
+    for (int i = 0; i < KIN_NAME_LEN && m->name[i]; i++)
+        if (!kin_name_char_ok(m->name[i])) return 0;
     int known = 0;
     for (int j = 0; j < MAX_MOVES; j++) {
         if (m->moves[j] == MOVE_NONE) continue;
@@ -180,6 +323,8 @@ static int boxmon_valid(const BoxMon *b)
     if (b->species >= SP_COUNT || b->level < 1 || b->level > MAX_LEVEL ||
         b->temper >= TEMPERAMENT_COUNT || b->trait >= TRAIT_COUNT)
         return 0;
+    for (int i = 0; i < KIN_NAME_LEN && b->name[i]; i++)
+        if (!kin_name_char_ok(b->name[i])) return 0;
     int known = 0;
     for (int j = 0; j < MAX_MOVES; j++) {
         if (b->moves[j] == MOVE_NONE) continue;
@@ -325,6 +470,55 @@ static void save_apply(const SaveData *data)
     player.moving = 0;
 }
 
+/* ---- v4 migration ---- */
+
+/* A version-4 save rebuilt as a version-5 one (kin without nicknames),
+ * checked like any current save. 1 = `out` holds a valid save. */
+static int save_from_v4(const SaveDataV4 *d, SaveData *out)
+{
+    if (d->magic != SAVE_MAGIC || d->version != 4u || d->size != sizeof(*d) ||
+        d->checksum != fnv_bytes(d, sizeof(*d) - sizeof(d->checksum)) ||
+        d->party_count > PARTY_MAX || d->storage_count > STORAGE_MAX)
+        return 0;
+    u8 *raw = (u8 *)out;
+    for (unsigned i = 0; i < sizeof(*out); i++) raw[i] = 0;
+    out->magic = SAVE_MAGIC;
+    out->version = SAVE_VERSION;
+    out->size = sizeof(*out);
+    out->party_count = d->party_count;
+    out->map = d->map;
+    out->player_x = d->player_x;
+    out->player_y = d->player_y;
+    out->storage_count = d->storage_count;
+    out->bag_count = d->bag_count;
+    out->facing = d->facing;
+    for (int i = 0; i < PARTY_MAX; i++) out->party[i] = monster_from_v4(&d->party[i]);
+    for (int i = 0; i < 240 && i < STORAGE_MAX; i++) out->storage[i] = boxmon_from_v4(&d->storage[i]);
+    for (int i = 0; i < 200 && i < BAG_SAVE_MAX; i++) out->bag[i] = d->bag[i];
+    out->money = d->money;
+    for (int i = 0; i < 32; i++) {
+        out->seen[i] = d->seen[i];
+        out->caught[i] = d->caught[i];
+        out->lore_known[i] = d->lore_known[i];
+        out->lore_unread[i] = d->lore_unread[i];
+    }
+    for (int i = 0; i < 64 && i < FLAG_BYTES; i++) out->flags[i] = d->flags[i];
+    for (int i = 0; i < 64 && i < ITEM_FLAG_BYTES; i++) out->satchels[i] = d->satchels[i];
+    for (int i = 0; i < 64 && i < TRAINER_FLAG_BYTES; i++) out->wardens[i] = d->wardens[i];
+    out->hush_steps = d->hush_steps;
+    out->step_counter = d->step_counter;
+    for (int i = 0; i < 16; i++) out->options[i] = d->options[i];
+    for (int i = 0; i < 8; i++) out->mod_size[i] = d->mod_size[i];
+    for (int i = 0; i < 32 && i < MOD_TIME_MAX; i++) out->time[i] = d->time[i];
+    for (int i = 0; i < 3072 && i < MOD_FARM_MAX; i++) out->farm[i] = d->farm[i];
+    for (int i = 0; i < 256 && i < MOD_CRAFT_MAX; i++) out->craft[i] = d->craft[i];
+    for (int i = 0; i < 256 && i < MOD_FUSION_MAX; i++) out->fusion[i] = d->fusion[i];
+    for (int i = 0; i < 256 && i < MOD_TRAVEL_MAX; i++) out->travel[i] = d->travel[i];
+    for (int i = 0; i < 128 && i < MOD_QUEST_MAX; i++) out->quest[i] = d->quest[i];
+    out->checksum = save_checksum(out);
+    return save_valid(out);
+}
+
 /* ---- v3 migration ---- */
 
 static int save_v3_valid(const SaveDataV3 *d)
@@ -334,10 +528,10 @@ static int save_v3_valid(const SaveDataV3 *d)
         d->party_count < 0 || d->party_count > 6 || d->storage_count < 0 || d->storage_count > 30 ||
         d->money < 0 || d->map < 0 || d->map > MAP_STATION)
         return 0;
-    for (int i = 0; i < d->party_count; i++)
-        if (!monster_valid(&d->party[i])) return 0;
-    for (int i = 0; i < d->storage_count; i++)
-        if (!monster_valid(&d->storage[i])) return 0;
+    for (int i = 0; i < d->party_count + d->storage_count; i++) {
+        Monster m = monster_from_v4(i < d->party_count ? &d->party[i] : &d->storage[i - d->party_count]);
+        if (!monster_valid(&m)) return 0;
+    }
     return 1;
 }
 
@@ -345,9 +539,12 @@ static void save_apply_v3(const SaveDataV3 *d)
 {
     new_game();
     party_count = d->party_count;
-    for (int i = 0; i < party_count; i++) party[i] = d->party[i];
+    for (int i = 0; i < party_count; i++) party[i] = monster_from_v4(&d->party[i]);
     storage_count = 0;
-    for (int i = 0; i < d->storage_count; i++) storage_add(&d->storage[i]);
+    for (int i = 0; i < d->storage_count; i++) {
+        Monster m = monster_from_v4(&d->storage[i]);
+        storage_add(&m);
+    }
     for (int i = 0; i < 17; i++) bag[i] = clampi(d->bag[i], 0, 999);
     money = clampi(d->money, 0, 9999999);
     for (int i = 0; i < 32; i++) {
@@ -517,17 +714,29 @@ static int save_write_to(volatile u8 *sram)
     return save_write_slot(&data, sram);
 }
 
-/* 4 = loaded, 3/2/1 = migrated from that version, 0 = nothing usable. */
+/* SAVE_VERSION (5) = loaded, 4/3/2/1 = migrated from that version,
+ * 0 = nothing usable. */
 static int save_load_from(volatile u8 *sram)
 {
     EWRAM_BSS static SaveData data;
-    EWRAM_BSS static SaveDataV3 v3;
-    EWRAM_BSS static SaveDataV2 v2;
-    EWRAM_BSS static SaveDataV1 old;
+    /* one buffer for whichever old layout is being tried */
+    EWRAM_BSS static union { SaveDataV4 v4; SaveDataV3 v3; SaveDataV2 v2; SaveDataV1 v1; } prev;
+    SaveDataV3 *v3 = &prev.v3;
+    SaveDataV2 *v2 = &prev.v2;
+    SaveDataV1 *v1 = &prev.v1;
     for (int slot = 0; slot < 2; slot++) {
         volatile u8 *base = sram + (slot ? SAVE_BACKUP_OFFSET : 0);
         sram_read(&data, base, sizeof(data));
         if (save_valid(&data)) {
+            save_apply(&data);
+            return SAVE_VERSION;
+        }
+    }
+    /* version 4: the same slots, kin without nicknames */
+    for (int slot = 0; slot < 2; slot++) {
+        volatile u8 *base = sram + (slot ? SAVE_BACKUP_OFFSET : 0);
+        sram_read(&prev.v4, base, sizeof(prev.v4));
+        if (save_from_v4(&prev.v4, &data)) {
             save_apply(&data);
             return 4;
         }
@@ -535,25 +744,25 @@ static int save_load_from(volatile u8 *sram)
     /* older versions used 4 KB slots at 0 and 4096 */
     for (int slot = 0; slot < 2; slot++) {
         volatile u8 *base = sram + (slot ? SAVE_V3_BACKUP_OFFSET : 0);
-        sram_read(&v3, base, sizeof(v3));
-        if (save_v3_valid(&v3)) {
-            save_apply_v3(&v3);
+        sram_read(v3, base, sizeof(*v3));
+        if (save_v3_valid(v3)) {
+            save_apply_v3(v3);
             return 3;
         }
     }
     for (int slot = 0; slot < 2; slot++) {
         volatile u8 *base = sram + (slot ? SAVE_V3_BACKUP_OFFSET : 0);
-        sram_read(&v2, base, sizeof(v2));
-        if (save_v2_valid(&v2)) {
-            save_apply_v2(&v2);
+        sram_read(v2, base, sizeof(*v2));
+        if (save_v2_valid(v2)) {
+            save_apply_v2(v2);
             return 2;
         }
     }
     for (int slot = 0; slot < 2; slot++) {
         volatile u8 *base = sram + (slot ? SAVE_V3_BACKUP_OFFSET : 0);
-        sram_read(&old, base, sizeof(old));
-        if (save_v1_valid(&old)) {
-            save_apply_v1(&old);
+        sram_read(v1, base, sizeof(*v1));
+        if (save_v1_valid(v1)) {
+            save_apply_v1(v1);
             return 1;
         }
     }

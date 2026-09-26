@@ -714,7 +714,7 @@ static void test_saves(void)
     Monster before = party[0];
     new_game();
     opt.text_speed = TEXT_MID;
-    CHECK(save_load() == 4, "a version 4 save loads back");
+    CHECK(save_load() == SAVE_VERSION, "a current save loads back");
     CHECK(cur_map == MAP_LAKE && player.x == 30 && party_count == 1 &&
           memcmp(&party[0], &before, sizeof(Monster)) == 0 && lore_is_known(LORE_POLARITONS) &&
           trainer_beaten(0) && !trainer_beaten(1) && trainer_beaten(2) && opt.text_speed == TEXT_FAST,
@@ -756,10 +756,10 @@ static void test_saves(void)
     v3.magic = SAVE_MAGIC;
     v3.version = 3;
     v3.party_count = 1;
-    v3.party[0] = monster_make(SP_AXOLURK, 22);
+    { Monster t = monster_make(SP_AXOLURK, 22); v3.party[0] = monster_to_v4(&t); }
     v3.storage_count = 2;
-    v3.storage[0] = monster_make(SP_GOLEMIT, 9);
-    v3.storage[1] = monster_make(SP_ZAPPET, 11);
+    { Monster t = monster_make(SP_GOLEMIT, 9); v3.storage[0] = monster_to_v4(&t); }
+    { Monster t = monster_make(SP_ZAPPET, 11); v3.storage[1] = monster_to_v4(&t); }
     v3.storage[1].flags |= MF_LUSTROUS;
     v3.bag[ITEM_HUSH_BELL] = 2;
     v3.money = 4321;
@@ -784,7 +784,7 @@ static void test_saves(void)
           lore_known[0] == 0x81 && opt.text_speed == TEXT_FAST && cur_map == MAP_WOOD &&
           player.x == 20 && player.y == 8,
           "the whole version 3 game carries over");
-    CHECK(save_write() && save_load() == 4, "and it saves back as version 4");
+    CHECK(save_write() && save_load() == SAVE_VERSION, "and it saves back as the current version");
     opt.text_speed = TEXT_MID;
 }
 

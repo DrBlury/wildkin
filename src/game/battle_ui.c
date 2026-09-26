@@ -18,6 +18,8 @@ static void party_screen_open(int ctx, int item);
 static void bag_screen_open(int ctx);
 static void field_return(void);
 static void evolve_start_next(void);
+static void catch_name_begin(BEvent *e);        /* naming.c */
+static int catch_name_update(BEvent *e);
 
 enum {
     MODE_FIELD, MODE_START_MENU, MODE_PARTY, MODE_SUMMARY, MODE_BAG, MODE_DEX,
@@ -161,7 +163,7 @@ static void hud_draw(int side)
     char buf[24];
     int nx = side == SIDE_ENEMY ? HUD_ENEMY_NAME_X : HUD_ALLY_NAME_X;
     int ny = side == SIDE_ENEMY ? HUD_ENEMY_NAME_Y : HUD_ALLY_NAME_Y;
-    text_draw(px + nx, py + ny, SPECIES[battle.disp[side].species].name);
+    text_draw(px + nx, py + ny, battle.disp[side].name);
     str_copy(buf, "Lv");
     str_put_int(buf, battle.disp[side].level);
     small_text_draw(px + (side == SIDE_ENEMY ? HUD_ENEMY_LV_X : HUD_ALLY_LV_X),
@@ -184,6 +186,7 @@ static void disp_sync(int side)
 {
     Monster *m = side_mon(side);
     battle.disp[side].species = m->species;
+    str_copy(battle.disp[side].name, kin_name(m));
     battle.disp[side].level = m->level;
     battle.disp[side].hp = m->hp;
     battle.disp[side].trail = m->hp;
@@ -219,7 +222,7 @@ static void draw_action_box(void)
     clear_tab();
     canvas_window(0, 14, CANVAS_COLS, 6, WIN_BATTLE);
     str_copy(buf, "What will\n");
-    str_put(buf, SPECIES[side_mon(SIDE_ALLY)->species].name);
+    str_put(buf, kin_name(side_mon(SIDE_ALLY)));
     str_put(buf, " do?");
     text_draw_col(16, 120, buf, INK_DARK, INK_SHADOW);
     canvas_window(15, 14, 15, 6, WIN_STD);
@@ -482,7 +485,7 @@ static void xp_level_up(int slot, int remaining)
     monster_level_up(m);
     battle_leveled |= (u8)(1u << slot);
     int off = 0;
-    str_copy(msg, SPECIES[m->species].name);
+    str_copy(msg, kin_name(m));
     str_put(msg, " reached Lv. ");
     str_put_int(msg, m->level);
     str_put(msg, "!");
@@ -531,6 +534,9 @@ static int bev_run(BEvent *e)
         case EV_CUE:
             battle_cue(e->a);
             return 1;
+        case EV_NAME:
+            catch_name_begin(e);
+            break;
         case EV_ANIM:
             anim_start(e->a, side, e->b);
             break;
@@ -627,7 +633,7 @@ static int bev_run(BEvent *e)
             if (monster_knows(m, e->b)) return 1;
             if (monster_add_move(m, e->b)) {
                 BEvent *t = bev_insert_next(EV_TEXT, 0, MSGM_WAIT, 0, 0);
-                str_copy(t->text, SPECIES[m->species].name);
+                str_copy(t->text, kin_name(m));
                 str_put(t->text, " learned ");
                 str_put(t->text, MOVES[e->b].name);
                 str_put(t->text, "!");
@@ -767,6 +773,8 @@ static int bev_run(BEvent *e)
         return 0;
     case EV_LEARN:
         return !dialog_update();
+    case EV_NAME:
+        return catch_name_update(e);
     case EV_XP: {
         Monster *m = &party[e->a];
         if (m->level >= MAX_LEVEL || e->b <= 0) return 1;
@@ -812,7 +820,8 @@ static void battle_events_update(void)
         if (!bev_run(e)) {
             /* fast bouts: a timed event (not text, not a question) runs a
              * second step this frame */
-            if (!opt.battle_speed || !battle.ev_started || e->type == EV_TEXT || e->type == EV_LEARN) return;
+            if (!opt.battle_speed || !battle.ev_started || e->type == EV_TEXT || e->type == EV_LEARN ||
+                e->type == EV_NAME) return;
             if (!bev_run(e)) return;
         }
         if (battle.state != BST_EVENTS) {
@@ -945,7 +954,7 @@ static void battle_queue_intro(void)
         bev_push(EV_SEND_OUT, SIDE_ENEMY, 0, 0);
     }
     str_copy(msg, "Out you come, ");
-    str_put(msg, SPECIES[party[battle.ally].species].name);
+    str_put(msg, kin_name(&party[battle.ally]));
     str_put(msg, "!");
     bsay(msg);
     bev_push(EV_SEND_OUT, SIDE_ALLY, battle.ally, 0);

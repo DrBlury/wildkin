@@ -442,7 +442,7 @@ static void test_shelf(void)
     opt.registered = ITEM_HOE + 1;
     save_write_to(sram);
     new_game();
-    CHECK(save_load_from(sram) == 4 && storage_box_count(1) == b2 && opt.registered == ITEM_HOE + 1,
+    CHECK(save_load_from(sram) == SAVE_VERSION && storage_box_count(1) == b2 && opt.registered == ITEM_HOE + 1,
           "boxes and the registered item survive a save");
     opt.registered = 0;
 }

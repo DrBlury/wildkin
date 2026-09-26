@@ -544,14 +544,14 @@ static void test_save(void)
     CHECK(!save_load_from(sram), "blank SRAM loads nothing");
     CHECK(save_write_to(sram), "saving writes and verifies both slots");
     fresh_game();
-    CHECK(save_load_from(sram) == 4 && party_count == 6 && storage_count == 4 &&
+    CHECK(save_load_from(sram) == SAVE_VERSION && party_count == 6 && storage_count == 4 &&
           bag[ITEM_GLOW_LANTERN] == 7 && money == 4321 && cur_map == MAP_SHOP &&
           player.x == 3 && player.y == 5 && player.facing == DIR_LEFT &&
           flag(FLAG_LEAF_STONE) && item_taken(0) && !item_taken(1) && item_taken(2) && party[0].species == SP_AQUAPO,
           "loading restores team, PC storage, bag, money, flags and position");
     sram[20] ^= 0x55;
     fresh_game();
-    CHECK(save_load_from(sram) == 4 && party_count == 6, "a damaged primary slot falls back to the backup");
+    CHECK(save_load_from(sram) == SAVE_VERSION && party_count == 6, "a damaged primary slot falls back to the backup");
     sram[SAVE_BACKUP_OFFSET + 20] ^= 0x55;
     fresh_game();
     CHECK(!save_load_from(sram), "two damaged slots are rejected");
