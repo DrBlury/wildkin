@@ -64,7 +64,6 @@ static void grim_draw_ash(void)
 
 /* ---------------- helpers ---------------- */
 
-static const char *const CREST_NAMES[CREST_COUNT] = { "VOLT", "TIDE", "ANVIL", "RIME", "LANTERN", "DREAM" };
 
 static int grim_crest_count(void)
 {
