@@ -39,6 +39,9 @@
 #include "game/msg.c"
 #include "game/party.c"
 #include "game/field.c"
+#include "game/time.c"
+#include "game/travel.c"
+#include "game/farm.c"
 #include "game/battle.c"
 #include "game/anim.c"
 #include "game/battle_ui.c"
@@ -46,8 +49,13 @@
 #include "game/dex.c"
 #include "game/lorebook.c"
 #include "game/evolve.c"
+#include "game/craft.c"
+#include "game/fusion.c"
+#include "game/quest.c"
+#include "game/modules.c"
 #include "game/script.c"
 #include "game/title.c"
+#include "game/debug.c"
 #include "save_game.h"
 
 /* VRAM uploads prepared during the previous frame; runs in vblank. */
@@ -61,6 +69,7 @@ static void present(void)
     }
     if ((game_mode == MODE_DEX && dex.state == 1) || (game_mode == MODE_LORE && lb.state == 2))
         panel_present();
+    if (game_mode == MODE_EXT && ext.present) ext.present();
 }
 
 static void game_update(void)
@@ -79,6 +88,7 @@ static void game_update(void)
     case MODE_TITLE: title_update(); break;
     case MODE_LORE: lorebook_update(); break;
     case MODE_OPTIONS: options_update(); break;
+    case MODE_EXT: if (ext.update) ext.update(); break;
     }
 }
 
@@ -94,6 +104,7 @@ static void game_draw(void)
     case MODE_BATTLE: battle_draw(); break;
     case MODE_EVOLVE: evolve_draw(); break;
     case MODE_TITLE: title_draw_sprites(); break;
+    case MODE_EXT: if (ext.draw) ext.draw(); break;
     default: break;
     }
 }

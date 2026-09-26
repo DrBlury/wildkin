@@ -70,7 +70,7 @@ static void give_starter(void)
 {
     Monster m = monster_make(SP_FLARIX, 8);
     give_monster(&m);
-    story_flags |= FLAG_STARTER;
+    flag_set(FLAG_STARTER);
     follower_reset();
 }
 
@@ -149,7 +149,7 @@ static void test_maps(void)
     for (int m = 0; m < MAP_COUNT; m++) {
         const MapDef *d = &MAPS[m];
         if (d->w > MAP_MAX_W || d->h > MAP_MAX_H) rows_ok = 0;
-        for (int y = 0; y < d->h; y++)
+        for (int y = 0; d->rows && y < d->h; y++)   /* generated viewer maps have no rows */
             if ((int)strlen(d->rows[y]) != d->w) {
                 rows_ok = 0;
                 printf("  %s row %d is %d wide\n", d->name, y, (int)strlen(d->rows[y]));
@@ -423,7 +423,7 @@ static void test_people(void)
     step(0);
     CHECK(starter_preview == 1, "the preview follows the cursor");
     for (f = 0; f < 1500 && dialog_active(); f++) step((f & 3) == 0 ? KEY_A : 0);
-    CHECK(party_count == 1 && party[0].species == SP_AQUAPO && (story_flags & FLAG_STARTER) &&
+    CHECK(party_count == 1 && party[0].species == SP_AQUAPO && (flag(FLAG_STARTER)) &&
           bag[ITEM_LANTERN] == 5 && dex_caught[SP_AQUAPO] && lore_is_known(LORE_KINDLING),
           "choosing gives the kit, lanterns, an Almanac entry and a Lorebook page");
 
@@ -431,7 +431,7 @@ static void test_people(void)
     field_enter_map(MAP_LAB, 3, 6, DIR_UP);
     tap(KEY_A);
     run_dialog(1200);
-    CHECK((story_flags & FLAG_TWIN_CRYSTAL) && bag[ITEM_HUSH_BELL] == 1, "Pip hands over the TWIN CRYSTAL");
+    CHECK((flag(FLAG_TWIN_CRYSTAL)) && bag[ITEM_HUSH_BELL] == 1, "Pip hands over the TWIN CRYSTAL");
 
     /* lore from people */
     int before = lore_known_count();
@@ -492,13 +492,13 @@ static void test_people(void)
     CHECK(bag[ITEM_BLOOM_SHARD] == 1, "the gardener gives exactly one BLOOM SHARD");
 
     /* the story: sash -> keeper -> stormstone -> DRAKORA */
-    story_flags |= FLAG_SASH;
+    flag_set(FLAG_SASH);
     field_enter_map(MAP_LAB, 6, 5, DIR_UP);
-    for (int n = 0; n < 8 && !(story_flags & FLAG_STORM_TOLD); n++) {
+    for (int n = 0; n < 8 && !(flag(FLAG_STORM_TOLD)); n++) {
         tap(KEY_A);
         run_dialog(1500);
     }
-    CHECK(story_flags & FLAG_STORM_TOLD, "with the RING SASH the Keeper sends you to the Stormstone");
+    CHECK(flag(FLAG_STORM_TOLD), "with the RING SASH the Keeper sends you to the Stormstone");
     party_heal_all();
     field_enter_map(MAP_RISE, STORMSTONE_X, STORMSTONE_Y + 1, DIR_UP);
     run_dialog(400);
@@ -511,7 +511,7 @@ static void test_people(void)
     battle.timer = 16;
     for (f = 0; f < 4 && game_mode == MODE_BATTLE; f++) step(0);
     run_dialog(2000);
-    CHECK((story_flags & FLAG_STORM_CALMED) && lore_is_known(LORE_CLEAR_SKIES), "winning calms the storm");
+    CHECK((flag(FLAG_STORM_CALMED)) && lore_is_known(LORE_CLEAR_SKIES), "winning calms the storm");
     CHECK(!storm_active(), "and the sky clears");
 }
 
@@ -562,7 +562,7 @@ static void test_menus(void)
     fresh_game();
     Monster team[3] = { monster_make(SP_FLARIX, 20), monster_make(SP_AQUAPO, 18), monster_make(SP_GOLEMIT, 15) };
     for (int i = 0; i < 3; i++) give_monster(&team[i]);
-    story_flags |= FLAG_STARTER | FLAG_TWIN_CRYSTAL;
+    flag_set(FLAG_STARTER); flag_set(FLAG_TWIN_CRYSTAL);
     bag[ITEM_TONIC] = 3;
     bag[ITEM_FROST_SHARD] = 1;
     field_enter_map(MAP_TOWN, 20, 16, DIR_DOWN);
@@ -743,17 +743,18 @@ static void test_saves(void)
     party[0].temper = 3;
     party[0].trait = party[0].trait;
     lore_learn(LORE_POLARITONS);
-    trainer_flags = 5;
+    trainer_mark_beaten(0);
+    trainer_mark_beaten(2);
     opt.text_speed = TEXT_FAST;
     field_enter_map(MAP_LAKE, 30, 17, DIR_LEFT);
     CHECK(save_write(), "saving works");
     Monster before = party[0];
     new_game();
     opt.text_speed = TEXT_MID;
-    CHECK(save_load() == 3, "a version 3 save loads back");
+    CHECK(save_load() == 4, "a version 4 save loads back");
     CHECK(cur_map == MAP_LAKE && player.x == 30 && party_count == 1 &&
           memcmp(&party[0], &before, sizeof(Monster)) == 0 && lore_is_known(LORE_POLARITONS) &&
-          trainer_flags == 5 && opt.text_speed == TEXT_FAST,
+          trainer_beaten(0) && !trainer_beaten(1) && trainer_beaten(2) && opt.text_speed == TEXT_FAST,
           "position, kin individuality, lore, wardens and options are restored");
     opt.text_speed = TEXT_MID;
 
@@ -775,15 +776,53 @@ static void test_saves(void)
     old.bag[ITEM_LANTERN] = 7;
     old.money = 1234;
     old.caught[SP_PYREFOX] = 1;
-    old.story_flags = FLAG_STARTER;
+    old.story_flags = 1u << FLAG_STARTER;
     old.checksum = fnv_bytes(&old, sizeof(old) - sizeof(old.checksum));
+    memset(host_sram, 0xFF, sizeof(host_sram));
     sram_write(&old, (volatile u8 *)MEM_SRAM, sizeof(old));
-    sram_write(&old, (volatile u8 *)MEM_SRAM + SAVE_BACKUP_OFFSET, sizeof(old));
+    sram_write(&old, (volatile u8 *)MEM_SRAM + SAVE_V3_BACKUP_OFFSET, sizeof(old));
     CHECK(save_load() == 2, "a version 2 save is recognised");
     CHECK(party_count == 1 && party[0].species == SP_PYREFOX && party[0].level == 20 &&
           party[0].moves[0] == M_SEAR_BITE && bag[ITEM_LANTERN] == 7 && money == 1234 &&
           monster_valid(&party[0]) && cur_map == MAP_HOME,
           "its team, bag, coins and Almanac carry over");
+
+    /* a version 3 save (the release before the expansion) migrates in full */
+    static SaveDataV3 v3;
+    memset(&v3, 0, sizeof(v3));
+    v3.magic = SAVE_MAGIC;
+    v3.version = 3;
+    v3.party_count = 1;
+    v3.party[0] = monster_make(SP_AXOLURK, 22);
+    v3.storage_count = 2;
+    v3.storage[0] = monster_make(SP_GOLEMIT, 9);
+    v3.storage[1] = monster_make(SP_ZAPPET, 11);
+    v3.storage[1].flags |= MF_LUSTROUS;
+    v3.bag[ITEM_HUSH_BELL] = 2;
+    v3.money = 4321;
+    v3.caught[SP_ZAPPET] = v3.seen[SP_ZAPPET] = 1;
+    v3.story_flags = (1u << FLAG_STARTER) | (1u << FLAG_SASH);
+    v3.item_flags[1] = 1u << 3;          /* satchel 35 */
+    v3.trainer_flags = 1u << 4;
+    v3.lore_known[0] = 0x81;
+    v3.options[0] = TEXT_FAST;
+    v3.map = MAP_WOOD;
+    v3.player_x = 20;
+    v3.player_y = 8;
+    v3.facing = DIR_UP;
+    v3.checksum = fnv_bytes(&v3, sizeof(v3) - sizeof(v3.checksum));
+    memset(host_sram, 0xFF, sizeof(host_sram));
+    sram_write(&v3, (volatile u8 *)MEM_SRAM + SAVE_V3_BACKUP_OFFSET, sizeof(v3));
+    CHECK(save_load() == 3, "a version 3 save is recognised (even from its backup slot)");
+    CHECK(party_count == 1 && party[0].species == SP_AXOLURK && storage_count == 2 &&
+          storage[1].species == SP_ZAPPET && (storage[1].flags & MF_LUSTROUS) &&
+          bag[ITEM_HUSH_BELL] == 2 && money == 4321 && dex_caught[SP_ZAPPET] &&
+          flag(FLAG_SASH) && item_taken(35) && !item_taken(34) && trainer_beaten(4) &&
+          lore_known[0] == 0x81 && opt.text_speed == TEXT_FAST && cur_map == MAP_WOOD &&
+          player.x == 20 && player.y == 8,
+          "the whole version 3 game carries over");
+    CHECK(save_write() && save_load() == 4, "and it saves back as version 4");
+    opt.text_speed = TEXT_MID;
 }
 
 int main(void)

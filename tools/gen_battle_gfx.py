@@ -2847,6 +2847,11 @@ def main():
     # ---- items
     items = build_items()
     item_tiles, item_pals, item_imgs = [], [], []
+    import icons as icon_registry
+    extra = icon_registry.collect(sys.modules[__name__])
+    names = [n.replace(' ', '_') for n in ITEM_NAMES] + [n for (n, _) in extra]
+    items = list(items) + [cv for (_, cv) in extra]
+    all_names = list(ITEM_NAMES) + [n for (n, _) in extra]
     for cv in items:
         img, pal = index_image(cv)
         assert pal[1] == WHITE
@@ -2855,15 +2860,16 @@ def main():
         item_pals.append(pal)
     w("/* Bag icons, 24x24 (3x3 tiles), own palette each; index 0 transparent,")
     w(" * index 1 pure white. Order: " + ", ".join(ITEM_NAMES) + ". */")
+    w("enum { " + ", ".join("ICON_%s" % n for n in names) + ", ICON_COUNT };")
     w("#define ITEM_ICON_COUNT %d" % len(items))
     w("static const u32 item_icon_gfx[%d][9 * 8] = {" % len(items))
-    for n, t in zip(ITEM_NAMES, item_tiles):
+    for n, t in zip(all_names, item_tiles):
         w("    { /* %s */" % n)
         w(c_array_rows([t[i:i + 8] for i in range(0, len(t), 8)], "        "))
         w("    },")
     w("};")
     w("static const u16 item_icon_pal[%d][16] = {" % len(items))
-    for n, pal in zip(ITEM_NAMES, item_pals):
+    for n, pal in zip(all_names, item_pals):
         w("    {" + ",".join(hexs(rgb15(c)) for c in pal) + "}, /* %s */" % n)
     w("};")
     w("")

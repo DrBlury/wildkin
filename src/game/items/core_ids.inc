@@ -1,0 +1,13 @@
+/* items/core_ids.inc -- battle/UI owner: supplies usable in bouts and the new growth shards. */
+    ITEM_VIGOR_DRAUGHT,
+    ITEM_CLARITY_BREW,
+    ITEM_REVIVAL_BREW,
+    ITEM_SWIFT_COIL,
+    ITEM_FOCUS_COIL,
+    ITEM_WILL_COIL,
+    ITEM_LURE_INCENSE,
+    ITEM_WAYSTONE,
+    ITEM_HOLLOW_SHARD,
+    ITEM_RELIC_SHARD,
+    ITEM_METAL_SHARD,
+    ITEM_ASTRAL_SHARD,

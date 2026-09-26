@@ -9,7 +9,8 @@
  * starts each note (restart bit) and slides its pitch. An effect only
  * takes a channel that is idle or playing something of equal or lower
  * priority, so a text blip never cuts a level-up jingle short.
- * Everything is silent while opt.sound is 0.
+ * The effects are silent while opt.sound is 0. Music plays on Direct Sound
+ * (music.c) and ducks while a fanfare (priority 5) is sounding here.
  *
  * Host builds map the I/O registers to plain memory, so the tests run the
  * sequencer too.
@@ -319,8 +320,23 @@ static struct {
     s16 freq;          /* current frequency register value (slides) */
 } sfx_ch[4];
 
-static u8 sfx_on;      /* master enable has been written */
+static u8 snd_on;      /* master enable and mixer routing written */
+static u8 sfx_on;      /* PSG channels routed to the speakers */
 static s8 sfx_wave_loaded = -1;
+static volatile u8 sfx_fanfare;   /* a priority-5 jingle is playing (music ducks) */
+
+/* PSG at 100%, Direct Sound A (music) at 50% on both sides, timer 0: a
+ * full-scale music mix fills half the DAC and leaves the rest to the PSG. */
+#define SNDCNT_H_MIX 0x0302
+
+static void snd_power_on(void)
+{
+    if (snd_on) return;
+    SREG_SNDCNT_X = 0x0080;      /* master enable (other registers need it first) */
+    SREG_SNDCNT_L = 0x0077;      /* PSG volume 7 both sides; channels off until needed */
+    SREG_SNDCNT_H = SNDCNT_H_MIX;
+    snd_on = 1;
+}
 
 static void sfx_load_wave(int w)
 {
@@ -407,23 +423,25 @@ static void sfx_slide(int c)
     else SREG_SND3_FREQ = (u16)f;
 }
 
+/* Silence every effect and take the PSG off the speakers (music keeps playing). */
 static void sfx_stop_all(void)
 {
     for (int c = 0; c < 4; c++) {
         sfx_ch[c].n = 0;
         sfx_ch[c].prio = 0;
+        if (snd_on) sfx_silence(c);
     }
-    SREG_SNDCNT_X = 0;
+    if (snd_on) SREG_SNDCNT_L = 0x0077;
     sfx_on = 0;
+    sfx_fanfare = 0;
     sfx_wave_loaded = -1;
 }
 
 static void sfx_power_on(void)
 {
     if (sfx_on) return;
-    SREG_SNDCNT_X = 0x0080;      /* master enable */
+    snd_power_on();
     SREG_SNDCNT_L = 0xFF77;      /* all PSG channels, full volume, both sides */
-    SREG_SNDCNT_H = 0x0002;      /* PSG at 100% */
     sfx_on = 1;
     sfx_wave_loaded = -1;
     for (int c = 0; c < 4; c++) sfx_silence(c);
@@ -462,6 +480,10 @@ static void sfx_update(void)
         if (sfx_on) sfx_stop_all();
         return;
     }
+    int fanfare = 0;
+    for (int c = 0; c < 4; c++)
+        if (sfx_ch[c].n && sfx_ch[c].prio >= 5) fanfare = 1;
+    sfx_fanfare = (u8)fanfare;
     for (int c = 0; c < 4; c++) {
         if (!sfx_ch[c].n) continue;
         if (sfx_ch[c].left > 1) {

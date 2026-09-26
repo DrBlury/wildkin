@@ -1,0 +1,13 @@
+/* world/all_npcs.inc -- every region's npcs.inc (do not edit). */
+#include "village/npcs.inc"
+#include "east/npcs.inc"
+#include "west/npcs.inc"
+#include "north/npcs.inc"
+#include "grim/npcs.inc"
+#include "far/npcs.inc"
+#include "farm/npcs.inc"
+#include "craft/npcs.inc"
+#include "fusion/npcs.inc"
+#include "travel/npcs.inc"
+#include "ui/npcs.inc"
+#include "debug/npcs.inc"

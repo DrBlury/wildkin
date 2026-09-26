@@ -1,0 +1,13 @@
+/* world/all_zones.inc -- every region's zones.inc (do not edit). */
+#include "village/zones.inc"
+#include "east/zones.inc"
+#include "west/zones.inc"
+#include "north/zones.inc"
+#include "grim/zones.inc"
+#include "far/zones.inc"
+#include "farm/zones.inc"
+#include "craft/zones.inc"
+#include "fusion/zones.inc"
+#include "travel/zones.inc"
+#include "ui/zones.inc"
+#include "debug/zones.inc"

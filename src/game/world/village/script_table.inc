@@ -1,0 +1,13 @@
+/* world/village/script_table.inc -- Script dispatch: [SCR_X] = scr_x,. Owner: core (the original Maple Village area). */
+    [SCR_KEEPER] = scr_keeper,
+    [SCR_AIDE] = scr_aide,
+    [SCR_GRAN] = scr_gran,
+    [SCR_BAKER] = scr_baker,
+    [SCR_GARDENER] = scr_gardener,
+    [SCR_MARLO] = scr_marlo,
+    [SCR_SHOP] = scr_shop,
+    [SCR_TENDER] = scr_tender,
+    [SCR_HERMIT] = scr_hermit,
+    [SCR_VASS] = scr_vass,
+    [SCR_WOODWARD] = scr_woodward,
+    [SCR_KID] = scr_kid,

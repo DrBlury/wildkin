@@ -6,6 +6,19 @@
 
 #define MODE_LORE    (MODE_TITLE + 1)
 #define MODE_OPTIONS (MODE_TITLE + 2)
+/* Screens owned by other modules (crafting, fusion, farm board, debug...):
+ * ext_open(update, draw, present) runs them without a new mode id. */
+#define MODE_EXT     (MODE_TITLE + 3)
+
+static struct { void (*update)(void); void (*draw)(void); void (*present)(void); } ext;
+
+static void ext_open(void (*update)(void), void (*draw)(void), void (*present)(void))
+{
+    ext.update = update;
+    ext.draw = draw;
+    ext.present = present;
+    game_mode = MODE_EXT;
+}
 
 static void dex_open(void);
 static void lorebook_open(void);
@@ -64,7 +77,7 @@ static void start_menu_build(void)
 {
     start_count = 0;
     for (int i = SM_ALMANAC; i <= SM_EXIT; i++) {
-        if (i == SM_SHELF && !(story_flags & FLAG_TWIN_CRYSTAL)) continue;
+        if (i == SM_SHELF && !(flag(FLAG_TWIN_CRYSTAL))) continue;
         if (i == SM_KIN && !party_count) continue;
         start_items[start_count++] = (u8)i;
     }
@@ -110,7 +123,7 @@ static void start_card_draw(void)
     char buf[40];
     canvas_window(1, 1, 18, 17, WIN_STD);
     text_draw_col(16, 16, "WARDEN CARD", INK_BLUE, INK_BLUE_SH);
-    if (story_flags & FLAG_SASH) text_draw_col(104, 16, "RING SASH", INK_RED, INK_RED_SH);
+    if (flag(FLAG_SASH)) text_draw_col(104, 16, "RING SASH", INK_RED, INK_RED_SH);
     static const char *const LABEL[6] = { "COINS", "BEFRIENDED", "MET", "LORE PAGES", "WARDENS", "SHELF" };
     for (int i = 0; i < 6; i++) {
         int y = 36 + i * LINE_H;
@@ -1078,7 +1091,10 @@ static int pc_count(void)
 
 static const Monster *pc_mon(int i)
 {
-    return pc.deposit ? &party[i] : &storage[i];
+    static Monster view;
+    if (pc.deposit) return &party[i];
+    view = storage_get(i);
+    return &view;
 }
 
 static void pc_redraw(void)
@@ -1166,7 +1182,7 @@ static void pc_update(void)
         } else if (storage_count >= STORAGE_MAX) {
             dlg_say("The LANTERN SHELF is full.");
         } else {
-            storage[storage_count++] = party[pc.cursor];
+            storage_add(&party[pc.cursor]);
             str_copy(msg, SPECIES[party[pc.cursor].species].name);
             str_put(msg, " went across the wire to the LANTERN SHELF.");
             for (int i = pc.cursor; i < party_count - 1; i++) party[i] = party[i + 1];
@@ -1177,11 +1193,9 @@ static void pc_update(void)
         if (party_count >= PARTY_MAX) {
             dlg_say("Your team is full!");
         } else {
-            party[party_count++] = storage[pc.cursor];
-            str_copy(msg, SPECIES[storage[pc.cursor].species].name);
+            party[party_count++] = storage_take(pc.cursor);
+            str_copy(msg, SPECIES[party[party_count - 1].species].name);
             str_put(msg, " joined your team!");
-            for (int i = pc.cursor; i < storage_count - 1; i++) storage[i] = storage[i + 1];
-            storage_count--;
             dlg_say(msg);
         }
     }

@@ -14,11 +14,13 @@
  */
 
 enum { LCH_FIRST_STEPS, LCH_KINSHIP, LCH_BIOLOGY, LCH_LANTERNS, LCH_TYPES,
-       LCH_GROWTH, LCH_WEATHER, LCH_LEGENDS, LCH_PLACES, LORE_CHAPTER_COUNT };
+       LCH_GROWTH, LCH_WEATHER, LCH_LEGENDS, LCH_PLACES, LCH_ENERGY, LCH_FARMING,
+       LCH_CRAFTING, LCH_HALLS, LCH_HOLLOWING, LORE_CHAPTER_COUNT };
 
 static const char *const LORE_CHAPTER_NAMES[LORE_CHAPTER_COUNT] = {
     "FIRST STEPS", "THE KINSHIP", "HOW KIN WORK", "LANTERNS", "TYPES",
-    "GROWTH", "WEATHER", "LEGENDS", "PLACES",
+    "GROWTH", "WEATHER", "LEGENDS", "PLACES", "ENERGY & FUSION", "FARMING",
+    "CRAFTING", "THE HALLS", "THE HOLLOWING",
 };
 
 /* Who reveals an entry. script.c wires each source to an NPC, sign or bookshelf.
@@ -27,7 +29,9 @@ enum { LSRC_START, LSRC_STORY, LSRC_KEEPER, LSRC_AIDE, LSRC_TENDER, LSRC_MARLO,
        LSRC_BAKER, LSRC_GARDENER, LSRC_ELDER, LSRC_GRAN, LSRC_CLERK, LSRC_KID,
        LSRC_SHEPHERD, LSRC_KITEFLYER, LSRC_STORMSTONE, LSRC_WOODWARD, LSRC_FORAGER,
        LSRC_HERMIT, LSRC_FISHER, LSRC_RESEARCHER, LSRC_LAKEKID, LSRC_BOOK_HOME,
-       LSRC_BOOK_ALMANAC, LSRC_BOOK_STATION, LSRC_BOOK_CABIN, LSRC_COUNT };
+       LSRC_BOOK_ALMANAC, LSRC_BOOK_STATION, LSRC_BOOK_CABIN,
+#include "world/all_lsrc_ids.inc"
+       LSRC_COUNT };
 
 /* One id per entry, grouped by chapter. The LSRC_STORY entries are unlocked
  * by script.c at these moments:
@@ -67,6 +71,8 @@ enum {
     /* PLACES */
     LORE_MAPLE_VILLAGE, LORE_HEARTHS, LORE_BOUT_RING, LORE_STORMSTONE_RISE,
     LORE_ALMANAC, LORE_WHISPER_MEADOW, LORE_BRAMBLEWOOD, LORE_MIRROR_LAKE,
+    /* every region and system adds its own entries (world/<owner>/lore_ids.inc) */
+#include "world/all_lore_ids.inc"
     LORE_COUNT
 };
 
@@ -1610,6 +1616,7 @@ static const LoreEntry LORE[LORE_COUNT] = {
         "Look at that water. Flat as a plate. You can see the clouds in it, "
         "upside down.\f"
         "That's how the lake got its name. Sit. I'll tell you about it." },
+#include "world/all_lore.inc"
 };
 
 /* Shown on a dark storybook screen when a NEW GAME starts, one page at a time. */

@@ -50,8 +50,9 @@ PINE_RAMP = ['t_hi', 't_lt', 't_base', 't_mid', 't_dk']
 
 # ---------------------------------------------------------------- pines
 
-def pine_img():
-    """16x32 conifer on grass: three drooping tiers, lit from the top-left."""
+def pine_img(overlay=False):
+    """16x32 conifer on grass (overlay=True: on transparent ground): three
+    drooping tiers, lit from the top-left."""
     tiers = [  # (apex_y, bottom_y, half width at the bottom)
         (13.0, 27.0, 8.2),
         (6.5, 20.0, 7.0),
@@ -125,6 +126,8 @@ def pine_img():
     .TTTTT.
     ''', {'.': None, 'T': 't_out', 'a': 'k_lt', 'b': 'k_base', 'c': 'k_dk'})
     img.paste(trunk, 5, 26)
+    if overlay:
+        return img
     for x in range(4, 12):
         if img.p[30][x] is None:
             img.p[30][x] = 'g_dk'
@@ -434,8 +437,8 @@ def reeds_layers():
 def wild_images():
     tall_b, tall_t = tallgrass_layers()
     reeds_b, reeds_t = reeds_layers()
-    tree = tree_img()
-    pine = pine_img()
+    tree = tree_img(overlay=True)
+    pine = pine_img(overlay=True)
     return {
         'GRASS': (GRASS_A.copy(), None), 'GRASS2': (GRASS_B.copy(), None),
         'GRASS3': (GRASS_C.copy(), None),

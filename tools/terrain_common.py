@@ -189,8 +189,9 @@ mmmdmmmmmmmdmmmm
 TREE_RAMP = ['t_hi', 't_lt', 't_base', 't_mid', 't_dk']
 
 
-def tree_img():
-    """16x32 tree on grass."""
+def tree_img(overlay=False):
+    """16x32 tree on grass; overlay=True: on transparent ground (the engine
+    draws whatever ground the tree stands on underneath)."""
     clumps = [
         (8.0, 8.0, 6.5, 6.5),
         (4.5, 13.0, 4.5, 4.6), (11.5, 13.0, 4.5, 4.6),
@@ -202,7 +203,7 @@ def tree_img():
                             clip=lambda x, y: 1 <= x <= 14)
     img = Img(16, 32)
     TK = {'.': None, 'O': 't_out', 'l': 'k_lt', 'b': 'k_base', 'd': 'k_dk',
-          's': 'g_dk'}
+          's': None if overlay else 'g_dk'}
     trunk = G('''
     .OlbbdO.
     .OlbbdO.
@@ -214,7 +215,8 @@ def tree_img():
     ''', dict(TK, o='t_out'))
     img.paste(trunk, 4, 24)
     img.paste(can, 0, 0)
-    fill_grass(img)
+    if not overlay:
+        fill_grass(img)
     return img
 
 

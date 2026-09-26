@@ -57,10 +57,9 @@ int main(int argc, char **argv)
     bag[ITEM_BLOOM_SHARD] = 1;
     money = 4820;
     opt.text_speed = TEXT_FAST;  /* snappier clips */
-    story_flags = FLAG_STARTER | FLAG_INTRO | FLAG_TWIN_CRYSTAL | FLAG_PIP_GIFT | FLAG_GRAN_GIFT |
-                  FLAG_BAKER_GIFT | FLAG_LEAF_STONE | FLAG_SASH | FLAG_STORM_TOLD;
-    trainer_flags = 1u << TR_MARLO;
-    if (calm) story_flags |= FLAG_STORM_CALMED;
+    flags_story_clear(); flag_set(FLAG_STARTER); flag_set(FLAG_INTRO); flag_set(FLAG_TWIN_CRYSTAL); flag_set(FLAG_PIP_GIFT); flag_set(FLAG_GRAN_GIFT); flag_set(FLAG_BAKER_GIFT); flag_set(FLAG_LEAF_STONE); flag_set(FLAG_SASH); flag_set(FLAG_STORM_TOLD);
+    trainer_mark_beaten(TR_MARLO);
+    if (calm) flag_set(FLAG_STORM_CALMED);
     for (int i = 0; i < LORE_COUNT; i += 2) lore_learn(i);
     lore_learn(LORE_KINDLING);
     lore_learn(LORE_RING_SASH);

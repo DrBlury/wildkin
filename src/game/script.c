@@ -90,7 +90,7 @@ static void keeper_confirm(int c)
     m.bond = 120;
     give_monster(&m);
     dex_seen[sp] = 1;
-    story_flags |= FLAG_STARTER;
+    flag_set(FLAG_STARTER);
     follower_reset();
     char msg[96];
     str_copy(msg, SPECIES[sp].name);
@@ -110,19 +110,19 @@ static void relearn_pick_kin(int c);
 static void keeper_after(void)
 {
     char msg[120];
-    if (!(story_flags & FLAG_SASH)) {
+    if (!(flag(FLAG_SASH))) {
         if (!lore_reveal(LSRC_KEEPER, 0))
             dlg_say("WARDEN MARLO runs the BOUT RING in the plaza. Earn the RING SASH, then come and see me.");
         return;
     }
-    if (!(story_flags & FLAG_STORM_TOLD)) {
-        story_flags |= FLAG_STORM_TOLD;
+    if (!(flag(FLAG_STORM_TOLD))) {
+        flag_set(FLAG_STORM_TOLD);
         dlg_say("The RING SASH! Then I can ask you. Listen closely.");
         dlg_say("The sky has grumbled for weeks. The Almanac page from a hundred years ago says the same: DRAKORA is brimming.");
         dlg_say("Go up WHISPER MEADOW to STORMSTONE RISE and lay your hand on the Stormstone. DRAKORA will come to answer a warden. Give it the bout it needs.");
         return;
     }
-    if (!(story_flags & FLAG_STORM_CALMED)) {
+    if (!(flag(FLAG_STORM_CALMED))) {
         dlg_say("The Stormstone waits at the top of STORMSTONE RISE, north of WHISPER MEADOW. Rest your kin first!");
         return;
     }
@@ -140,7 +140,7 @@ static void keeper_after(void)
 
 static void script_keeper(void)
 {
-    if (!(story_flags & FLAG_STARTER)) {
+    if (!(flag(FLAG_STARTER))) {
         dlg_say("There you are! Happy Kindling day. I'm KEEPER LINDEN; I keep the ALMANAC.");
         dlg_say("Three kits were born by the Almanac hearth this spring. Each is ready to choose a warden. Come, meet them.");
         dlg_call(keeper_preview_on, 0);
@@ -213,8 +213,8 @@ static void relearn_list(int slot)
 
 static void script_aide(void)
 {
-    if ((story_flags & FLAG_STARTER) && !(story_flags & FLAG_PIP_GIFT)) {
-        story_flags |= FLAG_PIP_GIFT | FLAG_TWIN_CRYSTAL;
+    if ((flag(FLAG_STARTER)) && !(flag(FLAG_PIP_GIFT))) {
+        flag_set(FLAG_PIP_GIFT); flag_set(FLAG_TWIN_CRYSTAL);
         dlg_say("A new warden! I'm PIP, the Keeper's aide. This is for you: a TWIN CRYSTAL.");
         sfx_play(SFX_ITEM);
         dlg_say("You received the TWIN CRYSTAL! Open the LANTERN SHELF anywhere from your START menu.");
@@ -227,13 +227,13 @@ static void script_aide(void)
 
 static void script_gran(void)
 {
-    if (!(story_flags & FLAG_STARTER)) {
+    if (!(flag(FLAG_STARTER))) {
         dlg_say("Morning, sleepyhead! Today's your Kindling! KEEPER LINDEN is waiting at the ALMANAC HOUSE, up north-east.");
         dlg_say("Your parents would be so proud. They sent a telegram from the far side of the Vale. Now go on!");
         return;
     }
-    if (!(story_flags & FLAG_GRAN_GIFT)) {
-        story_flags |= FLAG_GRAN_GIFT;
+    if (!(flag(FLAG_GRAN_GIFT))) {
+        flag_set(FLAG_GRAN_GIFT);
         dlg_say("Oh, look at you two! Here, for the road. And remember, your bed is always here for a nap.");
         give_item(ITEM_TONIC, 3);
         return;
@@ -243,8 +243,8 @@ static void script_gran(void)
 
 static void script_baker(void)
 {
-    if ((story_flags & FLAG_STARTER) && !(story_flags & FLAG_BAKER_GIFT)) {
-        story_flags |= FLAG_BAKER_GIFT;
+    if ((flag(FLAG_STARTER)) && !(flag(FLAG_BAKER_GIFT))) {
+        flag_set(FLAG_BAKER_GIFT);
         dlg_say("A brand-new warden! Take these for the road, dear. Kin love a glowing tonic.");
         give_item(ITEM_TONIC, 3);
         give_item(ITEM_BIG_TONIC, 1);
@@ -255,8 +255,8 @@ static void script_baker(void)
 
 static void script_gardener(void)
 {
-    if (!(story_flags & FLAG_LEAF_STONE)) {
-        story_flags |= FLAG_LEAF_STONE;
+    if (!(flag(FLAG_LEAF_STONE))) {
+        flag_set(FLAG_LEAF_STONE);
         dlg_say("I dug this up in my flower bed. It hums in spring. Maybe you can use it.");
         give_item(ITEM_BLOOM_SHARD, 1);
         dlg_say("A shard makes certain kin grow at once. THORNIP just adores springtime...");
@@ -267,8 +267,8 @@ static void script_gardener(void)
 
 static void script_woodward(void)
 {
-    if (!(story_flags & FLAG_WOODWARD_GIFT)) {
-        story_flags |= FLAG_WOODWARD_GIFT;
+    if (!(flag(FLAG_WOODWARD_GIFT))) {
+        flag_set(FLAG_WOODWARD_GIFT);
         dlg_say("Mind your step, warden. My MOSSHELL naps on the path. Here, these help when the spores get you.");
         give_item(ITEM_SOOTHE_BALM, 2);
         return;
@@ -280,8 +280,8 @@ static void bed_answer(int c);
 
 static void script_hermit(void)
 {
-    if (!(story_flags & FLAG_HERMIT_GIFT)) {
-        story_flags |= FLAG_HERMIT_GIFT;
+    if (!(flag(FLAG_HERMIT_GIFT))) {
+        flag_set(FLAG_HERMIT_GIFT);
         dlg_say("...You knocked twice. Good manners. Hardly anyone knocks twice.");
         dlg_say("Take this seed. It held a summer once. And use the cot if your kin are tired.");
         give_item(ITEM_SUNSEED, 1);
@@ -292,8 +292,8 @@ static void script_hermit(void)
 
 static void script_vass(void)
 {
-    if (!(story_flags & FLAG_VASS_GIFT)) {
-        story_flags |= FLAG_VASS_GIFT;
+    if (!(flag(FLAG_VASS_GIFT))) {
+        flag_set(FLAG_VASS_GIFT);
         dlg_say("Oh! A visitor! Are you here about the polaritons? Nobody is ever here about the polaritons.");
         dlg_say("Take these prism lanterns. Higher finesse mirrors! Please report back on your data.");
         give_item(ITEM_GLOW_LANTERN, 3);
@@ -307,10 +307,10 @@ static void script_vass(void)
 static void marlo_end(int result)
 {
     if (result != BR_WIN) return;
-    story_flags |= FLAG_RING_WON_ONCE;
-    if (!(story_flags & FLAG_SASH)) {
-        story_flags |= FLAG_SASH;
-        trainer_flags |= 1u << TR_MARLO;
+    flag_set(FLAG_RING_WON_ONCE);
+    if (!(flag(FLAG_SASH))) {
+        flag_set(FLAG_SASH);
+        trainer_mark_beaten(TR_MARLO);
         sfx_play(SFX_ITEM);
         dlg_say("You received the RING SASH! Two linked rings: one for people, one for kin.");
         lore_story(LORE_RING_SASH);
@@ -340,7 +340,7 @@ static void marlo_answer(int c)
         return;
     }
     battle_end_hook = marlo_end;
-    if (!(story_flags & FLAG_SASH)) {
+    if (!(flag(FLAG_SASH))) {
         static TrainerTeam t;
         t = team_from(&TRAINERS[TR_MARLO], BSCENE_RING);
         battle_start_trainer_team(&t);
@@ -362,7 +362,7 @@ static void script_marlo(void)
         return;
     }
     lore_reveal(LSRC_MARLO, 0);
-    if (!(story_flags & FLAG_SASH))
+    if (!(flag(FLAG_SASH)))
         dlg_ask("Want the RING SASH? Beat my team of three and it's yours! Ready?", YES_NO, 2, marlo_answer);
     else
         dlg_ask("Back for more? My team changes every time. Winner takes the coins!", YES_NO, 2, marlo_answer);
@@ -428,7 +428,7 @@ static void warden_battle_call(int npc)
 
 static void warden_end(int result)
 {
-    if (result == BR_WIN && warden_battling >= 0) trainer_flags |= 1u << warden_battling;
+    if (result == BR_WIN && warden_battling >= 0) trainer_mark_beaten(warden_battling);
     warden_battling = -1;
 }
 
@@ -519,8 +519,16 @@ static void wild_end(int result)
     wild_battle_slot = -1;
 }
 
+static void debug_parade_touch(int slot);
+static void debug_parade_shift(int by);
+static void debug_open(void);
+
 static void wild_touch(int slot)
 {
+    if (MAPS[cur_map].flags & MF_DEBUG) {
+        debug_parade_touch(slot);
+        return;
+    }
     if (!party_count || party_first_healthy() < 0) {
         dlg_say("The wild kin looks ready for a bout, but your kin are all dozing...");
         wild[slot].active = 0;
@@ -538,8 +546,8 @@ static void wild_touch(int slot)
 static void drakora_end(int result)
 {
     if (result == BR_WIN || result == BR_CAUGHT) {
-        story_flags |= FLAG_STORM_CALMED;
-        if (result == BR_CAUGHT) story_flags |= FLAG_DRAKORA_JOINED;
+        flag_set(FLAG_STORM_CALMED);
+        if (result == BR_CAUGHT) flag_set(FLAG_DRAKORA_JOINED);
         dlg_say("The clouds over the Rise tear open. Warm rain falls, then sunlight. The storm spilled into the Vale, gently.");
         if (result == BR_WIN) dlg_say("DRAKORA circles once, its kernel calm at last, and rises into a clear sky.");
         lore_story(LORE_CLEAR_SKIES);
@@ -563,11 +571,11 @@ static void drakora_begin(int unused)
 
 static void script_stormstone(void)
 {
-    if (story_flags & FLAG_STORM_CALMED) {
+    if (flag(FLAG_STORM_CALMED)) {
         lore_reveal(LSRC_STORMSTONE, "The Stormstone is quiet now. Warm to the touch, like a sleeping kin.");
         return;
     }
-    if (!(story_flags & FLAG_STORM_TOLD)) {
+    if (!(flag(FLAG_STORM_TOLD))) {
         lore_reveal(LSRC_STORMSTONE, "The standing stone hums under your hand. The air tastes like rain. (Maybe the Keeper knows more.)");
         return;
     }
@@ -595,34 +603,34 @@ static void script_kid(void)
     dlg_say(TIPS[kid_tip++ % 5]);
 }
 
-static void script_run(int npc)
+/* ---------------- NPC script dispatch ---------------- */
+
+typedef void (*ScriptFn)(int npc);
+
+/* The default: say NpcDef.text, revealing lore when the person has some. */
+static void scr_talk(int npc)
 {
     const NpcDef *n = &NPCS[npc];
+    /* after the storm, the villagers of the first area all talk about it */
+    if (flag(FLAG_STORM_CALMED) && n->lore == NO_LORE && n->map <= MAP_STATION)
+        dlg_say("Did you see? The sky over the Rise cleared! Someone must have answered DRAKORA!");
+    else
+        lore_reveal(n->lore, n->text ? n->text : "...");
+}
+
+#include "world/all_scripts.c"
+
+static const ScriptFn SCRIPT_FNS[SCR_COUNT] = {
+    [SCR_TALK] = scr_talk,
+    [SCR_WARDEN] = script_warden,
+#include "world/all_script_table.inc"
+};
+
+static void script_run(int npc)
+{
     npc_face_player(npc);
-    switch (n->script) {
-    case SCR_KEEPER: script_keeper(); break;
-    case SCR_AIDE: script_aide(); break;
-    case SCR_GRAN: script_gran(); break;
-    case SCR_BAKER: script_baker(); break;
-    case SCR_GARDENER: script_gardener(); break;
-    case SCR_MARLO: script_marlo(); break;
-    case SCR_SHOP: dlg_ask("Welcome to MAPLE SHOP! What can I do for you?", SHOP_MENU, 3, shop_answer); break;
-    case SCR_TENDER:
-        dlg_ask("Welcome to the HEARTH HALL. Would your kin like to rest by the hearth?", HEARTH_MENU, 3,
-                heal_answer);
-        break;
-    case SCR_HERMIT: script_hermit(); break;
-    case SCR_VASS: script_vass(); break;
-    case SCR_WOODWARD: script_woodward(); break;
-    case SCR_WARDEN: script_warden(npc); break;
-    case SCR_KID: script_kid(); break;
-    default:
-        if (story_flags & FLAG_STORM_CALMED && n->lore == NO_LORE)
-            dlg_say("Did you see? The sky over the Rise cleared! Someone must have answered DRAKORA!");
-        else
-            lore_reveal(n->lore, n->text ? n->text : "...");
-        break;
-    }
+    ScriptFn f = NPCS[npc].script < SCR_COUNT ? SCRIPT_FNS[NPCS[npc].script] : 0;
+    (f ? f : scr_talk)(npc);
 }
 
 /* Talking to your own follower: its mood, from its bond. */
@@ -676,6 +684,8 @@ static int book_source(void)
     }
 }
 
+static int debug_examine(int x, int y);
+
 /* Decor and places that can be examined. */
 static int examine_cell(int x, int y)
 {
@@ -704,7 +714,7 @@ static int examine_cell(int x, int y)
         lore_reveal(book_source(), "It's packed with books about kin, weather and the old Kinship.");
         return 1;
     case DK_TV:
-        dlg_say(story_flags & FLAG_STORM_CALMED
+        dlg_say(flag(FLAG_STORM_CALMED)
                 ? "The news: \"Clear skies over the whole Vale! A young warden from MAPLE VILLAGE answered DRAKORA!\""
                 : "A show about DRAKORA. The presenter says it's only a legend. The picture flickers with static.");
         return 1;
@@ -726,7 +736,7 @@ static int examine_cell(int x, int y)
     case DK_BREAD_DISPLAY: dlg_say("Honey buns, sunseed loaves and glow-bee tarts. The whole room smells golden."); return 1;
     case DK_TELESCOPE:
     case DK_TELESCOPE_IN:
-        dlg_say(story_flags & FLAG_STORM_CALMED
+        dlg_say(flag(FLAG_STORM_CALMED)
                 ? "Through the lens: clear blue sky, and a tiny speck circling high above STORMSTONE RISE."
                 : "Through the lens: black clouds turning slowly above STORMSTONE RISE, lit from inside.");
         return 1;
@@ -763,7 +773,7 @@ static int examine_cell(int x, int y)
     case DK_DESK: dlg_say("A writing desk covered in notes: sightings, weather, and a sketch of a kin's tail."); return 1;
     case DK_TEA_SET: dlg_say("A pot of honey tea, still warm."); return 1;
     case DK_NOTICE_BOARD:
-        dlg_say(story_flags & FLAG_STORM_CALMED
+        dlg_say(flag(FLAG_STORM_CALMED)
                 ? "NOTICE: Clear skies! Harvest festival at the Old Hearth. Bring your kin and a dish to share."
                 : "NOTICE: Brimming kin seen on every route. Wardens, please answer them kindly!");
         return 1;
@@ -771,11 +781,11 @@ static int examine_cell(int x, int y)
     case DK_KIN_STATUE: dlg_say("A statue of the first warden's kin. Its stone eyes seem to follow you."); return 1;
     case DK_BEEHIVE: dlg_say("Glow-bees buzz in and out. Their honey glows faintly in the dark."); return 1;
     case DK_RAIN_GAUGE:
-        dlg_say(story_flags & FLAG_STORM_CALMED ? "The rain gauge holds a gentle inch of water."
+        dlg_say(flag(FLAG_STORM_CALMED) ? "The rain gauge holds a gentle inch of water."
                                                 : "The rain gauge is overflowing. Again.");
         return 1;
     case DK_WEATHER_VANE:
-        dlg_say(story_flags & FLAG_STORM_CALMED ? "The weather vane creaks lazily in a warm breeze."
+        dlg_say(flag(FLAG_STORM_CALMED) ? "The weather vane creaks lazily in a warm breeze."
                                                 : "The weather vane spins wildly, then points at STORMSTONE RISE.");
         return 1;
     case DK_SCARECROW: dlg_say("The scarecrow wears an old warden's sash. The birds don't seem impressed."); return 1;
@@ -841,6 +851,7 @@ static int field_try_interact(void)
         dlg_say(SIGNS[s].text);
         return 1;
     }
+    if (debug_examine(fx, fy)) return 1;
     return examine_cell(fx, fy);
 }
 
@@ -936,11 +947,20 @@ static void field_update(void)
     }
     if (field_warp_update()) return;
     if (spot_update()) return;
+    time_tick();
     storm_update();
     if (key_hit(KEY_START) && !player.moving) {
         sfx_play(SFX_CONFIRM);
         start_menu_open();
         return;
+    }
+    if ((MAPS[cur_map].flags & MF_DEBUG) && !player.moving && !dialog_active()) {
+        if (key_hit(KEY_SELECT)) {
+            debug_open();
+            return;
+        }
+        if (key_hit(KEY_L)) debug_parade_shift(-WILD_MAX);
+        if (key_hit(KEY_R)) debug_parade_shift(WILD_MAX);
     }
     if (key_hit(KEY_SELECT) && !player.moving) { /* shortcut: straight to the LOREBOOK */
         sfx_play(SFX_CONFIRM);
@@ -975,9 +995,8 @@ static void new_game(void)
     for (int i = 0; i < ITEM_COUNT; i++) bag[i] = 0;
     for (int i = 0; i < SP_COUNT; i++) dex_seen[i] = dex_caught[i] = 0;
     money = 3000;
-    story_flags = 0;
-    item_flags[0] = item_flags[1] = 0;
-    trainer_flags = 0;
+    flags_reset();
+    modules_reset();
     hush_steps = 0;
     step_counter = 0;
     evo_count = 0;
@@ -985,3 +1004,8 @@ static void new_game(void)
     follower.shown = 0;
     field_enter_map(MAP_HOME, 9, 3, DIR_DOWN);
 }
+
+#ifndef HAVE_MUSIC
+/* No music module in this build: map changes are silent. */
+static void music_map_changed(int map) { (void)map; }
+#endif

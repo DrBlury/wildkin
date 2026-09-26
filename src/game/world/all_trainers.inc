@@ -1,0 +1,13 @@
+/* world/all_trainers.inc -- every region's trainers.inc (do not edit). */
+#include "village/trainers.inc"
+#include "east/trainers.inc"
+#include "west/trainers.inc"
+#include "north/trainers.inc"
+#include "grim/trainers.inc"
+#include "far/trainers.inc"
+#include "farm/trainers.inc"
+#include "craft/trainers.inc"
+#include "fusion/trainers.inc"
+#include "travel/trainers.inc"
+#include "ui/trainers.inc"
+#include "debug/trainers.inc"

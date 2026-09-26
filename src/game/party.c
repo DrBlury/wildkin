@@ -6,17 +6,99 @@
  */
 
 #define PARTY_MAX 6
-#define STORAGE_MAX 30
+#define BOX_SIZE 30
+#define BOX_COUNT 8
+#define STORAGE_MAX (BOX_SIZE * BOX_COUNT)   /* the LANTERN SHELF: 8 boxes of 30 */
+
+/* A kin resting on the Shelf, packed to 24 bytes. Stats, HP and uses are
+ * rebuilt when it comes back (resting on the Shelf heals it fully). */
+typedef struct {
+    u8 species, level, flags, bond;
+    u8 moves[MAX_MOVES];
+    u32 xp;
+    u32 pot;                 /* six 5-bit potentials: HP ATK DEF FOCUS WILL SPE */
+    u8 temper, trait, size, met_map;
+    u8 met_level, pad[3];
+} BoxMon;
+typedef char BoxMonIs24[sizeof(BoxMon) == 24 ? 1 : -1];
 
 static Monster party[PARTY_MAX];
 static int party_count;
-EWRAM_BSS static Monster storage[STORAGE_MAX];
+EWRAM_BSS static BoxMon storage[STORAGE_MAX];
 static int storage_count;
 static int bag[ITEM_COUNT];
 static int money;
 static u8 dex_seen[SP_COUNT];
 static u8 dex_caught[SP_COUNT];
 static u16 hush_steps;      /* HUSH BELL: steps left before wild kin notice you again */
+
+static BoxMon box_pack(const Monster *m)
+{
+    BoxMon b;
+    u8 *raw = (u8 *)&b;
+    for (unsigned i = 0; i < sizeof(b); i++) raw[i] = 0;
+    b.species = m->species;
+    b.level = m->level;
+    b.flags = m->flags;
+    b.bond = m->bond;
+    for (int i = 0; i < MAX_MOVES; i++) b.moves[i] = m->moves[i];
+    b.xp = m->xp;
+    for (int i = 0; i < 6; i++) b.pot |= (u32)(m->pot[i] & 31) << (i * 5);
+    b.temper = m->temper;
+    b.trait = m->trait;
+    b.size = m->size;
+    b.met_map = m->met_map;
+    b.met_level = m->met_level;
+    return b;
+}
+
+static Monster box_unpack(const BoxMon *b)
+{
+    Monster m;
+    u8 *raw = (u8 *)&m;
+    for (unsigned i = 0; i < sizeof(m); i++) raw[i] = 0;
+    m.species = b->species;
+    m.level = b->level;
+    m.flags = b->flags;
+    m.bond = b->bond;
+    for (int i = 0; i < MAX_MOVES; i++) {
+        m.moves[i] = b->moves[i];
+        m.pp[i] = b->moves[i] < MOVE_COUNT ? MOVES[b->moves[i]].pp : 0;
+    }
+    m.xp = b->xp;
+    for (int i = 0; i < 6; i++) m.pot[i] = (u8)((b->pot >> (i * 5)) & 31);
+    m.temper = b->temper;
+    m.trait = b->trait;
+    m.size = b->size;
+    m.met_map = b->met_map;
+    m.met_level = b->met_level;
+    monster_recalc(&m);
+    monster_heal_full(&m);
+    return m;
+}
+
+/* The kin in Shelf slot i, rebuilt (read-only view). */
+static Monster storage_get(int i)
+{
+    return box_unpack(&storage[i]);
+}
+
+/* Puts a kin on the Shelf: 1 = stored, 0 = the Shelf is full. */
+static int storage_add(const Monster *m)
+{
+    if (storage_count >= STORAGE_MAX) return 0;
+    storage[storage_count++] = box_pack(m);
+    return 1;
+}
+
+/* Takes a kin off the Shelf (the rest move up). */
+static Monster storage_take(int i)
+{
+    Monster m = box_unpack(&storage[i]);
+    for (int k = i; k < storage_count - 1; k++) storage[k] = storage[k + 1];
+    storage_count--;
+    return m;
+}
 
 static int party_first_healthy(void)
 {
@@ -72,10 +154,7 @@ static int give_monster(const Monster *m)
         party[party_count++] = *m;
         return 0;
     }
-    if (storage_count < STORAGE_MAX) {
-        storage[storage_count++] = *m;
-        return 1;
-    }
+    if (storage_add(m)) return 1;
     return -1;
 }
 

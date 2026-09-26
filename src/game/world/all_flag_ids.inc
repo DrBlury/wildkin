@@ -1,0 +1,13 @@
+/* world/all_flag_ids.inc -- every region's flag_ids.inc (do not edit). */
+#include "village/flag_ids.inc"
+#include "east/flag_ids.inc"
+#include "west/flag_ids.inc"
+#include "north/flag_ids.inc"
+#include "grim/flag_ids.inc"
+#include "far/flag_ids.inc"
+#include "farm/flag_ids.inc"
+#include "craft/flag_ids.inc"
+#include "fusion/flag_ids.inc"
+#include "travel/flag_ids.inc"
+#include "ui/flag_ids.inc"
+#include "debug/flag_ids.inc"

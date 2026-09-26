@@ -518,8 +518,9 @@ static void test_save(void)
     }
     bag[ITEM_GLOW_LANTERN] = 7;
     money = 4321;
-    story_flags = FLAG_STARTER | FLAG_LEAF_STONE;
-    item_flags[0] = 5;
+    flags_story_clear(); flag_set(FLAG_STARTER); flag_set(FLAG_LEAF_STONE);
+    item_take(0);
+    item_take(2);
     field_enter_map(MAP_SHOP, 3, 5, DIR_LEFT);
 
     static u8 sram[32768];
@@ -530,7 +531,7 @@ static void test_save(void)
     CHECK(save_load_from(sram) == 3 && party_count == 6 && storage_count == 4 &&
           bag[ITEM_GLOW_LANTERN] == 7 && money == 4321 && cur_map == MAP_SHOP &&
           player.x == 3 && player.y == 5 && player.facing == DIR_LEFT &&
-          (story_flags & FLAG_LEAF_STONE) && item_flags[0] == 5 && party[0].species == SP_AQUAPO,
+          flag(FLAG_LEAF_STONE) && item_taken(0) && !item_taken(1) && item_taken(2) && party[0].species == SP_AQUAPO,
           "loading restores team, PC storage, bag, money, flags and position");
     sram[20] ^= 0x55;
     fresh_game();
@@ -563,7 +564,7 @@ static void test_save(void)
     fresh_game();
     CHECK(save_load_from(sram) == 1 && party_count == 2 && party[0].species == SP_FLARIX &&
           party[0].level == 12 && party[1].species == SP_GOLEMIT && bag[ITEM_TONIC] == 4 &&
-          bag[ITEM_LANTERN] == 6 && dex_caught[SP_GOLEMIT] && (story_flags & FLAG_STARTER) &&
+          bag[ITEM_LANTERN] == 6 && dex_caught[SP_GOLEMIT] && (flag(FLAG_STARTER)) &&
           party[0].hp == party[0].max_hp / 2,
           "old saves migrate: team, HP ratio, bag and catalogue carry over");
 }

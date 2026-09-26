@@ -29,7 +29,7 @@ MGBA_PREFIX ?= /opt/homebrew
 
 # The GBA's ARM7TDMI: ARMv4T. Thumb + interwork calls is the usual setup.
 ARCH     := -mcpu=arm7tdmi -mthumb -mthumb-interwork
-CFLAGS   := -g -O2 -Wall -Wextra $(ARCH) -fomit-frame-pointer -ffreestanding -DGBA
+CFLAGS   := -g -O2 -Wall -Wextra -Wno-missing-field-initializers $(ARCH) -fomit-frame-pointer -ffreestanding -DGBA
 ASFLAGS  := -g -mcpu=arm7tdmi -marm
 LDFLAGS  := $(ARCH) -nostartfiles -T gba.ld -Wl,-Map,$(BUILD)/$(TARGET).map
 
@@ -37,7 +37,7 @@ OBJS     := $(SOURCES:%.c=$(BUILD)/%.o)
 OBJS     += $(BUILD)/src/crt0.o
 
 # Generated art headers and the scripts that write them.
-ART      := src/gfx_ui.h src/gfx_monsters.h src/gfx_field.h src/gfx_battle.h
+ART      := src/gfx_ui.h src/gfx_monsters.h src/gfx_field.h src/gfx_battle.h src/species_data.h
 
 all: $(TARGET).gba
 
@@ -50,13 +50,14 @@ run: $(TARGET).gba
 # test_game.c also runs a tiered round-robin balance simulation.
 test:
 	@mkdir -p $(BUILD)
-	$(HOSTCC) -std=c11 -Wall -Wextra -Wno-unused-function -o $(BUILD)/test_field tools/test_field.c
+	$(HOSTCC) -std=c11 -Wall -Wextra -Wno-missing-field-initializers -Wno-unused-function -o $(BUILD)/test_field tools/test_field.c
 	$(BUILD)/test_field
-	$(HOSTCC) -std=c11 -Wall -Wextra -Wno-unused-function -o $(BUILD)/test_game tools/test_game.c
+	$(HOSTCC) -std=c11 -Wall -Wextra -Wno-missing-field-initializers -Wno-unused-function -o $(BUILD)/test_game tools/test_game.c
 	$(BUILD)/test_game
 
 art:
 	python3 tools/gen_ui_gfx.py
+	python3 tools/gen_species.py
 	python3 tools/gen_monsters.py
 	python3 tools/gen_field_gfx.py
 	python3 tools/gen_battle_gfx.py

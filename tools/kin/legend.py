@@ -1,0 +1,66 @@
+"""Kin 121-129. Owner: KIN-C (legends 121-129).
+
+PLACEHOLDER data and art: stats, learnsets, traits and descriptions
+were generated from docs/EXPANSION.md; replace every entry with the real
+design (keep id, name, types, rarity and growth), give it a model, and
+set placeholder=False (then its base stat total is checked by tier).
+"""
+
+from kin import KinSpec
+
+SPECIES = [
+    KinSpec(121, 'CALDERON', ('BLAZE', 'METAL'), 'L', base=(60, 120, 105, 120, 75, 120), catch=3, xp=250, evo=None,
+            category='KIN', height=10, weight=100,
+            learnset=[(1, 'M_BONK'), (1, 'M_RIVET_SHOT'), (1, 'M_CINDER_FLICK'), (1, 'M_IRON_TAP'), (14, 'M_LAST_EMBER'), (20, 'M_LANTERN_LURE'), (26, 'M_MAGNET_PULL'), (32, 'M_STEEL_SHELL'), (38, 'M_FORGE_FLASH'), (44, 'M_SEAR_BITE'), (50, 'M_EMBER_STORM')],
+            traits=('SURGE', 'BRUISER'), field=(),
+            desc='Colossal forge salamander.',
+            concept='colossal forge salamander', placeholder=True),
+    KinSpec(122, 'NOCTHALE', ('TIDE', 'ASTRAL'), 'L', base=(154, 62, 92, 138, 92, 62), catch=3, xp=250, evo=None,
+            category='KIN', height=10, weight=100,
+            learnset=[(1, 'M_BONK'), (1, 'M_FIZZ'), (1, 'M_SLIPSTREAM'), (1, 'M_TWINKLE'), (14, 'M_NEBULA_VEIL'), (20, 'M_STARDUST'), (26, 'M_MOONBEAM'), (32, 'M_UNDERTOW'), (38, 'M_RIPTIDE'), (44, 'M_COMET_DASH'), (50, 'M_MUON_RAIN')],
+            traits=('SURGE', 'QUICK STUDY'), field=(),
+            desc='Star whale that sings under the sea.',
+            concept='star whale that sings under the sea', placeholder=True),
+    KinSpec(123, 'HOARFANG', ('FROST', 'DUSK'), 'L', base=(62, 62, 92, 169, 92, 123), catch=3, xp=250, evo=None,
+            category='KIN', height=10, weight=100,
+            learnset=[(1, 'M_BONK'), (1, 'M_HAILSTONES'), (1, 'M_FLURRY'), (1, 'M_RIME_SHOT'), (14, 'M_SNOWDRIFT'), (20, 'M_STARE_DOWN'), (26, 'M_SNAP'), (32, 'M_HAUNT'), (38, 'M_SHADE_CUT'), (44, 'M_GLOOM_ORB'), (50, 'M_GNASH')],
+            traits=('THICK FUR', 'SLIPPERY'), field=(),
+            desc='The winter wolf.',
+            concept='the winter wolf', placeholder=True),
+    KinSpec(124, 'OSSUREX', ('HOLLOW', 'WYRM'), 'L', base=(108, 92, 123, 92, 123, 62), catch=3, xp=250, evo=None,
+            category='KIN', height=10, weight=100,
+            learnset=[(1, 'M_BONK'), (1, 'M_BONE_RATTLE'), (1, 'M_LAST_RITES'), (1, 'M_SHROUD'), (14, 'M_WYRM_DANCE'), (20, 'M_GRAVE_CHILL'), (26, 'M_MARROW_SIP'), (32, 'M_WYRMBREATH'), (38, 'M_OSSIFY'), (44, 'M_SCALE_REND'), (50, 'M_DEATH_KNELL')],
+            traits=('STUBBORN', 'SURGE'), field=(),
+            desc='Bone dragon of the Ossuary.',
+            concept='bone dragon of the Ossuary', placeholder=True),
+    KinSpec(125, 'SELENOTH', ('ASTRAL', 'DREAM'), 'L', base=(122, 62, 62, 200, 92, 62), catch=3, xp=250, evo=None,
+            category='KIN', height=10, weight=100,
+            learnset=[(1, 'M_BONK'), (1, 'M_TWINKLE'), (1, 'M_LULLABY'), (1, 'M_NEBULA_VEIL'), (14, 'M_STARDUST'), (20, 'M_STILL_POND'), (26, 'M_DAYDREAM'), (32, 'M_MOONBEAM'), (38, 'M_PRISM_RAY'), (44, 'M_COMET_DASH'), (50, 'M_DREAMQUAKE')],
+            traits=('FOCUSED', 'WAKEFUL'), field=(),
+            desc='Moon moth.',
+            concept='moon moth', placeholder=True),
+    KinSpec(126, 'SYLVARCH', ('BLOOM', 'BEAST'), 'L', base=(120, 75, 90, 90, 135, 90), catch=3, xp=250, evo=None,
+            category='KIN', height=10, weight=100,
+            learnset=[(1, 'M_BONK'), (1, 'M_BURR_VOLLEY'), (1, 'M_DART'), (1, 'M_SWIPE'), (14, 'M_BASK'), (20, 'M_BRACE'), (26, 'M_BRAMBLE_LASH'), (32, 'M_CATNAP'), (38, 'M_DROWSY_POLLEN'), (44, 'M_POUT'), (50, 'M_THORN_WALL')],
+            traits=('BASKER', 'MOMENTUM'), field=(),
+            desc='Great forest stag.',
+            concept='great forest stag', placeholder=True),
+    KinSpec(127, 'HOROLOGOS', ('METAL', 'RELIC'), 'L', base=(57, 114, 186, 86, 100, 57), catch=3, xp=250, evo=None,
+            category='KIN', height=10, weight=100,
+            learnset=[(1, 'M_BONK'), (1, 'M_TRINKET_TOSS'), (1, 'M_RIVET_SHOT'), (1, 'M_CLATTER'), (14, 'M_IRON_TAP'), (20, 'M_MAGNET_PULL'), (26, 'M_STEEL_SHELL'), (32, 'M_TARNISH'), (38, 'M_FORGE_FLASH'), (44, 'M_POLTERGUST'), (50, 'M_GILDED_GLEAM')],
+            traits=('BEDROCK', 'KEEN EYE'), field=(),
+            desc='Clockwork titan.',
+            concept='clockwork titan', placeholder=True),
+    KinSpec(128, 'SCRIPTORA', ('RELIC', 'DREAM'), 'L', base=(58, 59, 146, 161, 117, 59), catch=3, xp=250, evo=None,
+            category='KIN', height=10, weight=100,
+            learnset=[(1, 'M_BONK'), (1, 'M_TRINKET_TOSS'), (1, 'M_CLATTER'), (1, 'M_LULLABY'), (14, 'M_STILL_POND'), (20, 'M_TARNISH'), (26, 'M_DAYDREAM'), (32, 'M_POLTERGUST'), (38, 'M_PRISM_RAY'), (44, 'M_GILDED_GLEAM'), (50, 'M_CHEST_CHOMP')],
+            traits=('HOARDER', 'WAKEFUL'), field=(),
+            desc='Serpent of living pages.',
+            concept='serpent of living pages', placeholder=True),
+    KinSpec(129, 'SKYLORN', ('GALE', 'ASTRAL'), 'L', base=(91, 123, 62, 108, 62, 154), catch=3, xp=250, evo=None,
+            category='KIN', height=10, weight=100,
+            learnset=[(1, 'M_BONK'), (1, 'M_BEAK_JAB'), (1, 'M_DRAFT'), (1, 'M_TWINKLE'), (14, 'M_NEBULA_VEIL'), (20, 'M_STARDUST'), (26, 'M_UPDRAFT'), (32, 'M_FEATHER_CUT'), (38, 'M_MOONBEAM'), (44, 'M_CROSSWIND'), (50, 'M_COMET_DASH')],
+            traits=('DRIFTER', 'QUICK STUDY'), field=(),
+            desc='Sky manta above the clouds.',
+            concept='sky manta above the clouds', placeholder=True),
+]

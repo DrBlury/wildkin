@@ -614,7 +614,12 @@ HUD_ALLY, ANCH_ALLY = make_ally_hud()
 
 # WILDKIN types in data.h order (docs/WORLD.md section 5).
 TYPES = ["BEAST", "BLAZE", "TIDE", "BLOOM", "SPARK", "FROST", "BRAWL",
-         "VENOM", "STONE", "GALE", "DREAM", "SWARM", "DUSK", "WYRM"]
+         "VENOM", "STONE", "GALE", "DREAM", "SWARM", "DUSK", "WYRM",
+         "HOLLOW", "RELIC", "METAL", "ASTRAL"]
+# The first 14 fill banks 12 and 11; the expansion types live in spare
+# slots 5..12 of the menu-backdrop bank (9), with white at 13.
+BANK9_TYPES = ["HOLLOW", "RELIC", "METAL", "ASTRAL"]
+BANK9_FIRST, BANK9_WHITE = 5, 13
 LABELS = TYPES
 TYPE_COLORS = {            # (fill, dark)
     "BEAST":  ((21, 19, 13), (11, 9, 6)),
@@ -631,18 +636,30 @@ TYPE_COLORS = {            # (fill, dark)
     "SWARM":  ((20, 23, 4), (10, 12, 1)),
     "DUSK":   ((12, 9, 17), (5, 3, 8)),
     "WYRM":   ((14, 8, 30), (6, 2, 17)),
+    "HOLLOW": ((23, 22, 18), (9, 8, 10)),
+    "RELIC":  ((27, 19, 8), (13, 7, 3)),
+    "METAL":  ((18, 21, 24), (7, 8, 12)),
+    "ASTRAL": ((26, 21, 31), (11, 7, 22)),
 }
 
 TYPE_BANK = []      # 12 or 11
 TYPE_IDX = {}       # type -> (fill idx, dark idx)
 BADGE_PAL = [[c15(0, 0, 0), c15(31, 31, 31)] for _ in range(2)]
+BANK9_EXTRA = [c15(0, 0, 0)] * 16   # merged into both menu backdrop palettes
 for t in TYPES:
-    b = 0 if len(BADGE_PAL[0]) < 16 else 1
     fill, dark = TYPE_COLORS[t]
+    if t in BANK9_TYPES:
+        fi = BANK9_FIRST + 2 * BANK9_TYPES.index(t)
+        BANK9_EXTRA[fi], BANK9_EXTRA[fi + 1] = c15(*fill), c15(*dark)
+        TYPE_IDX[t] = (fi, fi + 1)
+        TYPE_BANK.append(9)
+        continue
+    b = 0 if len(BADGE_PAL[0]) < 16 else 1
     fi = len(BADGE_PAL[b])
     BADGE_PAL[b] += [c15(*fill), c15(*dark)]
     TYPE_IDX[t] = (fi, fi + 1)
     TYPE_BANK.append(12 if b == 0 else 11)
+BANK9_EXTRA[BANK9_WHITE] = c15(31, 31, 31)
 assert all(len(p) == 16 for p in BADGE_PAL)
 
 
@@ -663,7 +680,8 @@ def make_type_badge(t, label):
         if depth[12][x] > 0:
             img.p[12][x] = di
     w = tiny_width(label) + 1
-    tiny_draw(img, (32 - w + 1) // 2, 5, label, 1, di)
+    white = BANK9_WHITE if t in BANK9_TYPES else 1
+    tiny_draw(img, (32 - w + 1) // 2, 5, label, white, di)
     return img
 
 
@@ -698,10 +716,10 @@ STATUS_BANK = [TYPE_BANK[TYPES.index(t)] for _, t in STATUS]
 MENU_PAL = [
     # soft teal: 1 base, 2 alt tone, 3 lattice light, 4 sparkle
     [c15(0, 0, 0), c15(13, 22, 23), c15(15, 24, 25), c15(18, 27, 27),
-     c15(24, 30, 30)] + [c15(0, 0, 0)] * 11,
+     c15(24, 30, 30)] + BANK9_EXTRA[5:],
     # catalogue red/gray: 1 red, 2 dark red, 3 gray lattice, 4 light gray
     [c15(0, 0, 0), c15(22, 7, 7), c15(19, 5, 6), c15(20, 18, 19),
-     c15(26, 25, 25)] + [c15(0, 0, 0)] * 11,
+     c15(26, 25, 25)] + BANK9_EXTRA[5:],
 ]
 
 
@@ -882,14 +900,14 @@ def write_header():
     # --- badges
     A("/* ---- type badges (32x16, 4x2 tiles) and status badges (24x8) --------- */")
     A("/* order: " + " ".join(TYPES) + " */")
-    A("#define TYPE_BADGE_COUNT 14")
-    A("static const u32 type_badge_gfx[14][8 * 8] = {")
+    A("#define TYPE_BADGE_COUNT %d" % len(TYPES))
+    A("static const u32 type_badge_gfx[%d][8 * 8] = {" % len(TYPES))
     for t, img in zip(TYPES, TYPE_BADGES):
         A("    { /* %s */" % t)
         A(fmt_u32_rows([v for tl in img.tiles() for v in tl], "        ", 8))
         A("    },")
     A("};")
-    A("static const u8 type_badge_bank[14] = { " + ", ".join(str(b) for b in TYPE_BANK) + " };")
+    A("static const u8 type_badge_bank[%d] = { " % len(TYPES) + ", ".join(str(b) for b in TYPE_BANK) + " };")
     A("/* [0] -> bank 12, [1] -> bank 11; index 1 = pure white */")
     A("static const u16 type_badge_pal[2][16] = {")
     for p in BADGE_PAL:

@@ -186,13 +186,15 @@ static const u16 TYPE_TINT[TYPE_COUNT] = {
     RGB15(31, 28, 20), RGB15(31, 18, 4), RGB15(6, 14, 31), RGB15(22, 31, 8), RGB15(31, 31, 10),
     RGB15(18, 28, 31), RGB15(31, 22, 14), RGB15(16, 4, 22), RGB15(20, 13, 6), RGB15(26, 31, 31),
     RGB15(31, 12, 26), RGB15(24, 28, 12), RGB15(3, 1, 8), RGB15(6, 6, 22),
+    RGB15(10, 12, 10), RGB15(28, 20, 8), RGB15(20, 22, 26), RGB15(12, 8, 26),
 };
-static const u8 TYPE_TINT_AMT[TYPE_COUNT] = { 3, 7, 5, 5, 6, 7, 3, 6, 5, 4, 6, 4, 10, 8 };
+static const u8 TYPE_TINT_AMT[TYPE_COUNT] = { 3, 7, 5, 5, 6, 7, 3, 6, 5, 4, 6, 4, 10, 8, 9, 5, 5, 9 };
 
 /* Type flavour sound played when a move starts. */
 static const u8 TYPE_SFX[TYPE_COUNT] = {
     SFX_SWING, SFX_FIRE, SFX_SPLASH, SFX_LEAF, SFX_ZAP, SFX_ICE, SFX_SWING, SFX_VENOM,
     SFX_ROCK, SFX_WIND, SFX_DREAM, SFX_BUZZ, SFX_DUSK, SFX_WYRM,
+    SFX_DUSK, SFX_ROCK, SFX_ROCK, SFX_DREAM,   /* HOLLOW RELIC METAL ASTRAL (bout owner: own sounds) */
 };
 
 /* ---------------- particles that outlive an animation ---------------- */

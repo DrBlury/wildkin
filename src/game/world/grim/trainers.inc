@@ -1,0 +1,1 @@
+/* world/grim/trainers.inc -- Wardens: [TR_X] = { "WARDEN X", count, { species... }, { levels... }, prize, "intro", "lose" },. Owner: W-GRIM. */

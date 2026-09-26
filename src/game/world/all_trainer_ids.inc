@@ -1,0 +1,13 @@
+/* world/all_trainer_ids.inc -- every region's trainer_ids.inc (do not edit). */
+#include "village/trainer_ids.inc"
+#include "east/trainer_ids.inc"
+#include "west/trainer_ids.inc"
+#include "north/trainer_ids.inc"
+#include "grim/trainer_ids.inc"
+#include "far/trainer_ids.inc"
+#include "farm/trainer_ids.inc"
+#include "craft/trainer_ids.inc"
+#include "fusion/trainer_ids.inc"
+#include "travel/trainer_ids.inc"
+#include "ui/trainer_ids.inc"
+#include "debug/trainer_ids.inc"

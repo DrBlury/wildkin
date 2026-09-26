@@ -1,0 +1,13 @@
+/* world/all_signs.inc -- every region's signs.inc (do not edit). */
+#include "village/signs.inc"
+#include "east/signs.inc"
+#include "west/signs.inc"
+#include "north/signs.inc"
+#include "grim/signs.inc"
+#include "far/signs.inc"
+#include "farm/signs.inc"
+#include "craft/signs.inc"
+#include "fusion/signs.inc"
+#include "travel/signs.inc"
+#include "ui/signs.inc"
+#include "debug/signs.inc"

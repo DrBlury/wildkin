@@ -1,0 +1,13 @@
+/* world/all_maps.inc -- every region's maps.inc (do not edit). */
+#include "village/maps.inc"
+#include "east/maps.inc"
+#include "west/maps.inc"
+#include "north/maps.inc"
+#include "grim/maps.inc"
+#include "far/maps.inc"
+#include "farm/maps.inc"
+#include "craft/maps.inc"
+#include "fusion/maps.inc"
+#include "travel/maps.inc"
+#include "ui/maps.inc"
+#include "debug/maps.inc"

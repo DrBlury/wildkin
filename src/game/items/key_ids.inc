@@ -1,0 +1,10 @@
+/* items/key_ids.inc -- core: key items (the systems that grant them own their behaviour). */
+    ITEM_BIKE,
+    ITEM_WATERING_CAN,
+    ITEM_HOE,
+    ITEM_FARM_DEED,
+    ITEM_FERRY_PASS,
+    ITEM_TOWN_MAP,
+    ITEM_CREST_CASE,
+    ITEM_RECIPE_BOOK,
+    ITEM_ENERGY_FLASK,

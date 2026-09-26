@@ -1,0 +1,13 @@
+/* world/all_lsrc_ids.inc -- every region's lsrc_ids.inc (do not edit). */
+#include "village/lsrc_ids.inc"
+#include "east/lsrc_ids.inc"
+#include "west/lsrc_ids.inc"
+#include "north/lsrc_ids.inc"
+#include "grim/lsrc_ids.inc"
+#include "far/lsrc_ids.inc"
+#include "farm/lsrc_ids.inc"
+#include "craft/lsrc_ids.inc"
+#include "fusion/lsrc_ids.inc"
+#include "travel/lsrc_ids.inc"
+#include "ui/lsrc_ids.inc"
+#include "debug/lsrc_ids.inc"

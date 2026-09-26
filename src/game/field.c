@@ -22,14 +22,10 @@ static const u8 DIR_BACK[4] = { DIR_UP, DIR_DOWN, DIR_RIGHT, DIR_LEFT };
 
 /* ---------------- map data types ---------------- */
 
-/* Special cell values beyond metatile ids. */
-#define CELL_PATH  0x100
-#define CELL_WATER 0x101
-
-enum {
-    A_SOLID = 1, A_GRASS = 2, A_DOOR = 4, A_WATER = 8, A_COUNTER = 16,
-    A_EXIT = 32, A_SIGN = 64, A_LEDGE = 128,
-};
+/* Special cell values beyond metatile ids (A_* attributes and the tileset
+ * table TILESETS[] come from gfx_field.h). */
+#define CELL_PATH  0xFFF0
+#define CELL_WATER 0xFFF1
 
 typedef struct { u16 base; u8 w, h, x, y; } Stamp;
 #define STAMP(TS, NAME, X, Y) { MT_##TS##_##NAME, MT_##TS##_##NAME##_W, MT_##TS##_##NAME##_H, X, Y }
@@ -39,28 +35,49 @@ enum { DF_HFLIP = 1 };
 
 enum { LINK_N, LINK_S, LINK_W, LINK_E };
 #define MAP_NONE 0xFF
-#define ZONE_NONE 0xFF
+#define ZONE_NONE 0     /* WILD_ZONES[0] is the empty zone */
 
-enum { MF_OUTDOOR = 1, MF_HEAL = 2 };
+/* Map flags (docs/EXPANSION.md 10.2). */
+enum {
+    MF_OUTDOOR = 1, MF_HEAL = 2, MF_DARK = 4, MF_NOFLY = 8, MF_TOWN = 16, MF_ASH = 32,
+    MF_SNOW = 64, MF_RAIN = 128, MF_NIGHTLESS = 256, MF_DEBUG = 512,
+};
+
+/* Map objects: puzzle pieces, berry patches, ferries, legends, chests...
+ * Their behaviour lives in travel.c / farm.c; kind values are OBJ_*. */
+typedef struct { u8 kind, x, y, arg; } MapObj;
+enum {
+    OBJ_NONE, OBJ_BOULDER, OBJ_PLATE, OBJ_GATE, OBJ_SWITCH, OBJ_BARRIER, OBJ_PAD,
+    OBJ_BERRY, OBJ_FERRY, OBJ_LEGEND, OBJ_CHEST, OBJ_LADDER, OBJ_KIND_COUNT
+};
 
 typedef struct {
-    u8 w, h, tileset, scene;       /* scene: battle backdrop (BSCENE_*) */
+    u8 w, h, tileset, scene;       /* scene: battle backdrop (SC_*) */
     const char *const *rows;
     const Stamp *stamps;
     u8 stamp_count;
     const DecorPlace *decor;
     u8 decor_count;
     const char *name;
-    u8 zone;                       /* WILD_ZONES index or ZONE_NONE */
-    u8 flags;                      /* MF_* */
+    u8 zone;                       /* WILD_ZONES index (ZONE_NONE = 0: no wild kin) */
+    u16 flags;                     /* MF_* */
     u8 link[4];                    /* neighbour map per edge (LINK_*), MAP_NONE */
     s8 link_off[4];                /* coordinate shift into the neighbour */
+    /* optional (trailing, zero by default) */
+    const MapObj *objs;
+    u8 obj_count;
+    u8 water_zone;                 /* WILD_ZONES index for kin on water (surf), 0 = none */
+    const u16 *cells, *ground;     /* pre-decoded cells (generated viewer maps) or 0 */
+    u8 song;                       /* SONG_* for this map, 0 = automatic (music.c) */
 } MapDef;
+
+/* Called at the end of every map load (music.c defines it; see script.c). */
+static void music_map_changed(int map);
 
 typedef struct { u8 map, x, y, dest, dx, dy; } Warp;
 
 enum { BEH_STILL, BEH_LOOK, BEH_WANDER, BEH_PACE_H, BEH_PACE_V };
-#define NO_TRAINER 0xFF
+#define NO_TRAINER 0xFFFF
 #define NO_KIN 0xFF
 #define NO_LORE 0xFF
 
@@ -68,17 +85,18 @@ typedef struct {
     u8 map, x, y, chr, facing, behavior;
     u8 script;          /* SCR_* */
     u8 lore;            /* LSRC_* the person reveals, or NO_LORE */
-    u8 trainer;         /* TRAINERS index or NO_TRAINER */
+    u16 trainer;        /* TRAINERS index or NO_TRAINER */
     u8 sight;           /* cells a warden can see */
     u8 kin;             /* species walking beside them, or NO_KIN */
     const char *name;
     const char *text;   /* what they say (after the bout, for wardens) */
 } NpcDef;
 
+#define TRAINER_TEAM_MAX 6
 typedef struct {
     const char *name;   /* "WARDEN ROSA" */
     u8 count;
-    u8 species[3], level[3];
+    u8 species[TRAINER_TEAM_MAX], level[TRAINER_TEAM_MAX];
     u16 prize;
     const char *intro;  /* said when they spot you */
     const char *lose;   /* said when you beat them */
@@ -87,13 +105,14 @@ typedef struct {
 typedef struct { u8 map, x, y; const char *text; } Sign;
 typedef struct { u8 map, x, y, item, qty; } ItemBall;
 
-typedef struct { u8 species, weight, min_level, max_level; } WildSlot;
+enum { WHEN_ANY, WHEN_DAY, WHEN_NIGHT };
+typedef struct { u8 species, weight, min_level, max_level, when; } WildSlot;
 typedef struct { const WildSlot *slots; u8 count, max_active; const char *name; } WildZone;
 
 #define NSTAMP(a) ((u8)(sizeof(a) / sizeof(a[0])))
 #define NROWS(a) ((u8)(sizeof(a) / sizeof(a[0])))
 
-#include "maps.h"
+#include "world/world.h"
 
 #define WARP_COUNT ((int)(sizeof(WARPS) / sizeof(WARPS[0])))
 #define NPC_COUNT ((int)(sizeof(NPCS) / sizeof(NPCS[0])))
@@ -129,37 +148,43 @@ static int wild_battle_slot = -1;
 
 static int cur_map;
 static Actor player;
-static u32 story_flags;      /* FLAG_* bits */
-static u32 item_flags[2];    /* picked-up satchels */
-static u32 trainer_flags;    /* beaten wardens */
+/* Story flags, picked-up satchels and beaten wardens: bit arrays (the ids
+ * come from each region's flag_ids.inc / satchels.inc / trainer_ids.inc). */
+#define FLAG_BYTES 64
+#define ITEM_FLAG_BYTES 64
+#define TRAINER_FLAG_BYTES 64
+static u8 story_bits[FLAG_BYTES];
+static u8 item_bits[ITEM_FLAG_BYTES];
+static u8 trainer_bits[TRAINER_FLAG_BYTES];
+typedef char FlagsFit[FLAG_COUNT <= FLAG_BYTES * 8 ? 1 : -1];
 
-enum {
-    FLAG_STARTER = 1u << 0,
-    FLAG_LEAF_STONE = 1u << 1,     /* the gardener's BLOOM SHARD */
-    FLAG_BAKER_GIFT = 1u << 2,
-    FLAG_KID_GIFT = 1u << 3,
-    FLAG_INTRO = 1u << 4,          /* storybook seen */
-    FLAG_NOTE = 1u << 5,           /* read Gran's note */
-    FLAG_SASH = 1u << 6,           /* beat Warden Marlo */
-    FLAG_STORM_TOLD = 1u << 7,     /* the Keeper sent you to the Stormstone */
-    FLAG_STORM_CALMED = 1u << 8,
-    FLAG_DRAKORA_JOINED = 1u << 9,
-    FLAG_TWIN_CRYSTAL = 1u << 10,
-    FLAG_GRAN_GIFT = 1u << 11,
-    FLAG_PIP_GIFT = 1u << 12,
-    FLAG_VASS_GIFT = 1u << 13,
-    FLAG_HERMIT_GIFT = 1u << 14,
-    FLAG_WOODWARD_GIFT = 1u << 15,
-    FLAG_RING_WON_ONCE = 1u << 16,
-};
+static int bit_get(const u8 *bits, int i) { return i >= 0 && ((bits[i >> 3] >> (i & 7)) & 1); }
+static void bit_set(u8 *bits, int i) { if (i >= 0) bits[i >> 3] |= (u8)(1u << (i & 7)); }
+static void bit_clear(u8 *bits, int i) { if (i >= 0) bits[i >> 3] &= (u8)~(1u << (i & 7)); }
 
-static int item_taken(int i) { return (item_flags[i >> 5] >> (i & 31)) & 1; }
-static void item_take(int i) { item_flags[i >> 5] |= 1u << (i & 31); }
-static int trainer_beaten(int t) { return (trainer_flags >> t) & 1; }
+static int flag(int f) { return bit_get(story_bits, f); }
+static void flag_set(int f) { bit_set(story_bits, f); }
+__attribute__((unused)) static void flag_clear(int f) { bit_clear(story_bits, f); }
+__attribute__((unused)) static void flags_story_clear(void)
+{
+    for (int i = 0; i < FLAG_BYTES; i++) story_bits[i] = 0;
+}
+static void flags_reset(void)
+{
+    for (int i = 0; i < FLAG_BYTES; i++) story_bits[i] = 0;
+    for (int i = 0; i < ITEM_FLAG_BYTES; i++) item_bits[i] = 0;
+    for (int i = 0; i < TRAINER_FLAG_BYTES; i++) trainer_bits[i] = 0;
+}
 
-#define MAP_MAX_W 48
-#define MAP_MAX_H 48
+static int item_taken(int i) { return bit_get(item_bits, i); }
+static void item_take(int i) { bit_set(item_bits, i); }
+static int trainer_beaten(int t) { return bit_get(trainer_bits, t); }
+static void trainer_mark_beaten(int t) { bit_set(trainer_bits, t); }
+
+#define MAP_MAX_W 64
+#define MAP_MAX_H 64
 EWRAM_BSS static u16 map_cells[MAP_MAX_W * MAP_MAX_H];
+EWRAM_BSS static u16 map_ground[MAP_MAX_W * MAP_MAX_H];  /* ground under overlay cells (trees) */
 EWRAM_BSS static u8 map_decor[MAP_MAX_W * MAP_MAX_H];  /* decor instance + 1, 0 = none */
 static u8 map_w, map_h, map_tileset;
 static u16 decor_base[DK_COUNT];                        /* VRAM tile of each loaded kind */
@@ -176,88 +201,78 @@ static unsigned cell_hash(int x, int y)
     return h;
 }
 
-static u16 grass_variant(int x, int y, u16 g1, u16 g2, u16 g3)
+static const TilesetDef *tset(void) { return &TILESETS[map_tileset]; }
+
+static const LegendEntry *legend_for(const TilesetDef *t, char c)
 {
-    unsigned h = cell_hash(x, y) % 16u;
-    return h == 0 ? g3 : h < 5 ? g2 : g1;
+    const LegendEntry *e = (c >= 32 && c < 127) ? &t->legend[c - 32] : 0;
+    if (!e || !e->kind) e = &t->legend[t->legend_default - 32];
+    return e;
 }
 
-static u16 decode_town_char(char c, int x, int y)
+/* Metatile for a legend entry at (x, y): variants by cell hash % 16. */
+static u16 legend_pick(const LegendEntry *e, int x, int y)
 {
-    switch (c) {
-    case '.': return grass_variant(x, y, MT_T_GRASS, MT_T_GRASS2, MT_T_GRASS3);
-    case ',': return MT_T_TALLGRASS;
-    case 'r': return MT_T_FLOWER_RED;
-    case 'y': return MT_T_FLOWER_YELLOW;
-    case '=': return CELL_PATH;
-    case '~': return CELL_WATER;
-    case '#': return MT_T_STONE;
-    case 'T': return MT_T_TREE_TOP;
-    case 't': return MT_T_TREE_BOTTOM;
-    case 'c': return MT_T_COURT;
-    case 'h': return MT_T_COURT_LINE_H;
-    case 'v': return MT_T_COURT_LINE_V;
-    default: return MT_T_GRASS;
+    switch (e->kind) {
+    case LG_PATH: return CELL_PATH;
+    case LG_WATER: return CELL_WATER;
+    case LG_VARIANT: {
+        unsigned h = cell_hash(x, y) % 16u, acc = 0;
+        for (int i = 0; i < e->n; i++) {
+            acc += e->w[i];
+            if (h < acc) return e->id[i];
+        }
+        return e->id[e->n - 1];
+    }
+    default: return e->id[0];
     }
 }
 
-static u16 decode_wild_char(char c, int x, int y)
+static int legend_is_ground(const TilesetDef *t, const LegendEntry *e)
 {
-    switch (c) {
-    case '.': return grass_variant(x, y, MT_W_GRASS, MT_W_GRASS2, MT_W_GRASS3);
-    case ',': return MT_W_TALLGRASS;
-    case 'r': return MT_W_FLOWER_RED;
-    case 'y': return MT_W_FLOWER_YELLOW;
-    case '=': return CELL_PATH;
-    case '~': return CELL_WATER;
-    case '#': return MT_W_STONE;
-    case 'T': return MT_W_TREE_TOP;
-    case 't': return MT_W_TREE_BOTTOM;
-    case 'P': return MT_W_PINE_TOP;
-    case 'p': return MT_W_PINE_BOTTOM;
-    case 'L': return MT_W_LEDGE;
-    case '[': return MT_W_LEDGE_L;
-    case ']': return MT_W_LEDGE_R;
-    case 'C': return MT_W_CLIFF;
-    case 'c': return MT_W_CLIFF_FACE;
-    case 'd': return MT_W_DIRT;
-    case 'm': return MT_W_MEADOW;
-    case 's': return (cell_hash(x, y) % 8u) ? MT_W_SAND : MT_W_SAND2;
-    case 'f': return (cell_hash(x, y) & 3) ? MT_W_FOREST : MT_W_FOREST2;
-    case 'R': return MT_W_REEDS;
-    default: return MT_W_GRASS;
-    }
+    if (e->kind != LG_SIMPLE && e->kind != LG_VARIANT) return 0;
+    for (int i = 0; i < e->n; i++)
+        if (!(t->mflags[e->id[i]] & MTF_GROUND)) return 0;
+    return 1;
 }
 
-static u16 decode_interior_char(char c)
+static int is_overlay(u16 v)
 {
-    switch (c) {
-    case 'W': return MT_I_WALL_TOP;
-    case 'w': return MT_I_WALL;
-    case 'n': return MT_I_WINDOW;
-    case 'k': return MT_I_WALL_CLOCK;
-    case 'p': return MT_I_PAINTING;
-    case '.': return MT_I_FLOOR;
-    case ':': return MT_I_FLOOR2;
-    case 'D': return MT_I_DOORMAT;
-    case '<': return MT_I_COUNTER_L;
-    case '=': return MT_I_COUNTER;
-    case '>': return MT_I_COUNTER_R;
-    default: return MT_I_VOID;
+    return v < CELL_PATH && (tset()->mflags[v] & MTF_OVERLAY);
+}
+
+/* Ground drawn under an overlay cell (a tree): the nearest ground character
+ * below, above, left or right (up to 8 cells), picked at the tree's own
+ * position so textures stay aligned. tools/fieldmap.py does the same. */
+#define GROUND_SEARCH 8
+static u16 map_infer_ground(const MapDef *m, int x, int y)
+{
+    const TilesetDef *t = &TILESETS[m->tileset];
+    for (int d = 1; d <= GROUND_SEARCH; d++) {
+        const s8 nx[4] = { 0, 0, -1, 1 }, ny[4] = { 1, -1, 0, 0 };
+        for (int k = 0; k < 4; k++) {
+            int cx = x + nx[k] * d, cy = y + ny[k] * d;
+            if (cx < 0 || cy < 0 || cx >= m->w || cy >= m->h) continue;
+            const LegendEntry *e = legend_for(t, m->rows[cy][cx]);
+            if (legend_is_ground(t, e)) return legend_pick(e, x, y);
+        }
     }
+    return t->ground;
 }
 
 static void map_decode(int id)
 {
     const MapDef *m = &MAPS[id];
+    const TilesetDef *t = &TILESETS[m->tileset];
     for (int y = 0; y < m->h; y++)
         for (int x = 0; x < m->w; x++) {
-            char c = m->rows[y][x];
-            u16 v = m->tileset == TS_TOWN ? decode_town_char(c, x, y)
-                  : m->tileset == TS_WILD ? decode_wild_char(c, x, y)
-                  : decode_interior_char(c);
-            map_cells[y * m->w + x] = v;
-            map_decor[y * m->w + x] = 0;
+            int i = y * m->w + x;
+            u16 v = m->cells ? m->cells[i] : legend_pick(legend_for(t, m->rows[y][x]), x, y);
+            map_cells[i] = v;
+            map_decor[i] = 0;
+            map_ground[i] = 0;
+            if (v < CELL_PATH && (t->mflags[v] & MTF_OVERLAY))
+                map_ground[i] = m->ground ? m->ground[i] : map_infer_ground(m, x, y);
         }
     for (int i = 0; i < m->stamp_count; i++) {
         const Stamp *s = &m->stamps[i];
@@ -278,9 +293,15 @@ static void map_decode(int id)
 
 static u16 map_cell(int x, int y)
 {
-    if (x < 0 || y < 0 || x >= map_w || y >= map_h)
-        return map_tileset == TS_TOWN ? MT_T_TREE_TOP : map_tileset == TS_WILD ? MT_W_TREE_TOP : MT_I_VOID;
+    if (x < 0 || y < 0 || x >= map_w || y >= map_h) return tset()->oob;
     return map_cells[y * map_w + x];
+}
+
+/* Ground under an overlay cell (the tileset's default outside the map). */
+static u16 map_ground_at(int x, int y)
+{
+    if (x < 0 || y < 0 || x >= map_w || y >= map_h) return tset()->ground;
+    return map_ground[y * map_w + x];
 }
 
 /* Decor instance covering a cell (or 0), its sub-cell index in the kind's
@@ -299,58 +320,20 @@ static const DecorPlace *decor_at(int x, int y, int *sub, const DecorDef **def)
     return p;
 }
 
-static int town_door_cell(int v)
+static int terrain_attr(int tileset, int v)
 {
-    return v == MT_T_HOUSE_RED + 17 || v == MT_T_HOUSE_BLUE + 17 ||
-           v == MT_T_SHOP + 17 || v == MT_T_HEAL + 17 || v == MT_T_LAB + 31;
-}
-
-static int wild_door_cell(int v)
-{
-    return v == MT_W_CABIN + 17 || v == MT_W_STATION + 17;
+    if (v == CELL_PATH) return 0;
+    if (v == CELL_WATER) return A_SOLID | A_WATER;
+    if (v >= TILESETS[tileset].meta_count) return A_SOLID;
+    return TILESETS[tileset].attr[v];
 }
 
 static int is_door_cell(int v)
 {
-    return map_tileset == TS_TOWN ? town_door_cell(v) : map_tileset == TS_WILD && wild_door_cell(v);
+    return v < CELL_PATH && (terrain_attr(map_tileset, v) & A_DOOR);
 }
 
-static int terrain_attr(int tileset, int v)
-{
-    if (tileset == TS_TOWN) {
-        if (v == CELL_PATH) return 0;
-        if (v == CELL_WATER) return A_SOLID | A_WATER;
-        if (town_door_cell(v)) return A_SOLID | A_DOOR;
-        if (v >= MT_T_HOUSE_RED && v < MT_T_COURT_CIRCLE) return A_SOLID;
-        switch (v) {
-        case MT_T_TALLGRASS: return A_GRASS;
-        case MT_T_TREE_TOP: case MT_T_TREE_BOTTOM: return A_SOLID;
-        default: return 0;
-        }
-    }
-    if (tileset == TS_WILD) {
-        if (v == CELL_PATH) return 0;
-        if (v == CELL_WATER) return A_SOLID | A_WATER;
-        if (wild_door_cell(v)) return A_SOLID | A_DOOR;
-        if (v >= MT_W_CABIN && v < MT_WILD_COUNT) return A_SOLID;
-        switch (v) {
-        case MT_W_TALLGRASS: case MT_W_REEDS: return A_GRASS;
-        case MT_W_TREE_TOP: case MT_W_TREE_BOTTOM: case MT_W_PINE_TOP: case MT_W_PINE_BOTTOM:
-        case MT_W_CLIFF: case MT_W_CLIFF_FACE:
-            return A_SOLID;
-        case MT_W_LEDGE: case MT_W_LEDGE_L: case MT_W_LEDGE_R: return A_LEDGE;
-        default: return 0;
-        }
-    }
-    switch (v) {
-    case MT_I_FLOOR: case MT_I_FLOOR2: return 0;
-    case MT_I_DOORMAT: return A_EXIT;
-    case MT_I_COUNTER: case MT_I_COUNTER_L: case MT_I_COUNTER_R: return A_SOLID | A_COUNTER;
-    default:
-        if (v >= MT_I_RUG && v < MT_I_RUG + MT_I_RUG_W * MT_I_RUG_H) return 0;
-        return A_SOLID;
-    }
-}
+static int travel_attr(int x, int y, int a);
 
 static int cell_attr(int x, int y)
 {
@@ -361,7 +344,7 @@ static int cell_attr(int x, int y)
         if (d->floor & (1u << sub)) a &= ~(A_SOLID | A_WATER | A_LEDGE);
         if (d->solid & (1u << sub)) a |= A_SOLID;
     }
-    return a;
+    return travel_attr(x, y, a);
 }
 
 /* ---------------- rendering ---------------- */
@@ -388,29 +371,19 @@ static int same_kind(int v, int x, int y)
 /* 8x8 autotile quadrants for a path/water cell. */
 static void autotile_quads(int v, int x, int y, u16 out[4])
 {
-    const u16 (*q)[5];
-    if (map_tileset == TS_WILD) q = v == CELL_PATH ? wild_path_quads : wild_water_quads;
-    else q = v == CELL_PATH ? town_path_quads : town_water_quads;
+    const u16 (*q)[5] = v == CELL_PATH ? tset()->path_q : tset()->water_q;
     static const s8 qdx[4] = { -1, 1, -1, 1 }, qdy[4] = { -1, -1, 1, 1 };
     for (int c = 0; c < 4; c++) {
+        if (!q) {
+            out[c] = 0;
+            continue;
+        }
         int vs = same_kind(v, x, y + qdy[c]);
         int hs = same_kind(v, x + qdx[c], y);
         int ds = same_kind(v, x + qdx[c], y + qdy[c]);
         int variant = vs && hs ? (ds ? 0 : 1) : (vs ? 2 : (hs ? 3 : 4));
         out[c] = q[c][variant];
     }
-}
-
-static const u16 (*meta_bottom(void))[4]
-{
-    return map_tileset == TS_TOWN ? town_meta_bottom : map_tileset == TS_WILD ? wild_meta_bottom
-                                                                              : interior_meta_bottom;
-}
-
-static const u16 (*meta_top(void))[4]
-{
-    return map_tileset == TS_TOWN ? town_meta_top : map_tileset == TS_WILD ? wild_meta_top
-                                                                           : interior_meta_top;
 }
 
 /* Resolve a decor entry (local tile + 1) against the kind's VRAM block. */
@@ -420,21 +393,35 @@ static u16 decor_entry(u16 e, int kind)
     return (u16)((e & 0xFC00) | (decor_base[kind] + (e & 1023) - 1));
 }
 
+/* Hook for cells whose look changes at run time (farm soil and crops,
+ * berry patches, puzzle pieces drawn into the map). Return 1 after filling
+ * the three layers yourself. See farm.c / travel.c. */
+static int dyn_cell(int mx, int my, u16 bottom[4], u16 mid[4], u16 top[4]);
+
 static void render_cell(int mx, int my)
 {
     int rx = mx & 15, ry = my & 15;
     if (ring_x[ry][rx] == mx && ring_y[ry][rx] == my) return;
     ring_x[ry][rx] = (s16)mx;
     ring_y[ry][rx] = (s16)my;
+    const TilesetDef *t = tset();
     u16 bottom[4], top[4], mid[4] = { 0, 0, 0, 0 };
     int v = map_cell(mx, my);
-    if (map_tileset != TS_INTERIOR && (v == CELL_PATH || v == CELL_WATER)) {
+    if (v == CELL_PATH || v == CELL_WATER) {
         autotile_quads(v, mx, my, bottom);
         for (int i = 0; i < 4; i++) top[i] = 0;
+    } else if (t->mflags[v] & MTF_OVERLAY) {
+        /* a tree: ground beneath on BG0, trunk on BG2, crown on BG3 */
+        int g = map_ground_at(mx, my);
+        for (int i = 0; i < 4; i++) {
+            bottom[i] = t->meta_bottom[g][i];
+            mid[i] = t->meta_bottom[v][i];
+            top[i] = t->meta_top[v][i];
+        }
     } else {
         for (int i = 0; i < 4; i++) {
-            bottom[i] = meta_bottom()[v][i];
-            top[i] = meta_top()[v][i];
+            bottom[i] = t->meta_bottom[v][i];
+            top[i] = t->meta_top[v][i];
         }
     }
     int sub;
@@ -455,14 +442,21 @@ static void render_cell(int mx, int my)
         u16 *dst = (d->top & (1u << sub)) ? top : mid;
         for (int i = 0; i < 4; i++) dst[i] = q[i];
     }
-    u16 *b = VRAM_MAP(SB_FIELD_BOTTOM), *t = VRAM_MAP(SB_FIELD_TOP), *m = VRAM_MAP(SB_PANEL);
+    dyn_cell(mx, my, bottom, mid, top);
+    u16 *b = VRAM_MAP(SB_FIELD_BOTTOM), *tp = VRAM_MAP(SB_FIELD_TOP), *m = VRAM_MAP(SB_PANEL);
     int idx = ry * 2 * 32 + rx * 2;
     static const u8 OFF[4] = { 0, 1, 32, 33 };
     for (int i = 0; i < 4; i++) {
         b[idx + OFF[i]] = bottom[i];
         m[idx + OFF[i]] = mid[i];
-        t[idx + OFF[i]] = top[i];
+        tp[idx + OFF[i]] = top[i];
     }
+}
+
+/* Force a cell to be redrawn (after its look changed at run time). */
+__attribute__((unused)) static void field_redraw_cell(int mx, int my)
+{
+    ring_x[my & 15][mx & 15] = -32768;
 }
 
 static int floor_div16(int v)
@@ -489,7 +483,7 @@ static void field_render_view(void)
 
 static int storm_active(void)
 {
-    return !(story_flags & FLAG_STORM_CALMED) && (story_flags & FLAG_STARTER) &&
+    return !(flag(FLAG_STORM_CALMED)) && (flag(FLAG_STARTER)) &&
            (MAPS[cur_map].flags & MF_OUTDOOR);
 }
 
@@ -503,29 +497,27 @@ static u16 storm_tint(u16 c)
     return RGB15(clampi(r, 0, 31), clampi(g, 0, 31), clampi(b, 0, 31));
 }
 
+/* Extra tint for the field palettes (time of day, the Ashen March...);
+ * time.c owns it. Returns the colour unchanged when there is no tint. */
+static u16 field_tint(u16 c);
+
 static void field_load_palettes(void)
 {
-    const u16 (*pal)[16] = map_tileset == TS_TOWN ? town_palettes
-                         : map_tileset == TS_WILD ? wild_palettes : interior_palettes;
+    const u16 (*pal)[16] = tset()->palettes;
     int storm = storm_active();
     for (int b = 0; b < 8; b++)
-        for (int i = 0; i < 16; i++)
-            bg_palette[b * 16 + i] = storm ? storm_tint(pal[b][i]) : pal[b][i];
-    bg_palette[0] = map_tileset == TS_INTERIOR ? RGB15(0, 0, 0) : bg_palette[1];
+        for (int i = 0; i < 16; i++) {
+            u16 c = storm ? storm_tint(pal[b][i]) : pal[b][i];
+            bg_palette[b * 16 + i] = field_tint(c);
+        }
+    u16 bd = tset()->backdrop;
+    bg_palette[0] = field_tint(storm ? storm_tint(bd) : bd);
 }
 
 static void field_load_tileset(void)
 {
-    if (map_tileset == TS_TOWN) {
-        copy32(VRAM_SCENE_TILES, town_tiles, TOWN_TILE_COUNT * 8);
-        decor_tiles_used = TOWN_TILE_COUNT;
-    } else if (map_tileset == TS_WILD) {
-        copy32(VRAM_SCENE_TILES, wild_tiles, WILD_TILE_COUNT * 8);
-        decor_tiles_used = WILD_TILE_COUNT;
-    } else {
-        copy32(VRAM_SCENE_TILES, interior_tiles, INTERIOR_TILE_COUNT * 8);
-        decor_tiles_used = INTERIOR_TILE_COUNT;
-    }
+    copy32(VRAM_SCENE_TILES, tset()->tiles, (unsigned)tset()->tile_count * 8);
+    decor_tiles_used = tset()->tile_count;
     /* one block per decor kind this map uses (first animation frame) */
     for (int k = 0; k < DK_COUNT; k++) decor_base[k] = 0;
     const MapDef *m = &MAPS[cur_map];
@@ -547,22 +539,12 @@ static void field_load_tileset(void)
 static void field_animate_tiles(void)
 {
     field_anim_frame++;
-    if (map_tileset != TS_INTERIOR) {
-        int wild_ts = map_tileset == TS_WILD;
-        if (field_anim_frame % 20 == 0) {
-            int f = field_anim_frame / 20 % 3;
-            if (wild_ts)
-                copy32(VRAM_SCENE_TILES + WILD_WATER_ANIM_TILE * 8, wild_water_anim[f], WILD_WATER_ANIM_COUNT * 8);
-            else
-                copy32(VRAM_SCENE_TILES + TOWN_WATER_ANIM_TILE * 8, town_water_anim[f], TOWN_WATER_ANIM_COUNT * 8);
-        }
-        if (field_anim_frame % 32 == 0) {
-            int f = field_anim_frame / 32 % 2;
-            if (wild_ts)
-                copy32(VRAM_SCENE_TILES + WILD_FLOWER_ANIM_TILE * 8, wild_flower_anim[f], WILD_FLOWER_ANIM_COUNT * 8);
-            else
-                copy32(VRAM_SCENE_TILES + TOWN_FLOWER_ANIM_TILE * 8, town_flower_anim[f], TOWN_FLOWER_ANIM_COUNT * 8);
-        }
+    const TilesetDef *t = tset();
+    for (int i = 0; i < t->anim_count; i++) {
+        const TileAnim *a = &t->anims[i];
+        if (!a->period || field_anim_frame % a->period) continue;
+        int f = field_anim_frame / a->period % a->frames;
+        copy32(VRAM_SCENE_TILES + a->tile * 8, a->data + (unsigned)f * a->count * 8, (unsigned)a->count * 8);
     }
     for (int k = 0; k < DK_COUNT; k++) {
         const DecorDef *d = &DECOR_DEFS[map_tileset][k];
@@ -1072,7 +1054,7 @@ static int try_edge_link(int dir, int nx, int ny)
     const MapDef *m = &MAPS[cur_map];
     int l = LINK_FOR_DIR[dir];
     if (m->link[l] == MAP_NONE) return 0;
-    if (!(story_flags & FLAG_STARTER)) {
+    if (!(flag(FLAG_STARTER))) {
         edge_blocked();
         return 1;
     }
@@ -1093,22 +1075,31 @@ static int player_try_move(int dir)
 {
     int nx = player.x + DIR_DX[dir], ny = player.y + DIR_DY[dir];
     player.facing = (u8)dir;
-    if (map_tileset != TS_INTERIOR && dir == DIR_UP && (cell_attr(nx, ny) & A_DOOR)) {
+    /* doors, cave mouths, ladders: a warp on the cell you step into */
+    if (nx >= 0 && ny >= 0 && nx < map_w && ny < map_h && (cell_attr(nx, ny) & A_DOOR)) {
         int w = warp_at(cur_map, nx, ny);
         if (w >= 0) {
             sfx_play(SFX_DOOR);
-            field_begin_warp(WARPS[w].dest, WARPS[w].dx, WARPS[w].dy, DIR_UP);
+            field_begin_warp(WARPS[w].dest, WARPS[w].dx, WARPS[w].dy, dir);
             return 1;
         }
     }
-    if (map_tileset == TS_INTERIOR && dir == DIR_DOWN &&
-        (cell_attr(player.x, player.y) & A_EXIT)) {
+    /* exit mats: back out of the door that leads to this mat */
+    if (dir == DIR_DOWN && (cell_attr(player.x, player.y) & A_EXIT)) {
+        int best = -1, best_d = 1 << 30;
         for (int i = 0; i < WARP_COUNT; i++)
             if (WARPS[i].dest == cur_map) {
-                sfx_play(SFX_DOOR);
-                field_begin_warp(WARPS[i].map, WARPS[i].x, WARPS[i].y + 1, DIR_DOWN);
-                return 1;
+                int d = absi(WARPS[i].dx - player.x) + absi(WARPS[i].dy - player.y);
+                if (d < best_d) {
+                    best_d = d;
+                    best = i;
+                }
             }
+        if (best >= 0) {
+            sfx_play(SFX_DOOR);
+            field_begin_warp(WARPS[best].map, WARPS[best].x, WARPS[best].y + 1, DIR_DOWN);
+            return 1;
+        }
     }
     if ((nx < 0 || ny < 0 || nx >= map_w || ny >= map_h) && try_edge_link(dir, nx, ny)) return 1;
     int w = wild_at(nx, ny);
@@ -1222,10 +1213,16 @@ static int wild_cell_ok(int x, int y)
            !(follower_active() && x == follower.a.x && y == follower.a.y);
 }
 
+static void debug_parade_spawn(void);
+
 static void wild_spawn(void)
 {
     const MapDef *m = &MAPS[cur_map];
-    if (m->zone == ZONE_NONE || !(story_flags & FLAG_STARTER)) return;
+    if (m->flags & MF_DEBUG) {   /* asset viewer: a pen of wandering kin (debug.c) */
+        debug_parade_spawn();
+        return;
+    }
+    if (m->zone == ZONE_NONE || !(flag(FLAG_STARTER))) return;
     const WildZone *z = &WILD_ZONES[m->zone];
     int active = 0, slot = -1;
     for (int i = 0; i < WILD_MAX; i++) {
@@ -1346,6 +1343,7 @@ static void field_enter_map(int map, int x, int y, int facing)
     follower_reset();
     field_update_camera();
     field_on_enter();
+    music_map_changed(map);
 }
 
 /* Returns 1 while a fade is running (input is frozen). */

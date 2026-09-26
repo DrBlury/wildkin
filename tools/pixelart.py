@@ -232,7 +232,9 @@ def shade_clumps(w, h, clumps, ramp, outline, shadow_edge=True, seed=0,
 # Decor catalog entries
 # ---------------------------------------------------------------------------
 
-SETS = ('town', 'wild', 'interior')
+# Tileset registry order: fixes the TS_* ids in gfx_field.h (docs/EXPANSION.md 10.1).
+SETS = ('town', 'wild', 'interior', 'city', 'coast', 'snow', 'cave', 'grim', 'crypt',
+        'volcanic', 'dream', 'farm')
 
 
 def _mask(spec, w, h, name, what):
@@ -264,12 +266,14 @@ class Decor:
     top    : cells drawn above people       (e.g. the upper half of a lamp post)
     floor  : cells that make the ground walkable (bridges, planks over water)
     doc    : one-line description (goes into the header)
+    examine: what the game says when the player examines it (A); '' = nothing
     Masks are strings like 'XX/..' -- rows split by '/', one char per cell.
     """
 
     def __init__(self, name, sets, img=None, frames=None, solid=None, top=None,
-                 floor=None, period=16, doc=''):
+                 floor=None, period=16, doc='', examine=''):
         self.name = name
+        self.examine = examine
         self.sets = tuple(sets)
         for s in self.sets:
             if s not in SETS:

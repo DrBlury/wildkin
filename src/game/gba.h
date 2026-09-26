@@ -22,6 +22,9 @@ typedef signed int     s32;
 #define MEM_SRAM 0x0E000000u
 /* Large buffers live in the 256 KiB EWRAM (.sbss is zeroed by crt0). */
 #define EWRAM_BSS __attribute__((section(".sbss")))
+/* Hot code runs as 32-bit ARM from the fast IWRAM (crt0 copies it there
+ * with .data). Calls from there back into ROM go through function pointers. */
+#define IWRAM_CODE __attribute__((section(".iwram"), target("arm"), noinline))
 #else
 static u8 host_io[0x400] __attribute__((aligned(4)));
 static u8 host_pal[0x400] __attribute__((aligned(4)));
@@ -34,6 +37,7 @@ static u8 host_sram[0x8000] __attribute__((aligned(4)));
 #define MEM_OAM  ((unsigned long)host_oam)
 #define MEM_SRAM ((unsigned long)host_sram)
 #define EWRAM_BSS
+#define IWRAM_CODE
 #endif
 
 #define REG16(off) (*(volatile u16 *)(MEM_IO + (off)))
