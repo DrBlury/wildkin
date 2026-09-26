@@ -282,9 +282,9 @@ static const char *const CURRENT_HALL_ROWS[] = {
     "hhnhhhhhhhhhnhh", /*  1 */
     "OOO_________OOO", /*  2 */
     "OOO_________OOO", /*  3 */
-    "OOOOOOOOOO^OOOO", /*  4 */
-    "OOOOOOOOOO^OOOO", /*  5 */
-    "O___OOOOO____OO", /*  6 */
+    "OOOOvOOOOO^OOOO", /*  4 */
+    "OOOOvOOOOO^OOOO", /*  5 */
+    "O___vOOOO____OO", /*  6 */
     "O___>>>>>____OO", /*  7 */
     "O___OOOOO____OO", /*  8 */
     "O___OOOOOOOvOOO", /*  9 */

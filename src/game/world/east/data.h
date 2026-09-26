@@ -10,8 +10,8 @@
  *                    east  y 20-21 <-> LUMEN CITY west
  *   LUMEN CITY       north x 24-25 <-> MOONVEIL PATH south
  *                    east  y 20-21 <-> CINDER ROAD west
- *   ELDERWOOD HEART  north x 30-31 <-> BRAMBLEWOOD south (behind two STRENGTH
- *                    boulders on Bramblewood, WOOD_OBJS below)
+ *   ELDERWOOD HEART  north x 30-31 <-> BRAMBLEWOOD south (behind a STRENGTH
+ *                    boulder on Bramblewood, WOOD_OBJS below)
  * Doors: see warps.inc. The CLOCKWORK SPIRE is entered through the clock
  * tower in Lumen City (CY CLOCK_TOWER stamp).
  *
@@ -355,11 +355,12 @@ static const WildSlot WILD_ELDERWOOD[] = {
     { SP_BEACONFLY, 12, 30, 33, WHEN_NIGHT }, { SP_WEBBIT, 10, 28, 31, WHEN_NIGHT },
 };
 
-/* Bramblewood's south path (x 30-31) to Elderwood Heart is blocked by two
- * STRENGTH boulders (the core owns Bramblewood; its MapDef points here).
- * Push the left one down, then the right one out to the east. */
+/* Bramblewood's south path to Elderwood Heart narrows to x 31 at row 34 (a
+ * stump, WOOD_DECOR) and a STRENGTH boulder stands in front of the gap (the
+ * core owns Bramblewood; its MapDef points here). Push it aside. One boulder,
+ * not two: two free boulders in the open wood made the reachable states
+ * explode (tools/tests/test_puzzles.c proves every map). */
 static const MapObj WOOD_OBJS[] = {
-    OBJ(BOULDER, 30, 33, 0),
     OBJ(BOULDER, 31, 33, 0),
 };
 
