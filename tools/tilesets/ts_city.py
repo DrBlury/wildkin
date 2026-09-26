@@ -29,7 +29,8 @@ import math
 USES_DECOR = ['SIGNPOST', 'BENCH', 'BARREL', 'CRATE', 'CRATE_STACK', 'SACKS', 'BUSH',
               'BIG_TREE', 'HEDGE', 'HEDGE_END', 'LANTERN_POST', 'STONE_LANTERN', 'FENCE',
               'FENCE_END', 'MARKET_STALL', 'MAILBOX', 'SIGN_ARROW', 'PEBBLES', 'SMALL_FLOWERS',
-              'FALLEN_LEAVES', 'ROCK', 'LILY_PADS', 'CART', 'NOTICE_BOARD', 'BEEHIVE']
+              'FALLEN_LEAVES', 'ROCK', 'LILY_PADS', 'CART', 'NOTICE_BOARD', 'BEEHIVE',
+              'BRIDGE_H', 'BRIDGE_V', 'FOUNTAIN', 'FLOWER_POT', 'PLANTER']
 
 CITY_COLORS = {
     # flagstone pavement (warm grey)
