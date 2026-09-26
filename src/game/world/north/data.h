@@ -189,36 +189,97 @@ static const MapObj WHITECROWN_OBJS[] = {
     OBJ(BOULDER, 18, 9, 0), OBJ(LEGEND, 17, 4, SP_HOARFANG), OBJ(BERRY, 28, 33, 22), OBJ(BERRY, 3, 17, 23),
 };
 
-/* SKY ISLE (24 x 20) */
+/* SKY ISLE (36 x 30) */
+/*
+ * SKY ISLE (36 x 30) -- islands of rock and snow over the sea of clouds,
+ * reached only by FLY (landing 17,21). Every island's cliff hangs over the
+ * clouds (height 0): the LANDING (1) in the south, the WIND WALK (1) north
+ * to the NORTH TERRACE (1), the SUMMIT (3) with the SKY ARCH and SKYLORN
+ * (stairs 17-18,7-8). The West and East SPIRES (2) (stairs 10,12 and 25,12)
+ * are joined by the STONE SPAN (16-19,14-15): walked east-west OVER the
+ * Wind Walk, which runs north-south UNDER it. Ledges drop from the spires
+ * onto the landing. A hidden gap in the crags at the West Spire's tip
+ * (5,14) opens the EYRIE (satchel).
+ */
 static const char *const SKY_ISLE_ROWS[] = {
-    "KKKKKKKKKKKKKKKKKKKKKKKK", /*  0 */
-    "KKKKKKKKKKKKKKKKKKKKKKKK", /*  1 */
-    "KKKKKKKKKKKKKKKKKKKKKKKK", /*  2 */
-    "KKKKKKKKKKKKKKKKKKKKKKKK", /*  3 */
-    "KKKKKK............KKKKKK", /*  4 */
-    "KKKK................KKKK", /*  5 */
-    "KKK......######......KKK", /*  6 */
-    "KKK......######......KKK", /*  7 */
-    "KK.........==.........KK", /*  8 */
-    "KK.........==.........KK", /*  9 */
-    "KKK........==.........KK", /* 10 */
-    "KKK........==........KKK", /* 11 */
-    "KKKK.......==........KKK", /* 12 */
-    "KKKK.......==.......KKKK", /* 13 */
-    "KKKKK..............KKKKK", /* 14 */
-    "KKKKKKK..........KKKKKKK", /* 15 */
-    "KKKKKKKKKKKKKKKKKKKKKKKK", /* 16 */
-    "KKKKKKKKKKKKKKKKKKKKKKKK", /* 17 */
-    "KKKKKKKKKKKKKKKKKKKKKKKK", /* 18 */
-    "KKKKKKKKKKKKKKKKKKKKKKKK", /* 19 */
+    "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK", /*  0 */
+    "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK", /*  1 */
+    "KKKKKKKKKKKKKKK......KKKKKKKKKKKKKKK", /*  2 */
+    "KKKKKKKKKKKKKK,######,KKKKKKKKKKKKKK", /*  3 */
+    "KKKKKKKKKKKKKR.######.RKKKKKKKKKKKKK", /*  4 */
+    "KKKKKKKKKKKKK..######..KKKKKKKKKKKKK", /*  5 */
+    "KKKKKKKKK......######......KKKKKKKKK", /*  6 */
+    "KKKKKKKK.R.P.....==.....P...KKKKKKKK", /*  7 */
+    "KKKKKKKK...p.....==.....p.R..KKKKKKK", /*  8 */
+    "KKKKKKK.R.......####.........KKKKKKK", /*  9 */
+    "KKKKKKKK........####........KKKKKKKK", /* 10 */
+    "KKKKKKKKK.=.....####.....=.KKKKKKKKK", /* 11 */
+    "KKKKKRR...=.....====.....=....KKKKKK", /* 12 */
+    "KKKKRR..============.=..........KKKK", /* 13 */
+    "K.,..R==========####===========..KKK", /* 14 */
+    "K....R..........####===========..KKK", /* 15 */
+    "KK.,.R..........====...........KKKKK", /* 16 */
+    "KKKKKR..........====.........KKKKKKK", /* 17 */
+    "KKKKKKKKKKKKKKKK====KKKKKKKKKKKKKKKK", /* 18 */
+    "KKKKKKKKKKK......==......KKKKKKKKKKK", /* 19 */
+    "KKKKKKKKKK..P..######..P..KKKKKKKKKK", /* 20 */
+    "KKKKKKKKKK,,p..######..p,,.KKKKKKKKK", /* 21 */
+    "KKKKKKKKKKK....######.....KKKKKKKKKK", /* 22 */
+    "KKKKKKKKKKKK.............KKKKKKKKKKK", /* 23 */
+    "KKKKKKKKKKKKKK........KKKKKKKKKKKKKK", /* 24 */
+    "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK", /* 25 */
+    "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK", /* 26 */
+    "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK", /* 27 */
+    "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK", /* 28 */
+    "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK", /* 29 */
+};
+
+/* heights (0-3), stairs (^ v < >) and ledges (_): docs/ELEVATION.md */
+static const char *const SKY_ISLE_ELEV[] = {
+    "000000000000000000000000000000000000", /*  0 */
+    "000000000000000000000000000000000000", /*  1 */
+    "000000000000000333333000000000000000", /*  2 */
+    "000000000000003333333300000000000000", /*  3 */
+    "000000000000033333333330000000000000", /*  4 */
+    "000000000000033333333330000000000000", /*  5 */
+    "000000000111133333333331111000000000", /*  6 */
+    "00000000111111111^^11111111100000000", /*  7 */
+    "00000000111111111^^11111111110000000", /*  8 */
+    "000000011111111111111111111110000000", /*  9 */
+    "000000001111111111111111111100000000", /* 10 */
+    "000000000111111111111111111000000000", /* 11 */
+    "0000022222v22222111122222v2222000000", /* 12 */
+    "000022222222222211112222222222220000", /* 13 */
+    "022222222222222211112222222222222000", /* 14 */
+    "022222222222222211112222222222222000", /* 15 */
+    "002222222222222211112222222222200000", /* 16 */
+    "000002222222222211112222222220000000", /* 17 */
+    "000000000000__00111100__000000000000", /* 18 */
+    "000000000001111111111111100000000000", /* 19 */
+    "000000000011111111111111110000000000", /* 20 */
+    "000000000011111111111111111000000000", /* 21 */
+    "000000000001111111111111110000000000", /* 22 */
+    "000000000000111111111111100000000000", /* 23 */
+    "000000000000001111111100000000000000", /* 24 */
+    "000000000000000000000000000000000000", /* 25 */
+    "000000000000000000000000000000000000", /* 26 */
+    "000000000000000000000000000000000000", /* 27 */
+    "000000000000000000000000000000000000", /* 28 */
+    "000000000000000000000000000000000000", /* 29 */
+};
+
+static const ElevFeat SKY_ISLE_FEATS[] = {
+    EF(BRIDGE_H, 16, 14, 4, 2),  /* the Stone Span: over between the spires, the Wind Walk under */
+    EF(HIDDEN, 5, 14, 1, 1),     /* through the crags to the Eyrie */
 };
 static const DecorPlace SKY_ISLE_DECOR[] = {
-    DP(SKY_ARCH, 10, 4), DP(AURORA_STONE, 5, 6), DP(AURORA_STONE, 18, 6), DP(ICE_CRYSTAL, 4, 11),
-    DP(ICE_CRYSTAL, 18, 12), DP(ICE_CRYSTAL, 7, 13),
+    DP(SKY_ARCH, 16, 2), DP(AURORA_STONE, 14, 4), DP(AURORA_STONE, 21, 4), DP(ICE_CRYSTAL, 9, 8),
+    DP(ICE_CRYSTAL, 27, 16), DP(ICE_CRYSTAL, 13, 22), DP(ICE_CRYSTAL, 2, 16), DP(AURORA_STONE, 1, 14),
 };
 static const MapObj SKY_ISLE_OBJS[] = {
-    OBJ(LEGEND, 11, 6, SP_SKYLORN),
+    OBJ(LEGEND, 17, 4, SP_SKYLORN),
 };
+
 
 /* RIME HALL (15 x 20) */
 static const char *const RIME_HALL_ROWS[] = {
