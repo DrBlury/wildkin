@@ -805,10 +805,10 @@ static void travel_dark_present(void)
 /* field_setup_bg() calls this (menus, bouts and screens start clean). */
 static void travel_dark_off(void)
 {
+    dark_want = 0;
+    if (oam_line_win0h == dark_lines[0] || oam_line_win0h == dark_lines[1]) oam_line_win0h = 0;
     if (!dark_applied) return;
     dark_applied = 0;
-    dark_want = 0;
-    oam_line_win0h = 0;
     REG_DISPCNT = (u16)(REG_DISPCNT & ~DCNT_WIN0);
     REG_BLDCNT = 0;
     REG_BLDY = 0;

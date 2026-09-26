@@ -32,7 +32,29 @@ static void map_entry(int map, int *ex, int *ey)
             }
         }
     }
+    /* no door or edge leads in: a ferry landing, a fly point, else the
+     * walkable cell nearest the middle (maps reached by boat or FLY) */
+    for (int i = 0; i < m->obj_count; i++)
+        if (m->objs[i].kind == OBJ_FERRY) {
+            *ex = m->objs[i].x;
+            *ey = m->objs[i].y + 1;
+            return;
+        }
+    for (int i = 0; i < FLY_POINT_COUNT; i++)
+        if (FLY_POINTS[i].map == map) {
+            *ex = FLY_POINTS[i].x;
+            *ey = FLY_POINTS[i].y;
+            return;
+        }
+    int best = 1 << 30;
     *ex = *ey = 0;
+    for (int y = 0; y < m->h; y++)
+        for (int x = 0; x < m->w; x++)
+            if (cell_walkable(x, y) && absi(x - m->w / 2) + absi(y - m->h / 2) < best) {
+                best = absi(x - m->w / 2) + absi(y - m->h / 2);
+                *ex = x;
+                *ey = y;
+            }
 }
 
 static void test_maps(void)
@@ -126,7 +148,9 @@ static void test_maps(void)
         map_load(m);
         int ex, ey;
         map_entry(m, &ex, &ey);
-        flood(ex, ey);
+        /* puzzles solved (Halls behind gates, barriers and pads); water is
+         * open on maps with water kin (surf routes) */
+        flood_ex(ex, ey, FLOOD_SOLVED | (MAPS[m].water_zone ? FLOOD_SURF : 0));
         for (int i = 0; i < NPC_COUNT; i++) {
             if (NPCS[i].map != m) continue;
             int ok = reached_beside(NPCS[i].x, NPCS[i].y);
