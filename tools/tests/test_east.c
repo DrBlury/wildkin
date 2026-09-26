@@ -68,7 +68,7 @@ static void test_edges(void)
     for (int i = 0; i < w->obj_count; i++)
         if (w->objs[i].kind == OBJ_BOULDER && w->objs[i].y == 33 && (w->objs[i].x == 30 || w->objs[i].x == 31))
             boulders++;
-    CHECK(boulders == 2, "two STRENGTH boulders block Bramblewood's way south");
+    CHECK(boulders == 1, "a STRENGTH boulder blocks Bramblewood's way south (test_puzzles proves the push)");
 }
 
 /* ---------------- doors ---------------- */
