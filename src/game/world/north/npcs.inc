@@ -20,7 +20,7 @@
     PERSON_KIN(MAP_FROSTHOLLOW, 25, 32, VILLAGER, LEFT, WANDER, TALK, NO_LORE, SP_TUXFLAKE, "VILLAGER",
                "My TUXFLAKE follows me to the market every morning. It carries nothing and eats everything."),
     PERSON(MAP_FROSTHOLLOW, 10, 16, KID, DOWN, LOOK, TALK, NO_LORE, "KID",
-           "The notice board says the HALL MASTER once slid across the whole lake without stopping. Twice!"),
+           "See the old ice store in the pit? The cutters dug their way in from the HOLLOW. Nobody remembers where."),
     /* ---- interiors ---- */
     PERSON(MAP_FROST_HEARTH, 5, 2, HEALER, DOWN, STILL, FROST_TENDER, LSRC_FROST_TENDER, "TENDER EIR", 0),
     PERSON(MAP_FROST_HEARTH, 2, 5, WARDEN_B, RIGHT, LOOK, TALK, NO_LORE, "RESTING WARDEN",

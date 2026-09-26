@@ -19,7 +19,7 @@
     PERSON(MAP_DUSKMERE, 6, 12, FISHER, LEFT, STILL, GRIM_TALK, NO_LORE, "BOG FISHER",
            "Black water keeps what it takes. Boots, nets, a cart once. Peat's a slow cook, but a thorough one."),
     PERSON_KIN(MAP_DUSKMERE, 15, 23, KID_B, DOWN, WANDER, GRIM_TALK, NO_LORE, SP_NOXKIT, "KID",
-               "NOXKIT's eyes glow in the dark, so I'm never scared. Well. Less scared."),
+               "Mum says never follow the foxfire into the cypress by the flats. So NOXKIT and I just watch where it goes."),
     PERSON(MAP_DUSKMERE, 22, 11, VILLAGER, DOWN, WANDER, GRIM_TALK, NO_LORE, "LAMPLIGHTER",
            "I light every lantern in DUSKMERE at dusk and again at noon. The ash makes noon look like dusk."),
     PERSON(MAP_DUSK_HEARTH, 5, 2, HEALER, DOWN, STILL, DUSK_TENDER, NO_LORE, "TENDER WREN", 0),
