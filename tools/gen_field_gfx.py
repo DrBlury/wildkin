@@ -1134,7 +1134,7 @@ def build_tilesets():
 # =====================================================================
 
 def all_decor():
-    items = decor_outdoor.OUTDOOR_DECOR + decor_indoor.INDOOR_DECOR
+    items = decor_outdoor.OUTDOOR_DECOR + decor_indoor.INDOOR_DECOR + __import__('decor_farm').FARM_DECOR
     seen = set()
     for d in items:
         if d.name in seen:
