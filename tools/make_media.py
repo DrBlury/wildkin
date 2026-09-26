@@ -230,7 +230,7 @@ def clip_world():
 def clip_regions():
     """One still per expansion town, Hall and lair (the player on its fly
     point or just inside its door)."""
-    shots = [('lumen', 'LUMEN', 7, 17), ('brine', 'PORT_BRINE', 10, 14), ('gull', 'GULL_ISLE', 9, 11),
+    shots = [('lumen', 'LUMEN', 9, 18), ('brine', 'PORT_BRINE', 10, 14), ('gull', 'GULL_ISLE', 9, 11),
              ('frosthollow', 'FROSTHOLLOW', 7, 8), ('skyisle', 'SKY_ISLE', 17, 21),
              ('duskmere', 'DUSKMERE', 10, 12), ('cindermoor', 'CINDERMOOR', 19, 19),
              ('dreamspire', 'DREAMSPIRE', 24, 29), ('willow', 'WILLOW_ACRE', 19, 3),
@@ -242,7 +242,7 @@ def clip_regions():
         save = demo_save(name, mp, x, y, calm=True)
         run(Script().boot().wait(30).shot(name), save)
         still(name, 'region_%s.png' % name)
-    save = demo_save('ui', 'LUMEN', 7, 17, calm=True)
+    save = demo_save('ui', 'LUMEN', 9, 18, calm=True)
     s = Script().boot().wait(30).tap('START').wait(10).shot('clock_menu')
     s.tap('DOWN', 3).tap('A').wait(30).shot('bag_pockets')
     run(s, save)

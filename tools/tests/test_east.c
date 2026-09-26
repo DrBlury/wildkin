@@ -37,6 +37,37 @@ static int edge_open(int map, int side, int a, int b)
     return 1;
 }
 
+/* Lumen City's heights (docs/ELEVATION.md): the Boulevard over the Cut, the
+ * towpath under it, the conduit under the Crown walk to the Well garden. */
+static void test_lumen_heights(void)
+{
+    /* every decor kind of an east map is really loaded (the loader skips a
+     * kind that no longer fits after the tileset and its elevation art) */
+    int decor_ok = 1;
+    for (int k = 0; k < EAST_COUNT; k++) {
+        map_load(EAST_MAPS[k]);
+        field_load_tileset();
+        const MapDef *m = &MAPS[EAST_MAPS[k]];
+        for (int i = 0; i < m->decor_count; i++)
+            if (!decor_base[m->decor[i].kind]) {
+                decor_ok = 0;
+                printf("  %s: decor kind %d does not fit\n", m->name, m->decor[i].kind);
+                break;
+            }
+    }
+    CHECK(decor_ok, "every decor kind on the east maps fits in VRAM next to the tileset");
+
+    map_load(MAP_LUMEN);
+    flood_ex(24, 0, FLOOD_SOLVED);
+    CHECK(reached_lv(41, 20, 1) && reached_lv(42, 20, 0) && reached_lv(42, 20, 1) && reached_lv(44, 20, 1),
+          "Lumen: the Boulevard crosses the Cut on the bridge, the towpath runs under it");
+    CHECK(reached_lv(47, 17, 0) && reached_lv(30, 9, 2) && reached_lv(30, 9, 3) && reached_lv(32, 6, 2),
+          "Lumen: the Works yard lies down in the Cut; the conduit runs under the Crown walk to the Well garden");
+    CHECK(elev_level_at(24, 11, -1, -1) == 2 && elev_level_at(24, 5, -1, -1) == 3 &&
+              elev_level_at(24, 30, -1, -1) == 0 && elev_level_at(9, 18, -1, -1) == 1,
+          "Lumen: canal quarter 0, west terrace 1, Beacon terrace 2, the Crown 3");
+}
+
 static void test_edges(void)
 {
     CHECK(edge_open(MAP_COPPERLINE, LINK_W, 17, 18) && edge_open(MAP_WOOD, LINK_E, 17, 18) &&
@@ -102,13 +133,13 @@ static void test_doors(void)
     /* walk in and back out of the Volt Hall for real */
     fresh_game();
     give_starter();
-    field_enter_map(MAP_LUMEN, 7, 9, DIR_UP);
+    field_enter_map(MAP_LUMEN, 10, 7, DIR_UP);
     hold(KEY_UP, 4);
     for (int f = 0; f < 30; f++) step(0);
     int in = cur_map == MAP_VOLT_HALL && player.x == 7 && player.y == 16;
     hold(KEY_DOWN, 12);
     for (int f = 0; f < 30; f++) step(0);
-    CHECK(in && cur_map == MAP_LUMEN && player.x == 7 && player.y == 9, "you can walk into the Volt Hall and out again");
+    CHECK(in && cur_map == MAP_LUMEN && player.x == 10 && player.y == 7, "you can walk into the Volt Hall and out again");
 }
 
 /* ---------------- region reachability ---------------- */
@@ -421,6 +452,7 @@ int main(void)
 {
     setvbuf(stdout, NULL, _IONBF, 0);
     game_init();
+    test_lumen_heights();
     test_edges();
     test_doors();
     test_reach();
