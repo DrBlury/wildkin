@@ -334,6 +334,7 @@ static int is_door_cell(int v)
 }
 
 static int travel_attr(int x, int y, int a);
+static int farm_cell_attr(int x, int y, int a);      /* farm.c: trees, sprinklers, workers, berry bushes */
 
 static int cell_attr(int x, int y)
 {
@@ -344,7 +345,7 @@ static int cell_attr(int x, int y)
         if (d->floor & (1u << sub)) a &= ~(A_SOLID | A_WATER | A_LEDGE);
         if (d->solid & (1u << sub)) a |= A_SOLID;
     }
-    return travel_attr(x, y, a);
+    return farm_cell_attr(x, y, travel_attr(x, y, a));
 }
 
 /* ---------------- rendering ---------------- */
@@ -612,6 +613,8 @@ static void wild_clear(void)
     wild_spawn_timer = 30;
 }
 
+static void farm_map_loaded(void);
+
 static void map_load(int id)
 {
     cur_map = id;
@@ -621,6 +624,7 @@ static void map_load(int id)
     map_decode(id);
     npcs_reset();
     wild_clear();
+    farm_map_loaded();
 }
 
 static int npc_at(int x, int y)
@@ -749,7 +753,8 @@ static int kin_frame(const KinActor *k)
     }
 }
 
-typedef struct { int y, x, kind, a, b, flip; } FieldSprite; /* kind: 0 person, 1 kin, 2 satchel */
+typedef struct { int y, x, kind, a, b, flip; } FieldSprite;
+static int farm_field_kin(const KinActor **out);  /* farm.c: workers on WILLOW ACRE (at most 4) */ /* kind: 0 person, 1 kin, 2 satchel */
 
 static struct { int npc, kind, timer; } emote = { -1, 0, 0 };
 static int starter_preview = -1; /* script.c: species shown while choosing a starter */
@@ -796,14 +801,15 @@ static void field_draw_sprites(void)
             slot++;
         }
     }
-    /* kin: follower, people's companions, wild kin */
-    const KinActor *kins[1 + NPC_COUNT + WILD_MAX];
+    /* kin: follower, people's companions, wild kin, farm workers */
+    const KinActor *kins[1 + NPC_COUNT + WILD_MAX + 4];
     int nk = 0;
     if (follower_active() && starter_preview < 0) kins[nk++] = &follower;
     for (int i = 0; i < NPC_COUNT; i++)
         if (NPCS[i].map == cur_map && npc_kin[i].shown) kins[nk++] = &npc_kin[i];
     for (int i = 0; i < WILD_MAX; i++)
         if (wild[i].active) kins[nk++] = &wild[i].k;
+    nk += farm_field_kin(kins + nk);
     u16 bank_key[KIN_BANK_COUNT];
     int banks = 0, kslot = 0;
     for (int i = 0; i < nk && kslot < 16 && n < 44; i++) {
@@ -1181,21 +1187,30 @@ static int species_for_level(int sp, int level)
 }
 
 static int party_max_level(void);
+static int time_is_night(void);
+
+/* A wild slot can show up now (WildSlot.when: day-only / night-only). */
+static int wild_slot_now(const WildSlot *s)
+{
+    return s->when == WHEN_ANY || (s->when == WHEN_NIGHT) == time_is_night();
+}
 
 static Monster roll_wild(int zone)
 {
     const WildZone *z = &WILD_ZONES[zone];
     if (zone <= ZONE_NONE || zone >= ZONE_COUNT || !z->count) return monster_make(SP_NIBBIT, 3);
-    int total = 0;
-    for (int i = 0; i < z->count; i++) total += z->slots[i].weight;
+    int total = 0, timed = 0;
+    for (int i = 0; i < z->count; i++) timed += wild_slot_now(&z->slots[i]) ? z->slots[i].weight : 0;
+    for (int i = 0; i < z->count; i++) total += !timed || wild_slot_now(&z->slots[i]) ? z->slots[i].weight : 0;
     int r = (int)rng_range((unsigned)total);
     const WildSlot *s = &z->slots[0];
     for (int i = 0; i < z->count; i++) {
-        if (r < z->slots[i].weight) {
+        int w = !timed || wild_slot_now(&z->slots[i]) ? z->slots[i].weight : 0;
+        if (r < w) {
             s = &z->slots[i];
             break;
         }
-        r -= z->slots[i].weight;
+        r -= w;
     }
     int level = s->min_level + (int)rng_range((unsigned)(s->max_level - s->min_level + 1));
     /* kin keep up a little with strong teams, so routes stay worth a bout */

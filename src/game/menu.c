@@ -87,6 +87,10 @@ static void start_menu_build(void)
 static void start_menu_draw(void)
 {
     start_menu_build();
+    char clock[20];
+    time_text(clock);
+    canvas_window(0, 0, 13, 4, WIN_STD);
+    text_draw(12, 8, clock);
     canvas_window(20, 0, 10, start_count * 2 + 2, WIN_STD);
     for (int i = 0; i < start_count; i++) {
         int y = 8 + i * LINE_H;
