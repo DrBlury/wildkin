@@ -1,4 +1,4 @@
-/* world/west/ids.inc -- Map ids: MAP_X,. PLACEHOLDER maps: the owner replaces them. */
+/* world/west/ids.inc -- Map ids: MAP_X,. Owner: W-WEST. */
     MAP_SALTWIND,
     MAP_PORT_BRINE,
     MAP_SEA_ROUTE,
@@ -10,3 +10,4 @@
     MAP_BRINE_INN,
     MAP_GULL_HOUSE,
     MAP_DROWNED_BELL,
+    MAP_BRINE_HOUSE,

@@ -76,6 +76,19 @@ static void give_starter(void)
 
 static u8 seen_cells[MAP_MAX_W * MAP_MAX_H];
 
+/* Surf mode of the flood: on maps with a water zone (MapDef.water_zone),
+ * open water (A_WATER without A_DEEP, and no solid decor on it) counts as
+ * passable, as if the player had SURF. */
+static int flood_surf_cell(int x, int y)
+{
+    if (!MAPS[cur_map].water_zone || x < 0 || y < 0 || x >= map_w || y >= map_h) return 0;
+    int a = cell_attr(x, y), sub;
+    const DecorDef *d;
+    if (!(a & A_WATER) || (a & A_DEEP)) return 0;
+    if (decor_at(x, y, &sub, &d) && (d->solid & (1u << sub))) return 0;
+    return npc_at(x, y) < 0 && item_ball_at(x, y) < 0;
+}
+
 /* Flood fill over walkable cells (people and satchels count as walls). */
 static void flood(int sx, int sy)
 {
@@ -95,7 +108,7 @@ static void flood(int sx, int sy)
                 (cell_attr(nx, ny) & A_LEDGE) && cell_walkable(nx, ny + 1))
                 ny++;
             if (nx < 0 || ny < 0 || nx >= map_w || ny >= map_h) continue;
-            if (seen_cells[ny * map_w + nx] || !cell_walkable(nx, ny)) continue;
+            if (seen_cells[ny * map_w + nx] || (!cell_walkable(nx, ny) && !flood_surf_cell(nx, ny))) continue;
             seen_cells[ny * map_w + nx] = 1;
             qx[tail] = nx;
             qy[tail++] = ny;

@@ -782,6 +782,7 @@ static void test_traits(void)
     rng_seed(9);
     for (int i = 0; i < 400; i++) {
         duel(SP_THORNIP, 30, SP_BOULDRON, 60);
+        rng_seed(9000 + i); /* independent of how much the world data drew from the rng */
         party[0].trait = i & 1 ? TR_KEEN_EYE : TR_SPORESKIN;
         side_mon(SIDE_ENEMY)->trait = TR_BRUISER;
         use_move(SIDE_ALLY, M_SWIPE);

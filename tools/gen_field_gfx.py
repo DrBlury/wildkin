@@ -1136,6 +1136,7 @@ def build_tilesets():
 def all_decor():
     items = decor_outdoor.OUTDOOR_DECOR + decor_indoor.INDOOR_DECOR + __import__('decor_farm').FARM_DECOR
     items = items + __import__('decor_north').NORTH_DECOR  # W-NORTH (snow, cave)
+    items = items + __import__('decor_west').WEST_DECOR  # W-WEST (coast, harbour interiors)
     seen = set()
     for d in items:
         if d.name in seen:
