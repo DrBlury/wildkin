@@ -8,12 +8,6 @@ the art lives in tools/kin/art_fusion_a.py.
 
 from kin import KinSpec
 from kin import art_fusion_a as art
-from kin import art_fusion_a2 as art2
-
-
-def _m(name):
-    """Model function for a species, or None while it is still unpainted."""
-    return getattr(art, name, None) or getattr(art2, name, None)
 
 SPECIES = [
     KinSpec(130, 'STEAMOTH', ('GALE', 'BLAZE'), 'F', base=(72, 60, 68, 118, 82, 120), catch=45, xp=205,
@@ -101,7 +95,7 @@ SPECIES = [
             traits=('STUBBORN', 'GLOWER'), field=('LIGHT', 'STRENGTH'), fusion=('HOLLOW', 'BEAST'),
             desc='HOLLOW and BEAST energy wove a steed whose kernel lives in the lantern it carries, '
                  'not in its body. It sees wherever the lantern shines and guides lost riders home.',
-            model=_m('dullahan'), concept='headless horse carrying its lantern-head'),
+            model=None, concept='headless horse carrying its lantern-head'),
     KinSpec(139, 'CHIMERAX', ('BEAST', 'VENOM'), 'F', base=(92, 112, 84, 88, 78, 90), catch=45, xp=210,
             category='THREEFOLD', height=15, weight=1450,
             learnset=[(1, 'M_SWIPE'), (1, 'M_BARB'), (1, 'M_POUT'), (1, 'M_DART'),
@@ -111,7 +105,7 @@ SPECIES = [
             traits=('SPORESKIN', 'KEEN EYE'), field=('STRENGTH',), fusion=('BEAST', 'VENOM'),
             desc='Woven from BEAST and VENOM, one kernel runs three sets of instincts. The lion leads, '
                  'the goat horns keep watch, and the serpent tail never, ever sleeps.',
-            model=_m('chimerax'), concept='lion, goat and serpent in one'),
+            model=None, concept='lion, goat and serpent in one'),
     KinSpec(140, 'RIDDLEON', ('DREAM', 'STONE'), 'F', base=(94, 68, 112, 108, 110, 46), catch=45, xp=205,
             category='RIDDLE', height=14, weight=2600,
             learnset=[(1, 'M_GRIT_KICK'), (1, 'M_DAYDREAM'), (1, 'M_STILL_POND'), (1, 'M_PEBBLE_PELT'),
@@ -120,7 +114,7 @@ SPECIES = [
             traits=('FOCUSED', 'BEDROCK'), field=('TELEPORT',), fusion=('DREAM', 'STONE'),
             desc='DREAM and STONE energy wove a kernel that hears thoughts through rock. It asks a '
                  'riddle of every traveler, and all who answer honestly may pass, right or wrong.',
-            model=_m('riddleon'), concept='sphinx that asks riddles'),
+            model=None, concept='sphinx that asks riddles'),
     KinSpec(141, 'GRIFFALON', ('GALE', 'BEAST'), 'F', base=(82, 124, 76, 62, 74, 124), catch=45, xp=210,
             category='SKY LION', height=19, weight=1300,
             learnset=[(1, 'M_BEAK_JAB'), (1, 'M_SWIPE'), (1, 'M_DRAFT'), (1, 'M_POUT'),
@@ -129,7 +123,7 @@ SPECIES = [
             traits=('KEEN EYE', 'MOMENTUM'), field=('FLY',), fusion=('GALE', 'BEAST'),
             desc='Woven of GALE and BEAST, it has a falcon\'s eyes and a lion\'s heart. Its kernel pumps '
                  'from wind and muscle at once, so it can fly all day and still hunt at dusk.',
-            model=_m('griffalon'), concept='griffin'),
+            model=None, concept='griffin'),
     KinSpec(142, 'MANTICLAW', ('VENOM', 'BRAWL'), 'F', base=(94, 130, 82, 58, 76, 96), catch=45, xp=210,
             category='STINGFIST', height=18, weight=1100,
             learnset=[(1, 'M_BARB'), (1, 'M_ONE_TWO'), (1, 'M_SWIPE'), (1, 'M_SPORE_CLOUD'),
@@ -138,7 +132,7 @@ SPECIES = [
             traits=('BRUISER', 'SPORESKIN'), field=('STRENGTH',), fusion=('VENOM', 'BRAWL'),
             desc='VENOM and BRAWL energy wove a boxer whose every punch primes the sting in its tail. '
                  'It wraps its fists before a bout and bows to its foe after.',
-            model=_m('manticlaw'), concept='manticore'),
+            model=None, concept='manticore'),
     KinSpec(143, 'INKRAKEN', ('TIDE', 'DUSK'), 'F', base=(106, 102, 86, 96, 86, 58), catch=45, xp=205,
             category='DEEP INK', height=13, weight=900,
             learnset=[(1, 'M_FIZZ'), (1, 'M_SNAP'), (1, 'M_SLIPSTREAM'), (1, 'M_STARE_DOWN'),
@@ -147,7 +141,7 @@ SPECIES = [
             traits=('SLIPPERY', 'SURGE'), field=('SURF',), fusion=('TIDE', 'DUSK'),
             desc='Woven from TIDE and DUSK, a young kraken whose ink drinks light. It hides in its own '
                  'little cloud of night and tugs at boats only to ask for a bout.',
-            model=_m('inkraken'), concept='young kraken of ink and dark'),
+            model=None, concept='young kraken of ink and dark'),
     KinSpec(144, 'OBSIDRAKE', ('STONE', 'WYRM'), 'F', base=(94, 126, 124, 70, 76, 52), catch=45, xp=210,
             category='OBSIDIAN', height=21, weight=3800,
             learnset=[(1, 'M_GRIT_KICK'), (1, 'M_PEBBLE_PELT'), (1, 'M_WYRMBREATH'), (1, 'M_BRACE'),
@@ -156,7 +150,7 @@ SPECIES = [
             traits=('BEDROCK', 'SURGE'), field=('STRENGTH',), fusion=('STONE', 'WYRM'),
             desc='STONE and WYRM energy, woven beside flowing lava, cooled into living black glass. '
                  'Its edges could split a hair, yet it chips them blunt before it plays.',
-            model=_m('obsidrake'), concept='obsidian drake'),
+            model=None, concept='obsidian drake'),
     KinSpec(145, 'AURORELK', ('FROST', 'ASTRAL'), 'F', base=(86, 70, 82, 126, 98, 82), catch=45, xp=210,
             category='AURORA', height=21, weight=2900,
             learnset=[(1, 'M_BONK'), (1, 'M_FLURRY'), (1, 'M_TWINKLE'), (1, 'M_STARDUST'),
@@ -166,7 +160,7 @@ SPECIES = [
             traits=('THICK FUR', 'FOCUSED'), field=('LIGHT',), fusion=('FROST', 'ASTRAL'),
             desc='Woven from FROST and ASTRAL, its antlers catch muons and glow like the aurora. '
                  'Northern herds steer by its lights on the longest night of the year.',
-            model=_m('aurorelk'), concept='elk with aurora antlers'),
+            model=None, concept='elk with aurora antlers'),
     KinSpec(146, 'RAIJUKO', ('SPARK', 'BEAST'), 'F', base=(74, 88, 64, 116, 70, 132), catch=45, xp=205,
             category='THUNDER', height=12, weight=280,
             learnset=[(1, 'M_STATIC_POP'), (1, 'M_DART'), (1, 'M_SWIPE'), (1, 'M_TINGLE'),
@@ -175,7 +169,7 @@ SPECIES = [
             traits=('STATIC FUR', 'MOMENTUM'), field=('LIGHT',), fusion=('SPARK', 'BEAST'),
             desc='SPARK and BEAST energy wove a beast of ball lightning. In storms it races down the '
                  'clouds and curls up in warm hay, leaving scorched rings behind.',
-            model=_m('raijuko'), concept='raiju, the thunder beast'),
+            model=None, concept='raiju, the thunder beast'),
     KinSpec(147, 'SPOREGHOUL', ('VENOM', 'HOLLOW'), 'F', base=(102, 78, 86, 96, 114, 52), catch=45, xp=205,
             category='GRAVECAP', height=17, weight=620,
             learnset=[(1, 'M_BARB'), (1, 'M_BONE_RATTLE'), (1, 'M_SPORE_CLOUD'), (1, 'M_SHROUD'),
@@ -184,7 +178,7 @@ SPECIES = [
             traits=('SPORESKIN', 'SELFMEND'), field=(), fusion=('VENOM', 'HOLLOW'),
             desc='VENOM and HOLLOW woven together: a kernel that feeds on rot and old bone. Its cap '
                  'glows faintly in crypts, and its spores turn the dead into sweet, rich soil.',
-            model=_m('sporeghoul'), concept='ghoul sprouting mushrooms'),
+            model=None, concept='ghoul sprouting mushrooms'),
     KinSpec(148, 'CLOCKOWL', ('METAL', 'DREAM'), 'F', base=(82, 70, 112, 104, 112, 52), catch=45, xp=205,
             category='CLOCKWORK', height=11, weight=880,
             learnset=[(1, 'M_IRON_TAP'), (1, 'M_DAYDREAM'), (1, 'M_LULLABY'), (1, 'M_MAGNET_PULL'),
@@ -193,7 +187,7 @@ SPECIES = [
             traits=('WAKEFUL', 'QUICK STUDY'), field=('TELEPORT',), fusion=('METAL', 'DREAM'),
             desc='METAL and DREAM energy wove a kernel that keeps perfect time. The clock on its chest '
                  'shows the hour you will wake, and it hoots once before every sunrise.',
-            model=_m('clockowl'), concept='owl with a clock-face chest'),
+            model=None, concept='owl with a clock-face chest'),
     KinSpec(149, 'CINDERANT', ('BLAZE', 'SWARM'), 'F', base=(76, 122, 92, 70, 70, 108), catch=45, xp=205,
             category='COLONY', height=10, weight=680,
             learnset=[(1, 'M_CINDER_FLICK'), (1, 'M_PINCER'), (1, 'M_BONK'), (1, 'M_LAST_EMBER'),
@@ -202,7 +196,7 @@ SPECIES = [
             traits=('EMBERSKIN', 'MOMENTUM'), field=('STRENGTH', 'LIGHT'), fusion=('BLAZE', 'SWARM'),
             desc='Woven from BLAZE and SWARM, a thousand fire ants share one armoured kernel and pump '
                  'heat in perfect sync. Break it apart and it marches back together.',
-            model=_m('cinderant'), concept='fire ant colony in one armour'),
+            model=None, concept='fire ant colony in one armour'),
     KinSpec(150, 'STARWEAVER', ('ASTRAL', 'SWARM'), 'F', base=(82, 64, 80, 126, 96, 92), catch=45, xp=210,
             category='STAR SPIDER', height=14, weight=400,
             learnset=[(1, 'M_TWINKLE'), (1, 'M_SILK_SNARE'), (1, 'M_STARDUST'), (1, 'M_BARB'),
@@ -211,7 +205,7 @@ SPECIES = [
             traits=('FOCUSED', 'KEEN EYE'), field=('TELEPORT', 'LIGHT'), fusion=('ASTRAL', 'SWARM'),
             desc='ASTRAL and SWARM energy wove a spider that spins muon-lit silk. Every knot it ties '
                  'marks a star, so its web is a chart of the night sky.',
-            model=_m('starweaver'), concept='spider weaving constellations'),
+            model=None, concept='spider weaving constellations'),
     KinSpec(151, 'NOSFERBAT', ('DUSK', 'HOLLOW'), 'F', base=(92, 78, 80, 114, 92, 92), catch=45, xp=210,
             category='NIGHT NOBLE', height=16, weight=520,
             learnset=[(1, 'M_SNAP'), (1, 'M_STARE_DOWN'), (1, 'M_BONE_RATTLE'), (1, 'M_SHROUD'),
@@ -220,5 +214,5 @@ SPECIES = [
             traits=('SELFMEND', 'GLOWER'), field=('FLY',), fusion=('DUSK', 'HOLLOW'),
             desc='Woven from DUSK and HOLLOW, a noble bat that sips coherence, never blood. It bows '
                  'before every bout and takes only what it needs. Its cape drinks starlight.',
-            model=_m('nosferbat'), concept='vampire bat noble'),
+            model=None, concept='vampire bat noble'),
 ]

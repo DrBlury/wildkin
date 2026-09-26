@@ -7,15 +7,11 @@ docs/EXPANSION.md 4.2.
 
 from kin import KinSpec
 from kin import art_normal_b as art
-from kin import art_normal_b2 as art2
-from kin import art_normal_b3 as art3
 
 
 def _kin(id, name, types, rarity, **kw):
-    """KinSpec with the model looked up by name (art_normal_b*.<name>)."""
-    model = None
-    for mod in (art, art2, art3):
-        model = model or getattr(mod, name.lower(), None)
+    """KinSpec with the model looked up by name (art_normal_b.<name>)."""
+    model = getattr(art, name.lower(), None)
     return KinSpec(id, name, types, rarity, model=model, placeholder=model is None, **kw)
 
 

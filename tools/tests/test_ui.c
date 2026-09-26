@@ -68,7 +68,9 @@ static void test_items(void)
     for (int i = 0; i < ITEM_COUNT; i++) {
         if (item_icon_index(i) != ITEMS[i].icon) ok = 0;
         draw_item_icon(1, 15, i);
-        if (bg_palette[BANK_ITEM_ICON * 16 + 1] != item_icon_pal[ITEMS[i].icon][1]) ok = 0;
+        for (int c = 2; c < 16; c++)
+            if (bg_palette[BANK_ITEM_ICON * 16 + c] != item_icon_pal[ITEMS[i].icon][c]) ok = 0;
+        if (bg_palette[BANK_ITEM_ICON * 16 + 1] != ui_pal_std[1]) ok = 0; /* the page's paper */
     }
     CHECK(ok, "draw_item_icon uses each item's own icon (no out-of-bounds read)");
     CHECK(item_battle_usable(item_of_kind(IK_HEAL_CURE)) && item_battle_usable(item_of_kind(IK_TEA_ALL)) &&

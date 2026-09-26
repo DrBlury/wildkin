@@ -39,7 +39,7 @@ TRAIT_NAMES = ['SURGE', 'BRUISER', 'FOCUSED', 'KEEN EYE', 'THICK FUR', 'BEDROCK'
 BST = {'first': (280, 345), 'middle': (380, 435), 'final': (470, 535), 'single': (400, 485),
        'rare': (440, 545), 'fusion': (490, 565), 'legend': (570, 625)}
 
-BATCHES = ['base', 'normal_a', 'normal_b', 'rare', 'rare_b', 'rare_c', 'legend', 'fusion_a', 'fusion_b']
+BATCHES = ['base', 'normal_a', 'normal_b', 'rare', 'legend', 'fusion_a', 'fusion_b']
 
 
 class KinSpec:

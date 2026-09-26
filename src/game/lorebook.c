@@ -151,7 +151,7 @@ static void lb_chapters_redraw(void)
         int y = 32 + r * 14, total;
         int known = lore_chapter_known(c, &total);
         if (c == lb.chapter) {
-            canvas_fill(14, y - 2, 212, 14, 7);
+            canvas_glow(14, y - 2, 212, 14);
             text_draw(15, y - 2, "{");
         }
         if (known) text_draw(26, y - 2, LORE_CHAPTER_NAMES[c]);
@@ -183,7 +183,7 @@ static void lb_entries_redraw(void)
         int k = lb.scroll + r, id = lb.ids[k];
         int y = 30 + r * 14;
         if (k == lb.cursor) {
-            canvas_fill(14, y - 2, 212, 14, 7);
+            canvas_glow(14, y - 2, 212, 14);
             text_draw(15, y - 2, "{");
         }
         if (lore_is_known(id)) {

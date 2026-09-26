@@ -410,7 +410,7 @@ static void options_redraw(void)
         int i = opt_scroll + r, y = 32 + r * 14;
         const OptRow *o = &OPT_ROWS_DEF[i];
         if (i == opt_cursor) {
-            canvas_fill(12, y - 3, 216, 14, 7);
+            canvas_glow(12, y - 3, 216, 14);
             text_draw(13, y - 3, "{");
         }
         text_draw(24, y - 3, o->label);
@@ -922,7 +922,7 @@ static void summary_redraw(void)
         for (int i = 0; i < MAX_MOVES; i++) {
             int ry = 32 + i * 24;
             int mv = m->moves[i];
-            if (i == sum.move_cursor) canvas_fill(86, ry - 2, 148, 20, 7);
+            if (i == sum.move_cursor) canvas_glow(86, ry - 2, 148, 20);
             if (mv == MOVE_NONE) {
                 text_draw(124, ry, "-");
                 continue;
@@ -1148,10 +1148,12 @@ static void bag_redraw(void)
             text_draw(104, y, "CLOSE BAG");
             continue;
         }
+        /* lanterns keep room for their odds / strength on the right */
+        int name_w = ITEMS[item].kind == IK_LANTERN ? 84 : 120;
         if (bscr.ctx == BAGCTX_BATTLE && !item_battle_usable(item))
             text_draw_col(104, y, ITEMS[item].name, INK_SHADOW, INK_SHADOW);
         else
-            text_draw(104, y, ITEMS[item].name);
+            text_draw_fit(104, y, ITEMS[item].name, name_w);
         if (ITEMS[item].pocket == POCKET_KEY) {
             if (opt.registered == item + 1) text_draw_col(206, y, "SEL", INK_BLUE, INK_BLUE_SH);
             continue;
@@ -1175,7 +1177,7 @@ static void bag_redraw(void)
                 str_put(buf, ".");
                 str_put_int(buf, ITEMS[item].param % 10);
             }
-            text_draw_col(228 - 24 - text_width(buf), y, buf, INK_BLUE, INK_BLUE_SH);
+            small_text_draw(208 - small_text_width(buf), y + 4, buf);
         }
     }
     if (BAG_SCROLL > 0) text_draw_col(214, 0, "^", INK_BLUE, INK_BLUE_SH);
@@ -1726,7 +1728,7 @@ static void pc_redraw(void)
     if (!rows) text_draw(108, 34, pc.page == 0 ? "Your team is empty." : "This box is empty.");
     for (int r = 0; r < SHELF_ROWS && pc.scroll + r < rows; r++) {
         int k = pc.scroll + r, y = SHELF_ROW_Y(r);
-        if (k == pc.cursor) canvas_fill(102, y - 4, 126, 22, 7);
+        if (k == pc.cursor) canvas_glow(102, y - 4, 126, 22);
         if (k >= n) {
             text_draw_col(142, y, "PUT AT THE END", INK_BLUE, INK_BLUE_SH);
             continue;
