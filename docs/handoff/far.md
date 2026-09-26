@@ -1,73 +1,60 @@
-# W-FAR handoff (Cinder Road, Cindermoor, Moonveil Path, Dreamspire)
+# W-FAR handoff (Cinder Road, Cindermoor, Ember Tunnel, Caldera Heart, Moonveil Path, Dreamspire, Dust Library)
 
 ## Done
 
-- The worktree is fast-forwarded to the expansion base (6118872).
-- Nothing in `src/game/world/far/` has changed. The placeholder maps are still in place, and there are no NPCs, wardens, quests, lore or puzzles yet.
+`make art && make && make test` is green (the only compiler warnings are the pre-existing unused
+`storage_*` functions in `party.c`, not mine).
 
-## In progress
+- **Art**
+  - `tools/terrain_far.py`: volcanic terrain (unchanged) plus the dream terrain: moon grass (3), moonstone
+    flagstones (2), moonpetals (wild grass with a front layer), moonflowers, blossom tree overlay, pastel
+    cliffs and ledges, the animated moon pond, moonstone gravel paths, Mirror Hall floor / star inlay / walls /
+    mat, Dust Library boards / shelves / paper-dust "grass" / mat.
+  - `tools/far_buildings.py`: `dream_stamps()` (hearth, shop, 2 houses, 2 stacked towers, MIRROR HALL with a
+    spire, DUST LIBRARY) and `DREAM_DOORS`. Tower roof eaves end on the 8px grid (bank fit).
+  - `tools/tilesets/ts_dream.py`: the real tileset (293 tiles, 8 banks documented at the top).
+  - `tools/decor_far.py`: 13 volcanic decor kinds (STEAM_VENT, OBSIDIAN, EMBER_ROCK, ORE_CART, FORGE_ANVIL,
+    FURNACE, BIG_BELL, BRAZIER, COAL_PILE, TOOL_RACK, SALAMANDER_STATUE, SMOKE, HALL_BANNER) and 10 dream kinds
+    (MOON_LANTERN, FLOAT_PAGES, BOOK_PILE, READING_DESK, BOOKCASE, MOONSTONE, PETALS, STANDING_MIRROR,
+    DREAM_STATUE, SCRIPT_PEDESTAL), several animated, all with examine lines.
+- **Maps** (`src/game/world/far/`, legend in the `data.h` header; edge contracts kept and tested):
+  CINDER ROAD (lava lake, ember brush, hot spring, rails, ledge), CINDERMOOR (hearth, shop, forge, Anvil Hall,
+  houses, the bell plaza, cave mouth), CINDER HEARTH / CINDER SHOP (interior), THE FORGE and ANVIL HALL
+  (volcanic), EMBER TUNNEL (lava tube, ember moss, rails, 2 STRENGTH boulders, `MF_DARK`), CALDERA HEART (lava
+  lake, `OBJ(LEGEND, 9, 7, SP_CALDERON)`), MOONVEIL PATH, DREAMSPIRE (hearth, shop, towers, MIRROR HALL, DUST
+  LIBRARY, pond, moonpetal meadow), SPIRE HEARTH / SPIRE SHOP, MIRROR HALL (4 rooms, 5 pad pairs), DUST
+  LIBRARY (`OBJ(LEGEND, 11, 2, SP_SCRIPTORA)`).
+- **Anvil Hall puzzle**: 3 chambers behind 2 gates; 4 pumice boulders (arg 1), plates/gates grouped by arg
+  1 and 2. `test_far` proves it solvable with a Sokoban search, and that the gates are the only way through.
+- **Mirror Hall**: A -1-> B -2-> C -4-> D (Master); C's pad 3 is a decoy back to A, D's pad 5 goes home.
+- **People**: 16 wardens (≤ 4 kin) + Hall Masters BRONWEN (6 kin, ANVIL CREST) and VESPER (6 kin, DREAM CREST)
+  via `team_from` + `battle_start_master`; on win: `travel_award_crest`, `FLAG_CREST_*`, lantern rewards.
+  Tenders, clerks (`shop_open_stock` with per-town stock), SMITH DAGNY (`SCR_SMITH`, craft's), miners,
+  stargazer, poet, sleepers, kids.
+- **Quests**: IRON FOR THE BELL (3 IRON ORE → METAL SHARD + 1500c; 3 ore satchels on the road and in the
+  tunnel) and THE DRIFTING VERSES (3 sleepers on 3 maps → MOONCAKE ×3, LURE INCENSE ×2).
+- **Lore**: 14 entries from 9 sources (PLACES, LEGENDS CALDERON / SCRIPTORA, HALLS, TYPES METAL, CRAFTING
+  forging, BIOLOGY basalt/glass and dream fields).
+- Signs (10), satchels (13), fly points (CINDERMOOR 204,88; DREAMSPIRE 166,48), 5 wild zones (levels 24-36,
+  day/night slots, SLUMBAKU at night in Dreamspire, LAMPJINN in the library).
+- `tools/tests/test_far.c` (37 checks).
 
-- **Volcanic tileset art** (Python only; not wired into the build yet):
-  - `tools/terrain_far.py` holds FAR_COLORS for both tilesets and the volcanic terrain:
-    - ash (3 variants), columnar basalt (2), dressed basalt setts, sulfur crust
-    - ember brush (wild-kin grass with a front layer), basalt column cliff with an ash lip, and plain cliff face
-    - one-way ash ledges (plus left and right ends), mine rails running each way
-    - crag spires and charred trees (16x32 overlays)
-    - cave floor, wall, face, exit mat and ember moss
-    - Anvil Hall iron deck, vent, brick walls and exit mat
-    - animated lava as 16 pieces (legend is a numpad: `5` is the centre, `7 8 9 4 6 1 2 3` the edges and corners, `q p b n` the inner corners, `- |` one-cell streams, `o` a pool)
-    - an animated hot spring (the tileset's WATER) and cinder-gravel path autotiles
-  - `tools/far_buildings.py` has an animated autotile block helper and a bigger sign font. Its buildings are drawn in placeholder colours that get swapped for each tileset's real ones:
-    - cottage (5x4): hearth with the flame emblem, shop, forge with two chimneys, house
-    - hall (7x5): anvil, mirror or book emblem, optional spire
-    - rock arch cave mouth / tunnel arch (3x2)
-    - Dreamspire stacked tower (3x5) with hanging lanterns
-  - `tools/tilesets/ts_volcanic.py`: the bank plan, terrain list, legend, attributes, stamps and door list are written.
-  - **Current blocker:** `python3 tools/gen_field_gfx.py` fails. The `RAIL_H` tile's colours fit no bank: `rail_img` still uses `vb_out`, but bank 2 now uses `b_out`. Fix it by using `b_out` for the sleeper ends in `terrain_far.rail_img`. After that, iterate on any further bank or lint errors.
-- The dream colours are defined in FAR_COLORS. The `tower()` stamp art exists, but `ts_dream.py` is still the placeholder (a copy of the wild tileset).
+## Left / notes for other owners
 
-## Not started
+- **Traversal** must implement: OBJ_BOULDER arg 1 = pushable without STRENGTH, arg 0 = needs the ANVIL CREST;
+  PLATE/GATE by group; PAD pairs by arg; OBJ_LEGEND starts the static encounter (CALDERON, SCRIPTORA). Until
+  then the objects are invisible and non-solid, the legends can't be met, and the halls can be walked through.
+  When gates/boulders become solid, `test_field`'s plain flood will fail on the ANVIL HALL (Master behind
+  gates) and the EMBER TUNNEL arch; it needs a "puzzles solved" mode.
+- **Craft**: SMITH DAGNY uses `SCR_SMITH`; the forge decor is my FURNACE / FORGE_ANVIL, so `station_examine`
+  should accept `DK_FORGE_ANVIL` (or place craft's own ANVIL decor in `FORGE_DECOR`).
+- The BIG_BELL's examine text always says "cracked", even after IRON FOR THE BELL.
+- LCH_PLACES gains 5 entries; with every region adding places it may pass the Lorebook's 40 per chapter.
+- `data.h` was produced by a scratch generator (not committed); it is plain C now, edit it by hand.
+- Art polish ideas: bigger cliff features on Moonveil, a proper bridge tile over lava.
 
-- **`ts_dream.py` terrain:**
-  - pastel stone, mint moon grass, moonpetal grass (wild-kin grass)
-  - blossom tree overlays, moon pond, pastel cliffs
-  - Mirror Hall floors and walls, Dust Library shelves
-- **`tools/decor_far.py`:**
-  - steam vents, obsidian, mine carts, smoke, anvil and furnace, lanterns, floating pages, mirrors, bookshelves
-  - registering it in `gen_field_gfx.all_decor()` (a one-line change)
-- **Maps and data:**
-  - all 14 maps (`data.h` legend header, rows, stamps, decor, objects)
-  - warps, signs, satchels, berry patches (ids 40-49)
-  - wild zones: VOLC, DREAM and LIBRARY with day/night slots, levels 22-36, SLUMBAKU at night in Dreamspire
-- **Puzzles:**
-  - Anvil Hall pumice boulders, plates and gates
-  - Ember Tunnel STRENGTH boulders
-  - Mirror Hall pad maze
-- **People and story:**
-  - wardens and trainers, and Hall Masters with 5-6 kin that award CREST_ANVIL / CREST_DREAM
-  - shop scripts using `shop_open_stock`
-  - 2 quests: IRON FOR THE BELL (3 IRON ORE) and THE DRIFTING VERSES (3 dreamers' verses)
-  - 10-12 lore entries
-  - fly points for Cindermoor and Dreamspire
-- **Tests:** `tools/tests/test_far.c`.
+## Shared files edited
 
-## Notes
-
-- **Build and tests:** the C side is untouched, and `src/gfx_field.h` is still the base version (the generator stops before writing it). So `make` and `make test` stay as green as the base. Only the new Python art is mid-change. `python3 tools/gen_field_gfx.py` currently fails with the rail palette error above.
-- **Edits outside `world/far/`:**
-  - new files `tools/terrain_far.py` and `tools/far_buildings.py`
-  - `tools/tilesets/ts_volcanic.py`, which is mine
-  - no core files touched
-- **Planned edit outside my folder:** `tools/tests/harness.h` `flood()` should follow OBJ_PAD pairs (same arg on the same map). Without it, the Mirror Hall's pad-only rooms fail `test_field`'s reachability check. The TRAVERSAL owner may make the same change, so coordinate with them.
-- **APIs expected from other systems:**
-  - **TRAVERSAL:**
-    - OBJ_BOULDER with arg 1 should mean a "pumice" Hall boulder that can be pushed without STRENGTH. Otherwise the Anvil Hall can't be solved before its own crest.
-    - OBJ_PLATE and OBJ_GATE: a gate is open while every plate of its group is covered.
-    - OBJ_PAD teleports you onto the other pad with the same arg.
-    - OBJ_LEGEND should start the static encounter.
-    - `travel_award_crest`.
-  - **BATTLE:** `TrainerTeam` and `TEAM_MAX` are 3 today, and `team_from` copies 3. Masters need 6.
-  - **CRAFT:** `SCR_SMITH` is used for the forge smith.
-  - **UI:** `quest_set` / `quest_get`, and the Lorebook chapter list (`lb.ids[40]` per chapter).
-- **Test integration risk:** `test_field`'s flood ignores puzzles. Once traversal makes gates and boulders solid, the Hall and tunnel checks need a puzzle-aware flood.
-- **Lava** is explicit solid terrain pieces, not WATER, because CELL_WATER is always surfable.
+- `tools/gen_field_gfx.py`: one line in `all_decor()` registering `decor_far.FAR_DECOR`.
+- `tools/tests/harness.h`: `flood()` follows OBJ_PAD pairs (same arg, same map).
+- Regenerated (by `make art`): `src/gfx_field.h`, `src/game/world/debug/*`.

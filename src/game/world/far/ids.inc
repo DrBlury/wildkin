@@ -1,4 +1,4 @@
-/* world/far/ids.inc -- Map ids: MAP_X,. PLACEHOLDER maps: the owner replaces them. */
+/* world/far/ids.inc -- Map ids: MAP_X,. Owner: W-FAR. */
     MAP_CINDER_ROAD,
     MAP_CINDERMOOR,
     MAP_MOONVEIL,
