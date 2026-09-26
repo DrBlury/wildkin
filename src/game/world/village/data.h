@@ -287,7 +287,7 @@ static const DecorPlace TOWN_DECOR[] = {
     DP(FENCE, 33, 16), DP(FENCE_END, 34, 16),
     /* the farm corner, down in the south-east field */
     DP(HAY_BALE, 37, 24), DP(HAY_BALE, 36, 23), DP(WATER_TROUGH, 24, 29), DP(WOODPILE, 30, 29),
-    DP(HAY_BALE, 32, 29),
+    DP(HAY_BALE, 29, 29),   /* not at 32,29: that sealed the foot of the ledges at 33-35,28 (test_puzzles) */
     /* green bits */
     DP(BIG_TREE, 17, 31), DP(BUSH, 4, 10), DP(BUSH, 2, 20), DP(BUSH, 37, 23), DP(BUSH, 9, 20),
     DP(BUSH, 17, 27), DP(BENCH, 5, 28),
@@ -340,6 +340,7 @@ static const DecorPlace WOOD_DECOR[] = {
     DP(WOODPILE, 39, 9), DP(BARREL, 33, 6), DP(LANTERN_POST, 38, 9),
     /* forest floor */
     DP(LOG, 19, 9), DP(LOG, 34, 24), DP(STUMP, 25, 21), DP(STUMP, 5, 7),
+    DP(STUMP, 30, 34),   /* narrows the Elderwood gap: one STRENGTH boulder guards it */
     DP(MUSHROOMS, 11, 16), DP(MUSHROOMS, 20, 26), DP(MUSHROOMS, 38, 28), DP(MUSHROOMS, 4, 28),
     DP(MUSHROOMS, 27, 9), DP(BERRY_BUSH, 13, 22), DP(BERRY_BUSH, 40, 15), DP(BERRY_BUSH, 3, 27),
     DP(FALLEN_LEAVES, 12, 7), DP(FALLEN_LEAVES, 26, 23), DP(FALLEN_LEAVES, 34, 30),
