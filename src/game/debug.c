@@ -286,6 +286,7 @@ static int debug_examine(int x, int y)
     int sub;
     const DecorDef *d;
     const DecorPlace *p = decor_at(x, y, &sub, &d);
+    if (p && station_of_decor(p->kind) >= 0) return 0;   /* crafting stations work here too */
     if (p) {
         str_copy(msg, "DECOR ");
         str_put(msg, DECOR_NAMES[p->kind]);
