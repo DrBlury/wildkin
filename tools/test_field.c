@@ -107,6 +107,13 @@ static void test_maps(void)
             budget_ok = 0;
             printf("  %s needs %d scene tiles\n", d->name, decor_tiles_used);
         }
+        /* the loader skips a decor kind that no longer fits, so check each one landed */
+        for (int i = 0; i < d->decor_count; i++)
+            if (!decor_base[d->decor[i].kind]) {
+                budget_ok = 0;
+                printf("  %s: decor %s does not fit next to the tileset\n", d->name, DECOR_NAMES[d->decor[i].kind]);
+                break;
+            }
     }
     CHECK(rows_ok, "every map row has the declared width and fits the buffers");
     CHECK(stamps_ok && decor_ok, "stamps and decor fit their maps (and exist in the map's tileset)");
