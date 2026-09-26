@@ -27,18 +27,18 @@ static const char *const WILLOW_ACRE_ROWS[] = {
     "TTxxx================...............y.TT", /* 10 */
     "tt......y..........==...............y.tt", /* 11 */
     "TT.----------------==---------------].TT", /* 12 */
-    "tt.|...............==...............|.tt", /* 13 */
-    "TT.|.ssssssssssss..==..ssssssssssss.|.TT", /* 14 */
-    "tt.|.ssssssssssss..==..ssssssssssss.|.tt", /* 15 */
-    "TT.|.ssssssssssss..==..ssssssssssss.|.TT", /* 16 */
-    "tt.|.ssssssssssss..==..ssssssssssss.|.tt", /* 17 */
-    "TT.|...............==...............|.TT", /* 18 */
-    "tt.|...............==xxxxxxx........|.tt", /* 19 */
-    "TT.|.ssssssssssss..==xxxxxxx........|.TT", /* 20 */
-    "tt.|.ssssssssssss..==xxxxxxx........|.tt", /* 21 */
-    "TT.|.ssssssssssss..==xxxxxxx........|.TT", /* 22 */
-    "tt.|.ssssssssssss..==...............|.tt", /* 23 */
-    "TT.|...............==........~~~~~~.|.TT", /* 24 */
+    "tt.|eeeeeeeeeeeeee.==.eeeeeeeeeeeeee|.tt", /* 13 */
+    "TT.|esssssssssssse.==.esssssssssssse|.TT", /* 14 */
+    "tt.|esssssssssssse.==.esssssssssssse|.tt", /* 15 */
+    "TT.|esssssssssssse.==.esssssssssssse|.TT", /* 16 */
+    "tt.|esssssssssssse.==.esssssssssssse|.tt", /* 17 */
+    "TT.|eeeeeeeeeeeeee.==.eeeeeeeeeeeeee|.TT", /* 18 */
+    "tt.|eeeeeeeeeeeeee.==xxxxxxx........|.tt", /* 19 */
+    "TT.|esssssssssssse.==xxxxxxx........|.TT", /* 20 */
+    "tt.|esssssssssssse.==xxxxxxx........|.tt", /* 21 */
+    "TT.|esssssssssssse.==xxxxxxx........|.TT", /* 22 */
+    "tt.|esssssssssssse.==...............|.tt", /* 23 */
+    "TT.|eeeeeeeeeeeeee.==........~~~~~~.|.TT", /* 24 */
     "tt.|...............==........~~~~~~.|.tt", /* 25 */
     "TT.|...............==........~~~~~~.|.TT", /* 26 */
     "tt.|...............==...............|.tt", /* 27 */

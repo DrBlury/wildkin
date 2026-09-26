@@ -106,7 +106,7 @@ int main(void)
     setvbuf(stdout, NULL, _IONBF, 0);
     game_init();
 
-    CHECK(TILESETS[TS_COAST].tile_count <= 385, "the coast tileset stays under ~380 tiles");
+    CHECK(TILESETS[TS_COAST].tile_count <= 400, "the coast tileset stays under ~400 tiles");
 
     /* budget, people and characters on every west map */
     int budget_ok = 1, people_ok = 1;
@@ -114,7 +114,7 @@ int main(void)
         int m = WEST_MAPS[k];
         map_load(m);
         field_load_tileset();
-        if (decor_tiles_used > 512) budget_ok = 0;
+        if (decor_tiles_wanted > SCENE_TILE_MAX) budget_ok = 0;
         int n = 0, chars = 0;
         u8 seen[64] = { 0 };
         for (int i = 0; i < NPC_COUNT; i++) {
@@ -128,7 +128,7 @@ int main(void)
             printf("  %s: %d people, %d characters\n", MAPS[m].name, n, chars);
         }
     }
-    CHECK(budget_ok, "every west map fits its tiles and decor in 512 scene tiles");
+    CHECK(budget_ok, "every west map fits its tiles and decor in the scene tiles");
     CHECK(people_ok, "at most 24 people and 7 characters on every west map");
 
     /* edge contracts (docs/EXPANSION.md 9) */

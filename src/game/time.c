@@ -9,6 +9,10 @@
  * and blue at night, and grey under rain. Each new day rolls the weather;
  * rain waters the farm (farm_new_day()).
  *
+ * Seasons: SPRING, SUMMER, AUTUMN and WINTER, SEASON_DAYS days each, follow
+ * from the day counter (day 1 is SPRING 1). Crops only grow in their own
+ * seasons (farm.c); the clock reads "SPR 3  14:05".
+ *
  * The field calls time_tick() once per frame (script.c field_update); it
  * also drives the farm's per-frame work (farm_tick()).
  */
@@ -56,13 +60,26 @@ static void time_validate(void)
 }
 
 static int time_hour(void) { return gtime.minute / 60; }
+
+/* ---------------- seasons ---------------- */
+
+enum { SEASON_SPRING, SEASON_SUMMER, SEASON_AUTUMN, SEASON_WINTER, SEASON_COUNT };
+#define SEASON_DAYS 10
+static const char *const SEASON_NAMES[SEASON_COUNT] = { "SPRING", "SUMMER", "AUTUMN", "WINTER" };
+static const char *const SEASON_SHORT[SEASON_COUNT] = { "SPR", "SUM", "AUT", "WIN" };
+
+static int day_season(int day) { return (day - 1) / SEASON_DAYS % SEASON_COUNT; }
+static int time_season(void) { return day_season(gtime.day); }
+/* 1..SEASON_DAYS */
+static int time_season_day(void) { return (gtime.day - 1) % SEASON_DAYS + 1; }
 static int time_is_night(void) { return gtime.minute >= NIGHT_START || gtime.minute < DAWN_MINUTE; }
 
-/* "DAY 3  14:05" (buf: at least 16 chars). The START menu and HUD show it. */
+/* "SPR 3  14:05" (buf: at least 16 chars). The START menu and HUD show it. */
 static void time_text(char *buf)
 {
-    str_copy(buf, "DAY ");
-    str_put_int(buf, gtime.day);
+    str_copy(buf, SEASON_SHORT[time_season()]);
+    str_put(buf, " ");
+    str_put_int(buf, time_season_day());
     str_put(buf, "  ");
     int h = time_hour(), m = gtime.minute % 60;
     char t[6] = { (char)('0' + h / 10), (char)('0' + h % 10), ':', (char)('0' + m / 10),

@@ -6,6 +6,7 @@ Legend (map characters, world/farm/data.h):
     =  sandy path (autotiled)       ~      pond water (autotiled, animated)
     x  packed dirt yard            T / t  tree top / bottom (border trees)
     s  field soil (A_SOIL: till it with the HOE)
+    e  soil around the fields (not a plot): where the soil fades into grass
     o  orchard mound (A_SOIL: saplings only, no tilling needed)
     m  berry mound (solid; a wild berry patch OBJ_BERRY sits on it)
     -  fence, post + rails to the right (also the NW corner)
@@ -18,7 +19,10 @@ Soil states and crops are not map characters: farm.c draws them over A_SOIL
 cells at run time through dyn_cell() with these metatiles (MT_FA_*):
 
     TILLED, TILLED_WET, TILLED_FERT, TILLED_WET_FERT   ground (BG0)
-    SEEDED, SPROUT, <CROP>_GROW, <CROP>_RIPE, SAPLING  overlays (BG2)
+    SEEDED, SPROUT, <CROP>_YOUNG, <CROP>_GROW,         overlays (BG2): the
+    <CROP>_RIPE, SAPLING, WITHERED                     growth stages in order,
+                                                       and a crop killed by
+                                                       the change of season
     YOUNG_/FRUIT_/APPLE_/PEACH_ TOP + BOTTOM           fruit trees: the
         bottom stands on the orchard cell (BG2), the crown is drawn on the
         top layer (BG3) of the cell above
@@ -96,15 +100,17 @@ BANK_CROPS_B = COMMON + ['fm_bl_hi', 'fm_bl', 'fm_bl_dk', 'fm_pu_hi', 'fm_pu', '
 
 # Crop order = CROP_* in src/game/farm.c (and the IK_PLANT params in items/farm.inc).
 CROPS = ['GLOWBERRY', 'EMBERBERRY', 'TIDEBERRY', 'RADISH', 'CARROT', 'POTATO', 'PUMPKIN',
-         'CHILI', 'TOMATO', 'CORN', 'SUNFLOWER', 'MOTEBLOOM']
+         'CHILI', 'TOMATO', 'CORN', 'SUNFLOWER', 'MOTEBLOOM',
+         'STRAWBERRY', 'MELON', 'EGGPLANT', 'SNOWPEA']
 TREES = ['YOUNG', 'FRUIT', 'APPLE', 'PEACH']
 
 GROUND_TERRAIN = ['GRASS', 'GRASS2', 'GRASS3', 'FLOWER_RED', 'FLOWER_YELLOW', 'DIRT',
                   'SOIL', 'SOIL2', 'TILLED', 'TILLED_WET', 'TILLED_FERT', 'TILLED_WET_FERT',
-                  'ORCHARD', 'BERRY_MOUND']
+                  'ORCHARD', 'BERRY_MOUND', 'SOIL_RIM']
 FENCES = ['FENCE_H', 'FENCE_V', 'FENCE_END', 'FENCE_SW', 'FENCE_SE']
-OVERLAYS = (['TREE_TOP', 'TREE_BOTTOM'] + FENCES + ['SEEDED', 'SPROUT', 'SAPLING'] +
-            [c + s for c in CROPS for s in ('_GROW', '_RIPE')] +
+OVERLAYS = (['TREE_TOP', 'TREE_BOTTOM'] + FENCES + ['SEEDED', 'SPROUT', 'SAPLING', 'WITHERED'] +
+            [c + s for c in CROPS for s in ('_YOUNG', '_GROW', '_RIPE')] +
+            [c + s + '_TOP' for c in CROPS for s in ('_YOUNG', '_GROW', '_RIPE')] +
             [t + s for t in TREES for s in ('_TOP', '_BOTTOM')] + ['SPRINKLER'])
 FARM_TERRAIN = GROUND_TERRAIN + OVERLAYS
 
@@ -115,6 +121,7 @@ DOC = {
     'BERRY_MOUND': 'mound under a wild berry patch (solid)',
     'SEEDED': 'crop overlay: just planted',
     'SPROUT': 'crop overlay: sprout (every crop)',
+    'WITHERED': 'crop overlay: a crop that withered when its season ended (any tool clears it)',
     'YOUNG_TOP': 'fruit tree crown, drawn on the top layer of the cell above the orchard cell',
     'SPRINKLER': 'placed sprinkler (waters the 8 plots around it)',
 }
@@ -132,11 +139,50 @@ def outline(img, col='fm_out', skip=()):
             if img.p[y][x] is not None:
                 continue
             for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-                c = img.get(x + dx, y + dy)
+                nx, ny = x + dx, y + dy
+                c = img.p[ny][nx] if 0 <= nx < img.w and 0 <= ny < img.h else None
                 if c is not None and c not in skip:
                     o.p[y][x] = col
                     break
     return o
+
+
+class TallImg(Img):
+    """A crop drawn in its own cell's coordinates (0..15, ground at y 14)
+    with room above: y -16..-1 is the cell above, whose half becomes the
+    <CROP>_<STAGE>_TOP overlay drawn on the top layer (like a tree crown),
+    so tall plants are never cut off at the top of their cell."""
+
+    def __init__(self):
+        Img.__init__(self, 16, 32)
+
+    def get(self, x, y, default=None):
+        return Img.get(self, x, y + 16, default)
+
+    def set(self, x, y, c):
+        Img.set(self, x, y + 16, c)
+
+    def copy(self):
+        o = TallImg()
+        o.p = [row[:] for row in self.p]
+        return o
+
+    def halves(self):
+        """-> (bottom, top): the plot's own cell, the cell above."""
+        bottom, top = Img(16, 16), Img(16, 16)
+        bottom.p = [row[:] for row in self.p[16:]]
+        top.p = [row[:] for row in self.p[:16]]
+        return bottom, top
+
+
+def tall_clumps(clumps, seed, ramp=('fm_lf_hi', 'fm_lf', 'fm_lf', 'fm_lf_dk')):
+    """shade_clumps on a TallImg (clump centres in cell coordinates). The
+    clumps must fit x 1..14 themselves: nothing is clipped flat."""
+    raw, _ = shade_clumps(16, 32, [(cx, cy + 16, rx, ry) for (cx, cy, rx, ry) in clumps], list(ramp),
+                          'fm_out', seed=seed)
+    img = TallImg()
+    img.p = raw.p
+    return img
 
 
 def ell(img, cx, cy, rx, ry, ramp, light=(-0.6, -0.8), dither=0):
@@ -190,15 +236,13 @@ def leaf(img, bx, by, ang, length, width, cols=('fm_lf_hi', 'fm_lf', 'fm_lf_dk')
             img.set(x, y, c)
 
 
-def bush(w=16, h=16, big=True, seed=5):
+def bush(big=True, seed=5):
     if big:
-        clumps = [(8.0, 7.0, 4.6, 4.0), (4.8, 10.0, 3.8, 3.4), (11.2, 10.0, 3.8, 3.4),
-                  (8.0, 11.4, 4.8, 2.8)]
+        clumps = [(8.0, 5.6, 4.4, 4.0), (4.9, 9.2, 3.5, 3.4), (11.1, 9.2, 3.5, 3.4),
+                  (8.0, 11.2, 4.8, 2.9)]
     else:
-        clumps = [(8.0, 9.5, 3.8, 3.2), (5.4, 11.6, 2.8, 2.2), (10.6, 11.6, 2.8, 2.2)]
-    img, _ = shade_clumps(w, h, clumps, ['fm_lf_hi', 'fm_lf', 'fm_lf', 'fm_lf_dk'], 'fm_out',
-                          seed=seed, clip=lambda x, y: 1 <= x <= 14 and y <= 14)
-    return img
+        clumps = [(8.0, 9.2, 3.8, 3.2), (5.4, 11.4, 2.8, 2.3), (10.6, 11.4, 2.8, 2.3)]
+    return tall_clumps(clumps, seed)
 
 
 def dots(img, pts, ramp, big=False):
@@ -418,7 +462,7 @@ def sprout():
 
 
 def rosette(n=5, length=6.0, width=2.2, base=(8, 12), spread=110):
-    img = Img(16, 16)
+    img = TallImg()
     for i in range(n):
         ang = -spread / 2 + spread * i / (n - 1)
         leaf(img, base[0] + 0.5, base[1], ang, length * (0.85 if i % 2 else 1.0), width)
@@ -426,7 +470,7 @@ def rosette(n=5, length=6.0, width=2.2, base=(8, 12), spread=110):
 
 
 def fronds(base=(8, 12)):
-    img = Img(16, 16)
+    img = TallImg()
     for ang in (-40, -15, 12, 38):
         a = math.radians(ang)
         tip = (base[0] + 8 * math.sin(a), base[1] - 8 * math.cos(a))
@@ -439,15 +483,16 @@ def fronds(base=(8, 12)):
 
 
 def crop_img(name, ripe):
-    img = Img(16, 16)
+    """A crop at its growing or ripe stage, as a TallImg."""
+    img = TallImg()
     if name in ('GLOWBERRY', 'EMBERBERRY', 'TIDEBERRY'):
         img = bush(big=ripe, seed=CROPS.index(name) + 3)
         if ripe:
             ramp = {'GLOWBERRY': GLOW, 'EMBERBERRY': ('fm_or_hi', 'fm_or', 'fm_rd'),
                     'TIDEBERRY': BLUE}[name]
-            dots(img, [(4, 7), (9, 5), (11, 9), (6, 10), (8, 12), (12, 12), (3, 11)], ramp)
+            dots(img, [(4, 7), (9, 4), (11, 8), (6, 10), (8, 12), (12, 11), (3, 10), (7, 6)], ramp)
             if name == 'GLOWBERRY':
-                for (x, y) in ((2, 5), (13, 6), (7, 2)):
+                for (x, y) in ((1, 5), (14, 6), (7, 0)):
                     img.set(x, y, 'fm_gl')
         return img
     if name == 'RADISH':
@@ -459,22 +504,21 @@ def crop_img(name, ripe):
     if name == 'CARROT':
         img = fronds()
         if not ripe:
-            img = Img(16, 16)
+            img = TallImg()
             small = fronds((8, 13))
             for y in range(16):
                 for x in range(16):
-                    if small.p[y][x] is not None and y >= 7:
-                        img.p[y][x] = small.p[y][x]
+                    if small.get(x, y) is not None and y >= 7:
+                        img.set(x, y, small.get(x, y))
         else:
             ell(img, 8.5, 13.0, 3.0, 2.0, list(ORANGE))
             img.set(7, 12, 'fm_or_hi')
         return outline(img)
     if name == 'POTATO':
-        clumps = [(8.0, 8.5, 4.4, 3.6), (5.0, 11.0, 3.4, 3.0), (11.0, 11.0, 3.4, 3.0)]
+        clumps = [(8.0, 8.0, 4.4, 3.8), (5.0, 11.0, 3.4, 3.0), (11.0, 11.0, 3.4, 3.0)]
         if not ripe:
             clumps = [(8.0, 10.0, 3.6, 3.0), (5.6, 12.0, 2.6, 2.0), (10.4, 12.0, 2.6, 2.0)]
-        img, _ = shade_clumps(16, 16, clumps, ['fm_lf_hi', 'fm_lf', 'fm_lf_dk'], 'fm_out', seed=9,
-                              clip=lambda x, y: 1 <= x <= 14 and y <= 14)
+        img = tall_clumps(clumps, 9, ('fm_lf_hi', 'fm_lf', 'fm_lf_dk'))
         if ripe:
             for (x, y) in ((6, 6), (10, 7), (8, 9)):
                 img.set(x, y, 'fm_pu_hi')
@@ -520,44 +564,47 @@ def crop_img(name, ripe):
                 img.set(x + (1 if x < 8 else 0), y + 1, 'fm_rd_hi')
         return outline(img)
     if name == 'TOMATO':
-        line(img, 8, 14, 8, 1, 'fm_bk')
-        img.set(8, 0, 'fm_bk')
-        for (y, ang) in ((12, -70), (11, 70), (8, -55), (7, 60), (4, -45), (3, 40)):
-            if not ripe and y < 6:
+        line(img, 8, 14, 8, -4 if ripe else 1, 'fm_bk')
+        for (y, ang) in ((12, -70), (11, 70), (8, -55), (7, 60), (4, -45), (3, 40), (0, -40), (-1, 35)):
+            if not ripe and y < 3:
                 continue
             leaf(img, 8, y, ang, 4.2, 1.7)
         if ripe:
-            dots(img, [(4, 8), (11, 6), (5, 12), (11, 11)], RED, big=True)
+            dots(img, [(4, 8), (11, 5), (5, 12), (11, 11), (4, 1)], RED, big=True)
         return outline(img)
     if name == 'CORN':
-        top = 2 if ripe else 5
+        top = -6 if ripe else 1
         line(img, 8, 14, 8, top, 'fm_lf_dk')
         line(img, 7, 14, 7, top + 2, 'fm_lf')
-        for (y, ang, ln) in ((12, -60, 6.5), (10, 65, 6.5), (7, -40, 5.5), (5, 40, 5.0)):
+        for (y, ang, ln) in ((12, -60, 6.0), (10, 65, 6.0), (7, -40, 5.5), (4, 40, 5.0), (1, -35, 4.5),
+                             (-2, 35, 4.0)):
             if y < top + 2:
                 continue
             leaf(img, 8, y, ang, ln, 1.4)
         if ripe:
-            ell(img, 10.5, 8.0, 1.6, 3.2, list(YELLOW))
-            leaf(img, 9.5, 11, 15, 5.0, 1.2)
-            for (x, y) in ((7, 1), (8, 0), (9, 1), (6, 2), (10, 2)):
+            ell(img, 10.5, 5.0, 1.6, 3.2, list(YELLOW))
+            leaf(img, 9.5, 8, 15, 5.0, 1.2)
+            for (x, y) in ((7, -7), (8, -8), (9, -7), (6, -6), (10, -6), (8, -9)):
                 img.set(x, y, 'fm_ye_dk')
         return outline(img)
     if name == 'SUNFLOWER':
-        line(img, 8, 14, 8, 6, 'fm_lf_dk')
+        hy = -2 if ripe else 3
+        line(img, 8, 14, 8, hy, 'fm_lf_dk')
         leaf(img, 8, 11, -65, 4.5, 2.0)
         leaf(img, 8, 10, 65, 4.5, 2.0)
+        leaf(img, 8, 6, -55, 4.0, 1.8)
+        leaf(img, 8, 5, 60, 4.0, 1.8)
         if ripe:
             for k in range(10):
                 a = k * math.pi / 5
                 for r in (3.4, 4.4):
-                    img.set(int(round(8 + r * math.cos(a))), int(round(5 + r * math.sin(a) * 0.9)),
+                    img.set(int(round(8 + r * math.cos(a))), int(round(hy + r * math.sin(a) * 0.9)),
                             'fm_ye' if r < 4 else 'fm_ye_hi')
-            ell(img, 8.5, 5.3, 4.6, 4.0, ['fm_ye_hi', 'fm_ye', 'fm_ye', 'fm_ye_dk'])
-            ell(img, 8.5, 5.5, 2.2, 2.0, ['fm_bk', 'fm_bk', 'fm_out'])
-            img.set(7, 4, 'fm_ye_dk')
+            ell(img, 8.5, hy + 0.3, 4.6, 4.0, ['fm_ye_hi', 'fm_ye', 'fm_ye', 'fm_ye_dk'])
+            ell(img, 8.5, hy + 0.5, 2.2, 2.0, ['fm_bk', 'fm_bk', 'fm_out'])
+            img.set(7, hy - 1, 'fm_ye_dk')
         else:
-            ell(img, 8.5, 5.5, 1.8, 1.8, ['fm_lf_hi', 'fm_lf', 'fm_lf_dk'])
+            ell(img, 8.5, hy + 0.5, 1.8, 1.8, ['fm_lf_hi', 'fm_lf', 'fm_lf_dk'])
         return outline(img, skip=('fm_ye_hi',)) if ripe else outline(img)
     if name == 'MOTEBLOOM':
         line(img, 8, 14, 8, 6, 'fm_lf_dk')
@@ -569,11 +616,115 @@ def crop_img(name, ripe):
                 ell(img, 8.5 + 2.6 * math.cos(a), 5.5 + 2.4 * math.sin(a), 1.9, 1.9, list(PURPLE))
             ell(img, 8.5, 5.5, 1.3, 1.3, ['fm_gl', 'fm_gl', 'fm_bl_hi'])
             img = outline(img)
-            for (x, y) in ((2, 3), (14, 2), (3, 9), (13, 8), (11, 0)):
+            for (x, y) in ((2, 3), (14, 2), (3, 9), (13, 8), (11, -1)):
                 img.set(x, y, 'fm_gl')
             return img
         ell(img, 8.5, 5.0, 1.8, 2.6, ['fm_pu_hi', 'fm_pu', 'fm_pu_dk'])
         return outline(img)
+    return new_crop_img(name, ripe)
+
+
+def young_img(grown):
+    """The young stage of a crop: its growing plant drawn smaller, standing
+    on the same spot."""
+    k = 0.62
+    img = TallImg()
+    for y in range(-16, 16):
+        for x in range(16):
+            sx = int(8 + (x + 0.5 - 8) / k)
+            sy = int(14 + (y + 0.5 - 14) / k)
+            c = grown.get(sx, sy)
+            if c is not None and c != 'fm_out':
+                img.set(x, y, c)
+    return outline(img)
+
+
+def withered():
+    img = Img(16, 16)
+    line(img, 8, 14, 8, 9, 'fm_bk')
+    line(img, 8, 9, 11, 7, 'fm_bk')
+    line(img, 8, 11, 5, 9, 'fm_bk')
+    leaf(img, 11, 7, 120, 3.8, 1.4, cols=('fm_or_hi', 'fm_or_dk', 'fm_bk'))
+    leaf(img, 5, 9, -130, 3.6, 1.4, cols=('fm_or_hi', 'fm_or_dk', 'fm_bk'))
+    leaf(img, 8, 12, 100, 3.4, 1.2, cols=('fm_ye_dk', 'fm_or_dk', 'fm_bk'))
+    leaf(img, 8, 13, -95, 3.0, 1.2, cols=('fm_ye_dk', 'fm_or_dk', 'fm_bk'))
+    return outline(img)
+
+
+def new_crop_img(name, ripe):
+    img = TallImg()
+    if name == 'STRAWBERRY':
+        img = rosette(6, 5.2 if ripe else 4.6, 2.2, base=(8, 13), spread=150)
+        if ripe:
+            for (x, y) in ((4, 11), (11, 12), (7, 13)):
+                for (dx, dy, c) in ((0, 0, 'fm_rd_hi'), (1, 0, 'fm_rd'), (0, 1, 'fm_rd'), (1, 1, 'fm_rd_dk'),
+                                    (0, 2, 'fm_rd_dk')):
+                    img.set(x + dx, y + dy, c)
+                img.set(x + 1, y - 1, 'fm_lf_dk')
+        else:
+            for (x, y) in ((5, 8), (11, 9)):
+                for (dx, dy) in ((0, -1), (-1, 0), (1, 0), (0, 1)):
+                    img.set(x + dx, y + dy, 'fm_hl')
+                img.set(x, y, 'fm_ye')
+        return outline(img)
+    if name == 'MELON':
+        for (ang, ln) in ((-80, 6.5), (75, 6.0), (-30, 4.5), (35, 4.5)):
+            leaf(img, 8, 12, ang, ln, 2.6)
+        line(img, 2, 13, 14, 13, 'fm_lf_dk')
+        if ripe:
+            mel = TallImg()
+            ell(mel, 9.0, 10.5, 5.6, 4.4, ['fm_lf_hi', 'fm_lf', 'fm_lf', 'fm_lf_dk'])
+            for y in range(16):
+                for x in range(16):
+                    if mel.get(x, y) and (x + (y - 10) * (y - 10) // 6) % 3 == 0:
+                        mel.set(x, y, 'fm_out' if mel.get(x, y) == 'fm_lf_dk' else 'fm_lf_dk')
+            mel = outline(mel)
+            for y in range(-16, 16):
+                for x in range(16):
+                    if mel.get(x, y) is not None:
+                        img.set(x, y, mel.get(x, y))
+            for (x, y) in ((6, 8), (7, 7), (8, 7)):
+                img.set(x, y, 'fm_ye_hi')
+        else:
+            ell(img, 10.5, 11.5, 2.2, 1.8, ['fm_lf_hi', 'fm_lf', 'fm_lf_dk'])
+            img.set(4, 9, 'fm_ye')
+            img.set(12, 7, 'fm_ye')
+        return outline(img)
+    if name == 'EGGPLANT':
+        line(img, 8, 14, 8, 4, 'fm_lf_dk')
+        for (y, ang) in ((12, -70), (11, 70), (8, -55), (7, 55), (5, -35), (4, 35)):
+            leaf(img, 8, y, ang, 4.4, 1.9)
+        if ripe:
+            for (cx, cy) in ((4.5, 11.5), (11.5, 10.5), (8.0, 13.0)):
+                ell(img, cx, cy, 1.8, 2.6, list(PURPLE))
+                img.set(int(cx), int(cy - 3), 'fm_lf_dk')
+        else:
+            for (x, y) in ((5, 8), (11, 9)):
+                img.set(x, y, 'fm_pu_hi')
+                img.set(x + 1, y, 'fm_pu')
+                img.set(x, y + 1, 'fm_pu')
+        return outline(img)
+    if name == 'SNOWPEA':
+        line(img, 12, 14, 12, -3, 'fm_bk')
+        img.set(11, -3, 'fm_bk')
+        img.set(13, -3, 'fm_bk')
+        for (y, ang, x) in ((12, -70, 9), (10, 60, 10), (7, -60, 9), (5, 55, 10), (3, -50, 10),
+                            (0, 50, 11), (-2, -45, 11)):
+            if not ripe and y < 4:
+                continue
+            leaf(img, x, y, ang, 4.0, 1.6)
+        line(img, 9, 14, 11, -1 if ripe else 4, 'fm_lf_dk')
+        if ripe:
+            for (x, y) in ((4, 8), (6, 11), (13, 7), (13, 11)):
+                for k in range(4):
+                    img.set(x, y + k, 'fm_lf_hi' if k < 3 else 'fm_lf')
+                img.set(x + 1, y + 1, 'fm_lf')
+                img.set(x + 1, y + 2, 'fm_lf')
+        img = outline(img)
+        for (x, y) in ((2, 3), (5, 0), (14, 13), (1, 12)):
+            if img.get(x, y) is None:
+                img.set(x, y, 'fm_bl_hi')
+        return img
     raise KeyError(name)
 
 
@@ -763,7 +914,7 @@ def terrain_images(gf):
         'SOIL': soil_img(0), 'SOIL2': soil_img(1),
         'TILLED': tilled_img(), 'TILLED_WET': tilled_img(wet=True),
         'TILLED_FERT': tilled_img(fert=True), 'TILLED_WET_FERT': tilled_img(wet=True, fert=True),
-        'ORCHARD': mound_img(), 'BERRY_MOUND': mound_img(),
+        'ORCHARD': mound_img(), 'BERRY_MOUND': mound_img(), 'SOIL_RIM': soil_img(0),
     }
     tree = gf.tree_img(overlay=True)
     over = {
@@ -771,15 +922,102 @@ def terrain_images(gf):
         'FENCE_H': FENCE_H, 'FENCE_V': fence_v(), 'FENCE_END': FENCE_END,
         'FENCE_SW': with_stub(FENCE_H), 'FENCE_SE': with_stub(FENCE_END),
         'SEEDED': seeded(), 'SPROUT': sprout(), 'SAPLING': sapling(), 'SPRINKLER': sprinkler(),
+        'WITHERED': withered(),
     }
     for c in CROPS:
-        over[c + '_GROW'] = crop_img(c, False)
-        over[c + '_RIPE'] = crop_img(c, True)
+        grow, ripe = crop_img(c, False), crop_img(c, True)
+        for (stage, im) in (('_YOUNG', young_img(grow)), ('_GROW', grow), ('_RIPE', ripe)):
+            over[c + stage], over[c + stage + '_TOP'] = im.halves()
     for t in TREES:
         im = tree_img(t)
         over[t + '_TOP'] = im.crop(0, 0, 16, 16)
         over[t + '_BOTTOM'] = im.crop(0, 16, 16, 16)
     return imgs, over
+
+
+# ---------------------------------------------------------------------------
+# tilled and watered soil, autotiled per 8x8 quadrant (farm.c soil_quads)
+# ---------------------------------------------------------------------------
+
+SOIL_DRY = 5   # farm_soil_combo[tvar][SOIL_DRY]: a dry plot
+
+
+def _variant(h, v, d):
+    return (0 if d else 1) if (h and v) else (2 if v else (3 if h else 4))
+
+
+def soil_combos():
+    """Every (tilled variant, wet variant or SOIL_DRY) a quadrant can show:
+    wet soil is always tilled, so a neighbour's state is one of none, dry,
+    wet."""
+    combos = []
+    for t in range(5):
+        combos.append((t, SOIL_DRY))
+    for h in range(3):
+        for v in range(3):
+            for d in range(3):
+                c = (_variant(h > 0, v > 0, d > 0), _variant(h == 2, v == 2, d == 2))
+                if c not in combos:
+                    combos.append(c)
+    return combos
+
+
+def soil_quad_pix(c, tvar, wvar, fert, imgs):
+    """Quadrant c (0 top-left .. 3 bottom-right) of a tilled plot whose
+    tilled neighbours give variant tvar and wet ones wvar (SOIL_DRY: dry)."""
+    wet = wvar != SOIL_DRY
+    tex = imgs[('TILLED_WET' if wet else 'TILLED') + ('_FERT' if fert else '')]
+    wet_tex, dry_tex = imgs['TILLED_WET_FERT' if fert else 'TILLED_WET'], imgs['TILLED_FERT' if fert else 'TILLED']
+    soil = imgs['SOIL']
+    qx, qy = (c & 1) * 8, (c >> 1) * 8
+    pix = []
+    for y in range(8):
+        for x in range(8):
+            lx = x if not (c & 1) else 7 - x
+            ly = y if not (c >> 1) else 7 - y
+            X, Y = qx + x, qy + y
+            nt = ((hash2(X, Y, 41) & 255) / 255.0 - 0.5) * 1.2
+            dt = gf_blend_depth(tvar, lx, ly, 1.6, 0.4, amp=0.35) if tvar else 9.0
+            if dt + nt <= 0:
+                col = soil.get(X, Y)
+                if dt + nt > -1.2 and hash2(X, Y, 43) % 3:
+                    col = 'fm_so_md'   # the little lip the hoe throws up
+                pix.append(col)
+                continue
+            if not wet:
+                pix.append(tex.get(X, Y))
+                continue
+            nw = ((hash2(X, Y, 47) & 255) / 255.0 - 0.5) * 1.6
+            dw = gf_blend_depth(wvar, lx, ly, 1.2, 2.7, amp=0.5) if wvar else 9.0
+            pix.append((wet_tex if dw + nw > 0 else dry_tex).get(X, Y))
+    return pix
+
+
+gf_blend_depth = None
+
+
+def add_soil_quads(gf, ts, out, imgs):
+    global gf_blend_depth
+    gf_blend_depth = gf.blend_depth
+    combos = soil_combos()
+    q = [[ts.add(soil_quad_pix(c, t, w, False, imgs), (4,), 'farm.soil[%d][%d,%d]' % (c, t, w))
+          for (t, w) in combos] for c in range(4)]
+    fert = [[ts.add(soil_quad_pix(c, 0, w, True, imgs), (4,), 'farm.soil_fert[%d][%d]' % (c, w))
+             for w in (SOIL_DRY, 0, 1, 2, 3, 4)] for c in range(4)]
+    table = [[combos.index((t, w)) if (t, w) in combos else 0 for w in range(6)] for t in range(5)]
+    lines = ['/* Tilled / watered soil per 8x8 quadrant (farm.c soil_quads): */',
+             '#define FARM_SOIL_COMBOS %d' % len(combos),
+             '#define FARM_SOIL_DRY %d' % SOIL_DRY,
+             '/* [tilled variant][wet variant, or FARM_SOIL_DRY] -> column of farm_soil_q */',
+             'static const u8 farm_soil_combo[5][6] = {']
+    lines += ['    {' + ', '.join(str(v) for v in row) + '},' for row in table]
+    lines += ['};', 'static const u16 farm_soil_q[4][FARM_SOIL_COMBOS] = {']
+    lines += ['    {' + ', '.join('0x%04X' % v for v in row) + '},' for row in q]
+    lines += ['};', '/* fertilised, where every neighbour is tilled: [quadrant][dry, wet variant 0..4] */',
+              'static const u16 farm_soil_fert_q[4][6] = {']
+    lines += ['    {' + ', '.join('0x%04X' % v for v in row) + '},' for row in fert]
+    lines += ['};']
+    out.setdefault('c_extra', []).extend(lines)
 
 
 def build(gf, name):
@@ -815,6 +1053,11 @@ def build(gf, name):
         ('FARMHOUSE', farmhouse(), (5,), 'WILLOW ACRE farmhouse (red roof), door col 2 row 4'),
     ])
     gf.add_path(ts, out)
+    add_soil_quads(gf, ts, out, imgs)
+    grassy = ['GRASS', 'GRASS2', 'GRASS3', 'FLOWER_RED', 'FLOWER_YELLOW']
+    gf.add_blend(ts, out, ['SOIL', 'SOIL2', 'SOIL_RIM'], imgs['SOIL'], imgs['GRASS'], grassy, width=3.0, seed=1.3,
+                 rim_out='g_dk')
+    gf.add_blend(ts, out, ['DIRT'], imgs['DIRT'], imgs['GRASS'], grassy, width=2.5, seed=2.1)
     attrs = {'SOIL': gf.A_SOIL, 'SOIL2': gf.A_SOIL, 'ORCHARD': gf.A_SOIL,
              'BERRY_MOUND': gf.A_SOLID}
     for t in ('TILLED', 'TILLED_WET', 'TILLED_FERT', 'TILLED_WET_FERT'):
@@ -824,7 +1067,7 @@ def build(gf, name):
         ground=['GRASS', 'GRASS2', 'GRASS3', 'DIRT'], overlay=list(OVERLAYS),
         legend={'.': gf.GRASS_VARIANTS, 'r': 'FLOWER_RED', 'y': 'FLOWER_YELLOW', '=': 'PATH',
                 '~': 'WATER', 'T': 'TREE_TOP', 't': 'TREE_BOTTOM', 'x': 'DIRT',
-                's': [('SOIL2', 5), ('SOIL', 11)], 'o': 'ORCHARD', 'm': 'BERRY_MOUND',
+                's': [('SOIL2', 5), ('SOIL', 11)], 'e': 'SOIL_RIM', 'o': 'ORCHARD', 'm': 'BERRY_MOUND',
                 '-': 'FENCE_H', ']': 'FENCE_END', '|': 'FENCE_V', '{': 'FENCE_SW',
                 '}': 'FENCE_SE'},
         oob='TREE_TOP', default_ground='GRASS', backdrop='ground',

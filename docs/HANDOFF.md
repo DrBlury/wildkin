@@ -1,5 +1,14 @@
 # WILDKIN expansion: handoff
 
+> **Update (2026-09-27): ground blends and a bigger scene.** Any ground laid on another
+> (sand on grass, mud on ash...) can fade into it instead of changing at a hard 16px edge:
+> call `gf.add_blend(ts, out, inner_terrains, inner_img, outer_img, outer_terrains)` in a tileset
+> builder (see ts_grim.py, ts_farm.py); field.c `blend_quads` autotiles it per 8x8 quadrant and
+> draws edges only against the listed outer terrains (never water, paths or buildings). The VRAM
+> layout changed (gba.h): the scene now has **768 tiles** (`SCENE_TILE_MAX`, tileset + decor), the
+> UI canvas moved to 0x6000 (`UI_TILE_BASE`), screenblocks are 28-31. The map budget tests now
+> count decor kinds that do not fit (field.c used to drop them silently: PORT BRINE needed 598).
+
 > **Update (2026-09-26, later):** every area is now implemented and merged
 > into `expansion`: the 16 first-round branches plus a second round of 11
 > agents (traversal, farm + time, crafting, fusion, UI, bouts, and the east,

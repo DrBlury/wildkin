@@ -6,6 +6,7 @@
  * work board screen and the save round trip.
  */
 #include "harness.h"
+#include <stddef.h>
 
 static void to_farm(int x, int y, int facing)
 {
@@ -62,7 +63,13 @@ int main(void)
     gtime.day = 3;
     gtime.minute = 14 * 60 + 5;
     time_text(buf);
-    CHECK(str_eq(buf, "DAY 3  14:05"), "time_text reads DAY 3  14:05");
+    CHECK(str_eq(buf, "SPR 3  14:05"), "time_text reads SPR 3  14:05");
+    gtime.day = 24;
+    time_text(buf);
+    CHECK(str_eq(buf, "AUT 4  14:05") && time_season() == SEASON_AUTUMN, "day 24 is AUTUMN 4");
+    gtime.day = 41;
+    CHECK(time_season() == SEASON_SPRING && time_season_day() == 1, "after WINTER comes SPRING again");
+    gtime.day = 3;
     to_farm(19, 5, DIR_DOWN);
     u16 day_col = TILESETS[TS_FARM].palettes[0][3];
     gtime.minute = 12 * 60;
@@ -120,6 +127,7 @@ int main(void)
     CHECK(berry_ripe(50), "berry bushes are ripe again after 3 days");
 
     /* ---- plots ---- */
+    gtime.day = 1;   /* SPRING 1: radishes and glowberries are in season */
     int pi = find_plot(0);
     use_on(pi, ITEM_SEED_RADISH);
     CHECK(!farm.plots[pi].crop, "seeds need tilled soil");
@@ -174,6 +182,105 @@ int main(void)
     use_on(si, ITEM_SPRINKLER);
     new_day();
     CHECK((farm.plots[si].flags & PF_SPRINKLER) && (farm.plots[ni].flags & PF_WET), "a sprinkler waters its neighbours each morning");
+
+    /* ---- growth stages ---- */
+    gtime.day = 1;
+    int sp = find_plot(0);
+    bag[ITEM_SEED_STRAWBERRY] = 1;
+    use_on(sp, ITEM_HOE);
+    use_on(sp, ITEM_SEED_STRAWBERRY);
+    u16 crown, stages[5];
+    for (int d = 0; d < 5; d++) {
+        stages[d] = plot_overlay(&farm.plots[sp], &crown);
+        plot_water(&farm.plots[sp]);
+        new_day();
+    }
+    CHECK(stages[0] == MT_FA_SEEDED && stages[1] == MT_FA_SPROUT && stages[2] == MT_FA_STRAWBERRY_YOUNG &&
+          stages[3] == MT_FA_STRAWBERRY_GROW && plot_ripe(&farm.plots[sp]) &&
+          plot_overlay(&farm.plots[sp], &crown) == MT_FA_STRAWBERRY_RIPE,
+          "a crop shows seeded, sprout, young, growing and ripe");
+    had = bag[ITEM_CROP_STRAWBERRY];
+    use_on(sp, ITEM_HOE);
+    CHECK(bag[ITEM_CROP_STRAWBERRY] > had && farm.plots[sp].crop == CROP_STRAWBERRY + 1, "strawberries are picked and regrow");
+
+    /* ---- seasons ---- */
+    gtime.day = 8;   /* SPRING 8 */
+    int ra = find_plot(0);
+    use_on(ra, ITEM_HOE);
+    bag[ITEM_SEED_CORN] = 1;
+    use_on(ra, ITEM_SEED_CORN);
+    CHECK(!farm.plots[ra].crop && bag[ITEM_SEED_CORN] == 1, "corn seeds won't take in SPRING");
+    bag[ITEM_SEED_RADISH] = 1;
+    use_on(ra, ITEM_SEED_RADISH);
+    int tb = find_plot(0);
+    use_on(tb, ITEM_HOE);
+    bag[ITEM_SEED_TIDEBERRY] = 1;
+    use_on(tb, ITEM_SEED_TIDEBERRY);
+    CHECK(farm.plots[ra].crop == CROP_RADISH + 1 && farm.plots[tb].crop == CROP_TIDEBERRY + 1, "in-season seeds are planted");
+    int shop_has_radish = 0, shop_has_corn = 0;
+    farm_shop_open();
+    for (int i = 0; i < shop_stock_count; i++) {
+        shop_has_radish |= shop_stock[i] == ITEM_SEED_RADISH;
+        shop_has_corn |= shop_stock[i] == ITEM_SEED_CORN;
+    }
+    game_mode = MODE_FIELD;
+    CHECK(shop_has_radish && !shop_has_corn, "REEVE sells the seeds of the season");
+    gtime.day = 10;  /* the last day of SPRING */
+    new_day();
+    CHECK(time_season() == SEASON_SUMMER && plot_withered(&farm.plots[ra]) && farm.withered >= 1 &&
+          farm.plots[tb].crop == CROP_TIDEBERRY + 1, "SUMMER withers the radish; the tideberry grows on");
+    CHECK(plot_overlay(&farm.plots[ra], &crown) == MT_FA_WITHERED, "a withered crop looks withered");
+    use_on(ra, ITEM_WATERING_CAN);
+    CHECK(!plot_withered(&farm.plots[ra]) && !farm.plots[ra].crop && (farm.plots[ra].flags & PF_TILLED),
+          "any tool clears a withered plant");
+    bag[ITEM_SEED_CORN] = 1;
+    use_on(ra, ITEM_SEED_CORN);
+    CHECK(farm.plots[ra].crop == CROP_CORN + 1, "corn takes in SUMMER");
+    farm_shop_open();
+    shop_has_corn = 0;
+    for (int i = 0; i < shop_stock_count; i++) shop_has_corn |= shop_stock[i] == ITEM_SEED_CORN;
+    game_mode = MODE_FIELD;
+    CHECK(shop_has_corn, "and REEVE has corn seeds now");
+    /* fruit trees rest in winter */
+    int ti = find_plot(1);
+    bag[ITEM_SAPLING_PEACH] = 1;
+    use_on(ti, ITEM_SAPLING_PEACH);
+    farm.plots[ti].growth = (u8)crop_target(CROP_PEACH);
+    gtime.day = 31;  /* WINTER 1 */
+    for (int d = 0; d < 4; d++) new_day();
+    CHECK(farm.plots[ti].crop && !plot_ripe(&farm.plots[ti]), "fruit trees set no fruit in WINTER");
+    gtime.day = 40;  /* the last day of WINTER */
+    for (int d = 0; d < 3; d++) new_day();
+    CHECK(plot_ripe(&farm.plots[ti]), "and fruit again in SPRING");
+
+    /* ---- selling at a shop ---- */
+    bag[ITEM_CROP_MELON] = 3;
+    bag[ITEM_TONIC] = 2;
+    bag[ITEM_HOE] = 1;
+    shop_open();
+    tap(KEY_R);
+    CHECK(shop.sell && game_mode == MODE_SHOP, "R switches the shop to SELL");
+    int melon_at = -1, hoe_listed = 0;
+    for (int i = 0; i < shop.sell_n; i++) {
+        if (shop.sell_list[i] == ITEM_CROP_MELON) melon_at = i;
+        hoe_listed |= shop.sell_list[i] == ITEM_HOE;
+    }
+    CHECK(melon_at >= 0 && !hoe_listed, "the SELL list has your produce but no key items");
+    CHECK(item_sell_price(ITEM_CROP_MELON) == CROPS[CROP_MELON].value && item_sell_price(ITEM_TONIC) == ITEMS[ITEM_TONIC].price / 2,
+          "produce fetches its full worth, other goods half their price");
+    for (int i = 0; i < melon_at; i++) tap(KEY_DOWN);
+    int cash0 = money;
+    tap(KEY_A);
+    tap(KEY_UP);
+    tap(KEY_A);
+    CHECK(bag[ITEM_CROP_MELON] == 1 && money == cash0 + 2 * CROPS[CROP_MELON].value, "selling 2 melons pays for 2");
+    dialog_clear();
+    shop.state = 0;
+    tap(KEY_B);
+    CHECK(game_mode == MODE_FIELD, "B leaves the shop");
+    dialog_clear();
+    gtime.day = 12;
+    to_farm(19, 18, DIR_DOWN);
 
     /* ---- tool ring ---- */
     to_farm(19, 18, DIR_DOWN);
@@ -270,6 +377,16 @@ int main(void)
     time_reset();
     int loaded = save_load_from(sram);
     CHECK(wrote && loaded && !memcmp(&keep, &farm, sizeof(farm)) && gtime.day == 42, "farm and time survive a save");
+    /* a farm saved before the seasonal crops (a shorter blob) still loads */
+    static u8 older[sizeof(FarmState)];
+    memcpy(older, &keep, sizeof(keep));
+    farm_reset();
+    farm.great2[0] = 7;
+    int ok_old = mod_load(&farm, older, (u16)offsetof(FarmState, great2), sizeof(farm));
+    farm_reset();
+    mod_load(&farm, older, (u16)offsetof(FarmState, great2), sizeof(farm));
+    CHECK(ok_old && !memcmp(farm.plots, keep.plots, sizeof(farm.plots)) && farm.bin_value == 123 && !farm.great2[0],
+          "an older, shorter farm save keeps its plots");
     farm.version = 99;
     farm_validate();
     CHECK(!farm.owned && farm.version == FARM_VERSION, "a farm blob of another version is reset");

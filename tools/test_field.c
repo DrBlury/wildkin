@@ -88,14 +88,14 @@ static void test_maps(void)
         }
         map_load(m);
         field_load_tileset();
-        if (decor_tiles_used > 512) {
+        if (decor_tiles_wanted > SCENE_TILE_MAX) {
             budget_ok = 0;
-            printf("  %s needs %d scene tiles\n", d->name, decor_tiles_used);
+            printf("  %s needs %d scene tiles\n", d->name, decor_tiles_wanted);
         }
     }
     CHECK(rows_ok, "every map row has the declared width and fits the buffers");
     CHECK(stamps_ok && decor_ok, "stamps and decor fit their maps (and exist in the map's tileset)");
-    CHECK(budget_ok, "each map's tileset plus its decor fits the 512-tile scene charblock");
+    CHECK(budget_ok, "each map's tileset plus its decor fits the scene tiles");
 
     /* links are two-way and land on walkable cells */
     int links_ok = 1;

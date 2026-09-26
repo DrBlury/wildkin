@@ -189,6 +189,7 @@ EWRAM_BSS static u8 map_decor[MAP_MAX_W * MAP_MAX_H];  /* decor instance + 1, 0 
 static u8 map_w, map_h, map_tileset;
 static u16 decor_base[DK_COUNT];                        /* VRAM tile of each loaded kind */
 static int decor_tiles_used;                            /* first free scene tile */
+static int decor_tiles_wanted;                          /* ...had every decor kind fitted (tests) */
 
 /* ---------------- map decoding ---------------- */
 
@@ -393,6 +394,42 @@ static void autotile_quads(int v, int x, int y, u16 out[4])
     }
 }
 
+/* Whether cell (x, y) is the ground blend group b fades into: an edge is
+ * drawn only against those (grass around sand, ash around mud...), never
+ * against water, paths, buildings or other grounds. A tree counts as the
+ * ground it stands on; beyond the map there is no edge. */
+static int blend_outer_at(int b, int x, int y)
+{
+    if (x < 0 || y < 0 || x >= map_w || y >= map_h) return 0;
+    int n = map_cells[y * map_w + x];
+    if (n >= CELL_PATH) return 0;
+    const TilesetDef *t = tset();
+    if (t->mflags[n] & MTF_OVERLAY) n = map_ground[y * map_w + x];
+    return (t->blend_outer[n] >> b) & 1;
+}
+
+/* Ground blends (sand on grass, mud on ash...): the 8x8 quadrants of a
+ * blended ground cell that border its surrounding ground fade into it (see
+ * tools/gen_field_gfx.py blend_quads; two edge sets, picked per quadrant by
+ * the cell hash, keep the edge from repeating). Quadrants inside keep the
+ * cell's own tiles. */
+static void blend_quads(int v, int x, int y, u16 q[4])
+{
+    const TilesetDef *t = tset();
+    if (!t->blend_of || v >= CELL_PATH) return;
+    int b = t->blend_of[v];
+    if (!b) return;
+    b--;
+    static const s8 qdx[4] = { -1, 1, -1, 1 }, qdy[4] = { -1, -1, 1, 1 };
+    unsigned h = cell_hash(x, y);
+    for (int c = 0; c < 4; c++) {
+        int vs = !blend_outer_at(b, x, y + qdy[c]);
+        int hs = !blend_outer_at(b, x + qdx[c], y);
+        int variant = vs && hs ? (blend_outer_at(b, x + qdx[c], y + qdy[c]) ? 1 : 0) : (vs ? 2 : (hs ? 3 : 4));
+        if (variant) q[c] = t->blend_q[b][(h >> (c * 2 + 3)) & 1][c][variant];
+    }
+}
+
 /* Resolve a decor entry (local tile + 1) against the kind's VRAM block. */
 static u16 decor_entry(u16 e, int kind)
 {
@@ -425,11 +462,13 @@ static void render_cell(int mx, int my)
             mid[i] = t->meta_bottom[v][i];
             top[i] = t->meta_top[v][i];
         }
+        blend_quads(g, mx, my, bottom);
     } else {
         for (int i = 0; i < 4; i++) {
             bottom[i] = t->meta_bottom[v][i];
             top[i] = t->meta_top[v][i];
         }
+        blend_quads(v, mx, my, bottom);
     }
     int sub;
     const DecorDef *d;
@@ -537,7 +576,7 @@ static void travel_load_gfx(void);
 static void field_load_tileset(void)
 {
     copy32(VRAM_SCENE_TILES, tset()->tiles, (unsigned)tset()->tile_count * 8);
-    decor_tiles_used = tset()->tile_count;
+    decor_tiles_used = decor_tiles_wanted = tset()->tile_count;
     /* one block per decor kind this map uses (first animation frame) */
     for (int k = 0; k < DK_COUNT; k++) decor_base[k] = 0;
     const MapDef *m = &MAPS[cur_map];
@@ -545,7 +584,8 @@ static void field_load_tileset(void)
         int k = m->decor[i].kind;
         if (decor_base[k]) continue;
         const DecorDef *d = &DECOR_DEFS[map_tileset][k];
-        if (decor_tiles_used + d->tile_count > 512) continue; /* the map tests catch this */
+        decor_tiles_wanted += d->tile_count;
+        if (decor_tiles_used + d->tile_count > SCENE_TILE_MAX) continue; /* the map tests catch this */
         decor_base[k] = (u16)decor_tiles_used;
         copy32(VRAM_SCENE_TILES + decor_tiles_used * 8, decor_tiles + d->tile_first * 8,
                (unsigned)d->tile_count * 8);

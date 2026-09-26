@@ -116,6 +116,11 @@ def build(gf, name):
     out['path_q'] = [[ts.add(gf.img_pix(pq[c][v]), (0,), 'path[%d][%d]' % (c, v))
                       for v in range(5)] for c in range(4)]
 
+    grass = tf.moongrass_img(0)
+    grassy = ['GRASS', 'GRASS2', 'GRASS3', 'MOONPETAL']
+    gf.add_blend(ts, out, ['STONE', 'STONE2'], tf.moonstone_img(0), grass, grassy, width=2.5, seed=1.4)
+    gf.add_blend(ts, out, ['MOONFLOWER'], tf.moonflower_img(), grass, grassy, width=2.5, seed=2.8)
+
     S = gf.A_SOLID
     attrs = {'MOONPETAL': gf.A_GRASS, 'LIB_DUST': gf.A_GRASS, 'CLIFF': S, 'CLIFF_FACE': S,
              'LEDGE': gf.A_LEDGE, 'LEDGE_L': gf.A_LEDGE, 'LEDGE_R': gf.A_LEDGE,

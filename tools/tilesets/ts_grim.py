@@ -1180,6 +1180,10 @@ def build(gf, name):
         ('CRYPT_HALL', fit_stamp(gf, crypt_hall(gf), (6,)), (6,), 'the LANTERN CRYPT mausoleum, door col 2 row 3'),
         ('BONE_GATE', fit_stamp(gf, bone_gate(), (6,)), (6,), 'the sealed OSSUARY gate (no door: the gate warden opens it)'),
     ])
+    for (inner, width, seed) in ((['SCORCH'], 3.0, 0.5), (['MOSS'], 2.5, 1.6),
+                                 (['GRAVE_SOIL', 'GRAVE_SOIL2'], 2.5, 2.4), (['MUD', 'MUD2'], 3.0, 3.1)):
+        gf.add_blend(ts, out, inner, imgs[inner[0]], imgs['ASH'], ['ASH', 'ASH2', 'ASH3', 'ASH_GRASS'],
+                     width=width, seed=seed)
     pq = path_quads()
     out['path_q'] = [[ts.add(gf.img_pix(pq[c][v]), (0,), 'grim.path[%d][%d]' % (c, v))
                       for v in range(5)] for c in range(4)]

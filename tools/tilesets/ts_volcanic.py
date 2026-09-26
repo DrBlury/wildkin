@@ -138,6 +138,11 @@ def build(gf, name):
     out['path_q'] = [[ts.add(gf.img_pix(pq[c][v]), (0,), 'path[%d][%d]' % (c, v))
                       for v in range(5)] for c in range(4)]
 
+    ash = tf.ash_img(0)
+    ashy = ['ASH', 'ASH2', 'ASH3', 'EMBERBRUSH']
+    gf.add_blend(ts, out, ['BASALT', 'BASALT2'], tf.basalt_img(0), ash, ashy, width=2.5, seed=0.9)
+    gf.add_blend(ts, out, ['SULFUR'], tf.sulfur_img(), ash, ashy, width=3.0, seed=2.2)
+
     lava_names = list(tf.LAVA_PIECES)
     attrs = {n: gf.A_SOLID for n in lava_names}
     attrs.update({'EMBERBRUSH': gf.A_GRASS, 'EMBERMOSS': gf.A_GRASS, 'CLIFF': gf.A_SOLID,

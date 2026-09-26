@@ -78,3 +78,34 @@ walking, REEVE, work board, START clock).
 - `src/game/menu.c`: 4 lines in `start_menu_draw` (clock window).
 - Generated: `src/gfx_battle.h` (icons), `src/gfx_field.h` (decor text). No save layout change
   (FarmState 1.1 KB of the 3072 blob, TimeState 8 bytes).
+
+## Seasons, stages, selling (2026-09-27)
+
+- **Seasons** (`time.c`): SPRING, SUMMER, AUTUMN, WINTER, `SEASON_DAYS` (10) days each, derived
+  from `gtime.day` (no save change). `time_text` reads `SPR 3  14:05`.
+- **Crops**: 4 new ones appended after PEACH (STRAWBERRY, MELON, EGGPLANT, SNOWPEA), so saved
+  plot crop ids stay valid. `CropDef.seasons` (a bit per season); seeds refuse to go in out of
+  season (the toast names the seasons) and warn when they can't ripen before the season ends.
+  On the first morning of a season, out-of-season field crops wither: `crop = 0`,
+  `growth = PLOT_WITHERED`, drawn as `MT_FA_WITHERED`; any tool clears it. Fruit trees set no
+  fruit in WINTER. REEVE sells only in-season seeds (`farm_shop_open`).
+- **Stages**: seeded, sprout, `<CROP>_YOUNG` (the growing art drawn smaller by
+  `ts_farm.py young_img`), `<CROP>_GROW`, `<CROP>_RIPE`.
+- **Save**: the harvest tallies of the new crops live in `great2/perfect2/harvested2` at the end of
+  `FarmState`; `save_game.h mod_load` now accepts a shorter (older) module blob and leaves the
+  rest at its reset values, so older farms load. Only ever add module fields at the end.
+- **Selling**: every shop has a SELL tab (L/R, `menu.c item_sell_price`): farm goods pay
+  `farm_value`, other items half their price, key items can't be sold.
+- Left: seasonal wild berries, a winter look for WILLOW ACRE, quality stored on items.
+
+## Ground transitions, soil autotiling, tall crops (2026-09-27)
+
+- **Crops are never cut off**: crop art is drawn on a 16x32 canvas (`ts_farm.py TallImg`); what
+  grows above the plot becomes `<CROP>_<STAGE>_TOP`, drawn on the top layer of the cell above
+  like a tree crown (`CropDef.*_top`, `plot_overlay` *crown). Bushes are no longer clipped flat.
+- **Tilled and wet soil autotile per 8x8 quadrant** (`farm.c soil_quads`, tiles from
+  `ts_farm.py add_soil_quads`, 19 combos x 4 quadrants + fertilised ones): a tilled bed fades into
+  the untilled soil with rounded edges, wet soil joins wet neighbours seamlessly and dithers into
+  dry soil. `plot_redraw` now redraws the 3x3 around a plot.
+- **WILLOW ACRE**: the fields are ringed with `e` (SOIL_RIM: soil, not a plot) so the soil fades
+  into the grass outside the plots. Plot numbering is unchanged (saves stay valid).

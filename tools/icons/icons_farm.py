@@ -1,6 +1,6 @@
 """Bag icons owned by 'farm' (see tools/icons/__init__.py).
 
-The 14 crops, a seed packet for each of the 12 field crops (the crop drawn
+The 18 crops, a seed packet for each of the 16 field crops (the crop drawn
 small on a paper packet), the sapling, the three fertilisers, the
 sprinkler and the processed goods (jam, pickles, dried chili, dried fruit,
 toasted sun seeds). 24x24 each, top-left lighting like the core icons;
@@ -283,12 +283,102 @@ def icon_peach(g):
                       crease=True)
 
 
+def icon_strawberry(g):
+    C, W = g.C, g.WHITE
+    rp = g.ramp((152, 16, 40), (224, 48, 56), (248, 112, 104), (255, 176, 160))
+    cv = g.Canvas(24, 24)
+    for (x, y) in g.ellipse_mask(12, 13, 8.0, 8.0):
+        # a rounded heart: wide at the top, pointed at the bottom
+        dy = (y + 0.5 - 9.0) / 12.0
+        if abs(x + 0.5 - 12) > 8.0 * (1.0 - max(dy, 0.0) ** 1.4):
+            continue
+        nx, ny = (x + 0.5 - 12) / 8.0, (y + 0.5 - 12) / 9.0
+        b = g.sphere_b(nx * 0.95, ny * 0.95)
+        cv.set(x, y, rp[min(g.quant(b, (0.15, 0.5, 0.8)), 3)])
+    seed = C(255, 232, 128)
+    for (x, y) in ((9, 10), (13, 9), (16, 11), (11, 13), (15, 14), (8, 14), (12, 17), (10, 16), (14, 18)):
+        if cv.get(x, y) is not None:
+            cv.set(x, y, seed)
+    lf = _greens(g)
+    for (dx, dy) in ((-5, 0), (5, 0), (-2, -2), (2, -2), (0, -3)):
+        _leaf(g, cv, 12, 6, 12 + dx, 6 + dy, 1.2, lf)
+    g.outline(cv, C(72, 16, 32))
+    _put(cv, [(7, 9), (7, 10)], W)
+    return cv
+
+
+def icon_melon(g):
+    C, W = g.C, g.WHITE
+    rind = g.ramp((32, 96, 40), (64, 144, 56), (120, 196, 88), (176, 228, 136))
+    cv = g.Canvas(24, 24)
+    _ball(g, cv, 12, 13, 9.5, 8.5, rind)
+    for y in range(24):
+        for x in range(24):
+            v = cv.get(x, y)
+            if v is None:
+                continue
+            band = int(round((x - 12) * 0.9 + 0.3 * (y - 13) ** 2 / 9.0)) % 5
+            if band == 0:
+                cv.set(x, y, rind[0] if v != rind[3] else rind[1])
+    stem = C(96, 72, 32)
+    _put(cv, [(12, 3), (12, 4), (13, 4)], stem)
+    _leaf(g, cv, 13, 4, 19, 2, 1.6, _greens(g))
+    g.outline(cv, C(24, 56, 24))
+    _put(cv, [(6, 9), (7, 8)], W)
+    return cv
+
+
+def icon_eggplant(g):
+    C, W = g.C, g.WHITE
+    rp = g.ramp((56, 24, 88), (104, 48, 144), (160, 96, 200), (208, 160, 240))
+    cv = g.Canvas(24, 24)
+    _ball(g, cv, 11, 11, 4.5, 4.5, rp)
+    _ball(g, cv, 13.5, 16, 6.5, 6.0, rp)
+    cap = _greens(g)
+    for (dx, dy) in ((-4, 2), (3, 1), (0, 3), (-2, -1)):
+        _leaf(g, cv, 9, 6, 9 + dx, 6 + dy, 1.3, cap)
+    _put(cv, [(7, 3), (8, 4), (8, 5)], cap[0])
+    g.outline(cv, C(40, 16, 56))
+    _put(cv, [(9, 9), (10, 9), (10, 13)], W)
+    return cv
+
+
+def icon_snowpea(g):
+    C, W = g.C, g.WHITE
+    pod = g.ramp((48, 120, 56), (96, 176, 72), (160, 220, 120), (212, 244, 180))
+    pea = g.ramp((72, 152, 64), (136, 208, 96), (200, 240, 160))
+    cv = g.Canvas(24, 24)
+    for i in range(48):
+        t = i / 47
+        x = 4 + 16 * t
+        y = 16 - 9 * t + 3 * math.sin(t * math.pi)
+        w = 3.4 * math.sin(math.pi * (0.08 + 0.84 * t)) + 0.4
+        for (px, py) in g.ellipse_mask(x, y, w, w):
+            ny = (py + 0.5 - y) / max(w, 0.5)
+            cv.set(px, py, pod[3] if ny < -0.6 else pod[2] if ny < -0.1 else pod[1] if ny < 0.5 else pod[0])
+    for k, t in enumerate((0.25, 0.45, 0.65)):
+        x = 4 + 16 * t
+        y = 16 - 9 * t + 3 * math.sin(t * math.pi)
+        _ball(g, cv, x, y, 1.9, 1.9, pea)
+    stem = _greens(g)
+    _put(cv, [(20, 6), (21, 5), (21, 4), (22, 3)], stem[0])
+    g.outline(cv, C(24, 64, 32))
+    frost = C(236, 248, 255)
+    for (x, y) in ((3, 4), (7, 2), (18, 19), (21, 14)):
+        if cv.get(x, y) is None:
+            cv.set(x, y, frost)
+    _put(cv, [(6, 14)], W)
+    return cv
+
+
 CROP_ICONS = [
     ('GLOWBERRY', icon_glowberry), ('EMBERBERRY', icon_emberberry), ('TIDEBERRY', icon_tideberry),
     ('RADISH', icon_radish), ('CARROT', icon_carrot), ('POTATO', icon_potato),
     ('PUMPKIN', icon_pumpkin), ('CHILI', icon_chili), ('TOMATO', icon_tomato),
     ('CORN', icon_corn), ('SUNFLOWER', icon_sunflower), ('MOTEBLOOM', icon_motebloom),
     ('APPLE', icon_apple), ('PEACH', icon_peach),
+    ('STRAWBERRY', icon_strawberry), ('MELON', icon_melon), ('EGGPLANT', icon_eggplant),
+    ('SNOWPEA', icon_snowpea),
 ]
 
 # ---------------------------------------------------------------------------
@@ -363,6 +453,8 @@ PACKET_BANDS = {
     'RADISH': (216, 56, 104), 'CARROT': (240, 128, 32), 'POTATO': (176, 128, 72),
     'PUMPKIN': (232, 120, 32), 'CHILI': (216, 40, 40), 'TOMATO': (224, 56, 40),
     'CORN': (248, 200, 48), 'SUNFLOWER': (248, 200, 40), 'MOTEBLOOM': (176, 112, 232),
+    'STRAWBERRY': (224, 48, 72), 'MELON': (64, 152, 64), 'EGGPLANT': (120, 64, 176),
+    'SNOWPEA': (144, 208, 232),
 }
 
 
@@ -551,7 +643,9 @@ def icons(g):
     for (name, fn) in CROP_ICONS:
         crops[name] = fn(g)
         out.append(('CROP_' + name, crops[name]))
-    for (name, _) in CROP_ICONS[:12]:
+    for (name, _) in CROP_ICONS:
+        if name in ('APPLE', 'PEACH'):
+            continue
         out.append(('SEED_' + name, icon_packet(g, crops[name], PACKET_BANDS[name])))
     out += [
         ('SAPLING', icon_sapling(g)),

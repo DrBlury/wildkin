@@ -861,6 +861,8 @@ def build(gf, name):
     sq = street_quads(gf, Img, hash2)
     out['path_q'] = [[ts.add(gf.img_pix(sq[c][v]), (1,), 'street[%d][%d]' % (c, v))
                       for v in range(5)] for c in range(4)]
+    gf.add_blend(ts, out, ['GRASS', 'GRASS2', 'GRASS3'], imgs['GRASS'][0], imgs['PAVE'][0], ['PAVE', 'PAVE2'],
+                 width=2.0, seed=1.1)
     res = gf.finish_tileset(
         out, name, 'CY',
         attrs={'TALLGRASS': gf.A_GRASS, 'WALL_TOP': gf.A_SOLID, 'WALL': gf.A_SOLID},

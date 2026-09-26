@@ -90,7 +90,7 @@ static void test_start_menu(void)
     gtime.day = 3;
     gtime.minute = 14 * 60 + 5;
     time_text(buf);
-    CHECK(!strcmp(buf, "DAY 3  14:05"), "the clock reads DAY 3  14:05");
+    CHECK(!strcmp(buf, "SPR 3  14:05"), "the clock reads SPR 3  14:05");
     open_start();
     CHECK(game_mode == MODE_START_MENU, "START opens the menu");
     CHECK(menu_index(SM_QUESTS) >= 0 && menu_index(SM_MAP) < 0 && menu_index(SM_FIELD) < 0,

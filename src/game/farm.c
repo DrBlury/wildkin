@@ -13,10 +13,17 @@
  *
  * Growth. When a day starts (time.c, 06:00 or sleeping), a watered plot
  * grows GROW_PER_DAY units (+1 with FERTILIZER); a crop is ripe after
- * CropDef.days days of growth. Trees grow every day, watered or not.
+ * CropDef.days days of growth, and shows five stages on the way (seeded,
+ * sprout, young, growing, ripe). Trees grow every day, watered or not.
  * Then the plots dry, and rain, sprinklers, GROW MULCH and WATER workers
  * wet them again for the new day. Regrowing crops and fruit trees give
  * again after CropDef.regrow days.
+ *
+ * Seasons (time.c). Every field crop has the seasons it grows in
+ * (CropDef.seasons): seeds only take in season, REEVE only sells seeds
+ * for the season, and when a season ends the crops that don't belong to
+ * the new one wither (any tool clears them). Fruit trees grow all year
+ * but bear no fruit in WINTER.
  *
  * On the farm, L/R turn the tool ring (HOE, CAN, seeds, fertilisers,
  * sprinkler) and A uses the tool on the plot you face; ripe crops are
@@ -45,43 +52,79 @@
 enum {
     CROP_GLOWBERRY, CROP_EMBERBERRY, CROP_TIDEBERRY, CROP_RADISH, CROP_CARROT, CROP_POTATO,
     CROP_PUMPKIN, CROP_CHILI, CROP_TOMATO, CROP_CORN, CROP_SUNFLOWER, CROP_MOTEBLOOM,
-    CROP_APPLE, CROP_PEACH, CROP_COUNT
+    CROP_APPLE, CROP_PEACH,
+    CROP_STRAWBERRY, CROP_MELON, CROP_EGGPLANT, CROP_SNOWPEA, CROP_COUNT
 };
-#define CROP_FIELD_COUNT 12
+#define CROP_COUNT_V1 (CROP_PEACH + 1)   /* the crops of the first farm saves */
 #define GROW_PER_DAY 4
+
+/* CropDef.seasons: a bit per SEASON_* (time.c). */
+#define SPR (1 << SEASON_SPRING)
+#define SUM (1 << SEASON_SUMMER)
+#define AUT (1 << SEASON_AUTUMN)
+#define WIN (1 << SEASON_WINTER)
+#define ALL_YEAR 15
 
 typedef struct {
     u8 days;        /* days of growth to ripen (trees: to grow up) */
     u8 regrow;      /* days to give again after a harvest, 0 = one harvest */
     u8 yield;       /* picked per harvest (before quality) */
-    u16 value;      /* coins each in the shipping bin */
-    u16 grow_mt, ripe_mt;
+    u8 seasons;     /* SPR | SUM | AUT | WIN: when it grows */
+    u16 value;      /* coins each in the shipping bin (and at any shop) */
+    u16 young_mt, grow_mt, ripe_mt;
+    u16 young_top, grow_top, ripe_top;   /* what grows into the cell above (0: trees) */
 } CropDef;
 
 static const CropDef CROPS[CROP_COUNT] = {
-    [CROP_GLOWBERRY]  = { 3, 2, 3, 35, MT_FA_GLOWBERRY_GROW, MT_FA_GLOWBERRY_RIPE },
-    [CROP_EMBERBERRY] = { 4, 2, 3, 45, MT_FA_EMBERBERRY_GROW, MT_FA_EMBERBERRY_RIPE },
-    [CROP_TIDEBERRY]  = { 4, 2, 3, 45, MT_FA_TIDEBERRY_GROW, MT_FA_TIDEBERRY_RIPE },
-    [CROP_RADISH]     = { 2, 0, 1, 45, MT_FA_RADISH_GROW, MT_FA_RADISH_RIPE },
-    [CROP_CARROT]     = { 3, 0, 1, 70, MT_FA_CARROT_GROW, MT_FA_CARROT_RIPE },
-    [CROP_POTATO]     = { 4, 0, 2, 50, MT_FA_POTATO_GROW, MT_FA_POTATO_RIPE },
-    [CROP_PUMPKIN]    = { 7, 0, 1, 340, MT_FA_PUMPKIN_GROW, MT_FA_PUMPKIN_RIPE },
-    [CROP_CHILI]      = { 4, 2, 3, 30, MT_FA_CHILI_GROW, MT_FA_CHILI_RIPE },
-    [CROP_TOMATO]     = { 5, 2, 2, 45, MT_FA_TOMATO_GROW, MT_FA_TOMATO_RIPE },
-    [CROP_CORN]       = { 6, 3, 1, 90, MT_FA_CORN_GROW, MT_FA_CORN_RIPE },
-    [CROP_SUNFLOWER]  = { 5, 0, 1, 150, MT_FA_SUNFLOWER_GROW, MT_FA_SUNFLOWER_RIPE },
-    [CROP_MOTEBLOOM]  = { 8, 0, 1, 900, MT_FA_MOTEBLOOM_GROW, MT_FA_MOTEBLOOM_RIPE },
-    [CROP_APPLE]      = { 12, 3, 3, 90, MT_FA_FRUIT_BOTTOM, MT_FA_APPLE_BOTTOM },
-    [CROP_PEACH]      = { 12, 3, 3, 110, MT_FA_FRUIT_BOTTOM, MT_FA_PEACH_BOTTOM },
+    [CROP_GLOWBERRY]  = { 3, 2, 3, SPR | WIN, 35, MT_FA_GLOWBERRY_YOUNG, MT_FA_GLOWBERRY_GROW, MT_FA_GLOWBERRY_RIPE, MT_FA_GLOWBERRY_YOUNG_TOP, MT_FA_GLOWBERRY_GROW_TOP, MT_FA_GLOWBERRY_RIPE_TOP },
+    [CROP_EMBERBERRY] = { 4, 2, 3, SUM | AUT, 45, MT_FA_EMBERBERRY_YOUNG, MT_FA_EMBERBERRY_GROW, MT_FA_EMBERBERRY_RIPE, MT_FA_EMBERBERRY_YOUNG_TOP, MT_FA_EMBERBERRY_GROW_TOP, MT_FA_EMBERBERRY_RIPE_TOP },
+    [CROP_TIDEBERRY]  = { 4, 2, 3, SPR | SUM, 45, MT_FA_TIDEBERRY_YOUNG, MT_FA_TIDEBERRY_GROW, MT_FA_TIDEBERRY_RIPE, MT_FA_TIDEBERRY_YOUNG_TOP, MT_FA_TIDEBERRY_GROW_TOP, MT_FA_TIDEBERRY_RIPE_TOP },
+    [CROP_RADISH]     = { 2, 0, 1, SPR | AUT | WIN, 45, MT_FA_RADISH_YOUNG, MT_FA_RADISH_GROW, MT_FA_RADISH_RIPE, MT_FA_RADISH_YOUNG_TOP, MT_FA_RADISH_GROW_TOP, MT_FA_RADISH_RIPE_TOP },
+    [CROP_CARROT]     = { 3, 0, 1, SPR | AUT, 70, MT_FA_CARROT_YOUNG, MT_FA_CARROT_GROW, MT_FA_CARROT_RIPE, MT_FA_CARROT_YOUNG_TOP, MT_FA_CARROT_GROW_TOP, MT_FA_CARROT_RIPE_TOP },
+    [CROP_POTATO]     = { 4, 0, 2, SPR | AUT, 50, MT_FA_POTATO_YOUNG, MT_FA_POTATO_GROW, MT_FA_POTATO_RIPE, MT_FA_POTATO_YOUNG_TOP, MT_FA_POTATO_GROW_TOP, MT_FA_POTATO_RIPE_TOP },
+    [CROP_PUMPKIN]    = { 7, 0, 1, AUT, 340, MT_FA_PUMPKIN_YOUNG, MT_FA_PUMPKIN_GROW, MT_FA_PUMPKIN_RIPE, MT_FA_PUMPKIN_YOUNG_TOP, MT_FA_PUMPKIN_GROW_TOP, MT_FA_PUMPKIN_RIPE_TOP },
+    [CROP_CHILI]      = { 4, 2, 3, SUM, 30, MT_FA_CHILI_YOUNG, MT_FA_CHILI_GROW, MT_FA_CHILI_RIPE, MT_FA_CHILI_YOUNG_TOP, MT_FA_CHILI_GROW_TOP, MT_FA_CHILI_RIPE_TOP },
+    [CROP_TOMATO]     = { 5, 2, 2, SUM, 45, MT_FA_TOMATO_YOUNG, MT_FA_TOMATO_GROW, MT_FA_TOMATO_RIPE, MT_FA_TOMATO_YOUNG_TOP, MT_FA_TOMATO_GROW_TOP, MT_FA_TOMATO_RIPE_TOP },
+    [CROP_CORN]       = { 6, 3, 1, SUM | AUT, 90, MT_FA_CORN_YOUNG, MT_FA_CORN_GROW, MT_FA_CORN_RIPE, MT_FA_CORN_YOUNG_TOP, MT_FA_CORN_GROW_TOP, MT_FA_CORN_RIPE_TOP },
+    [CROP_SUNFLOWER]  = { 5, 0, 1, SUM | AUT, 150, MT_FA_SUNFLOWER_YOUNG, MT_FA_SUNFLOWER_GROW, MT_FA_SUNFLOWER_RIPE, MT_FA_SUNFLOWER_YOUNG_TOP, MT_FA_SUNFLOWER_GROW_TOP, MT_FA_SUNFLOWER_RIPE_TOP },
+    [CROP_MOTEBLOOM]  = { 8, 0, 1, WIN, 900, MT_FA_MOTEBLOOM_YOUNG, MT_FA_MOTEBLOOM_GROW, MT_FA_MOTEBLOOM_RIPE, MT_FA_MOTEBLOOM_YOUNG_TOP, MT_FA_MOTEBLOOM_GROW_TOP, MT_FA_MOTEBLOOM_RIPE_TOP },
+    [CROP_APPLE]      = { 12, 3, 3, ALL_YEAR, 90, MT_FA_SAPLING, MT_FA_FRUIT_BOTTOM, MT_FA_APPLE_BOTTOM },
+    [CROP_PEACH]      = { 12, 3, 3, ALL_YEAR, 110, MT_FA_SAPLING, MT_FA_FRUIT_BOTTOM, MT_FA_PEACH_BOTTOM },
+    [CROP_STRAWBERRY] = { 5, 3, 2, SPR, 60, MT_FA_STRAWBERRY_YOUNG, MT_FA_STRAWBERRY_GROW, MT_FA_STRAWBERRY_RIPE, MT_FA_STRAWBERRY_YOUNG_TOP, MT_FA_STRAWBERRY_GROW_TOP, MT_FA_STRAWBERRY_RIPE_TOP },
+    [CROP_MELON]      = { 8, 0, 1, SUM, 480, MT_FA_MELON_YOUNG, MT_FA_MELON_GROW, MT_FA_MELON_RIPE, MT_FA_MELON_YOUNG_TOP, MT_FA_MELON_GROW_TOP, MT_FA_MELON_RIPE_TOP },
+    [CROP_EGGPLANT]   = { 5, 3, 1, AUT, 70, MT_FA_EGGPLANT_YOUNG, MT_FA_EGGPLANT_GROW, MT_FA_EGGPLANT_RIPE, MT_FA_EGGPLANT_YOUNG_TOP, MT_FA_EGGPLANT_GROW_TOP, MT_FA_EGGPLANT_RIPE_TOP },
+    [CROP_SNOWPEA]    = { 4, 2, 2, WIN, 40, MT_FA_SNOWPEA_YOUNG, MT_FA_SNOWPEA_GROW, MT_FA_SNOWPEA_RIPE, MT_FA_SNOWPEA_YOUNG_TOP, MT_FA_SNOWPEA_GROW_TOP, MT_FA_SNOWPEA_RIPE_TOP },
 };
+#undef SPR
+#undef SUM
+#undef AUT
+#undef WIN
 
 /* The item ids run in crop order (items/farm_ids.inc). */
 typedef char FarmSeedIds[ITEM_SEED_MOTEBLOOM - ITEM_SEED_GLOWBERRY == 11 &&
-                         ITEM_SAPLING_PEACH - ITEM_SEED_GLOWBERRY == 13 ? 1 : -1];
-typedef char FarmCropIds[ITEM_CROP_PEACH - ITEM_CROP_GLOWBERRY == 13 ? 1 : -1];
+                         ITEM_SAPLING_PEACH - ITEM_SEED_GLOWBERRY == 13 &&
+                         ITEM_SEED_SNOWPEA - ITEM_SEED_GLOWBERRY == CROP_SNOWPEA ? 1 : -1];
+typedef char FarmCropIds[ITEM_CROP_PEACH - ITEM_CROP_GLOWBERRY == 13 &&
+                         ITEM_CROP_SNOWPEA - ITEM_CROP_GLOWBERRY == CROP_SNOWPEA ? 1 : -1];
 
-static int crop_is_tree(int c) { return c >= CROP_APPLE; }
+static int crop_is_tree(int c) { return c == CROP_APPLE || c == CROP_PEACH; }
 static int crop_item(int c) { return ITEM_CROP_GLOWBERRY + c; }
+static int crop_in_season(int c, int season) { return (CROPS[c].seasons >> season) & 1; }
+
+/* "SPRING, AUTUMN" (buf: at least 32 chars). */
+static void crop_seasons_text(int c, char *buf)
+{
+    buf[0] = 0;
+    if (CROPS[c].seasons == ALL_YEAR) {
+        str_copy(buf, "ALL YEAR");
+        return;
+    }
+    for (int k = 0; k < SEASON_COUNT; k++)
+        if (crop_in_season(c, k)) {
+            if (buf[0]) str_put(buf, ", ");
+            str_put(buf, SEASON_NAMES[k]);
+        }
+}
 static int crop_target(int c) { return CROPS[c].days * GROW_PER_DAY; }
 /* Growth at which the crop can be picked (trees: grown up plus one fruiting). */
 static int crop_ripe_at(int c) { return crop_target(c) + (crop_is_tree(c) ? CROPS[c].regrow * GROW_PER_DAY : 0); }
@@ -114,7 +157,7 @@ static const ProcRecipe PROC_RECIPES[] = {
 /* Coins each in the shipping bin (0 = the bin won't take it). */
 static int farm_value(int item)
 {
-    if (item >= ITEM_CROP_GLOWBERRY && item <= ITEM_CROP_PEACH) return CROPS[item - ITEM_CROP_GLOWBERRY].value;
+    if (item >= ITEM_CROP_GLOWBERRY && item < ITEM_CROP_GLOWBERRY + CROP_COUNT) return CROPS[item - ITEM_CROP_GLOWBERRY].value;
     switch (item) {
     case ITEM_FRUIT_JAM: return 150;
     case ITEM_PICKLES: return 130;
@@ -125,14 +168,28 @@ static int farm_value(int item)
     }
 }
 
-/* What REEVE sells once you own the farm (shop_open_stock). */
+/* What REEVE sells once you own the farm: the seeds of this season (in
+ * this order), then saplings and supplies (farm_shop_open). */
 static const u8 FARM_SHOP_STOCK[] = {
-    ITEM_SEED_RADISH, ITEM_SEED_CARROT, ITEM_SEED_POTATO, ITEM_SEED_GLOWBERRY, ITEM_SEED_EMBERBERRY,
-    ITEM_SEED_TIDEBERRY, ITEM_SEED_CHILI, ITEM_SEED_TOMATO, ITEM_SEED_CORN, ITEM_SEED_SUNFLOWER,
-    ITEM_SEED_PUMPKIN, ITEM_SEED_MOTEBLOOM, ITEM_SAPLING_APPLE, ITEM_SAPLING_PEACH,
+    ITEM_SEED_RADISH, ITEM_SEED_CARROT, ITEM_SEED_POTATO, ITEM_SEED_STRAWBERRY, ITEM_SEED_GLOWBERRY,
+    ITEM_SEED_EMBERBERRY, ITEM_SEED_TIDEBERRY, ITEM_SEED_CHILI, ITEM_SEED_TOMATO, ITEM_SEED_CORN,
+    ITEM_SEED_SUNFLOWER, ITEM_SEED_MELON, ITEM_SEED_PUMPKIN, ITEM_SEED_EGGPLANT, ITEM_SEED_SNOWPEA,
+    ITEM_SEED_MOTEBLOOM, ITEM_SAPLING_APPLE, ITEM_SAPLING_PEACH,
     ITEM_FERTILIZER, ITEM_RICH_COMPOST, ITEM_GROW_MULCH, ITEM_SPRINKLER,
 };
 #define FARM_SHOP_STOCK_COUNT ((int)sizeof(FARM_SHOP_STOCK))
+static u8 farm_shop_today[FARM_SHOP_STOCK_COUNT];
+
+static void farm_shop_open(void)
+{
+    int n = 0;
+    for (int i = 0; i < FARM_SHOP_STOCK_COUNT; i++) {
+        int it = FARM_SHOP_STOCK[i];
+        if (ITEMS[it].kind == IK_PLANT && !crop_in_season(ITEMS[it].param, time_season())) continue;
+        farm_shop_today[n++] = (u8)it;
+    }
+    shop_open_stock(farm_shop_today, n);
+}
 
 /* ================================================================ */
 /*  Kin workers                                                     */
@@ -202,6 +259,7 @@ enum {
 };
 
 typedef struct { u8 crop, growth, flags, care; } FarmPlot;  /* crop: CROP_* + 1, 0 = empty */
+#define PLOT_WITHERED 255   /* growth of an empty plot with a withered crop on it */
 typedef struct { u8 growth, picks; } BerryPatch;
 typedef struct { u8 job, species, level, days; u32 pot; } FarmWorker;  /* found on the Shelf by species + pot */
 typedef struct { u8 recipe, batches; u16 ready_day; } FarmProc;        /* recipe: PROC_RECIPES index + 1 */
@@ -218,8 +276,19 @@ typedef struct {
     FarmWorker workers[FARM_WORKERS];
     FarmProc procs[PROC_COUNT];
     FarmChestSlot chest[FARM_CHEST];
-    u16 great[CROP_COUNT], perfect[CROP_COUNT], harvested[CROP_COUNT];
+    u16 great[CROP_COUNT_V1], perfect[CROP_COUNT_V1], harvested[CROP_COUNT_V1];
+    /* added later: older saves are shorter and load these as zero */
+    u16 great2[CROP_COUNT - CROP_COUNT_V1], perfect2[CROP_COUNT - CROP_COUNT_V1],
+        harvested2[CROP_COUNT - CROP_COUNT_V1];
+    u8 withered;                /* crops lost at the last change of season */
+    u8 pad3[3];
 } FarmState;
+
+/* A crop's tally (great, perfect or harvested), wherever it is kept. */
+static u16 *crop_tally(u16 *v1, u16 *later, int c)
+{
+    return c < CROP_COUNT_V1 ? &v1[c] : &later[c - CROP_COUNT_V1];
+}
 
 static FarmState farm;
 
@@ -247,7 +316,7 @@ static void farm_validate(void)
         FarmPlot *p = &farm.plots[i];
         if (p->crop > CROP_COUNT) p->crop = 0;
         if (p->crop && p->growth > crop_ripe_at(p->crop - 1)) p->growth = (u8)crop_ripe_at(p->crop - 1);
-        if (!p->crop) p->growth = 0;
+        if (!p->crop && p->growth != PLOT_WITHERED) p->growth = 0;
         if (p->crop && (p->flags & PF_SPRINKLER)) p->flags &= (u8)~PF_SPRINKLER;
     }
     for (int i = 0; i < FARM_BERRIES; i++)
@@ -310,6 +379,11 @@ static int farm_plot_at(int x, int y)
 static int plot_ripe(const FarmPlot *p)
 {
     return p->crop && p->growth >= crop_ripe_at(p->crop - 1);
+}
+
+static int plot_withered(const FarmPlot *p)
+{
+    return !p->crop && p->growth == PLOT_WITHERED;
 }
 
 /* A tree tall enough to be solid and wear a crown. */
@@ -406,6 +480,7 @@ static u16 plot_overlay(const FarmPlot *p, u16 *crown)
 {
     *crown = 0;
     if (p->flags & PF_SPRINKLER) return MT_FA_SPRINKLER;
+    if (plot_withered(p)) return MT_FA_WITHERED;
     if (!p->crop) return 0;
     int c = p->crop - 1, g = p->growth, target = crop_target(c);
     if (crop_is_tree(c)) {
@@ -421,10 +496,47 @@ static u16 plot_overlay(const FarmPlot *p, u16 *crown)
         *crown = c == CROP_APPLE ? MT_FA_APPLE_TOP : MT_FA_PEACH_TOP;
         return CROPS[c].ripe_mt;
     }
-    if (g >= target) return CROPS[c].ripe_mt;
-    if (p->flags & PF_REGROWN) return CROPS[c].grow_mt;
-    int f = g * 8 / target;
-    return f < 2 ? MT_FA_SEEDED : f < 4 ? MT_FA_SPROUT : CROPS[c].grow_mt;
+    /* tall plants reach into the cell above (*crown, like a tree's) */
+    if (g >= target) {
+        *crown = CROPS[c].ripe_top;
+        return CROPS[c].ripe_mt;
+    }
+    /* seeded, then sprout, young and growing, a quarter of the way each */
+    int f = (p->flags & PF_REGROWN) ? 3 : (g * 4 + target - 1) / target;
+    if (f < 1) return MT_FA_SEEDED;
+    if (f < 2) return MT_FA_SPROUT;
+    *crown = f < 3 ? CROPS[c].young_top : CROPS[c].grow_top;
+    return f < 3 ? CROPS[c].young_mt : CROPS[c].grow_mt;
+}
+
+/* 1 = tilled, 2 = tilled and watered, 0 = anything else (field plots). */
+static int soil_state(int x, int y)
+{
+    int pi = farm_plot_at(x, y);
+    if (pi < 0 || plot_orchard[pi] || !(farm.plots[pi].flags & PF_TILLED)) return 0;
+    return (farm.plots[pi].flags & PF_WET) ? 2 : 1;
+}
+
+static int soil_variant(int h, int v, int d)
+{
+    return h && v ? (d ? 0 : 1) : (v ? 2 : (h ? 3 : 4));
+}
+
+/* Tilled soil fades into the untilled soil around it, and watered soil
+ * into dry tilled soil, per 8x8 quadrant (like paths; the tiles come from
+ * tools/tilesets/ts_farm.py add_soil_quads): neighbouring tilled or wet
+ * plots join up without a seam. */
+static void soil_quads(int mx, int my, int wet, int fert, u16 bottom[4])
+{
+    static const s8 qdx[4] = { -1, 1, -1, 1 }, qdy[4] = { -1, -1, 1, 1 };
+    for (int c = 0; c < 4; c++) {
+        int h = soil_state(mx + qdx[c], my), v = soil_state(mx, my + qdy[c]);
+        int d = soil_state(mx + qdx[c], my + qdy[c]);
+        int tv = soil_variant(h > 0, v > 0, d > 0);
+        int wv = wet ? soil_variant(h == 2, v == 2, d == 2) : FARM_SOIL_DRY;
+        if (fert && !tv) bottom[c] = farm_soil_fert_q[c][wet ? 1 + wv : 0];
+        else bottom[c] = farm_soil_q[c][farm_soil_combo[tv][wv]];
+    }
 }
 
 static int farm_dyn_cell(int mx, int my, u16 bottom[4], u16 mid[4], u16 top[4])
@@ -435,11 +547,8 @@ static int farm_dyn_cell(int mx, int my, u16 bottom[4], u16 mid[4], u16 top[4])
     int pi = farm_plot_at(mx, my);
     if (pi >= 0) {
         const FarmPlot *p = &farm.plots[pi];
-        if (!plot_orchard[pi] && (p->flags & PF_TILLED)) {
-            int wet = (p->flags & PF_WET) != 0, fert = (p->flags & (PF_FERT | PF_COMPOST | PF_MULCH)) != 0;
-            u16 mt = wet ? (fert ? MT_FA_TILLED_WET_FERT : MT_FA_TILLED_WET) : (fert ? MT_FA_TILLED_FERT : MT_FA_TILLED);
-            for (int i = 0; i < 4; i++) bottom[i] = t->meta_bottom[mt][i];
-        }
+        if (!plot_orchard[pi] && (p->flags & PF_TILLED))
+            soil_quads(mx, my, (p->flags & PF_WET) != 0, (p->flags & (PF_FERT | PF_COMPOST | PF_MULCH)) != 0, bottom);
         u16 crown, ov = plot_overlay(p, &crown);
         if (ov) meta_over(ov, mid, top);
         done = 1;
@@ -483,10 +592,12 @@ static int farm_cell_attr(int x, int y, int a)
     return a;
 }
 
+/* A plot changed: it, the crown it grows into above, and the neighbours
+ * whose soil edges join it. */
 static void plot_redraw(int pi)
 {
-    field_redraw_cell(plot_x[pi], plot_y[pi]);
-    field_redraw_cell(plot_x[pi], plot_y[pi] - 1);
+    for (int dy = -1; dy <= 1; dy++)
+        for (int dx = -1; dx <= 1; dx++) field_redraw_cell(plot_x[pi] + dx, plot_y[pi] + dy);
 }
 
 /* ================================================================ */
@@ -653,9 +764,12 @@ static int plot_harvest(int pi, int *q)
     int n = CROPS[c].yield + quality;
     if (q) *q = quality;
     bag_add(crop_item(c), n);
-    if (farm.harvested[c] < 65535) farm.harvested[c]++;
-    if (quality == 1 && farm.great[c] < 65535) farm.great[c]++;
-    if (quality == 2 && farm.perfect[c] < 65535) farm.perfect[c]++;
+    u16 *h = crop_tally(farm.harvested, farm.harvested2, c);
+    u16 *g = crop_tally(farm.great, farm.great2, c);
+    u16 *pf = crop_tally(farm.perfect, farm.perfect2, c);
+    if (*h < 65535) (*h)++;
+    if (quality == 1 && *g < 65535) (*g)++;
+    if (quality == 2 && *pf < 65535) (*pf)++;
     if (CROPS[c].regrow) {
         p->growth = (u8)(crop_ripe_at(c) - CROPS[c].regrow * GROW_PER_DAY);
         p->flags |= PF_REGROWN;
@@ -765,6 +879,33 @@ static void workers_work(int *guarded)
     if (left) report_add("A farmhand left the Shelf, so its job is open.");
 }
 
+/* A season began: the crops that don't grow in it wither. */
+static void farm_new_season(char *s)
+{
+    int season = time_season(), lost = 0;
+    for (int i = 0; i < FARM_PLOTS; i++) {
+        FarmPlot *p = &farm.plots[i];
+        if (!p->crop || crop_is_tree(p->crop - 1) || crop_in_season(p->crop - 1, season)) continue;
+        p->crop = 0;
+        p->growth = PLOT_WITHERED;
+        p->care = 0;
+        p->flags &= (u8)~(PF_FERT | PF_COMPOST | PF_MULCH | PF_WET2 | PF_REGROWN);
+        lost++;
+    }
+    farm.withered = (u8)clampi(lost, 0, 255);
+    str_copy(s, SEASON_NAMES[season]);
+    str_put(s, " is here!");
+    report_add(s);
+    if (lost) {
+        str_copy(s, "");
+        str_put_int(s, lost);
+        str_put(s, lost > 1 ? " crops withered: they don't grow in " : " crop withered: it doesn't grow in ");
+        str_put(s, SEASON_NAMES[season]);
+        str_put(s, ".");
+        report_add(s);
+    }
+}
+
 /* A new day began (time.c): growth, weather, workers, the bin. */
 static void farm_new_day(void)
 {
@@ -788,7 +929,10 @@ static void farm_new_day(void)
             int wet = (p->flags & PF_WET) != 0;
             if (wet || crop_is_tree(c)) {
                 int g = p->growth + GROW_PER_DAY + ((p->flags & PF_FERT) ? 1 : 0);
-                p->growth = (u8)clampi(g, 0, crop_ripe_at(c));
+                int top = crop_ripe_at(c);
+                /* fruit trees rest in winter: they grow, but set no fruit */
+                if (crop_is_tree(c) && time_season() == SEASON_WINTER && p->growth <= crop_target(c)) top = crop_target(c);
+                p->growth = (u8)clampi(g, 0, top);
             }
         }
         if (p->flags & PF_WET2) p->flags &= (u8)~PF_WET2;   /* mulch kept it damp one more day */
@@ -800,6 +944,7 @@ static void farm_new_day(void)
         b->growth = (u8)clampi(b->growth + GROW_PER_DAY, 0, BERRY_RIPE);
     }
     if (!farm.owned) return;
+    if (time_season_day() == 1 && gtime.day > 1) farm_new_season(s);
     /* rain and sprinklers water the new day */
     if (gtime.weather == WEATHER_RAIN) {
         for (int i = 0; i < FARM_PLOTS; i++) plot_water(&farm.plots[i]);
@@ -849,8 +994,10 @@ static void farm_new_day(void)
     if (cur_map == MAP_WILLOW_ACRE) ring_invalidate();
     if (day_report[0]) {
         char msg[MSG_TEXT_MAX];
-        str_copy(msg, "WILLOW ACRE, DAY ");
-        str_put_int(msg, gtime.day);
+        str_copy(msg, "WILLOW ACRE, ");
+        str_put(msg, SEASON_NAMES[time_season()]);
+        str_put(msg, " ");
+        str_put_int(msg, time_season_day());
         str_put(msg, ": ");
         if (str_len(msg) + str_len(day_report) < sizeof(msg)) str_put(msg, day_report);
         dlg_say(msg);
@@ -865,9 +1012,10 @@ static void farm_new_day(void)
 #define TOOL_CAN (-2)
 static const s16 FARM_TOOLS[] = {
     TOOL_HOE, TOOL_CAN,
-    ITEM_SEED_RADISH, ITEM_SEED_CARROT, ITEM_SEED_POTATO, ITEM_SEED_GLOWBERRY, ITEM_SEED_EMBERBERRY,
-    ITEM_SEED_TIDEBERRY, ITEM_SEED_CHILI, ITEM_SEED_TOMATO, ITEM_SEED_CORN, ITEM_SEED_SUNFLOWER,
-    ITEM_SEED_PUMPKIN, ITEM_SEED_MOTEBLOOM, ITEM_SAPLING_APPLE, ITEM_SAPLING_PEACH,
+    ITEM_SEED_RADISH, ITEM_SEED_CARROT, ITEM_SEED_POTATO, ITEM_SEED_STRAWBERRY, ITEM_SEED_GLOWBERRY,
+    ITEM_SEED_EMBERBERRY, ITEM_SEED_TIDEBERRY, ITEM_SEED_CHILI, ITEM_SEED_TOMATO, ITEM_SEED_CORN,
+    ITEM_SEED_SUNFLOWER, ITEM_SEED_MELON, ITEM_SEED_PUMPKIN, ITEM_SEED_EGGPLANT, ITEM_SEED_SNOWPEA,
+    ITEM_SEED_MOTEBLOOM, ITEM_SAPLING_APPLE, ITEM_SAPLING_PEACH,
     ITEM_FERTILIZER, ITEM_RICH_COMPOST, ITEM_GROW_MULCH, ITEM_SPRINKLER,
 };
 #define FARM_TOOL_COUNT ((int)(sizeof(FARM_TOOLS) / sizeof(FARM_TOOLS[0])))
@@ -997,6 +1145,12 @@ static int farm_use_on_plot(int pi)
         dlg_ask("A SPRINKLER. Pick it up?", YES_NO, 2, sprinkler_answer);
         return 1;
     }
+    if (plot_withered(p)) {
+        p->growth = 0;
+        tool_done(FXT_CLOD, x, y, SFX_RUSTLE, "You clear the withered plant.");
+        plot_redraw(pi);
+        return 1;
+    }
     int t = tool_current();
     if (t < 0) {
         tool_fail("You have no farm tools.");
@@ -1026,14 +1180,26 @@ static int farm_use_on_plot(int pi)
         else if (crop_is_tree(c) && !plot_orchard[pi]) tool_fail("Saplings go in the orchard mounds.");
         else if (!crop_is_tree(c) && plot_orchard[pi]) tool_fail("The mounds are for fruit trees.");
         else if (!crop_is_tree(c) && !(p->flags & PF_TILLED)) tool_fail("Till the soil with the HOE first.");
-        else {
+        else if (!crop_in_season(c, time_season())) {
+            char when[32];
+            crop_seasons_text(c, when);
+            str_copy(msg, "Grows in ");
+            str_put(msg, when);
+            str_put(msg, " only.");
+            tool_fail(msg);
+        } else {
+            /* a crop that can't ripen before its season ends: say so */
+            int next = (time_season() + 1) % SEASON_COUNT;
+            int left = SEASON_DAYS - time_season_day() + 1;
+            const char *warn = !crop_is_tree(c) && !crop_in_season(c, next) && CROPS[c].days >= left
+                               ? "It won't ripen before the season ends!" : 0;
             p->crop = (u8)(c + 1);
             p->growth = 0;
             p->care = 0;
             p->flags &= (u8)~PF_REGROWN;
             if (crop_is_tree(c)) p->flags |= PF_TILLED;
             bag[v]--;
-            tool_done(FXT_SEED, x, y, SFX_LEAF, 0);
+            tool_done(FXT_SEED, x, y, SFX_LEAF, warn);
         }
     } else if (ITEMS[v].kind == IK_FERTILIZER) {
         static const u8 FLAG[3] = { PF_FERT, PF_COMPOST, PF_MULCH };
@@ -1890,7 +2056,7 @@ static int farm_use_item(int item)
 {
     const Item *it = &ITEMS[item];
     if (it->kind == IK_CROP) {
-        dlg_say(farm_value(item) ? "Ship it in the SHIPPING BIN at WILLOW ACRE, or cook something with it."
+        dlg_say(farm_value(item) ? "Sell it at any SHOP, ship it in the bin at WILLOW ACRE, or cook something with it."
                                  : "Save it for a meal.");
         return 0;
     }

@@ -342,11 +342,14 @@ static void mod_store(u8 *dst, u16 *size, const void *src, unsigned n)
 }
 
 /* 1 = copied; 0 = the stored blob has another size (reset the module). */
+/* A module saved by an older build may be shorter (fields are only ever
+ * added at the end): what it has is loaded, the rest keeps its reset
+ * values. */
 static int mod_load(void *dst, const u8 *src, u16 size, unsigned n)
 {
-    if (size != n) return 0;
+    if (!size || size > n) return 0;
     u8 *p = dst;
-    for (unsigned i = 0; i < n; i++) p[i] = src[i];
+    for (unsigned i = 0; i < size; i++) p[i] = src[i];
     return 1;
 }
 
