@@ -97,6 +97,7 @@ static int p_foe_acc_down(void) { return battle.stages[SIDE_ENEMY][STAT_ACC] < 0
 static int p_foe_asleep(void) { return battle.team[battle.team_idx].status == STATUS_SLP; }
 static int p_foe_burned(void) { return battle.team[battle.team_idx].status == STATUS_BRN; }
 static int p_foe_numb(void) { return battle.team[battle.team_idx].status == STATUS_NUMB; }
+static int p_foe_frozen(void) { return battle.team[battle.team_idx].status == STATUS_FRZ; }
 static int p_foe_flinch(void) { return battle.flinch[SIDE_ENEMY]; }
 
 static int in_pct(int hits, int n, int lo, int hi)
@@ -375,6 +376,64 @@ static void test_effects(void)
     battle.ev_count = 0;
 }
 
+/* ---------------- the RUNE set ---------------- */
+
+static void test_rune_moves(void)
+{
+    bout(SP_FLARIX, 40, SP_PRICKLET, 70);
+    rng_seed(1717);
+    int ok = 0;
+    for (int i = 0; i < 10 && !ok; i++) {
+        rearm();
+        use_move(SIDE_ALLY, M_SIGIL_SNARE);
+        ok = battle.stages[SIDE_ENEMY][STAT_SPE] == -2;
+    }
+    CHECK(ok, "SIGIL SNARE sharply lowers the foe's SPEED");
+    rearm();
+    use_move(SIDE_ALLY, M_ALGIZ_WARD);
+    CHECK(battle.stages[SIDE_ALLY][STAT_DEF] == 1 && battle.stages[SIDE_ALLY][STAT_SPD] == 1,
+          "ALGIZ WARD raises DEFENSE and WILL");
+    rearm();
+    use_move(SIDE_ALLY, M_RAIDO_RUSH);
+    int dealt = battle.team[0].max_hp - battle.team[0].hp;
+    CHECK(dealt > 0 && battle.stages[SIDE_ALLY][STAT_SPE] == 1, "RAIDO RUSH hits and raises the user's SPEED");
+    rearm();
+    party[0].hp = party[0].max_hp / 4;
+    int before = party[0].hp;
+    use_move(SIDE_ALLY, M_RUNE_SIPHON);
+    dealt = battle.team[0].max_hp - battle.team[0].hp;
+    CHECK(dealt > 0 && party[0].hp == before + (dealt / 2 > 0 ? dealt / 2 : 1), "RUNE SIPHON heals by half the damage");
+    CHECK(MOVES[M_THURS_SPIKE].effect == EF_HIGHCRIT, "THURS SPIKE often strikes perfectly");
+    int n = 400;
+    CHECK(in_pct(trials(M_KENAZ_FLARE, n, p_foe_burned), n, 4, 17), "KENAZ FLARE burns about 10% of the time");
+    CHECK(in_pct(trials(M_SOWILO_BEAM, n, p_foe_burned), n, 4, 17), "SOWILO BEAM burns about 10% of the time");
+    CHECK(in_pct(trials(M_ISA_SEAL, n, p_foe_frozen), n, 4, 17), "ISA SEAL freezes about 10% of the time");
+    battle.ev_count = 0;
+
+    /* every RUNE animation, from both sides, stays inside the frame's budget */
+    opt.battle_anims = 1;
+    int spr_ok = 1, aff_ok = 1;
+    for (int kind = AK_RUNE_BOLT; kind < AK_COUNT; kind++) {
+        int mv = -1;
+        for (int m = 0; m < MOVE_COUNT && mv < 0; m++)
+            if (MOVES[m].anim == kind) mv = m;
+        for (int side = 0; side < 2 && mv >= 0; side++) {
+            anim_clear();
+            anim_start(mv, side, HITF_LAST);
+            for (int f = 0; f < 400 && anim_busy(); f++) {
+                oam_begin();
+                anim_update();
+                if (oam_count > 96) spr_ok = 0;
+                if (oam_affine_count > 28) aff_ok = 0;
+                oam_end();
+            }
+        }
+    }
+    CHECK(spr_ok, "RUNE animations leave room in OAM for the kin and the panels");
+    CHECK(aff_ok, "RUNE animations leave affine matrices for the kin");
+    anim_clear();
+}
+
 /* ---------------- animations ---------------- */
 
 static int run_anim(int max, int *sprites)
@@ -567,6 +626,7 @@ int main(void)
     opt.sound = 0;
     test_move_table();
     test_effects();
+    test_rune_moves();
     test_animations();
     test_scenes();
     test_speed();

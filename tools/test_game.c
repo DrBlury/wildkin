@@ -74,7 +74,7 @@ static void fresh_game(void)
 
 static void test_data(void)
 {
-    CHECK(MOVE_COUNT == 120, "there are exactly 120 learnable moves (docs/EXPANSION.md 5)");
+    CHECK(MOVE_COUNT == 130, "there are exactly 130 learnable moves (docs/EXPANSION.md 5)");
     CHECK(SP_COUNT == 174, "there are 174 species (docs/EXPANSION.md 4)");
     CHECK(ITEM_COUNT >= 100, "there are at least 100 different items");
     CHECK(TYPE_COUNT == 18, "there are 18 types");

@@ -377,6 +377,23 @@ names are at most 12 characters):
 | SWARM RUSH | SWARM | phys | 75 | 100 | 15 | - |
 | SHADE CUT | DUSK | phys | 70 | 100 | 15 | high crit |
 | WYRM DANCE | WYRM | status | - | - | 15 | +1 ATK, +1 SPEED |
+| RUNE BOLT | ASTRAL | spec | 50 | 100 | 25 | - |
+| SIGIL SNARE | RELIC | status | - | 95 | 20 | -2 foe SPEED |
+| ALGIZ WARD | RELIC | status | - | - | 15 | +1 DEF, +1 WILL |
+| KENAZ FLARE | BLAZE | spec | 80 | 100 | 15 | 10% burn |
+| RUNE ORBIT | ASTRAL | spec | 110 | 85 | 5 | - |
+| THURS SPIKE | STONE | phys | 85 | 95 | 10 | high crit |
+| RAIDO RUSH | RELIC | phys | 70 | 100 | 15 | user +1 SPEED |
+| ISA SEAL | FROST | spec | 70 | 100 | 15 | 10% freeze |
+| SOWILO BEAM | RELIC | spec | 90 | 100 | 10 | 10% burn |
+| RUNE SIPHON | ASTRAL | spec | 75 | 100 | 10 | drain |
+
+The last ten are the RUNE set: runes of the elder row, drawn in the
+RUNESTONE's arcane style (src/game/anim_rune.c, art from
+tools/gen_rune_gfx.py). Each has its own pseudo-3D animation: runes on
+inclined orbits with depth (bright and in front of the kin, dim behind),
+circles lying on the ground or standing across the path as gates, runes
+turning on their axis and scaling with distance between the two kin.
 
 ---
 
@@ -753,6 +770,20 @@ Each region owner documents their other exits in their region header.
 
 OBJ palettes: 0 player, 1-7 NPC characters, 8 satchel and misc, 9-14 kin,
 15 emotes.
+
+In a bout:
+
+| tiles | use |
+| --- | --- |
+| 0-215 | RUNE move art (src/gfx_rune.h), loaded when a RUNE move starts |
+| 256-383 | the two kin (64 x 64) |
+| 384-399 | lantern capsule |
+| 400-679 | move particles (16 x 16) |
+| 680-745 | big particles, lantern marks |
+| 746-1023 | free |
+
+OBJ palettes in a bout: 2-6 RUNE moves (element at three depths, arcane
+full and dim), 9 capsule, 10-11 kin, 12-14 particles, 15 lantern light.
 
 ### 10.4 Save (version 4)
 

@@ -145,7 +145,8 @@ SPECIES = [
             category='MANDRAKE', height=10, weight=150,
             learnset=[(1, 'M_BONK'), (1, 'M_SAP_SIP'), (1, 'M_DROWSY_POLLEN'), (1, 'M_DAYDREAM'),
                       (13, 'M_BRAMBLE_LASH'), (17, 'M_LEAF_FLURRY'), (22, 'M_LULLABY'), (26, 'M_PRISM_RAY'),
-                      (31, 'M_STILL_POND'), (36, 'M_DREAMQUAKE'), (42, 'M_SUNSHAFT'), (48, 'M_PRIMAL_ROAR')],
+                      (30, 'M_SIGIL_SNARE'), (31, 'M_STILL_POND'), (36, 'M_DREAMQUAKE'), (42, 'M_SUNSHAFT'),
+                      (48, 'M_PRIMAL_ROAR')],
             traits=('WAKEFUL', 'BASKER'), field=('TELEPORT',),
             desc='Pulled from the earth, it screams a note so pure that every mind nearby falls into '
                  'step with it and dozes off. Wise diggers plug their ears with wax.',
@@ -241,8 +242,8 @@ SPECIES = [
     KinSpec(55, 'MOONHARE', ('FROST', 'ASTRAL'), 'U', base=(80, 85, 70, 105, 80, 90), catch=45, xp=172,
             evo=None,
             category='MOON HARE', height=12, weight=180,
-            learnset=[(1, 'M_BONK'), (1, 'M_FLURRY'), (1, 'M_TWINKLE'), (1, 'M_RIME_SHOT'),
-                      (13, 'M_SNOWDRIFT'), (17, 'M_STARDUST'), (21, 'M_MOONBEAM'), (26, 'M_HAILSTONES'),
+            learnset=[(1, 'M_BONK'), (1, 'M_FLURRY'), (1, 'M_TWINKLE'), (1, 'M_RIME_SHOT'), (13, 'M_SNOWDRIFT'),
+                      (17, 'M_STARDUST'), (21, 'M_MOONBEAM'), (26, 'M_HAILSTONES'), (30, 'M_ISA_SEAL'),
                       (31, 'M_NEBULA_VEIL'), (36, 'M_COMET_DASH'), (42, 'M_WINTER_RAY'), (48, 'M_MUON_RAIN')],
             traits=('THICK FUR', 'FOCUSED'), field=('TELEPORT',),
             desc='An ASTRAL SHARD tuned it to the muons raining down from the sky. Under a full moon it '
@@ -341,7 +342,8 @@ SPECIES = [
             category='SEXTON', height=13, weight=700,
             learnset=[(1, 'M_BONK'), (1, 'M_GRIT_KICK'), (1, 'M_MUD_PIE'), (1, 'M_BONE_RATTLE'),
                       (13, 'M_PEBBLE_PELT'), (17, 'M_STONESKIN'), (21, 'M_GRAVE_CHILL'), (26, 'M_ROCKFALL'),
-                      (31, 'M_OSSIFY'), (36, 'M_LAST_RITES'), (42, 'M_FAULTLINE'), (48, 'M_DEATH_KNELL')],
+                      (30, 'M_THURS_SPIKE'), (31, 'M_OSSIFY'), (36, 'M_LAST_RITES'), (42, 'M_FAULTLINE'),
+                      (48, 'M_DEATH_KNELL')],
             traits=('BEDROCK', 'HOARDER'), field=('STRENGTH',),
             desc='A HOLLOW SHARD tied its kernel to the slow warmth of old bone. It tends graveyards by '
                  'lantern light and sets a stone wherever it turns up bones.',

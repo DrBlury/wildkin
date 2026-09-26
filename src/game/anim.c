@@ -682,8 +682,13 @@ static void anim_reset_offsets(void)
     a3_cam_zoom = 256;
 }
 
+/* The RUNE set lives in anim_rune.c (included right after this file). */
+static int anim_rune_duration(int kind);
+static void anim_rune_frame(void);
+
 static int anim_duration(int kind, int count, int variant)
 {
+    if (kind >= AK_RUNE_BOLT) return anim_rune_duration(kind);
     switch (kind) {
     case AK_CONTACT: return 34 + count * 8;
     case AK_SLASH: return 30 + count * 10;
@@ -2999,6 +3004,9 @@ static void anim_move_frame(void)
         anim.bg_amount = t > 10 && t < 58 ? tint_amt : 0;
         break;
     }
+    default:
+        anim_rune_frame();
+        break;
     }
     (void)fx2;
     (void)ah;
