@@ -230,10 +230,10 @@ def clip_world():
 def clip_regions():
     """One still per expansion town, Hall and lair (the player on its fly
     point or just inside its door)."""
-    shots = [('lumen', 'LUMEN', 7, 17), ('brine', 'PORT_BRINE', 21, 17), ('gull', 'GULL_ISLE', 22, 14),
-             ('frosthollow', 'FROSTHOLLOW', 7, 8), ('skyisle', 'SKY_ISLE', 11, 12),
-             ('duskmere', 'DUSKMERE', 10, 12), ('cindermoor', 'CINDERMOOR', 21, 22),
-             ('dreamspire', 'DREAMSPIRE', 24, 28), ('willow', 'WILLOW_ACRE', 19, 3),
+    shots = [('lumen', 'LUMEN', 9, 18), ('brine', 'PORT_BRINE', 21, 17), ('gull', 'GULL_ISLE', 22, 14),
+             ('frosthollow', 'FROSTHOLLOW', 7, 8), ('skyisle', 'SKY_ISLE', 17, 21),
+             ('duskmere', 'DUSKMERE', 10, 12), ('cindermoor', 'CINDERMOOR', 19, 19),
+             ('dreamspire', 'DREAMSPIRE', 24, 29), ('willow', 'WILLOW_ACRE', 19, 3),
              ('volt', 'VOLT_HALL', 7, 15), ('works', 'WORKS', 6, 8), ('current', 'CURRENT_HALL', 7, 16),
              ('rime', 'RIME_HALL', 7, 18), ('crypt', 'CRYPT', 11, 19), ('anvil', 'ANVIL_HALL', 8, 20),
              ('mirror', 'MIRROR_HALL', 5, 14), ('bell', 'DROWNED_BELL', 9, 16), ('starfall', 'STARFALL', 11, 18),
@@ -242,7 +242,7 @@ def clip_regions():
         save = demo_save(name, mp, x, y, calm=True)
         run(Script().boot().wait(30).shot(name), save)
         still(name, 'region_%s.png' % name)
-    save = demo_save('ui', 'LUMEN', 7, 17, calm=True)
+    save = demo_save('ui', 'LUMEN', 9, 18, calm=True)
     s = Script().boot().wait(30).tap('START').wait(10).shot('clock_menu')
     s.tap('DOWN', 3).tap('A').wait(30).shot('bag_pockets')
     run(s, save)

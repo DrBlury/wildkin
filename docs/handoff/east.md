@@ -18,7 +18,7 @@
   - COPPERLINE ROAD 44x36: old copper mine (adit, headframe, rails, ore yard),
     prospectors' camp, pond, ledge, 4 wardens (Lv 15-18), miner, 5 satchels,
     berry patches 0-1.
-  - LUMEN CITY 48x44 (city tileset): walled city, market square with the
+  - LUMEN CITY (redesigned 56x50 on four levels: docs/handoff/towns_east.md; first pass:) walled city, market square with the
     BEACON, canal with 3 bridges, cafe gardens, LUMEN PARK (wild zone),
     11 stamps, 7 people, warden ARLO, fly point (lands at 7,17).
   - ELDERWOOD HEART 40x34: the Elder's glade, `OBJ(LEGEND, 18, 25,
@@ -70,7 +70,7 @@
   already models the switches itself).
 - **Clockwork Spire location**: the contract diagram and the town-map SPOTS
   (gen_travel_gfx, 206,112) put the Spire by CINDERMOOR, but Cindermoor
-  (W-FAR) has no south exit. Its door is the CLOCK_TOWER in Lumen (18,27).
+  (W-FAR) has no south exit. Its door is the CLOCK_TOWER in Lumen (48,7).
   Either move the SPOT next to Lumen or W-FAR adds a door warp to
   MAP_CLOCKWORK_SPIRE (then the exit mat returns to the nearer door).
 - Craft: no COOKTOP/station decor exists yet; the inn has a STOVE next to the
