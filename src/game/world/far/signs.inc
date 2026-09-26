@@ -1,9 +1,9 @@
 /* world/far/signs.inc -- Signs: { MAP_X, x, y, "text" },. Owner: W-FAR. */
     { MAP_CINDER_ROAD, 3, 18, "CINDER ROAD. West: LUMEN CITY. East: CINDERMOOR. Keep to the gravel!" },
     { MAP_CINDER_ROAD, 40, 18, "CINDERMOOR, town of smiths, just ahead. Home of the ANVIL HALL." },
-    { MAP_CINDERMOOR, 3, 18, "CINDERMOOR. The ground is warm, the iron is honest." },
-    { MAP_CINDERMOOR, 11, 29, "ANVIL HALL. Master: BRONWEN. METAL and BLAZE kin. Push, plate, prevail!" },
-    { MAP_CINDERMOOR, 35, 7, "EMBER TUNNEL. Lava tube and old mine. Wardens only beyond the lava chamber." },
+    { MAP_CINDERMOOR, 2, 19, "CINDERMOOR. The ground is warm, the iron is honest." },
+    { MAP_CINDERMOOR, 30, 8, "ANVIL HALL. Master: BRONWEN. METAL and BLAZE kin. Push, plate, prevail!" },
+    { MAP_CINDERMOOR, 25, 6, "EMBER TUNNEL. Lava tube and old mine. Wardens only beyond the lava chamber." },
     { MAP_MOONVEIL, 22, 36, "MOONVEIL PATH. North: DREAMSPIRE. South: LUMEN CITY." },
     { MAP_MOONVEIL, 22, 3, "DREAMSPIRE ahead. Please dream quietly." },
     { MAP_DREAMSPIRE, 22, 34, "DREAMSPIRE, town of towers and long sleeps." },
