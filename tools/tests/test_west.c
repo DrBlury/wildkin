@@ -106,9 +106,9 @@ int main(void)
     setvbuf(stdout, NULL, _IONBF, 0);
     game_init();
 
-    /* ~380 + the animated tall grass (tools/grass.py: 3 variants x 2 varieties)
-     * + the elevation art (tools/elevation.py, ~80 tiles) */
-    CHECK(TILESETS[TS_COAST].tile_count <= 490, "the coast tileset stays under ~490 tiles");
+    /* the outdoor art + tall grass + the elevation art; the Current Hall and the
+     * Drowned Bell are the 'tide' tileset, so the towns keep ~100 tiles for props */
+    CHECK(TILESETS[TS_COAST].tile_count <= 410, "the coast tileset stays under ~410 tiles");
 
     /* budget, people and characters on every west map */
     int budget_ok = 1, people_ok = 1;
@@ -117,6 +117,13 @@ int main(void)
         map_load(m);
         field_load_tileset();
         if (decor_tiles_used > 512) budget_ok = 0;
+        /* field_load_tileset skips a kind that doesn't fit: it would draw garbage */
+        for (int i = 0; i < MAPS[m].decor_count; i++)
+            if (!decor_base[MAPS[m].decor[i].kind]) {
+                if (budget_ok) printf("  %s: decor kind %d doesn't fit the 512 scene tiles\n", MAPS[m].name,
+                                      MAPS[m].decor[i].kind);
+                budget_ok = 0;
+            }
         int n = 0, chars = 0;
         u8 seen[64] = { 0 };
         for (int i = 0; i < NPC_COUNT; i++) {
@@ -130,7 +137,7 @@ int main(void)
             printf("  %s: %d people, %d characters\n", MAPS[m].name, n, chars);
         }
     }
-    CHECK(budget_ok, "every west map fits its tiles and decor in 512 scene tiles");
+    CHECK(budget_ok, "every west map fits its tileset and every decor kind in 512 scene tiles");
     CHECK(people_ok, "at most 24 people and 7 characters on every west map");
 
     /* edge contracts (docs/EXPANSION.md 9) */
@@ -139,7 +146,7 @@ int main(void)
     map_load(MAP_LAKE);
     e1 = e1 && open_cell(0, 31) && open_cell(0, 32);
     map_load(MAP_PORT_BRINE);
-    e1 = e1 && open_cell(47, 19) && open_cell(47, 20) && open_cell(20, 43) && open_cell(21, 43);
+    e1 = e1 && open_cell(47, 19) && open_cell(47, 20) && open_cell(20, map_h - 1) && open_cell(21, map_h - 1);
     map_load(MAP_SEA_ROUTE);
     e1 = e1 && open_cell(20, 0) && open_cell(21, 0) && open_cell(20, 47) && open_cell(21, 47);
     map_load(MAP_GULL_ISLE);

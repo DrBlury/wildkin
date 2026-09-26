@@ -17,22 +17,22 @@
  */
 
 static const char *const TT_SHORE_ROWS[] = {
-    "CCCCCCCCCCCCCCCCCCCC",
-    "CssssssssssssssssssC",
-    "CssssssssssssssssssC",
-    "CssssssssssssssssssC",
-    "Css~~~~~~~~~~~~~~ssC",
-    "Css~~~~~~~~~~~~~~ssC",
-    "Css~~~~ssss~~~~~~ssC",
-    "Css~~~~ssss~~~~~~ssC",
-    "Css~~~~ssss~~~~~~ssC",
-    "Css~~~~~~~~~~~~~~ssC",
-    "Css~~~~~~~~~~~~~~ssC",
-    "CssssssssssssssssssC",
-    "CssssssssssssssssssC",
-    "CssssssssssssssssssC",
-    "CssssssssssssssssssC",
-    "CCCCCCCCCCCCCCCCCCCC",
+    "oooooooooooooooooooo",
+    "osssssssssssssssssso",
+    "osssssssssssssssssso",
+    "osssssssssssssssssso",
+    "oss~~~~~~~~~~~~~~sso",
+    "oss~~~~~~~~~~~~~~sso",
+    "oss~~~~ssss~~~~~~sso",
+    "oss~~~~ssss~~~~~~sso",
+    "oss~~~~ssss~~~~~~sso",
+    "oss~~~~~~~~~~~~~~sso",
+    "oss~~~~~~~~~~~~~~sso",
+    "osssssssssssssssssso",
+    "osssssssssssssssssso",
+    "osssssssssssssssssso",
+    "osssssssssssssssssso",
+    "oooooooooooooooooooo",
 };
 
 static const char *const TT_ICE_ROWS[] = {

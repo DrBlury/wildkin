@@ -245,7 +245,8 @@ static void test_monsters(void)
           monster_item_evolution(&thornip, ITEM_FROST_SHARD) < 0 && monster_level_evolution(&thornip) < 0,
           "stone evolutions need the right stone");
 
-    /* damage math */
+    /* damage math (seeded: independent of how much the world data drew from the rng) */
+    rng_seed(7);
     Monster att = monster_make(SP_FLARIX, 30);
     Monster grass = monster_make(SP_DANDELAMB, 30), water = monster_make(SP_AQUAPO, 30);
     DamageResult se = calc_damage(&att, 0, &grass, 0, M_CINDER_FLICK, 0, 100);
