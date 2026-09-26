@@ -27,7 +27,7 @@ jobs:
       - name: Generated art is up to date
         run: |
           make art
-          git diff --exit-code -- src/gfx_ui.h src/gfx_monsters.h src/gfx_field.h src/gfx_battle.h
+          git diff --exit-code -- src/gfx_ui.h src/gfx_monsters.h src/gfx_field.h src/gfx_battle.h src/gfx_travel.h src/gfx_craft.h src/gfx_fusion.h src/species_data.h
 
       - name: Build the ROM
         run: make
