@@ -483,7 +483,7 @@ static void dex_list_redraw(void)
         int s = dex_list[dex.scroll + r];
         int y = 32 + r * LINE_H;
         if (s == dex.cursor) {
-            canvas_fill(96, y - 2, 128, 14, 7);
+            canvas_glow(96, y - 2, 128, 14);
             text_draw(97, y - 2, "{");
         }
         canvas_tile(13, y / 8, dex_caught[s] ? ui_icon_caught : ui_icon_empty, s == dex.cursor ? 7 : 1);
@@ -509,7 +509,7 @@ static void dex_list_redraw(void)
             default: v = dexf.region ? REGION_NAMES[dexf.region - 1] : "ANY"; break;
             }
             if (r == dex.frow) {
-                canvas_fill(36, y - 2, 172, 14, 7);
+                canvas_glow(36, y - 2, 172, 14);
                 text_draw(37, y - 2, "{");
             }
             text_draw(48, y - 2, LABEL[r]);

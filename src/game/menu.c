@@ -405,7 +405,7 @@ static void options_redraw(void)
         int i = opt_scroll + r, y = 32 + r * 14;
         const OptRow *o = &OPT_ROWS_DEF[i];
         if (i == opt_cursor) {
-            canvas_fill(12, y - 3, 216, 14, 7);
+            canvas_glow(12, y - 3, 216, 14);
             text_draw(13, y - 3, "{");
         }
         text_draw(24, y - 3, o->label);
@@ -900,7 +900,7 @@ static void summary_redraw(void)
         for (int i = 0; i < MAX_MOVES; i++) {
             int ry = 32 + i * 24;
             int mv = m->moves[i];
-            if (i == sum.move_cursor) canvas_fill(86, ry - 2, 148, 20, 7);
+            if (i == sum.move_cursor) canvas_glow(86, ry - 2, 148, 20);
             if (mv == MOVE_NONE) {
                 text_draw(124, ry, "-");
                 continue;
@@ -1651,7 +1651,7 @@ static void pc_redraw(void)
     if (!rows) text_draw(108, 34, pc.page == 0 ? "Your team is empty." : "This box is empty.");
     for (int r = 0; r < SHELF_ROWS && pc.scroll + r < rows; r++) {
         int k = pc.scroll + r, y = SHELF_ROW_Y(r);
-        if (k == pc.cursor) canvas_fill(102, y - 4, 126, 22, 7);
+        if (k == pc.cursor) canvas_glow(102, y - 4, 126, 22);
         if (k >= n) {
             text_draw_col(142, y, "PUT AT THE END", INK_BLUE, INK_BLUE_SH);
             continue;

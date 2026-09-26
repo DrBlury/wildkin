@@ -89,14 +89,16 @@ static void hud_load_palettes(void)
         p[HUDC_TRAIL_S] = RGB15(29, 17, 12);
     }
     load_pal(bg_palette + BANK_LABELS * 16, bl_pal);
+    bg_palette[BANK_LABELS * 16 + 1] = ui_pal_std[1]; /* labels sit on the page */
 }
 
-/* HP fill colour: green, easing through yellow into red as HP drops. */
+/* Vitality colour: lantern teal, easing through amber into crimson as HP
+ * drops (the leaf glyph on the plaque shares it). */
 static void hud_bar_colors(int side)
 {
-    static const u16 G[2] = { RGB15(14, 31, 21), RGB15(11, 25, 15) };
-    static const u16 Y[2] = { RGB15(31, 28, 7), RGB15(25, 20, 1) };
-    static const u16 R[2] = { RGB15(31, 11, 7), RGB15(21, 7, 8) };
+    static const u16 G[2] = { RGB15(9, 27, 23), RGB15(3, 17, 16) };
+    static const u16 Y[2] = { RGB15(31, 22, 6), RGB15(23, 13, 2) };
+    static const u16 R[2] = { RGB15(30, 7, 9), RGB15(18, 2, 6) };
     int max = battle.disp[side].max_hp;
     int f = max > 0 ? battle.disp[side].hp * 256 / max : 0;
     u16 *p = bg_palette + hud_bank(side) * 16;
@@ -130,6 +132,7 @@ static void hud_draw_bar(int side)
         canvas_fill(x, y, fill, 1, HUDC_FILL_S);
         canvas_fill(x, y + 1, fill, 2, HUDC_FILL);
     }
+    bar_segments(x, y, w, 3);
     if (side == SIDE_ALLY) {
         char buf[16];
         canvas_fill(px + HUD_ALLY_HPNUM_X - 40, py + HUD_ALLY_HPNUM_Y, 40, FONT_SMALL_HEIGHT, 1);
@@ -206,37 +209,45 @@ static void battle_load_mon_gfx(int side)
 
 /* ---------------- bottom boxes ---------------- */
 
-static const char *const ACTION_LABELS[4] = { "FIGHT", "BAG", "TEAM", "RUN" };
+/* The command page: a narrow parchment card on the right, one command per
+ * row (cursor index 0 fight, 1 bag, 2 team, 3 run). */
+static const char *const ACTION_LABELS[4] = { "MOVES", "PACK", "KIN", "FLEE" };
+#define CMD_CX     21
+#define CMD_CY     13
+#define CMD_Y0     107   /* first row's glyph top */
+#define CMD_PITCH  12
 
+/* Row 13 on the right: the move-effect tab, or the top of the command page. */
 static void clear_tab(void)
 {
-    canvas_clear_cells(22, 13, 8, 1);
+    canvas_clear_cells(CMD_CX, 13, CANVAS_COLS - CMD_CX, 1);
 }
 
 static void draw_action_box(void)
 {
     char buf[48];
     clear_tab();
-    canvas_window(0, 14, CANVAS_COLS, 6, WIN_BATTLE);
-    str_copy(buf, "What will\n");
-    str_put(buf, SPECIES[side_mon(SIDE_ALLY)->species].name);
-    str_put(buf, " do?");
+    canvas_window(0, 14, CMD_CX, 6, WIN_BATTLE);
+    str_copy(buf, SPECIES[side_mon(SIDE_ALLY)->species].name);
+    str_put(buf, " awaits\nyour call.");
     text_draw_col(16, 120, buf, INK_DARK, INK_SHADOW);
-    canvas_window(15, 14, 15, 6, WIN_STD);
+    canvas_window(CMD_CX, CMD_CY, CANVAS_COLS - CMD_CX, 20 - CMD_CY, WIN_MENU);
     for (int i = 0; i < 4; i++) {
-        int x = 15 * 8 + 18 + (i & 1) * 48, y = 120 + (i >> 1) * LINE_H;
+        int x = CMD_CX * 8 + 16, y = CMD_Y0 + i * CMD_PITCH;
+        if (i == battle.cursor) {
+            canvas_glow(CMD_CX * 8 + 3, y, (CANVAS_COLS - CMD_CX) * 8 - 6, CMD_PITCH);
+            text_draw(x - 9, y, "{");
+        }
         text_draw(x, y, ACTION_LABELS[i]);
-        if (i == battle.cursor) text_draw(x - 10, y, "{");
     }
-    /* on RUN in a wild bout: the escape odds when they are not certain */
+    /* on FLEE in a wild bout: the escape odds when they are not certain */
     int pct = battle.kind == BK_WILD && battle.cursor == 3 ? battle_run_chance() : 100;
     if (pct > 0 && pct < 100) {
-        char odds[8];
-        odds[0] = 0;
+        char odds[16];
+        str_copy(odds, "Escape ");
         str_put_int(odds, pct);
         str_put(odds, "%");
-        int x = 15 * 8 + 18 + 48 + text_width("RUN") + 3;
-        text_draw_col(x, 120 + LINE_H, odds, INK_BLUE, INK_BLUE_SH);
+        text_draw_col(CMD_CX * 8 - 12 - text_width(odds), 120 + LINE_H, odds, INK_BLUE, INK_BLUE_SH);
     }
 }
 
@@ -263,8 +274,11 @@ static void draw_move_box(void)
     canvas_window(22, 14, 8, 6, WIN_STD);
     for (int i = 0; i < MAX_MOVES; i++) {
         int x = 16 + (i & 1) * 80, y = 120 + (i >> 1) * LINE_H;
+        if (i == battle.move_cursor) {
+            canvas_glow(x - 11, y - 1, 80, 14);
+            text_draw(x - 10, y, "{");
+        }
         text_draw_fit(x, y, m->moves[i] == MOVE_NONE ? "-" : MOVES[m->moves[i]].name, 72);
-        if (i == battle.move_cursor) text_draw(x - 10, y, "{");
     }
     clear_tab();
     int mv = m->moves[battle.move_cursor];
@@ -827,6 +841,7 @@ static void battle_events_update(void)
 
 static void battle_play(void)
 {
+    clear_tab(); /* the command page reaches up into row 13 */
     battle.state = BST_EVENTS;
     battle.ev_started = 0;
 }
@@ -1092,10 +1107,9 @@ static void battle_exit(void)
 static void battle_action_input(void)
 {
     int old = battle.cursor;
-    if (key_hit(KEY_LEFT) && (battle.cursor & 1)) battle.cursor--;
-    if (key_hit(KEY_RIGHT) && !(battle.cursor & 1)) battle.cursor++;
-    if (key_hit(KEY_UP) && (battle.cursor & 2)) battle.cursor -= 2;
-    if (key_hit(KEY_DOWN) && !(battle.cursor & 2)) battle.cursor += 2;
+    /* one command per row: UP/DOWN walk the list and wrap around */
+    if (key_hit(KEY_UP)) battle.cursor = (battle.cursor + 3) & 3;
+    if (key_hit(KEY_DOWN)) battle.cursor = (battle.cursor + 1) & 3;
     if (old != battle.cursor) {
         battle.ui_dirty = 1;
         sfx_play(SFX_CURSOR);

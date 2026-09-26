@@ -144,7 +144,7 @@ def clip_warden():
 def clip_bout():
     save = demo_save('bout', 'MEADOW', 21, 38, low=True)
     s = Script().boot().walk('UP', 3).wait(120).tap('A', 3, 40).wait(150)
-    # A on "What will X do?" opens FIGHT, A again uses the remembered move
+    # A on "X awaits your call." opens MOVES, A again uses the remembered move
     s.rec('bout', 4).tap('A').wait(16).tap('DOWN').wait(16).shot('bout_moves').tap('A', 15, 40).stop()
     run(s, save)
     gif('bout', 'bout.gif', delay=5)
