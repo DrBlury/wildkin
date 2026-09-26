@@ -46,6 +46,14 @@ static void map_entry(int map, int *ex, int *ey)
             *ey = FLY_POINTS[i].y;
             return;
         }
+    /* a placeholder interior no door leads to yet: start on its exit mat */
+    for (int y = 0; y < m->h; y++)
+        for (int x = 0; x < m->w; x++)
+            if (cell_attr(x, y) & A_EXIT) {
+                *ex = x;
+                *ey = y;
+                return;
+            }
     int best = 1 << 30;
     *ex = *ey = 0;
     for (int y = 0; y < m->h; y++)
