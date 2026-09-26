@@ -105,111 +105,170 @@ static const WildSlot WILD_COPPERLINE[] = {
 /*  LUMEN CITY                                                      */
 /* ================================================================ */
 
+
 static const char *const LUMEN_ROWS[] = {
-    "########################==######################", /*  0 */
-    "#wwwwwwwwwwwwwwwwwwwwwww==wwwwwwwwwwwwwwwwwwwww#", /*  1 */
-    "#ggggggggggggggg........==........ggggggggggggg#", /*  2 */
-    "#ggggggggggggggg........==........ggggggggggggg#", /*  3 */
-    "#gg..........ggg........==...................gg#", /*  4 */
-    "#gg..........ggg........==...................gg#", /*  5 */
-    "#gg..........ggg........==...................gg#", /*  6 */
-    "#gg..........ggg........==...................gg#", /*  7 */
-    "#gg..........ggg.............................gg#", /*  8 */
-    "#gg..........ggg..................cccccccccccgg#", /*  9 */
-    "#ccccccccccc.ggg..................cccccccccccgg#", /* 10 */
-    "#ccccccccccc.rrrppppppppppppppppppcccccccccccgg#", /* 11 */
-    "#gg..........yyyppppppppppppppppppyy.........rr#", /* 12 */
-    "#gg.......ggggggpppppppppppppppppp...........gg#", /* 13 */
-    "#gg.......ggggggpppppppppppppppppp...........gg#", /* 14 */
-    "#gg.......ggggggpppppppppppppppppp...........gg#", /* 15 */
-    "#gg.......ggggggpppppppppppppppppp...........gg#", /* 16 */
-    "#gg.............pppppppppppppppppp...........gg#", /* 17 */
-    "#gg.............pppppppppppppppppp...........gg#", /* 18 */
-    "#gg.............pppppppppppppppppp...........gg#", /* 19 */
-    "================================================", /* 20 */
-    "================================================", /* 21 */
-    "#.......................==.....................#", /* 22 */
-    "#.......................==.....................#", /* 23 */
-    "#.......................==.....................#", /* 24 */
-    "#.......................==.....................#", /* 25 */
-    "#.......................==.....................#", /* 26 */
-    "#.......................==.....................#", /* 27 */
-    "#.......................==.....................#", /* 28 */
-    "#.......................==.....................#", /* 29 */
-    "#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#", /* 30 */
-    "#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#", /* 31 */
-    "#ggggggggggggggggggggggg==gggggyyyygggrrrrgggTT#", /* 32 */
-    "#gggggggggggggggrrrrgggg==gggggggggggggggggggtt#", /* 33 */
-    "#ggccccccccccgggyyyygggg==ggTT,,,,,,,,,,,,,,,TT#", /* 34 */
-    "#ggccccccccccggggggggggg==ggtt,,,,,,,,,,,,,,,tt#", /* 35 */
-    "#ggccccccccccgggggggggggccgggg,,,,,,,,,,,,,,,TT#", /* 36 */
-    "#ggccccccccccgggggggggggccgggg,,,,,,,,,,,,,,,tt#", /* 37 */
-    "#ggccccccccccggTTTTggTTTccggTT,,,,,,,,,,,,,,,TT#", /* 38 */
-    "#ggggggggggggggttttggtttccggtt,,,,,,,,,,,,,,,tt#", /* 39 */
-    "#grrrrggggyyyyggggggggggccggTT,,,,,,,,,,,,,,,TT#", /* 40 */
-    "#gggggggggggggggggggggggccggttgggggggggggggggtt#", /* 41 */
-    "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT", /* 42 */
-    "tttttttttttttttttttttttttttttttttttttttttttttttt", /* 43 */
+    "TTTTTT##################==###################TTTTTTTTTTT", /*  0 */
+    "ttttttwwwwwwwwwwwwwwwwww==wwwwwwwwwwwwwwwwwwwttttttttttt", /*  1 */
+    "TTTTTT..................====.................cccccTTTTTT", /*  2 */
+    "tttttt..................====rgggr............ccccctttttt", /*  3 */
+    "TTTTT...................====ggggg............cccccTTTTTT", /*  4 */
+    "ttttt...................====ggggg............ccccctttttt", /*  5 */
+    "TTTTT...........============ggggg===========.cccccccTTTT", /*  6 */
+    "ttttt.cccccccccc============ygggy===========.ccccccctttt", /*  7 */
+    "TTTTT.cccccccccc........=====================cccccccTTTT", /*  8 */
+    "ttttt.cccccccccccccc....======.===..................tttt", /*  9 */
+    "TTTTT.cccccccccccccc................................TTTT", /* 10 */
+    "ttttt.....c.........................................tttt", /* 11 */
+    "TTTTT................pppppppp...........~~~~ccccccccTTTT", /* 12 */
+    "ttttt.......gggg...pppppppppppp.........~~~~cccccccctttt", /* 13 */
+    "............gggg..pppppppppppppp........~~==ccccccccTTTT", /* 14 */
+    "............gggg..pppppppppppppp........~~==cccccccctttt", /* 15 */
+    "#yyyg.......gggg..pppppppppppppp........~~==ccccccccTTTT", /* 16 */
+    "#gggg.......grrg..pppppppppppppp........~~=ccccccccctttt", /* 17 */
+    "#gggg....=........pppppppppppppp........~~=ccccccccc....", /* 18 */
+    "#gggg....=........pppppppppppppp........~~=ccccccccc....", /* 19 */
+    "==================pppppppppppppp========~~==============", /* 20 */
+    "==================pppppppppppppp========~~==============", /* 21 */
+    "#gg....=..........pppppppppppppp........~~==ccccccccccTT", /* 22 */
+    "#gg......ggggg.....pppppppppppp.........~~==cccccccccctt", /* 23 */
+    "#gg......ggggg.......pppppppp...........~~==ccccccccccTT", /* 24 */
+    "#gg......gyyyg..........pp..............~~==cccccccccctt", /* 25 */
+    "#gg......grrgg..........==..............~~==ccccccccccTT", /* 26 */
+    "#gg.......ggg...........==..cccccccccccc~~==cccc==cccctt", /* 27 */
+    "........========........==========cccccc~~==cccc==ccccTT", /* 28 */
+    "#.....................===.........cccccc~~==cccc==cccctt", /* 29 */
+    "#...................===...........cccccc~~==.ggg==ggggTT", /* 30 */
+    "#.................===.............cccccc~~==.ggg==gyygtt", /* 31 */
+    "#...............===.gggg..........cccccc~~==.ggg==grrgTT", /* 32 */
+    "#gg...........===...yyyg..........cccccc~~==.=====ggggtt", /* 33 */
+    "#yy.........===.....gggg..........cccccc~~==.TTgggggggTT", /* 34 */
+    "#.======================================~~==.tt,,,,,,,tt", /* 35 */
+    "#...==..~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~==.gg,,,,,,,TT", /* 36 */
+    "#...==..~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~==.gg,,,,,,,tt", /* 37 */
+    "TTggggggggggggggggggggggggg~~~~~~~~~~~~~~~~~~,,,,,,,,,TT", /* 38 */
+    "ttggrrrrgggggggggggggggggg~~~~~~~~~~~~~~~~~~~,,,,,,,,,tt", /* 39 */
+    "TTggyyyygggggggggggggTTg~~~~~~~~~~~~~~~~~~~~~,,,,,,,,,TT", /* 40 */
+    "ttgggggggggggggggggggttg~~~~~~~~~~~~~~~~~~~~~,,,,,,,,,tt", /* 41 */
+    "TTgggggggggggggggggggggg~~~~~~~~~~~~~~~~~~~~~gg,,,,,,,TT", /* 42 */
+    "ttg===============gggggg~~~~~~~~~~~~~~~~~~~~~gyyggggggtt", /* 43 */
+    "TTggggggggggyyyyggTTgggg~~~~~~~~~~~~~~~~~~~~~TTTTTTTTTTT", /* 44 */
+    "ttggggggggggrrrrggttgggg~~~~~~~~~~~~~~~~~~~~~ttttttttttt", /* 45 */
+    "TTTTTTTTTTggggggggggyyyg~~~~~~~~~~~~~~~~~~~~~TTTTTgggrrT", /* 46 */
+    "ttttttttttgggggggggggggg~~~~~~~~~~~~~~~~~~~~~tttttgggggt", /* 47 */
+    "TTTTTTTTTTTTTTTTTTTTTTTT~~~~~~~~~~~~~~~~~~~~~TTTTTTTTTTT", /* 48 */
+    "tttttttttttttttttttttttt~~~~~~~~~~~~~~~~~~~~~ttttttttttt", /* 49 */
+};
+
+/* heights (0-3), stairs (^ v < >) and ledges (_): docs/ELEVATION.md */
+static const char *const LUMEN_ELEV[] = {
+    "33333333333333333333333333333333333333333333333333333333", /*  0 */
+    "33333333333333333333333333333333333333333333333333333333", /*  1 */
+    "33333333333333333333333333332222233333333333333333333333", /*  2 */
+    "33333333333333333333333333332222233333333333333333333333", /*  3 */
+    "33333333333333333333333333332222233333333333333333333333", /*  4 */
+    "33333333333333333333333333332222233333333333333333333333", /*  5 */
+    "33333333333333333333333333332222233333333333333333333333", /*  6 */
+    "33333333333333333333333333332222233333333333333333333333", /*  7 */
+    "33333333333333333333333333333323333333333333333333333333", /*  8 */
+    "33333333333333333333333333333323331111110000000000003333", /*  9 */
+    "333333333333333333332222^^222222111111110000000000003333", /* 10 */
+    "3333311111^111112__2222222222222111111110000000000003333", /* 11 */
+    "3333311111^111112222222222222222111111110000000000003333", /* 12 */
+    "33333111111111112222222222222222111111110000000000003333", /* 13 */
+    "11111111111111112222222222222222111111110000000000003333", /* 14 */
+    "11111111111111112222222222222222111111110000000000003333", /* 15 */
+    "11111111111111112222222222222222111111110000000000003333", /* 16 */
+    "11111111111111112222222222222222111111110000000000003333", /* 17 */
+    "11111111111111112222222222222222111111110000000000001111", /* 18 */
+    "11111111111111112222222222222222111111110000000000001111", /* 19 */
+    "1111111111111111>222222222222222<11111110000111111111111", /* 20 */
+    "1111111111111111>222222222222222<11111110000111111111111", /* 21 */
+    "11111111111111112222222222222222111111110000111111111111", /* 22 */
+    "11111111111111112222222222222222111111110000111111111111", /* 23 */
+    "11111111111111112222222222222222111111110000111111111111", /* 24 */
+    "11111111111111111111112222221111111111110000111111111111", /* 25 */
+    "111111111111111100000000^^00000000000^000000111111111111", /* 26 */
+    "1111111100___00000000000^^000000000000000000111111111111", /* 27 */
+    "00000000000000000000000000000000000000000000111111111111", /* 28 */
+    "00000000000000000000000000000000000000000000111111111111", /* 29 */
+    "00000000000000000000000000000000000000000000011111111111", /* 30 */
+    "00000000000000000000000000000000000000000000011111111111", /* 31 */
+    "00000000000000000000000000000000000000000000011111111111", /* 32 */
+    "000000000000000000000000000000000000000000000>1111111111", /* 33 */
+    "00000000000000000000000000000000000000000000011111111111", /* 34 */
+    "00000000000000000000000000000000000000000000011111111111", /* 35 */
+    "00000000000000000000000000000000000000000000011111111111", /* 36 */
+    "00000000000000000000000000000000000000000000011111111111", /* 37 */
+    "00000000000000000000000000000000000000000000011111111111", /* 38 */
+    "00000000000000000000000000000000000000000000011111111111", /* 39 */
+    "00000000000000000000000000000000000000000000011111111111", /* 40 */
+    "00000000000000000000000000000000000000000000011111111111", /* 41 */
+    "00000000000000000000000000000000000000000000011111111111", /* 42 */
+    "00000000000000000000000000000000000000000000011111111111", /* 43 */
+    "00000000000000000000000000000000000000000000011111111111", /* 44 */
+    "00000000000000000000000000000000000000000000011111111111", /* 45 */
+    "00000000000000000000000000000000000000000000011111111111", /* 46 */
+    "00000000000000000000000000000000000000000000011111111111", /* 47 */
+    "00000000000000000000000000000000000000000000011111111111", /* 48 */
+    "00000000000000000000000000000000000000000000011111111111", /* 49 */
+};
+
+static const ElevFeat LUMEN_FEATS[] = {
+    EF(BRIDGE_H, 40, 20, 4, 2),  /* the Boulevard over the Cut; the towpath under it */
+    EF(TUNNEL, 30, 8, 1, 2),     /* the old conduit under the Crown walk */
+    EF(HIDDEN, 30, 10, 1, 1),    /* ...its mouth, hidden in the Crown's face */
+    EF(HIDDEN, 52, 44, 1, 2),    /* a gap in the park's tree line to the lamplighters' grove */
 };
 
 static const Stamp LUMEN_STAMPS[] = {
-    STAMP(CY, VOLT_HALL, 3, 4),     /* door 7,8   */
-    STAMP(CY, HEARTH, 4, 13),       /* door 7,16  */
-    STAMP(CY, BIKE_SHOP, 17, 4),    /* door 20,7  */
-    STAMP(CY, INN, 27, 4),          /* door 30,7  */
-    STAMP(CY, WORKS, 37, 4),        /* door 40,7  */
-    STAMP(CY, MARKET, 37, 13),      /* door 41,16 */
-    STAMP(CY, HOUSE_A, 3, 24),      /* door 5,27  */
-    STAMP(CY, HOUSE_C, 10, 24),     /* door 11,27 (locked) */
-    STAMP(CY, CLOCK_TOWER, 17, 22), /* door 18,27: the CLOCKWORK SPIRE */
-    STAMP(CY, ROW_HOUSES, 29, 24),  /* doors 30,27 and 34,27 (locked) */
-    STAMP(CY, HOUSE_B, 39, 24),     /* door 41,27 */
+    STAMP(CY, VOLT_HALL, 6, 2),     /* door 10,6  (the Crown) */
+    STAMP(CY, ROW_HOUSES, 15, 2),   /* doors 16,5 and 20,5 (locked) */
+    STAMP(CY, HOUSE_B, 38, 2),      /* door 40,5: TINKER'S HOUSE */
+    STAMP(CY, CLOCK_TOWER, 47, 2),  /* door 48,7: the CLOCKWORK SPIRE (the Crown's east end) */
+    STAMP(CY, HEARTH, 6, 14),       /* door 9,17  */
+    STAMP(CY, BIKE_SHOP, 4, 23),    /* door 7,26  */
+    STAMP(CY, INN, 32, 13),         /* door 35,16 */
+    STAMP(CY, WORKS, 44, 13),       /* door 47,16 (the Works yard, down in the Cut) */
+    STAMP(CY, MARKET, 45, 23),      /* door 49,26 (east ward) */
+    STAMP(CY, HOUSE_A, 3, 29),      /* door 5,32 (canal quarter) */
+    STAMP(CY, HOUSE_C, 30, 28),     /* door 31,31 (locked) */
 };
 
 static const DecorPlace LUMEN_DECOR[] = {
-    DP(SIGNPOST, 23, 2), DP(SIGNPOST, 2, 19), DP(SIGNPOST, 45, 19), DP(SIGNPOST, 23, 18),
-    DP(SIGNPOST, 16, 28),
-    /* the market square: the Beacon, coils, fountains and stalls */
-    DP(BEACON, 24, 13), DP(TESLA_COIL, 16, 11), DP(TESLA_COIL, 33, 11),
-    DP(FOUNTAIN, 19, 13), DP(FOUNTAIN, 29, 13),
-    DP(MARKET_STALL, 17, 17), DP(MARKET_STALL, 30, 17), DP(SACKS, 20, 18), DP(BARREL, 29, 18),
-    DP(BENCH, 21, 16), DP(BENCH, 27, 16),
-    DP(CITY_LAMP, 22, 11), DP(CITY_LAMP, 27, 11), DP(CITY_LAMP, 16, 18), DP(CITY_LAMP, 33, 18),
-    /* the boulevard and the avenues */
-    DP(CITY_LAMP, 4, 18), DP(CITY_LAMP, 12, 18), DP(CITY_LAMP, 38, 18), DP(CITY_LAMP, 44, 18),
-    DP(CITY_LAMP, 4, 22), DP(CITY_LAMP, 14, 22), DP(CITY_LAMP, 22, 22), DP(CITY_LAMP, 27, 22),
-    DP(CITY_LAMP, 36, 22), DP(CITY_LAMP, 45, 22), DP(CITY_LAMP, 23, 4), DP(CITY_LAMP, 26, 4),
-    DP(CITY_LAMP, 23, 33), DP(CITY_LAMP, 26, 33),
-    /* the Volt Hall's forecourt */
-    DP(TESLA_COIL, 2, 6), DP(TESLA_COIL, 12, 6), DP(HEDGE, 1, 12), DP(HEDGE, 2, 12),
-    DP(BIG_TREE, 13, 2), DP(BUSH, 1, 3), DP(BUSH, 14, 9),
-    /* the hearth hall and its garden */
-    DP(BENCH, 11, 14), DP(BUSH, 10, 16), DP(BUSH, 15, 13), DP(FLOWER_POT, 3, 16), DP(FLOWER_POT, 10, 13),
-    /* shop fronts */
-    DP(PARKED_BIKE, 16, 6), DP(PARKED_BIKE, 22, 7), DP(PARKED_BIKE, 23, 8),
-    DP(CAFE_TABLE, 26, 6), DP(CAFE_TABLE, 33, 6),
-    DP(CRATE_STACK, 36, 5), DP(BARREL, 36, 7), DP(PARKED_BIKE, 45, 7), DP(NOTICE_BOARD, 34, 9),
-    DP(CRATE, 36, 15), DP(SACKS, 36, 16), DP(BARREL, 45, 16), DP(BIG_TREE, 45, 2),
-    DP(PLANTER, 34, 12),
-    /* south of the boulevard */
-    DP(PLANTER, 1, 28), DP(FLOWER_POT, 8, 27), DP(FLOWER_POT, 14, 27), DP(BENCH, 21, 28),
-    DP(PLANTER, 27, 28), DP(FLOWER_POT, 38, 27), DP(FLOWER_POT, 44, 27), DP(BENCH, 44, 23),
-    /* bridges over the canal */
-    DP(BRIDGE_V, 24, 30), DP(BRIDGE_V, 25, 30), DP(BRIDGE_V, 24, 31), DP(BRIDGE_V, 25, 31),
-    DP(BRIDGE_V, 6, 30), DP(BRIDGE_V, 7, 30), DP(BRIDGE_V, 6, 31), DP(BRIDGE_V, 7, 31),
-    DP(BRIDGE_V, 40, 30), DP(BRIDGE_V, 41, 30), DP(BRIDGE_V, 40, 31), DP(BRIDGE_V, 41, 31),
-    DP(RAILING, 2, 29), DP(RAILING, 3, 29), DP(RAILING, 17, 29), DP(RAILING, 18, 29),
-    DP(RAILING, 30, 29), DP(RAILING, 31, 29), DP(RAILING, 44, 29), DP(RAILING, 45, 29),
-    DP(LILY_PADS, 12, 31), DP(LILY_PADS, 33, 30),
-    /* the canal gardens and the cafe */
-    DP(CAFE_TABLE, 4, 34), DP(CAFE_TABLE, 7, 34), DP(CAFE_TABLE, 10, 34), DP(CAFE_TABLE, 5, 37),
-    DP(CAFE_TABLE, 9, 37), DP(FOUNTAIN, 1, 35), DP(BENCH, 3, 39), DP(BENCH, 8, 39),
-    DP(HEDGE, 13, 33), DP(HEDGE, 13, 34), DP(BUSH, 13, 36), DP(TESLA_COIL, 12, 37),
-    /* the flower gardens */
-    DP(BENCH, 17, 36), DP(BIG_TREE, 21, 32), DP(SMALL_FLOWERS, 16, 37), DP(BUSH, 15, 41),
-    DP(BENCH, 25, 38), DP(PARKED_BIKE, 26, 36),
-    /* LUMEN PARK */
-    DP(BENCH, 31, 33), DP(BENCH, 40, 33), DP(BIG_TREE, 34, 32), DP(BUSH, 27, 34),
+    DP(SIGNPOST, 23, 2), DP(SIGNPOST, 2, 19), DP(SIGNPOST, 51, 22), DP(SIGNPOST, 17, 19),
+    DP(SIGNPOST, 43, 7),
+    /* the Crown: the Volt Hall's forecourt, the row houses, the tinker */
+    DP(TESLA_COIL, 6, 8), DP(TESLA_COIL, 15, 8), DP(CITY_LAMP, 23, 4), DP(CITY_LAMP, 22, 8),
+    DP(PLANTER, 34, 3), DP(FLOWER_POT, 37, 3), DP(CITY_LAMP, 33, 4), DP(PARKED_BIKE, 43, 3),
+    DP(FLOWER_POT, 14, 6), DP(BUSH, 12, 10),
+    /* the sunken Well garden (only through the old conduit) */
+    DP(FOUNTAIN, 29, 4), DP(CITY_LAMP, 28, 4), DP(BENCH, 31, 7), DP(SMALL_FLOWERS, 32, 3),
+    /* the Spire's terrace */
+    DP(TESLA_COIL, 45, 2), DP(TESLA_COIL, 50, 6), DP(BENCH, 45, 7),
+    /* the Hearth, the west gate and the bike shop */
+    DP(FLOWER_POT, 5, 17), DP(BENCH, 13, 14), DP(CITY_LAMP, 11, 18), DP(CITY_LAMP, 4, 18),
+    DP(CITY_LAMP, 4, 22), DP(CITY_LAMP, 12, 22), DP(PARKED_BIKE, 3, 25), DP(PARKED_BIKE, 9, 26),
+    /* the Beacon plaza */
+    DP(BEACON, 24, 16), DP(FOUNTAIN, 20, 15), DP(FOUNTAIN, 28, 15),
+    DP(MARKET_STALL, 19, 22), DP(MARKET_STALL, 28, 22), DP(SACKS, 22, 23), DP(BARREL, 27, 23),
+    DP(BENCH, 20, 18), DP(BENCH, 28, 18), DP(TESLA_COIL, 18, 13), DP(TESLA_COIL, 31, 13),
+    DP(CITY_LAMP, 22, 12), DP(CITY_LAMP, 27, 12), DP(CITY_LAMP, 34, 18), DP(CITY_LAMP, 38, 18),
+    DP(CITY_LAMP, 34, 22), DP(CITY_LAMP, 38, 22), DP(CAFE_TABLE, 33, 18), DP(CAFE_TABLE, 36, 18),
+    DP(PEBBLES, 30, 11), DP(CRATE, 29, 11),
+    /* the Works yard */
+    DP(CRATE_STACK, 51, 17), DP(SACKS, 50, 19), DP(BARREL, 44, 19),
+    /* the east ward */
+    DP(CITY_LAMP, 47, 28), DP(CITY_LAMP, 50, 28), DP(BARREL, 53, 28), DP(CRATE, 44, 29),
+    /* LUMEN PARK and the grove */
+    DP(BIG_TREE, 46, 30), DP(BUSH, 53, 33), DP(BENCH, 50, 43), DP(PEBBLES, 52, 43),
+    /* the canal quarter */
+    DP(FOUNTAIN, 9, 31), DP(BENCH, 9, 34), DP(FLOWER_POT, 14, 29), DP(CITY_LAMP, 21, 28),
+    DP(CITY_LAMP, 27, 29), DP(BENCH, 27, 33), DP(PLANTER, 35, 30), DP(BARREL, 38, 28),
+    DP(TESLA_COIL, 34, 32), DP(FLOWER_POT, 2, 29), DP(PLANTER, 18, 33),
+    DP(LILY_PADS, 30, 43), DP(LILY_PADS, 36, 46), DP(LILY_PADS, 20, 36),
+    /* the canal gardens */
+    DP(FOUNTAIN, 7, 41), DP(BENCH, 4, 44), DP(BENCH, 15, 40), DP(BIG_TREE, 16, 46),
+    DP(BUSH, 23, 43), DP(SMALL_FLOWERS, 10, 45),
 };
 
 static const WildSlot WILD_LUMEN[] = {

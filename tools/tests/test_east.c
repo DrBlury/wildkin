@@ -102,13 +102,13 @@ static void test_doors(void)
     /* walk in and back out of the Volt Hall for real */
     fresh_game();
     give_starter();
-    field_enter_map(MAP_LUMEN, 7, 9, DIR_UP);
+    field_enter_map(MAP_LUMEN, 10, 7, DIR_UP);
     hold(KEY_UP, 4);
     for (int f = 0; f < 30; f++) step(0);
     int in = cur_map == MAP_VOLT_HALL && player.x == 7 && player.y == 16;
     hold(KEY_DOWN, 12);
     for (int f = 0; f < 30; f++) step(0);
-    CHECK(in && cur_map == MAP_LUMEN && player.x == 7 && player.y == 9, "you can walk into the Volt Hall and out again");
+    CHECK(in && cur_map == MAP_LUMEN && player.x == 10 && player.y == 7, "you can walk into the Volt Hall and out again");
 }
 
 /* ---------------- region reachability ---------------- */
