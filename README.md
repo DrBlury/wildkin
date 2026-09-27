@@ -42,6 +42,15 @@ lairs.
 | **Systems** | day and night, weather, farming, crafting minigames, energy and fusion, bikes, ferries and field abilities |
 | **Lorebook and quests** | regional lore, story, projects and field notes |
 
+**Expansion status:** The new routes, events and systems are integrated, but
+this is still a work in progress rather than a verified end-to-end campaign.
+ROM-backed probes have reached Lumen's Volt Hall Master and Port Brine's upper
+frontage; the recorded four-kin Master attempt lost without earning a crest.
+Neither a complete Act II/III playthrough nor the proposed 16–18-hour total
+has been measured. See [current integration status](docs/HANDOFF.md) and
+[playtime evidence](docs/handoff/playtime.md) before treating the full story
+as playtested.
+
 <table>
 <tr>
 <td width="50%"><img src="docs/images/village.gif" alt="Walking through Maple Village with a follower"></td>
@@ -104,8 +113,9 @@ mGBA lets you change any of these under *Settings → Controllers*.
 
 - **START → SAVE** saves at any time. The game keeps two checked 16 KB save
   slots, so a save interrupted by a power cut is never lost.
-- Saves from older versions (v1 to v3) are upgraded automatically when you
-  load them. Your team, Shelf, bag and progress carry over.
+- Valid saves from older layouts (v1 through v6) are migrated when loaded;
+  make a backup of your `.sav` before trying a newer build. Your team, Shelf,
+  bag and progress carry over when the old save passes its checks.
 - With **Autosave** on (the default), the game also saves every time you walk
   into the Hearth Hall you last rested in. Resting there also makes it the
   place you wake up after all your kin doze off.
@@ -186,7 +196,24 @@ Each picture below is a **labeled full-map render from the game renderer**, not 
 
 <sub>Caravan arrival: captured from the built ROM during a daily stop change; the covered wagon moves across the viewport before the merchant appears.</sub>
 
-**Events and quests.** The Vale Gazette in Hearth houses reports daily happenings; the caravan has route-specific stops, and regional fronts and outbreaks can change a day's conditions. The quest log follows Elspeth's cross-region courier chain and surveys, plus local ring, lamp, chalk and cairn threads. Town project offers include the Brookmill tram, Cinder bridge, Timberline lift, Reedwick punt and Maple market; construction completes after dawn when requirements are met. Event presentation and some project visuals remain incomplete—see [integration status](docs/HANDOFF.md).
+**Events and quests.** The Vale Gazette in Hearth houses reports daily
+happenings; Merriweather's wagon arrives at route-specific stops. Regional
+fronts bring fog, snow, aurora, heat or ash effects, and five festivals add
+ambient effects at their hosts (not new races or map layouts). The quest log
+follows Elspeth's cross-region courier chain and surveys, plus local ring,
+lamp, chalk and cairn threads. Town project offers include the Brookmill
+tram, Cinder bridge, Timberline lift, Reedwick punt and Maple market;
+construction completes after dawn when requirements are met. Built tram and
+lift guides play short ride scenes, and the Reedwick punt has a boat voyage.
+The Maple market project can be completed but has no new hall or shop yet;
+see [integration status](docs/HANDOFF.md).
+
+**FIELD NOTES:** Face and press **A** on a marked feature such as a hollow,
+sign, boulder or stretch of water to record its clue. Walking past it or
+merely opening the notes page does not discover it. Open START → QUESTS and
+switch to FIELD NOTES with SELECT to see discovered clues as LOCKED, READY
+or DONE as abilities and project goals change. Discovered/completed notes
+are saved with your game.
 
 The world is a web of regions around the Vale. Walk off an edge into the next area, take a door, sail on the ferry, or fly between towns once you hold the RIME crest. For connections and gates, see [the world-area table](docs/WORLD.md#11-world-map) and [the progression contract](docs/plans/01_progression_contract.md#2-the-new-world-graph).
 
@@ -351,6 +378,13 @@ can't run from it.
   ride at double speed outdoors.
 - **The ferry**: sails between Port Brine and Gull Isle for 500 coins, or
   for free with the FERRY PASS, with a short voyage scene.
+- **Town projects**: after funding the tram or Timberline lift, speak to its
+  guide to ride between stops; the Reedwick punt has its own boat crossing.
+  Repairing Cinder bridge also opens a walkable crossing in both directions.
+- **Route edges**: Bramblewood and Brookmill Trail stream across their
+  compatible horizontal border without a fade. Other borders, including
+  incompatible palettes, offset links and elevated crossings, use a short
+  safe transition instead; not every map edge is seamless.
 - **The TOWN MAP** shows every place you have visited and where you are.
 - **Map objects**: boulders to push (some light pumice ones need no crest),
   pressure plates and gates, floor switches and barriers, teleport pads, ice
@@ -598,6 +632,13 @@ At Lumen's **Resonance Works**, Engineer Nell shows you four machines:
 - **Wardens and Masters**: 84 warden teams of up to six kin, plus six Hall
   Masters. A Master's bout opens with a banner, and winning it plays a
   victory fanfare.
+- **Paired route wardens**: named pairs can challenge you together in one
+  four-active bout with two distinct kin and HP panels per side. Choose each
+  ally's move and target; a win settles both wardens together. If you have
+  fewer than two healthy kin, or a partner is absent or already defeated,
+  the encounter falls back to a solo bout. This is not every trainer battle.
+- **Music and bouts**: map and battle cues use the game's own GBA music
+  sequencer; battle themes transition back to the field song afterward.
 - **Bouts that feel good**: 130 moves, each with its own animation. Blows
   freeze for a beat, flash, squash the target and shake the screen (harder on
   weak spots and perfect strikes). Big moves tint the sky with their type, HP
@@ -715,6 +756,8 @@ That writes `game.gba`. Other targets:
 | `make art` | Regenerate every art header from the Python generators |
 | `make maps` | Render every map to `build/maps/*.png` |
 | `make shot` | Build the headless screenshot harness (needs libmgba: `brew install mgba`) |
+| `make songs` | Render the game synth's songs as host-side WAVs in `build/music/` |
+| `make audio` | Build the ROM audio recorder (needs libmgba: `brew install mgba`) |
 | `python3 tools/make_media.py` | Re-record the README media (requires the ROM and `make shot` for clips; Pillow for route renders) |
 | `python3 tools/make_media.py world routes mill-wheel cinder-bridge heron-fog mistfen-fog caravan-arriving` | Regenerate the map, route stills, wheel, bridge, fog and caravan clips |
 | `make clean` | Remove build output |
@@ -761,9 +804,11 @@ src/game/party.c        team, Lantern Shelf storage, bag, coins, move learning
 src/game/gfx.c          UI canvas, variable-width text, windows, bars, sprites
 src/game/msg.c          typewriter message box, choices, dialog queue
 src/game/battle.c       bout rules that queue presentation events
-src/game/battle_ui.c    event playback, HUD, bout menus, transitions
+src/game/battle_ui.c    event playback, HUD, bout menus, paired targets, transitions
 src/game/anim.c         move animation patterns
 src/game/sfx.c          sound effects on the GBA's PSG channels
+src/game/music.c        GBA song sequencer and mixer
+src/game/music_map.c    map and bout song selection
 src/game/field.c        maps, decor, movement, ledges, followers, wild kin, weather
 src/game/world/         every region: maps, people, wardens, lore, quests, scripts
 src/game/script.c       people, story, wardens' sight lines, examining things
@@ -773,6 +818,7 @@ src/game/farm.c         Willow Acre: plots, crops, trees, workers, processors
 src/game/craft.c        recipes, the three station minigames, meals
 src/game/fusion.c       energy, extractor, mixer, the Fusion Loom
 src/game/quest.c        quests and the quest log
+src/game/world/saga/  route projects, events, quest clues and FIELD NOTES
 src/game/menu.c         START menu, card, team, summary, bag, shop, shelf, options, crest case
 src/game/dex.c          the Almanac
 src/game/lorebook.c     the Lorebook
@@ -791,7 +837,9 @@ tools/terrain_*.py      terrain tiles and autotiles
 tools/test_field.c      maps, reachability, movement, people, lore, menus, saves
 tools/test_game.c       rules, bout timeline, learning, growth, balance simulation
 tools/tests/            one suite per area (battle, core, craft, farm, fusion,
-                        travel, ui, and each region) on a shared harness.h
+                        travel, ui, each region, paired bouts, route streaming,
+                        field notes and weather) on a shared harness.h
+tools/playthrough/      ROM-backed scripted route probes, not whole-act timings
 tools/shot.c            headless mGBA harness: scripted input -> PNG
 tools/make_demo_save.c  builds mid-game saves for screenshots and playtests
 tools/make_gif.py       pure-Python PNG reader and GIF encoder
