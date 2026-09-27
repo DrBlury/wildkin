@@ -787,7 +787,11 @@ static void teleport_go(void)
  * map fades in. */
 static void travel_arrive(int map, int x, int y, int facing)
 {
+    /* dark through the load: field_return() puts the old map's tiles under
+     * whatever screen was up, and loading the new map takes a few frames */
+    set_brightness(-16);
     field_return();
+    set_brightness(-16);
     field_enter_map(map, x, y, facing);
     warp.active = 1;
     warp.timer = 9;

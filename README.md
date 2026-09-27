@@ -142,6 +142,9 @@ mGBA lets you change any of these under *Settings → Controllers*.
 </tr>
 </table>
 
+<p align="center"><img src="docs/images/almanac_area.png" width="360" alt="The Almanac's area map: every place a kin lives, ringed on the town map"><br>
+<sub>SELECT on a kin you have met: every place it lives, ringed on the town map, with levels and when it comes out.</sub></p>
+
 ## 🌍 The world
 
 The world is a web of regions around the Vale. Walk off an edge into the next
@@ -300,6 +303,34 @@ can't run from it.
 
 ### Getting around
 
+<table>
+<tr>
+<td width="33%"><img src="docs/images/bike.gif" alt="Riding the BIKE through Whisper Meadow"></td>
+<td width="33%"><img src="docs/images/surf.gif" alt="SURFING across Mirror Lake on an AXOLURK"></td>
+<td width="33%"><img src="docs/images/ferry.gif" alt="The ferry from Port Brine to Gull Isle"></td>
+</tr>
+<tr>
+<td align="center"><sub>The BIKE: R to hop on, four times walking speed.</sub></td>
+<td align="center"><sub>SURF: your kin carries you over deep water.</sub></td>
+<td align="center"><sub>The ferry: a short voyage from Port Brine to Gull Isle.</sub></td>
+</tr>
+<tr>
+<td width="33%"><img src="docs/images/fly.gif" alt="FLY: picking Lumen City on the town map and landing there"></td>
+<td width="33%"><img src="docs/images/teleport.gif" alt="TELEPORT back to the last Hearth Hall"></td>
+<td width="33%"><img src="docs/images/runestone.gif" alt="The RUNESTONE spins you home in a ring of runes"></td>
+</tr>
+<tr>
+<td align="center"><sub>FLY: pick any town you have visited.</sub></td>
+<td align="center"><sub>TELEPORT: back to the Hearth Hall you last rested in.</sub></td>
+<td align="center"><sub>The RUNESTONE: from anywhere, straight home.</sub></td>
+</tr>
+</table>
+
+<p align="center"><img src="docs/images/bridge.gif" width="480" alt="Walking under the Maple Run bridge along the creek, then over it on the road"><br>
+<sub>Heights: walk under the Maple Run bridge along the creek, then cross over it on the road.</sub></p>
+
+- **The RUNESTONE**: every keeper carries one. Use it from the bag (or
+  register it to SELECT) and a ring of runes spins you home from anywhere.
 - **Crests and field abilities**: SURF, STRENGTH, LIGHT, FLY and TELEPORT.
   Each needs its crest and a kin in your team that can do it. START → FIELD
   lists what you can use right now.
@@ -366,6 +397,17 @@ refuse by driving its own field out of tune. Catching is consent.
 
 <img src="docs/images/kin.png" alt="All 174 kin with their types">
 
+<table>
+<tr>
+<td width="50%"><img src="docs/images/evolve.gif" alt="A THORNIP touches a BLOOM SHARD and grows into BRAMBLOR"></td>
+<td width="50%"><img src="docs/images/moves.gif" alt="Eight of the biggest move animations"></td>
+</tr>
+<tr>
+<td align="center"><sub>Growth: a THORNIP touches a BLOOM SHARD and becomes BRAMBLOR.</sub></td>
+<td align="center"><sub>MUON RAIN, KENAZ FLARE, UNDERTOW, SOWILO BEAM, ISA SEAL, MOONBEAM, PRISM RAY and ARC FLASH.</sub></td>
+</tr>
+</table>
+
 **174 kin across 18 types**: BEAST, BLAZE, TIDE, BLOOM, SPARK, FROST, BRAWL,
 VENOM, STONE, GALE, DREAM, SWARM, DUSK and WYRM, plus four new ones:
 
@@ -425,8 +467,22 @@ Buy the deed from **Reeve** at the Land Office (bring her three GLOWBERRY
 first and she knocks a third off the price). You get the HOE, the WATERING
 CAN, a pack of seeds and a farmhouse.
 
-<img src="docs/images/region_willow.png" width="480" alt="The way into Willow Acre, south of Maple Village">
+<table>
+<tr>
+<td width="50%"><img src="docs/images/farm_work.gif" alt="Tilling, watering and planting a plot, then picking a ripe row"></td>
+<td width="50%"><img src="docs/images/farm_built.png" alt="A built farm: beds at every stage, watered soil, tall corn and sunflowers, kin at work"></td>
+</tr>
+<tr>
+<td align="center"><sub>L/R turn the tool ring: till with the HOE, water with the CAN, plant, then pick.</sub></td>
+<td align="center"><sub>A working farm in summer: beds at every stage and two kin on the job.</sub></td>
+</tr>
+</table>
 
+<p align="center"><img src="docs/images/farm_crops.png" width="620" alt="All 16 field crops through their five stages, with the seasons they grow in"><br>
+<sub>The 16 field crops, from seed to harvest, and the seasons they grow in. Tall crops grow up into the row above.</sub></p>
+
+- **Soil**: tilled beds have soft edges and join up with the beds beside
+  them, and watered soil darkens and runs on into the wet plots next to it.
 - **Crops**: till, plant, water, fertilise and harvest 18 crops. Each one
   grows through its own stages (seeded, sprout, young, growing, ripe). Some
   grow back after picking, and apple and peach trees keep fruiting. Good care
@@ -480,7 +536,16 @@ At Lumen's **Resonance Works**, Engineer Nell shows you four machines:
   with harmony between the energies and with every miss, until a weave is
   guaranteed. A miss still leaves MOTE DUST and part of your stake.
 
-<img src="docs/images/region_works.png" width="480" alt="The Resonance Works with the extractor, mixer, loom and tanks">
+<table>
+<tr>
+<td width="50%"><img src="docs/images/fusion.gif" alt="Weaving a STEAMOTH from BLAZE and TIDE energy on the Fusion Loom"></td>
+<td width="50%"><img src="docs/images/region_works.png" alt="The Resonance Works with the extractor, mixer, loom and tanks"></td>
+</tr>
+<tr>
+<td align="center"><sub>The Loom weaves BLAZE and TIDE energy into a STEAMOTH.</sub></td>
+<td align="center"><sub>The Resonance Works in Lumen City.</sub></td>
+</tr>
+</table>
 
 ## ✨ Features
 

@@ -68,13 +68,13 @@ class Script:
         return self.wait(60).tap('START').wait(10).tap('A').wait(40)
 
 
-def demo_save(name, map_name, x, y, calm=False, low=False):
+def demo_save(name, map_name, x, y, calm=False, low=False, extra=()):
     exe = os.path.join(ROOT, 'build', 'make_demo_save')
     if True:  # always rebuild: it includes the whole game
         subprocess.check_call(['cc', '-std=c11', '-Wno-unused-function', '-o', exe,
                                os.path.join(ROOT, 'tools', 'make_demo_save.c')])
     path = os.path.join(WORK, name + '.sav')
-    args = [exe, path, str(MAP_IDS[map_name]), str(x), str(y)] + (['calm'] if calm else []) + (['low'] if low else [])
+    args = [exe, path, str(MAP_IDS[map_name]), str(x), str(y)] + (['calm'] if calm else []) + (['low'] if low else []) + list(extra)
     subprocess.check_call(args, stdout=subprocess.DEVNULL)
     return path
 
@@ -87,7 +87,10 @@ def run(script, save=None):
 
 
 def gif(prefix, out, delay=5, scale=2):
-    frames = sorted(glob.glob(os.path.join(WORK, prefix + '_[0-9][0-9][0-9][0-9].png')))
+    """prefix: one recording, or a list of them played one after another."""
+    frames = []
+    for p in ([prefix] if isinstance(prefix, str) else prefix):
+        frames += sorted(glob.glob(os.path.join(WORK, p + '_[0-9][0-9][0-9][0-9].png')))
     make_gif.main([os.path.join(OUT, out)] + frames + ['--delay', str(delay), '--scale', str(scale),
                                                        '--skip-same'])
     if os.environ.get('MEDIA_SHEET'):
@@ -295,6 +298,197 @@ def clip_elevation():
         still(n, n + '.png')
 
 
+CROP_SEASONS = {  # farm.c CROPS[].seasons
+    'GLOWBERRY': 'SPRING WINTER', 'EMBERBERRY': 'SUMMER AUTUMN', 'TIDEBERRY': 'SPRING SUMMER',
+    'RADISH': 'SPRING AUTUMN WINTER', 'CARROT': 'SPRING AUTUMN', 'POTATO': 'SPRING AUTUMN',
+    'PUMPKIN': 'AUTUMN', 'CHILI': 'SUMMER', 'TOMATO': 'SUMMER', 'CORN': 'SUMMER AUTUMN',
+    'SUNFLOWER': 'SUMMER AUTUMN', 'MOTEBLOOM': 'WINTER', 'STRAWBERRY': 'SPRING', 'MELON': 'SUMMER',
+    'EGGPLANT': 'AUTUMN', 'SNOWPEA': 'WINTER',
+}
+
+
+def clip_crops():
+    """Every field crop through its five stages (seeded, sprout, young,
+    growing, ripe) on watered soil, drawn from the farm tileset's own art;
+    tall crops reach into the cell above as they do in the game."""
+    import gen_field_gfx as gf
+    sys.path.insert(0, os.path.join(ROOT, 'tools', 'tilesets'))
+    import ts_farm
+    from pixelart import write_png
+    gf.register_colors(ts_farm.FARM_COLORS)
+    imgs, over = ts_farm.terrain_images(gf)
+    soil, grass = imgs['TILLED_WET'], imgs['GRASS']
+    S, cols = 3, 2
+    crops = ts_farm.CROPS
+    per_col = (len(crops) + cols - 1) // cols
+    cell_w, row_h = 16 * 5 + 64, 32 + 10
+    gap = 40
+    W, H = cols * cell_w * S + (cols - 1) * gap + 16, per_col * row_h * S + 8
+    bg = (34, 40, 56)
+    rows = [[bg] * W for _ in range(H)]
+
+    def col_of(k):
+        return gf.C[k]
+
+    def blit(img, x0, y0, under=None):
+        for y in range(16):
+            for x in range(16):
+                k = img.p[y][x]
+                if k is None:
+                    if under is None:
+                        continue
+                    k = under.p[y][x]
+                c = col_of(k)
+                for yy in range(S):
+                    r = rows[y0 + y * S + yy]
+                    for xx in range(S):
+                        r[x0 + x * S + xx] = c
+
+    def label(text, x0, y0, rgb, px=2):
+        glyph = Canvas1(len(text) * 4, 5)
+        gf.draw_label(glyph, 0, 0, text)
+        for gy in range(5):
+            for gx in range(len(text) * 4):
+                if glyph.rows[gy][gx]:
+                    for yy in range(px):
+                        for xx in range(px):
+                            rows[y0 + gy * px + yy][x0 + gx * px + xx] = rgb
+    for i, crop in enumerate(crops):
+        cx = 8 + (i // per_col) * (cell_w * S + gap)
+        cy = 8 + (i % per_col) * row_h * S
+        label(crop, cx, cy + 10 * S, (250, 236, 180), 3)
+        label(CROP_SEASONS[crop], cx, cy + 22 * S, (150, 200, 240), 2)
+        stages = [('SEEDED', None), ('SPROUT', None), (crop + '_YOUNG', crop + '_YOUNG_TOP'),
+                  (crop + '_GROW', crop + '_GROW_TOP'), (crop + '_RIPE', crop + '_RIPE_TOP')]
+        for k, (low, top) in enumerate(stages):
+            x0 = cx + 64 * S + k * 16 * S
+            blit(grass, x0, cy)
+            if top:
+                blit(over[top], x0, cy)
+            blit(over[low], x0, cy + 16 * S, under=soil)
+    write_png(os.path.join(OUT, 'farm_crops.png'), W, H, rows)
+    print('wrote farm_crops.png (%dx%d)' % (W, H))
+
+
+def clip_farm():
+    """WILLOW ACRE at work: till, water and plant a plot, then pick a ripe
+    row; and a still of the built farm."""
+    save = demo_save('farm', 'WILLOW_ACRE', 23, 18, calm=True, extra=['farm'])
+    s = Script().boot().wait(40).rec('farm_work', 4).wait(20)
+    s.tap('A').wait(28)                       # HOE: till
+    s.tap('R').wait(16).tap('A').wait(30)     # CAN: water
+    s.tap('R').wait(16).tap('A').wait(34)     # CORN SEED: plant
+    s.walk('RIGHT', 4).tap('UP').wait(10)
+    for k in range(4):                        # pick the ripe row
+        s.tap('A').wait(40)
+        s.walk('RIGHT', 1).tap('UP').wait(10)
+    s.wait(20).stop()
+    run(s, save)
+    gif('farm_work', 'farm_work.gif', delay=5)
+    save = demo_save('farm_view', 'WILLOW_ACRE', 29, 20, calm=True, extra=['farm'])
+    run(Script().boot().wait(90).shot('farm_built'), save)
+    still('farm_built', 'farm_built.png')
+
+
+def clip_bridge():
+    """The Maple Run bridge: walking north under it along the creek, then
+    crossing over it on the road (docs/ELEVATION.md)."""
+    save = demo_save('bridge_under', 'TOWN', 20, 25, calm=True)
+    run(Script().boot().wait(20).rec('bridge_a', 3).walk('UP', 7).wait(20).stop(), save)
+    save = demo_save('bridge_over', 'TOWN', 15, 17, calm=True)
+    run(Script().boot().wait(20).rec('bridge_b', 3).tap('RIGHT').walk('RIGHT', 8).wait(20).stop().shot('bridge_end'), save)
+    gif(['bridge_a', 'bridge_b'], 'bridge.gif')
+
+
+SHOWCASE_MOVES = ['MUON_RAIN', 'KENAZ_FLARE', 'UNDERTOW', 'SOWILO_BEAM', 'ISA_SEAL', 'MOONBEAM',
+                  'PRISM_RAY', 'ARC_FLASH']
+
+
+def clip_moves():
+    """A few of the biggest move animations, one bout each (the lead kin
+    gets the move in its first slot; all of these always hit)."""
+    parts = []
+    for k, mv in enumerate(SHOWCASE_MOVES):
+        save = demo_save('move%d' % k, 'MEADOW', 21, 38, low=True, extra=['move=' + mv])
+        s = Script().boot().walk('UP', 3).wait(120).tap('A', 3, 40).wait(150)
+        s.tap('A').wait(16).rec('move%d' % k, 4).tap('A').wait(130).stop()
+        run(s, save)
+        parts.append('move%d' % k)
+    gif(parts, 'moves.gif', delay=5)
+
+
+def field_ability(n, rec):
+    """START -> FIELD (the demo 'travel' save has a TOWN MAP) -> entry n,
+    recording from the ability list on."""
+    s = Script().tap('START').wait(16).tap('DOWN', 6, 4).wait(8).tap('A').wait(24).rec(rec, 3).wait(10)
+    return s.tap('DOWN', n, 10).wait(8).tap('A')
+
+
+def clip_travel():
+    """Getting around: the BIKE, SURF, the ferry, FLY and TELEPORT."""
+    save = demo_save('bike', 'MEADOW', 21, 38, calm=True, extra=['travel', 'beaten'])
+    s = Script().boot().wait(20).tap('R').wait(20).rec('bike', 3)
+    s.hold('UP', 34).hold('LEFT', 20).hold('UP', 30).hold('RIGHT', 26).hold('UP', 20).wait(16)
+    run(s.stop(), save)
+    gif('bike', 'bike.gif')
+    save = demo_save('surf', 'LAKE', 21, 27, calm=True, extra=['travel'])
+    s = Script().boot().wait(20).rec('surf', 3).tap('A').wait(40).tap('A').wait(40)
+    run(s.walk('UP', 6).walk('LEFT', 6).wait(20).stop(), save)
+    gif('surf', 'surf.gif')
+    save = demo_save('ferry', 'PORT_BRINE', 30, 34, calm=True, extra=['travel'])
+    s = Script().boot().wait(20).rec('ferry', 4).tap('A').wait(50).tap('A').wait(40).tap('A')
+    run(s.wait(330).stop(), save)
+    gif('ferry', 'ferry.gif')
+    save = demo_save('fly', 'MEADOW', 21, 38, calm=True, extra=['travel'])
+    s = Script().boot().wait(20)
+    s.lines += field_ability(1, 'fly').lines
+    s.wait(10).tap('B').wait(50).tap('RIGHT').wait(40).tap('A').wait(110).stop()
+    run(s, save)
+    gif('fly', 'fly.gif')
+    save = demo_save('teleport', 'MEADOW', 21, 38, calm=True, extra=['travel'])
+    s = Script().boot().wait(20)
+    s.lines += field_ability(2, 'teleport').lines
+    s.wait(60).tap('A').wait(10).tap('B').wait(130).stop()
+    run(s, save)
+    gif('teleport', 'teleport.gif')
+
+
+def clip_runestone():
+    """The RUNESTONE (registered to SELECT) takes you home from anywhere."""
+    save = demo_save('rune', 'LUMEN', 9, 18, calm=True, extra=['runestone'])
+    run(Script().boot().wait(20).rec('rune', 3).tap('SELECT').wait(240).stop(), save)
+    gif('rune', 'runestone.gif')
+
+
+def clip_fusion():
+    """The Fusion Loom: BLAZE + TIDE energy, the biggest stake, weave."""
+    save = demo_save('fusion', 'WORKS', 10, 7, calm=True, extra=['fusion'])
+    s = Script().boot().wait(20).rec('fusion', 3).tap('A').wait(40)
+    s.tap('RIGHT').wait(10).tap('A').wait(16).tap('RIGHT').wait(10).tap('A').wait(16)
+    s.tap('R').wait(12).tap('R').wait(24).tap('START').wait(200).tap('A').wait(40).tap('A').wait(30).stop()
+    run(s, save)
+    gif('fusion', 'fusion.gif')
+
+
+def clip_evolve():
+    """A THORNIP touches a BLOOM SHARD and grows into BRAMBLOR."""
+    save = demo_save('evolve', 'MEADOW', 21, 38, calm=True, extra=['evolve'])
+    s = Script().boot().wait(20).tap('START').wait(16).tap('DOWN', 3, 4).tap('A').wait(30)
+    s.rec('evolve', 3).tap('RIGHT', 2, 10).wait(10).tap('A').wait(12).tap('A').wait(30).tap('A').wait(40)
+    s.tap('A').wait(260).tap('A').wait(60).tap('A').wait(40).stop()
+    run(s, save)
+    gif('evolve', 'evolve.gif')
+
+
+def clip_area():
+    """The Almanac's area map: where a kin you have met lives."""
+    save = demo_save('area', 'MEADOW', 21, 38, calm=True)
+    s = Script().boot().wait(20).tap('START').wait(16).tap('A').wait(30).tap('RIGHT', 6, 6).wait(10)
+    s.tap('A').wait(40).shot('almanac_page').tap('SELECT').wait(40).shot('almanac_area')
+    run(s, save)
+    still('almanac_area', 'almanac_area.png')
+
+
 class Canvas1:
     """Just enough of pixelart.Canvas for draw_label: 1 bit per pixel."""
     def __init__(self, w, h):
@@ -309,7 +503,8 @@ class Canvas1:
 CLIPS = {
     'title': clip_title, 'village': clip_village, 'warden': clip_warden, 'bout': clip_bout,
     'lorebook': clip_lorebook, 'menus': clip_menus, 'places': clip_places, 'world': clip_world,
-    'regions': clip_regions, 'elevation': clip_elevation,
+    'regions': clip_regions, 'elevation': clip_elevation, 'crops': clip_crops, 'farm': clip_farm, 'bridge': clip_bridge, 'moves': clip_moves, 'travel': clip_travel,
+    'runestone': clip_runestone, 'fusion': clip_fusion, 'evolve': clip_evolve, 'area': clip_area,
 }
 
 
