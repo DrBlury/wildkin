@@ -63,7 +63,7 @@
            "The Brook carried the first trade carts. The old bridge still carries us."),
     PERSON(MAP_BROOKMILL_TRAIL, 42, 27, FISHER, LEFT, LOOK, TALK, LSRC_HERON, "HERON WATCHER",
            "PEBBOTTER juggle stones under the herons' nests."),
-    PERSON(MAP_BROOKMILL_TRAIL, 33, 26, HERMIT, DOWN, STILL, BROOK_SECRET, NO_LORE, "ROOKERY CACHE", 0),
+    PERSON(MAP_BROOKMILL_TRAIL, 33, 26, ELDER, DOWN, STILL, BROOK_SECRET, NO_LORE, "ROOKERY CACHE", 0),
     WARDEN(MAP_BROOKMILL_TRAIL, 14, 16, WARDEN_A, LEFT, 2, TR_BESS, SP_PEBBOTTER, "The Brook never stops."),
     WARDEN(MAP_BROOKMILL_TRAIL, 26, 16, WARDEN_B, LEFT, 2, TR_OAK, NO_KIN, "My twin and I have your measure!"),
     WARDEN(MAP_BROOKMILL_TRAIL, 39, 15, WARDEN_A, RIGHT, 2, TR_ASH, NO_KIN, "A fair bout, twice over!"),
