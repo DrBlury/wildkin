@@ -8,10 +8,9 @@ always shows the current game:
     python3 tools/make_media.py            # everything
     python3 tools/make_media.py routes     # labeled route renders (needs Pillow)
     python3 tools/make_media.py world      # stitched outdoor layout (needs Pillow)
-    python3 tools/make_media.py mill-wheel cinder-bridge heron-fog mistfen-fog
+    python3 tools/make_media.py mill-wheel cinder-bridge heron-fog mistfen-fog caravan-arriving
 
-Weather clips require visible ROM frame differences. The caravan command captures
-a dawn event diagnostic but refuses a GIF while arrival is only a stationary NPC pop-in.
+Weather and caravan clips require visible ROM frame differences.
 """
 
 import glob
@@ -415,17 +414,21 @@ def clip_caravan_arriving():
     frames = route_frames('caravan_arrive')
     if len(frames) < 35:
         raise RuntimeError('not enough frames to show the daily caravan arrival')
-    from PIL import Image, ImageChops
-    # Ignore daybreak's screen-wide palette change; the NPC spawn must change
-    # the same small area where Merriweather stands and remain visible.
-    def npc_area(path):
-        return Image.open(path).convert('RGB').crop((120, 40, 150, 80))
-    before, after = npc_area(frames[2]), npc_area(frames[-3])
-    changed = sum(c != (0, 0, 0) for c in ImageChops.difference(before, after).getdata())
-    if changed < 120:
-        raise RuntimeError('no visible in-game caravan arrival at day rollover (%d pixels)' % changed)
-    print('verified dawn spawn: %d NPC-area pixels changed' % changed)
-    raise RuntimeError('Merriweather spawns instantly at dawn; no moving caravan/arrival animation exists in this ROM')
+    from PIL import Image
+    # The covered wagon's cyan roof is in the existing farm OBJ palette. Track
+    # its screen-space position, not just whole-frame differences at daybreak.
+    roof_positions = []
+    for path in frames:
+        image = Image.open(path).convert('RGB')
+        roof = [x for y in range(45, 68) for x in range(20, 150)
+                if image.getpixel((x, y)) == (165, 214, 255)]
+        if len(roof) >= 60:
+            roof_positions.append(min(roof))
+    if len(set(roof_positions)) < 4 or max(roof_positions, default=0) - min(roof_positions, default=0) < 24:
+        raise RuntimeError('caravan wagon did not move visibly across multiple ROM frames')
+    print('verified caravan wagon movement: %d pixels' %
+          (max(roof_positions) - min(roof_positions)))
+    gif('caravan_arrive', 'routes/caravan-arriving.gif', delay=6)
 
 
 def clip_regions():
@@ -678,7 +681,7 @@ CLIPS = {
 def main(argv):
     os.makedirs(OUT, exist_ok=True)
     os.makedirs(WORK, exist_ok=True)
-    for name in (argv or [n for n in CLIPS if n != 'caravan-arriving']):
+    for name in (argv or CLIPS):
         print('--', name)
         CLIPS[name]()
     if not argv:
