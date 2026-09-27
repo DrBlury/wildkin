@@ -181,7 +181,7 @@ int main(void)
     fresh_game();
     map_load(MAP_HERON_FEN);
     flood(63, 31);
-    CHECK(reached(55, 19) && !reached(0, 19), "G2 closes the west shore while the teaser stays open");
+    CHECK(reached(56, 19) && !reached(0, 19), "G2 closes the west shore while the teaser stays open");
     CHECK((cell_attr(29, 19) & (A_WATER | A_DEEP)) == (A_WATER | A_DEEP) &&
               MAPS[MAP_HERON_FEN].patch_count == 1,
           "G2 is impassable deep water while FEN_RIVETS is clear");
@@ -203,10 +203,10 @@ int main(void)
     CHECK((MAPS[MAP_REED_HEARTH].flags & MF_HEAL) != 0,
           "Reedwick has a separate Hearth interior");
     map_load(MAP_PORT_BRINE);
-    CHECK(MAPS[MAP_PORT_BRINE].link[LINK_N] == MAP_GREYWATER_FJORD &&
+    CHECK(MAPS[MAP_PORT_BRINE].link[LINK_N] == MAP_NONE &&
               (cell_attr(20, 0) & A_WATER) && (cell_attr(21, 0) & A_WATER) &&
               !open_cell(20, 0) && !open_cell(21, 0),
-          "Greywater Fjord mouth x20-21 is water only and needs SURF");
+          "Greywater Fjord mouth remains closed until the Links wave");
     flood_ex(1, 12, FLOOD_SURF);
     CHECK(reached(20, 0) && reached(21, 0), "SURF can reach both fjord edge water cells");
 

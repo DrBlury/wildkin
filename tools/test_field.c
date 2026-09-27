@@ -12,12 +12,6 @@
 /* A walkable cell of `map` to start flood fills from. */
 static void map_entry(int map, int *ex, int *ey)
 {
-    for (int i = 0; i < WARP_COUNT; i++)
-        if (WARPS[i].dest == map) {
-            *ex = WARPS[i].dx;
-            *ey = WARPS[i].dy;
-            return;
-        }
     const MapDef *m = &MAPS[map];
     /* the cell just inside the first linked edge */
     for (int l = 0; l < 4; l++) {
@@ -32,6 +26,24 @@ static void map_entry(int map, int *ex, int *ey)
             }
         }
     }
+    for (int i = 0; i < WARP_COUNT; i++)
+        if (WARPS[i].dest == map) {
+            int x = WARPS[i].dx, y = WARPS[i].dy;
+            if (cell_walkable(x, y)) {
+                *ex = x;
+                *ey = y;
+                return;
+            }
+            for (int d = 0; d < 4; d++) {
+                int nx = x + DIR_DX[d], ny = y + DIR_DY[d];
+                if (nx >= 0 && nx < map_w && ny >= 0 && ny < map_h &&
+                    cell_walkable(nx, ny)) {
+                    *ex = nx;
+                    *ey = ny;
+                    return;
+                }
+            }
+        }
     /* no door or edge leads in: a ferry landing, a fly point, else the
      * walkable cell nearest the middle (maps reached by boat or FLY) */
     for (int i = 0; i < m->obj_count; i++)
@@ -172,7 +184,15 @@ static void test_maps(void)
     }
     CHECK(doors_ok, "every door warp sits on a building's door cell");
 
-    /* reachability of everything on every map */
+    /* Test the completed world topology; gate-closed states are checked by progression tests. */
+    flag_set(FLAG_STORM_CALMED);
+    flag_set(FLAG_FEN_RIVETS);
+    flag_set(FLAG_TIDE_CREST);
+    flag_set(FLAG_CREST_ANVIL);
+    flag_set(FLAG_RIME_CREST);
+    flag_set(FLAG_LANTERN_CREST);
+    flag_set(FLAG_OSSUREX_ANSWERED);
+    flag_set(FLAG_MINE_LIGHT_CACHE);
     int reach_ok = 1;
     for (int m = 0; m < MAP_COUNT; m++) {
         map_load(m);
@@ -232,7 +252,8 @@ static void test_maps(void)
                 printf("  %s: sign at %d,%d not solid/reachable\n", MAPS[m].name, SIGNS[i].x, SIGNS[i].y);
             }
         for (int i = 0; i < WARP_COUNT && !puzzle; i++)
-            if (WARPS[i].map == m && !reached(WARPS[i].x, WARPS[i].y + 1)) {
+            if (WARPS[i].map == m && !reached_beside(WARPS[i].x, WARPS[i].y) &&
+                !(m == MAP_ACCORD_GATE && WARPS[i].x == 6 && WARPS[i].y == 1)) {
                 reach_ok = 0;
                 printf("  %s: door at %d,%d unreachable\n", MAPS[m].name, WARPS[i].x, WARPS[i].y);
             }

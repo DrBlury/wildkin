@@ -973,10 +973,12 @@ static const char *const MISTFEN_FOG_CLEARED[] = { "==", "==", "==" };
 static const MapPatch CINDER_CROSSING_PATCHES[] = {
     { FLAG_PROJECT_CINDER_BRIDGE, 0, 6, 20, 4, 2, CINDER_BRIDGE_REPAIRED, 0 },
 };
-static const MapPatch MISTFEN_PATCHES[] = {
-    { FLAG_LANTERN_CREST, 0, 24, 52, 2, 3, MISTFEN_FOG_CLEARED, 0 },
-};
 #endif
+static const char *const MISTFEN_FOG_PASSAGE[] = { "==", "==", "==" };
+static const MapPatch MISTFEN_PATCHES[] = {
+    { .flag = FLAG_LANTERN_CREST, .x = 24, .y = 52, .w = 2, .h = 3,
+      .rows = MISTFEN_FOG_PASSAGE },
+};
 
 
 static const WildSlot WILD_CROSSING[] = {

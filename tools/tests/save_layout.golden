@@ -13,6 +13,7 @@
     "travel",
     "elev",
     "ui",
+    "story",
     "debug"
   ],
   "ids": [
@@ -187,13 +188,23 @@
         "MAP_LUMEN_HOUSE",
         "MAP_CLOCKWORK_SPIRE",
         "MAP_LUMEN_INN",
-        "MAP_LUMEN_HOUSE_B"
+        "MAP_LUMEN_HOUSE_B",
+        "MAP_BROOKMILL_TRAIL",
+        "MAP_BROOKMILL",
+        "MAP_BROOKMILL_MILL",
+        "MAP_BROOKMILL_HOUSE",
+        "MAP_BROOKMILL_REST",
+        "MAP_COPPER_MINE"
       ],
       [
         "FLAG_VOLT_CREST",
         "FLAG_MINER_GIFT",
         "FLAG_GROVE_GIFT",
-        "FLAG_TINKER_GIFT"
+        "FLAG_TINKER_GIFT",
+        "FLAG_FEN_RIVETS",
+        "FLAG_BROOK_LIGHT_CACHE",
+        "FLAG_MINE_LIGHT_CACHE",
+        "FLAG_RIVET_BUNDLE"
       ],
       [
         "east:0",
@@ -208,7 +219,16 @@
         "east:9",
         "east:10",
         "east:11",
-        "east:12"
+        "east:12",
+        "east:13",
+        "east:14",
+        "east:15",
+        "east:16",
+        "east:17",
+        "east:18",
+        "east:19",
+        "east:20",
+        "east:21"
       ],
       [
         "TR_DUNN",
@@ -223,11 +243,20 @@
         "TR_FARA",
         "TR_SORREL",
         "TR_BRAN",
-        "TR_COGSWORTH"
+        "TR_COGSWORTH",
+        "TR_BESS",
+        "TR_OAK",
+        "TR_ASH",
+        "TR_TAM",
+        "TR_ROLF",
+        "TR_HOLT_EXHIBITION",
+        "TR_MINE_BOSS"
       ],
       [
         "QUEST_BIKE_ERRAND",
-        "QUEST_VOLT_HALL"
+        "QUEST_VOLT_HALL",
+        "QUEST_GRIST_WHEEL",
+        "QUEST_KOIRIN_SONG"
       ],
       [
         "LORE_COPPERLINE",
@@ -241,7 +270,12 @@
         "LORE_ELDERWOOD",
         "LORE_SYLVARCH",
         "LORE_CLOCKWORK_SPIRE",
-        "LORE_HOROLOGOS"
+        "LORE_HOROLOGOS",
+        "LORE_BROOK_TOLL",
+        "LORE_BROOK_HERONS",
+        "LORE_BROOK_WHEEL",
+        "LORE_BROOK_SONG",
+        "LORE_COPPER_RUSH"
       ]
     ],
     [
@@ -257,7 +291,13 @@
         "MAP_BRINE_INN",
         "MAP_GULL_HOUSE",
         "MAP_DROWNED_BELL",
-        "MAP_BRINE_HOUSE"
+        "MAP_BRINE_HOUSE",
+        "MAP_HERON_FEN",
+        "MAP_REEDWICK",
+        "MAP_REED_HEARTH",
+        "MAP_REED_SHOP",
+        "MAP_REED_TUNNEL",
+        "MAP_FEN_HERMIT"
       ],
       [
         "FLAG_TIDE_CREST",
@@ -281,7 +321,15 @@
         "west:10",
         "west:11",
         "west:12",
-        "west:13"
+        "west:13",
+        "west:14",
+        "west:15",
+        "west:16",
+        "west:17",
+        "west:18",
+        "west:19",
+        "west:20",
+        "west:21"
       ],
       [
         "TR_WEST_NILS",
@@ -296,11 +344,20 @@
         "TR_HALL_RILL",
         "TR_HALL_EDDY",
         "TR_HALL_WAVE",
-        "TR_MAREN"
+        "TR_MAREN",
+        "TR_FEN_TEASER",
+        "TR_FEN_BIRDER",
+        "TR_FEN_REED_A",
+        "TR_FEN_REED_B",
+        "TR_FEN_FISHER",
+        "TR_FEN_WISP",
+        "TR_REED_BOAT",
+        "TR_REED_SMOKER"
       ],
       [
         "QUEST_HARBOR_POST",
-        "QUEST_ISLE_SALT"
+        "QUEST_ISLE_SALT",
+        "QUEST_REED_ROOF"
       ],
       [
         "LORE_SALTWIND",
@@ -313,7 +370,10 @@
         "LORE_GLOWING_SEA",
         "LORE_NOCTHALE",
         "LORE_DROWNED_BELL",
-        "LORE_SEABIRDS"
+        "LORE_SEABIRDS",
+        "LORE_REEDWICK",
+        "LORE_FEN_WISPS",
+        "LORE_SALT_CACHE"
       ]
     ],
     [
@@ -330,11 +390,17 @@
         "MAP_GLIMMER_2",
         "MAP_STARFALL",
         "MAP_FROST_HOUSE",
-        "MAP_STARGAZER"
+        "MAP_STARGAZER",
+        "MAP_FOOTHILLS",
+        "MAP_TIMBERLINE",
+        "MAP_TIMBER_LODGE",
+        "MAP_TIMBER_SAWMILL",
+        "MAP_STORM_CAVE"
       ],
       [
         "FLAG_RIME_CREST",
-        "FLAG_ALDER_GIFT"
+        "FLAG_ALDER_GIFT",
+        "FLAG_TIMBER_AXE"
       ],
       [
         "north:0",
@@ -354,7 +420,13 @@
         "north:14",
         "north:15",
         "north:16",
-        "north:17"
+        "north:17",
+        "north:18",
+        "north:19",
+        "north:20",
+        "north:21",
+        "north:22",
+        "north:23"
       ],
       [
         "TR_N_BRYN",
@@ -373,11 +445,21 @@
         "TR_N_KJELL",
         "TR_N_FRIDA",
         "TR_N_TORVALD",
-        "TR_N_SIGRUN"
+        "TR_N_SIGRUN",
+        "TR_N_HIKER_1",
+        "TR_N_HIKER_2",
+        "TR_N_GUIDE",
+        "TR_N_CLIMBER_1",
+        "TR_N_CLIMBER_2",
+        "TR_N_WATCHER",
+        "TR_N_SCREE",
+        "TR_N_LOGGER_1",
+        "TR_N_LOGGER_2"
       ],
       [
         "QUEST_GLOWCAPS",
-        "QUEST_STAR_CHART"
+        "QUEST_STAR_CHART",
+        "QUEST_LOST_AXE"
       ],
       [
         "LORE_FROSTPINE",
@@ -392,7 +474,11 @@
         "LORE_AURORA",
         "LORE_SNOWFLAKES",
         "LORE_WINTER_COATS",
-        "LORE_FROST_GOODS"
+        "LORE_FROST_GOODS",
+        "LORE_STORMSTEP",
+        "LORE_STORM_CALM",
+        "LORE_TIMBERLINE",
+        "LORE_TIMBER_AURORA"
       ]
     ],
     [
@@ -407,7 +493,12 @@
         "MAP_OSSUARY_1",
         "MAP_OSSUARY_2",
         "MAP_BONE_THRONE",
-        "MAP_DUSK_HOUSE"
+        "MAP_DUSK_HOUSE",
+        "MAP_ACCORD_GATE",
+        "MAP_HOLLOW_DOWNS",
+        "MAP_WAYCHAPEL",
+        "MAP_BARROW_A",
+        "MAP_BARROW_B"
       ],
       [
         "FLAG_ASH_TOLD",
@@ -423,7 +514,11 @@
         "FLAG_OSSUREX_ANSWERED",
         "FLAG_OSSUREX_JOINED",
         "FLAG_ASH_HEALED_TOLD",
-        "FLAG_VIGIL_GIFT"
+        "FLAG_VIGIL_GIFT",
+        "FLAG_CANDLES_REWARD",
+        "FLAG_CANDLE_A",
+        "FLAG_CANDLE_B",
+        "FLAG_CANDLE_CAIRN"
       ],
       [
         "grim:0",
@@ -442,7 +537,13 @@
         "grim:13",
         "grim:14",
         "grim:15",
-        "grim:16"
+        "grim:16",
+        "grim:17",
+        "grim:18",
+        "grim:19",
+        "grim:20",
+        "grim:21",
+        "grim:22"
       ],
       [
         "TR_ROOK",
@@ -458,12 +559,19 @@
         "TR_CORVIN",
         "TR_ELSPETH",
         "TR_GRIMSBY",
-        "TR_HESTER"
+        "TR_HESTER",
+        "TR_AUDRA_PATROL",
+        "TR_DIGGER",
+        "TR_PILGRIM_A",
+        "TR_PILGRIM_B",
+        "TR_CUTTER",
+        "TR_DOWNS_WATCH"
       ],
       [
         "QUEST_HOLLOWING",
         "QUEST_ASH_LANTERN",
-        "QUEST_MIRE_LETTER"
+        "QUEST_MIRE_LETTER",
+        "QUEST_BARROW_CANDLES"
       ],
       [
         "LORE_HOLLOWING",
@@ -478,7 +586,9 @@
         "LORE_WARDENS_ACCORD",
         "LORE_VIGIL",
         "LORE_OSSUREX",
-        "LORE_ASH_GREEN"
+        "LORE_ASH_GREEN",
+        "LORE_HOLLOW_DOWNS",
+        "LORE_KINSHIP_VOW"
       ]
     ],
     [
@@ -496,7 +606,14 @@
         "MAP_DREAM_HEARTH",
         "MAP_DREAM_SHOP",
         "MAP_MIRROR_HALL",
-        "MAP_DUST_LIBRARY"
+        "MAP_DUST_LIBRARY",
+        "MAP_CINDER_CROSSING",
+        "MAP_RAILHEAD",
+        "MAP_RAILHEAD_BUNK",
+        "MAP_RAILHEAD_OFFICE",
+        "MAP_RAILHEAD_SHAFT",
+        "MAP_MISTFEN",
+        "MAP_PILGRIM_REST"
       ],
       [
         "FLAG_CREST_ANVIL",
@@ -520,7 +637,18 @@
         "far:9",
         "far:10",
         "far:11",
-        "far:12"
+        "far:12",
+        "far:13",
+        "far:14",
+        "far:15",
+        "far:16",
+        "far:17",
+        "far:18",
+        "far:19",
+        "far:20",
+        "far:21",
+        "far:22",
+        "far:23"
       ],
       [
         "TR_CR_OSKAR",
@@ -539,7 +667,21 @@
         "TR_MH_PERRIN",
         "TR_MH_OPAL",
         "TR_MASTER_VESPER",
-        "TR_DL_QUILL"
+        "TR_DL_QUILL",
+        "TR_CC_SURVEYOR",
+        "TR_CC_SPA_A",
+        "TR_CC_SPA_B",
+        "TR_CC_RAIL",
+        "TR_CC_GEO",
+        "TR_CC_GUARD",
+        "TR_RH_HOB",
+        "TR_RH_TESS",
+        "TR_MF_PILGRIM",
+        "TR_MF_SCHOLAR",
+        "TR_MF_TWIN_A",
+        "TR_MF_TWIN_B",
+        "TR_MF_WISP",
+        "TR_MF_GUARD"
       ],
       [
         "QUEST_IRON_BELL",
@@ -655,9 +797,52 @@
       []
     ],
     [
+      [],
+      [
+        "FLAG_STORY_WIRE_HOME",
+        "FLAG_STORY_WIRE_VOLT",
+        "FLAG_STORY_WIRE_TIDE",
+        "FLAG_STORY_WIRE_ANVIL",
+        "FLAG_STORY_WIRE_RIME",
+        "FLAG_STORY_WIRE_LANTERN",
+        "FLAG_STORY_WIRE_DREAM",
+        "FLAG_SORREL_STARTER_FIRE",
+        "FLAG_SORREL_STARTER_WATER",
+        "FLAG_SORREL_STARTER_LEAF",
+        "FLAG_SORREL_MAPLE",
+        "FLAG_SORREL_MEADOW",
+        "FLAG_SORREL_BROOKMILL",
+        "FLAG_SORREL_HARBOUR",
+        "FLAG_SORREL_TEAMUP",
+        "FLAG_SORREL_LANTERN",
+        "FLAG_SORREL_FINALE",
+        "FLAG_STILL_LUMEN",
+        "FLAG_STILL_SALTWIND",
+        "FLAG_STILL_EMBER",
+        "FLAG_STILL_GLIMMER",
+        "FLAG_STILL_BARROW"
+      ],
+      [],
+      [
+        "TR_SORREL_MAPLE",
+        "TR_SORREL_MEADOW",
+        "TR_SORREL_BROOKMILL",
+        "TR_SORREL_HARBOUR",
+        "TR_SORREL_FINALE",
+        "TR_STILL_LUMEN",
+        "TR_STILL_SALTWIND",
+        "TR_STILL_EMBER",
+        "TR_STILL_GLIMMER",
+        "TR_STILL_VESTA"
+      ],
+      [],
+      []
+    ],
+    [
       [
         "MAP_VIEW_TOWN_1",
         "MAP_VIEW_TOWN_2",
+        "MAP_VIEW_TOWN_3",
         "MAP_VIEW_WILD_1",
         "MAP_VIEW_WILD_2",
         "MAP_VIEW_WILD_3",

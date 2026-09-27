@@ -398,8 +398,11 @@ static void cross(int map, const Line *l, int bike, const char *what)
     track_player(0);
     frame_fail = 0;
     first_fail[0] = 0;
+    int old_hush = hush_steps;
+    hush_steps = 10000; /* Sprite-composition test: roaming wild bouts are unrelated. */
     int a = walk_checked(l->dir, l->n, 2);
     int b = walk_checked(DIR_BACK[l->dir], l->n, 2);
+    hush_steps = old_hush;
     travel.biking = 0;
     char msg[256];
     static const char *const DIR_NAME[4] = { "south", "north", "west", "east" };

@@ -53,6 +53,9 @@ def main():
         before = old['ids'][old_regions.index(region)]
         after = current['ids'][current['regions'].index(region)]
         for kind, saved, now in zip(KINDS, before, after):
+            # Asset-viewer map IDs are generated from tileset size and are never saved.
+            if region == 'debug' and kind == 'ids':
+                continue
             if now[:len(saved)] != saved:
                 raise ValueError(f'{region}/{kind}: IDs were deleted or reordered (append only)')
     def lines(rows):

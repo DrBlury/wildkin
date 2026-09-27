@@ -29,7 +29,8 @@ import north_palette as NP
 import decor_outdoor
 
 USES_DECOR = ['SIGNPOST', 'SIGN_ARROW', 'BRIDGE_H', 'BRIDGE_V', 'CRATE', 'CRATE_STACK', 'BARREL',
-              'SACKS', 'LOG', 'CAMPFIRE', 'PEBBLES', 'ROCK', 'BOULDER', 'LANTERN_POST']
+              'SACKS', 'LOG', 'CAMPFIRE', 'PEBBLES', 'ROCK', 'BOULDER', 'LANTERN_POST',
+              'RAILS_H', 'RAILS_V', 'ORE_CART', 'ORE_PILE']
 
 TERRAIN = [
     'FLOOR', 'FLOOR2', 'FLOOR3', 'MOSS', 'ROCK', 'WALL', 'WALL_CRYSTAL', 'CRYSTAL',

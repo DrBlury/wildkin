@@ -15,6 +15,6 @@
     { MAP_BROOKMILL, 3, 16, "BROOKMILL\fHearth, mill, guild, millpond. The guild's ferrymen use the old Brook." },
     { MAP_BROOKMILL, 35, 16, "EAST: COPPERLINE\fThe miners' road leads to Lumen's Volt Hall." },
     { MAP_BROOKMILL, 34, 30, "TRAM DEPOT\fBrookmill's next great project. The rails aren't laid yet." },
-    { MAP_COPPERLINE, 25, 8, "COPPERLINE MINE\fDark but passable. LIGHT reveals its lost side gallery." },
+    { MAP_COPPERLINE, 24, 8, "COPPERLINE MINE\fDark but passable. LIGHT reveals its lost side gallery." },
     { MAP_ELDERWOOD, 29, 2, "THE ELDER'S PROMISE\fThe grove waits until the March is healed. Come back after OSSUREX." },
-    { MAP_LUMEN, 43, 8, "SPIRE CROWN\fThe great clock awaits the end of the March. STRENGTH alone is not enough." },
+    { MAP_LUMEN, 43, 9, "SPIRE CROWN\fThe great clock awaits the end of the March. STRENGTH alone is not enough." },

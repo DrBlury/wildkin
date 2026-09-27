@@ -1,0 +1,1 @@
+/* Story reserves no satchels IDs in wave one. */

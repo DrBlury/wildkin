@@ -5,4 +5,3 @@
     FLAG_POST_HALL,       /* ... to the CURRENT HALL guide */
     FLAG_SALT_GIFT,       /* the Saltwind salt raker's SALT */
     FLAG_WEST_ROCKPOOL,   /* the lightkeeper's TIDE LANTERNS */
-    FLAG_FEN_RIVETS, /* set after VOLT crest by the fen carpenter */

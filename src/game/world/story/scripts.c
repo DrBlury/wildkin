@@ -1,5 +1,5 @@
 /* Story dialogue and local callbacks. Region NPC placement is deferred until E3. */
-static int story_act(void)
+__attribute__((unused)) static int story_act(void)
 {
     if (flag(FLAG_OSSUREX_ANSWERED)) return 9;
     if (flag(FLAG_CREST_DREAM)) return 8;

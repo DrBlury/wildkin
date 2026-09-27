@@ -1,0 +1,1 @@
+/* Story reserves no ids IDs in wave one. */

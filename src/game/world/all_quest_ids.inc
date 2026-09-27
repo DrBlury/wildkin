@@ -11,4 +11,5 @@
 #include "travel/quest_ids.inc"
 #include "elev/quest_ids.inc"
 #include "ui/quest_ids.inc"
+#include "story/quest_ids.inc"
 #include "debug/quest_ids.inc"
