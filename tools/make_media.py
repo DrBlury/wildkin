@@ -6,7 +6,8 @@ compiler. Every clip is a scripted mGBA run on a demo save, so the media
 always shows the current game:
 
     python3 tools/make_media.py            # everything
-    python3 tools/make_media.py bout       # just one clip (see CLIPS below)
+    python3 tools/make_media.py routes     # labeled route renders (needs Pillow)
+    python3 tools/make_media.py world      # stitched outdoor layout (needs Pillow)
 """
 
 import glob
@@ -26,7 +27,7 @@ import make_gif  # noqa: E402
 MAP_IDS = {'TOWN': 0, 'HOME': 1, 'LAB': 3, 'REST': 5, 'MEADOW': 7, 'RISE': 8, 'WOOD': 9, 'LAKE': 10,
            'LUMEN': 14, 'VOLT_HALL': 19, 'WORKS': 20, 'PORT_BRINE': 27, 'GULL_ISLE': 29, 'CURRENT_HALL': 32,
            'DROWNED_BELL': 36, 'FROSTHOLLOW': 39, 'SKY_ISLE': 41, 'RIME_HALL': 44, 'STARFALL': 48,
-           'DUSKMERE': 53, 'CRYPT': 57, 'BONE_THRONE': 60, 'CINDERMOOR': 63, 'DREAMSPIRE': 65,
+           'BROOKMILL': 27, 'DUSKMERE': 53, 'CRYPT': 57, 'BONE_THRONE': 60, 'CINDERMOOR': 63, 'DREAMSPIRE': 65,
            'ANVIL_HALL': 69, 'CALDERA': 71, 'MIRROR_HALL': 74, 'LIBRARY': 75, 'WILLOW_ACRE': 76}
 
 
@@ -188,8 +189,7 @@ def clip_places():
 
 
 def render_world():
-    """Every map drawn by the game's own code (tools/render_world.c) ->
-    {id: (name, w, h, outdoor, links, offsets, rows of RGB)}."""
+    """Read the game's renderer output and its canonical edge/hint positions."""
     exe = os.path.join(ROOT, 'build', 'render_world')
     subprocess.check_call(['cc', '-std=c11', '-O2', '-Wno-unused-function', '-o', exe,
                            os.path.join(ROOT, 'tools', 'render_world.c')])
@@ -197,69 +197,98 @@ def render_world():
     os.makedirs(out, exist_ok=True)
     subprocess.check_call([exe, out])
     maps = {}
-    for line in open(os.path.join(out, 'maps.txt')):
-        mid, rest = line.rstrip('\n').split(' ', 1)
-        name, w, h, outdoor, links, offs = rest.split('|')
-        w, h = int(w), int(h)
-        raw = open(os.path.join(out, mid + '.rgb'), 'rb').read()
-        rows = [[tuple(raw[(y * w * 16 + x) * 3:(y * w * 16 + x) * 3 + 3]) for x in range(w * 16)]
-                for y in range(h * 16)]
-        maps[int(mid)] = (name, w, h, outdoor == '1', [int(v) for v in links.split()],
-                          [int(v) for v in offs.split()], rows)
-    return maps
+    with open(os.path.join(out, 'maps.txt')) as listing:
+        for line in listing:
+            mid, rest = line.rstrip('\n').split(' ', 1)
+            name, w, h, outdoor, links, offs = rest.split('|')
+            maps[int(mid)] = (name, int(w), int(h), outdoor == '1',
+                              os.path.join(out, mid + '.rgb'))
+    positions = {}
+    with open(os.path.join(out, 'positions.txt')) as placed:
+        for line in placed:
+            mid, x, y = map(int, line.split())
+            if mid not in maps or not maps[mid][3] or mid in positions:
+                raise ValueError('invalid or duplicate outdoor position: %d' % mid)
+            positions[mid] = (x, y)
+    return maps, positions
+
+
+ROUTE_STILLS = (
+    ('brookmill-trail', 26), ('brookmill', 27), ('heron-fen', 44), ('reedwick', 45),
+    ('stormstep-foothills', 63), ('timberline', 64), ('hollow-downs', 80),
+    ('waychapel', 81), ('cinder-crossing', 98), ('railhead', 99), ('mistfen', 103),
+)
+
+
+def route_image(maps, mid):
+    """Actual renderer pixels at noon/clear, not a simulated gameplay frame."""
+    from PIL import Image
+    _, w, h, _, path = maps[mid]
+    with open(path, 'rb') as rendered:
+        rgb = rendered.read()
+    if len(rgb) != w * h * 16 * 16 * 3:
+        raise ValueError('incomplete rendered map %d' % mid)
+    return Image.frombytes('RGB', (w * 16, h * 16), rgb)
+
+
+def label_map(image, name, x, y):
+    from PIL import ImageDraw
+    from gen_field_gfx import draw_label
+    glyph = Canvas1(len(name) * 4, 5)
+    draw_label(glyph, 0, 0, name)
+    scale = 2
+    width = (glyph.w + 4) * scale
+    x = max(0, min(x, image.width - width))
+    y = max(0, min(y, image.height - 9 * scale))
+    pen = ImageDraw.Draw(image)
+    pen.rectangle((x, y, x + width - 1, y + 9 * scale - 1), fill=(20, 24, 40))
+    for gy, row in enumerate(glyph.rows):
+        for gx, pixel in enumerate(row):
+            if pixel:
+                px, py = x + (gx + 2) * scale, y + (gy + 2) * scale
+                pen.rectangle((px, py, px + scale - 1, py + scale - 1), fill=(250, 236, 180))
+
+
+def clip_routes():
+    """Labeled full-map renders, including the indoor Waychapel rest stop."""
+    maps, _ = render_world()
+    destination = os.path.join(OUT, 'routes')
+    os.makedirs(destination, exist_ok=True)
+    for slug, mid in ROUTE_STILLS:
+        image = route_image(maps, mid)
+        label_map(image, maps[mid][0], 8, 8)
+        path = os.path.join(destination, slug + '.png')
+        image.save(path)
+        print('wrote', path)
 
 
 def clip_world():
-    """All outdoor maps, drawn by the game itself and stitched the way their
-    edges connect (from Maple Village), each with its name; half size."""
-    from gen_field_gfx import draw_label
-    from pixelart import write_png
-    maps = render_world()
-    # place maps by following the edge links (N S W E) from Maple Village
-    pos, todo = {0: (0, 0)}, [0]
-    while todo:
-        m = todo.pop(0)
-        x, y = pos[m]
-        _, w, h, _, links, offs, _ = maps[m]
-        for d, n in enumerate(links):
-            if n == 255 or n in pos or n not in maps:
-                continue
-            nw, nh = maps[n][1], maps[n][2]
-            pos[n] = [(x + offs[d], y - nh), (x + offs[d], y + h), (x - nw, y + offs[d]), (x + w, y + offs[d])][d]
-            todo.append(n)
-    x0 = min(x for (x, _) in pos.values())
-    y0 = min(y for (_, y) in pos.values())
-    W = max(x + maps[m][1] for m, (x, _) in pos.items()) - x0
-    H = max(y + maps[m][2] for m, (_, y) in pos.items()) - y0
-    # half size: every other pixel of each 2x2 block
-    bg = (22, 26, 38)
-    rows = [[bg] * (W * 8) for _ in range(H * 8)]
+    """Stitch edge-linked and warp-only outdoor maps using WORLD_POS hints."""
+    from PIL import Image
+    maps, pos = render_world()
+    x0 = min(x for x, _ in pos.values())
+    y0 = min(y for _, y in pos.values())
+    w = max(x + maps[m][1] for m, (x, _) in pos.items()) - x0
+    h = max(y + maps[m][2] for m, (_, y) in pos.items()) - y0
+    image = Image.new('RGB', (w * 8, h * 8), (22, 26, 38))
     for m, (x, y) in pos.items():
-        src = maps[m][6]
-        ox, oy = (x - x0) * 8, (y - y0) * 8
-        for yy in range(0, len(src), 2):
-            row, dst = src[yy], rows[oy + yy // 2]
-            for xx in range(0, len(row), 2):
-                dst[ox + xx // 2] = row[xx]
-    S = 3  # label pixel size
+        source = route_image(maps, m)
+        image.paste(source.resize((source.width // 2, source.height // 2),
+                                  Image.Resampling.NEAREST), ((x - x0) * 8, (y - y0) * 8))
     for m, (x, y) in pos.items():
-        label = maps[m][0]
-        w = maps[m][1] * 8
-        tw, th = len(label) * 4 * S + 4 * S, 9 * S
-        lx, ly = (x - x0) * 8 + (w - tw) // 2, (y - y0) * 8 + 10
-        glyph = Canvas1(len(label) * 4, 5)
-        draw_label(glyph, 0, 0, label)
-        for yy in range(th):
-            for xx in range(tw):
-                rows[ly + yy][lx + xx] = (20, 24, 40)
-        for gy in range(5):
-            for gx in range(len(label) * 4):
-                if glyph.rows[gy][gx]:
-                    for yy in range(S):
-                        for xx in range(S):
-                            rows[ly + 2 * S + gy * S + yy][lx + 2 * S + gx * S + xx] = (250, 236, 180)
-    write_png(os.path.join(OUT, 'world.png'), W * 8, H * 8, rows)
-    print('wrote world.png (%dx%d, %d maps)' % (W * 8, H * 8, len(pos)))
+        label_map(image, maps[m][0], (x - x0) * 8 + 4, (y - y0) * 8 + 4)
+    destination = os.path.join(OUT, 'routes')
+    os.makedirs(destination, exist_ok=True)
+    image.save(os.path.join(destination, 'world.png'))
+    print('wrote routes/world.png (%dx%d, %d outdoor maps)' % (w * 8, h * 8, len(pos)))
+
+
+
+def clip_mill_wheel():
+    """Record the animated WATERWHEEL decor at Brookmill from the ROM."""
+    save = demo_save('mill_wheel', 'BROOKMILL', 19, 15, calm=True, extra=['beaten'])
+    run(Script().boot().wait(30).rec('mill_wheel', 3).wait(100).stop(), save)
+    gif('mill_wheel', 'routes/mill-wheel.gif', delay=5)
 
 
 def clip_regions():
@@ -502,7 +531,7 @@ class Canvas1:
 
 CLIPS = {
     'title': clip_title, 'village': clip_village, 'warden': clip_warden, 'bout': clip_bout,
-    'lorebook': clip_lorebook, 'menus': clip_menus, 'places': clip_places, 'world': clip_world,
+    'lorebook': clip_lorebook, 'menus': clip_menus, 'places': clip_places, 'world': clip_world, 'routes': clip_routes, 'mill-wheel': clip_mill_wheel,
     'regions': clip_regions, 'elevation': clip_elevation, 'crops': clip_crops, 'farm': clip_farm, 'bridge': clip_bridge, 'moves': clip_moves, 'travel': clip_travel,
     'runestone': clip_runestone, 'fusion': clip_fusion, 'evolve': clip_evolve, 'area': clip_area,
 }
@@ -514,8 +543,9 @@ def main(argv):
     for name in (argv or list(CLIPS)):
         print('--', name)
         CLIPS[name]()
-    subprocess.check_call([sys.executable, os.path.join(ROOT, 'tools', 'render_gallery.py'),
-                           os.path.join(OUT, 'kin.png'), '--scale', '1'])
+    if not argv:
+        subprocess.check_call([sys.executable, os.path.join(ROOT, 'tools', 'render_gallery.py'),
+                               os.path.join(OUT, 'kin.png'), '--scale', '1'])
 
 
 if __name__ == '__main__':
