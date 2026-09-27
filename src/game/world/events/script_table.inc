@@ -2,3 +2,5 @@
     [SCR_CARAVAN] = scr_caravan,
     [SCR_REMATCH_BOARD] = scr_rematch_board,
     [SCR_FESTIVAL] = scr_festival,
+    [SCR_EVENT_GUEST] = scr_event_guest,
+    [SCR_EVENT_MARKET] = scr_event_market,

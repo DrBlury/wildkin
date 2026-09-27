@@ -5,6 +5,10 @@ typedef struct {
     u8 active[8], arg[8];
     u8 caravan_map, rematch_bits[8];
     u8 festival, front_region, front_kind, front_days;
+    u16 kindling_year;
+    u8 kindling_claimed, visit_claimed;
+    u8 courier_target, courier_pending;
+    u8 festival_claimed, tourney_wins;
 } EventState;
 static EventState events;
 
@@ -38,6 +42,30 @@ static const Rematch REMATCHES[] = {
     { TR_KAI, MAP_WOOD, 1, "KAI" }, { TR_ORLA, MAP_WOOD, 1, "ORLA" },
     { TR_DUNN, MAP_COPPERLINE, 2, "DUNN" }, { TR_PIA, MAP_COPPERLINE, 2, "PIA" },
     { TR_ROSS, MAP_COPPERLINE, 2, "ROSS" }, { TR_JUNO, MAP_COPPERLINE, 2, "JUNO" },
+    { TR_BRIN, MAP_LAKE, 1, "BRIN" }, { TR_SELA, MAP_LAKE, 1, "SELA" },
+    { TR_TOMAS, MAP_LAKE, 1, "TOMAS" },
+    { TR_ARLO, MAP_NONE, 2, "ARLO" }, { TR_IONE, MAP_NONE, 2, "IONE" },
+    { TR_CORRIN, MAP_NONE, 2, "CORRIN" }, { TR_LUX, MAP_NONE, 2, "LUX" },
+    { TR_BRISK, MAP_NONE, 2, "BRISK" },
+    { TR_FEN_TEASER, MAP_HERON_FEN, 3, "FEN TEASER" },
+    { TR_FEN_BIRDER, MAP_HERON_FEN, 3, "FEN BIRDER" },
+    { TR_FEN_REED_A, MAP_HERON_FEN, 3, "FEN REEDS" },
+    { TR_FEN_REED_B, MAP_HERON_FEN, 3, "FEN REEDS" },
+    { TR_WEST_NILS, MAP_SALTWIND, 3, "NILS" },
+    { TR_WEST_PERLA, MAP_SALTWIND, 3, "PERLA" },
+    { TR_CC_SURVEYOR, MAP_CINDER_CROSSING, 4, "SURVEYOR" },
+    { TR_CC_RAIL, MAP_CINDER_CROSSING, 4, "RAIL" },
+    { TR_RH_HOB, MAP_RAILHEAD, 4, "HOB" },
+    { TR_RH_TESS, MAP_RAILHEAD, 4, "TESS" },
+    { TR_N_BRYN, MAP_FROSTPINE, 5, "BRYN" },
+    { TR_N_ODA, MAP_FROSTPINE, 5, "ODA" },
+    { TR_N_TOVE, MAP_FROSTPINE, 5, "TOVE" },
+    { TR_ROOK, MAP_ASHEN_FIELDS, 6, "ROOK" },
+    { TR_PENN, MAP_ASHEN_FIELDS, 6, "PENN" },
+    { TR_IVO, MAP_ASHEN_FIELDS, 6, "IVO" },
+    { TR_MV_LUNA, MAP_MOONVEIL, 7, "LUNA" },
+    { TR_MV_ORIN, MAP_MOONVEIL, 7, "ORIN" },
+    { TR_MV_SELA, MAP_MOONVEIL, 7, "SELA" },
 };
 #define REMATCH_COUNT ((int)(sizeof(REMATCHES) / sizeof(REMATCHES[0])))
 
@@ -90,6 +118,8 @@ static void events_new_day_impl(void)
     int previous = events.caravan_map, previous_day = events.rolled_day;
     for (int i = 0; i < 8; i++) events.active[i] = events.arg[i] = events.rematch_bits[i] = 0;
     events.rolled_day = gtime.day;
+    events.visit_claimed = 0;
+    events.festival_claimed = events.tourney_wins = 0;
     events.festival = events_festival_for_day(gtime.day);
     int allowed = 0;
     for (int i = 0; i < OUTBREAK_COUNT; i++) if (OUTBREAKS[i].min_act <= act) allowed++;
@@ -140,7 +170,10 @@ static void events_validate(void)
     if (events.rolled_day != gtime.day || events.caravan_map >= CARAVAN_COUNT ||
         events.front_region >= ER_COUNT || events.front_kind >= WX_COUNT || events.front_days > 1 ||
         events.festival >= FEST_COUNT || CARAVAN_ROUTE[events.caravan_map].min_act > events_act() ||
-        events.arg[0] >= OUTBREAK_COUNT || events.active[0] >= EV_COUNT || events.active[2] >= EV_COUNT) {
+        events.arg[0] >= OUTBREAK_COUNT || events.active[0] >= EV_COUNT || events.active[2] >= EV_COUNT ||
+        events.active[1] != EV_CARAVAN || events.arg[1] != events.caravan_map ||
+        events.festival != events_festival_for_day(gtime.day) ||
+        (events.courier_pending && events.courier_target >= CARAVAN_COUNT)) {
         events.rolled_day = 0;
         events.front_days = 0;
         events_new_day_impl();
@@ -153,18 +186,32 @@ static int events_active(int ev)
         return events.active[1] == EV_CARAVAN &&
                (events.caravan_map == ev - EV_CARAVAN_STOP_BASE ||
                 (ev == EV_CARAVAN_STOP_BASE + 2 && events.caravan_map == 5));
-    if (ev == EV_FEST_KINDLING) return events.festival == FEST_KINDLING;
+    if (ev >= EV_FEST_KINDLING && ev <= EV_FEST_STARFALL) {
+        int festival = ev - EV_FEST_KINDLING + FEST_KINDLING;
+        return events.festival == festival &&
+               ((festival != FEST_LANTERN && festival != FEST_STARFALL) || time_is_night());
+    }
+    if (ev == EV_NIGHT_MARKET && !time_is_night()) return 0;
+    if (ev == EV_METEOR && !time_is_night()) return 0;
+    if (ev == EV_LOST_KIN_PET) return events.active[2] == EV_LOST_KIN && !events.arg[3];
     if (ev == EV_FESTIVAL) return events.festival != FEST_NONE &&
         ((events.festival != FEST_LANTERN && events.festival != FEST_STARFALL) || time_is_night());
     for (int i = 0; i < 8; i++) if (events.active[i] == ev && ev != EV_NONE) return 1;
     return 0;
+}
+/* Map owner can attach EVENT_BROOK_WASHOUT_PATCHES to Brookmill Trail.
+ * The E5 map decoder evaluates its event predicate on map load/refresh. */
+MAYBE_UNUSED static const MapPatch *events_washout_patch(int map)
+{
+    return map == MAP_BROOKMILL_TRAIL && events_active(EV_WASHOUT) ?
+           EVENT_BROOK_WASHOUT_PATCHES : 0;
 }
 static int events_arg(int ev)
 {
     if (!events_active(ev)) return -1;
     if (ev >= EV_CARAVAN_STOP_BASE && ev < EV_CARAVAN_STOP_BASE + CARAVAN_COUNT)
         return events.caravan_map;
-    if (ev == EV_FEST_KINDLING || ev == EV_FESTIVAL) return events.festival;
+    if ((ev >= EV_FEST_KINDLING && ev <= EV_FEST_STARFALL) || ev == EV_FESTIVAL) return events.festival;
     for (int i = 0; i < 8; i++) if (events.active[i] == ev) return events.arg[i];
     return -1;
 }
@@ -189,6 +236,22 @@ static void events_wild_override_impl(int zone, WildSlot *slot)
             return;
         }
     }
+    if ((events_active(EV_METEOR) || events.festival == FEST_STARFALL) &&
+        zone == ZONE_RISE && time_is_night() && rng_range(10) == 0) {
+        slot->species = SP_METEORB;
+        slot->when = WHEN_NIGHT;
+    }
+    if (events_active(EV_WASHOUT) && zone == ZONE_BROOK_REEDS && rng_range(6) == 0)
+        slot->species = SP_KOIRIN;
+    if (day_season(gtime.day) == SEASON_SPRING && events_act() >= 3 &&
+        zone == ZONE_FEN_REEDS && rng_range(6) == 0) slot->species = SP_KOIRIN;
+    if (day_season(gtime.day) == SEASON_SUMMER && zone == ZONE_MEADOW && rng_range(6) == 0)
+        slot->species = SP_HUMBEE;
+    if (events_weather_here_impl(cur_map) == WX_STORM &&
+        (species_has_type(slot->species, T_SPARK) || species_has_type(slot->species, T_GALE))) {
+        slot->min_level = (u8)clampi(slot->min_level + 2, 1, 70);
+        slot->max_level = (u8)clampi(slot->max_level + 2, slot->min_level, 70);
+    }
     if (events_active(EV_SURGE) && zone == ZONE_MEADOW) {
         slot->min_level = slot->min_level + 3 > 70 ? 70 : slot->min_level + 3;
         slot->max_level = slot->max_level + 3 > 70 ? 70 : slot->max_level + 3;
@@ -198,8 +261,32 @@ static int events_rematch_ready(int trainer)
 {
     if (events.rolled_day != gtime.day) events_new_day_impl();
     for (int i = 0; i < REMATCH_COUNT; i++)
-        if (REMATCHES[i].trainer == trainer && (events.rematch_bits[i / 8] & (1 << (i % 8)))) return 1;
+        if (REMATCHES[i].trainer == trainer && trainer_beaten(trainer) &&
+            (events.rematch_bits[i / 8] & (1 << (i % 8)))) return 1;
     return 0;
+}
+/* Winning consumes readiness but never clears first-time trainer rewards. */
+static int events_rematch_used(int trainer)
+{
+    if (!events_rematch_ready(trainer)) return 0;
+    for (int i = 0; i < REMATCH_COUNT; i++) if (REMATCHES[i].trainer == trainer) {
+        events.rematch_bits[i / 8] &= (u8)~(1u << (i % 8));
+        return 1;
+    }
+    return 0;
+}
+static int events_rematch_level(int trainer, int slot)
+{
+    if (!events_rematch_ready(trainer) || trainer < 0 || trainer >= TRAINER_COUNT ||
+        slot < 0 || slot >= TRAINERS[trainer].count) return 0;
+    int floor = events_act() >= 7 ? 48 : events_act() >= 5 ? 35 : events_act() >= 3 ? 23 : 16;
+    return clampi(TRAINERS[trainer].level[slot] + 6, floor, 60);
+}
+static int events_claim(int kind, int map)
+{
+    if (!events_active(kind) || events.visit_claimed || cur_map != map) return 0;
+    events.visit_claimed = 1;
+    return 1;
 }
 static void events_map_entered_impl(int map)
 {
