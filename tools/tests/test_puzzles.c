@@ -1211,6 +1211,7 @@ int main(void)
     /* Sweep the completed route topology; gate-closed behavior belongs to
      * test_progression and the regional gate tests, not this puzzle search. */
     flag_set(FLAG_STORM_CALMED);
+    flag_set(FLAG_VOLT_CREST);
     flag_set(FLAG_FEN_RIVETS);
     flag_set(FLAG_TIDE_CREST);
     flag_set(FLAG_CREST_ANVIL);
