@@ -430,21 +430,25 @@ Every kin is rolled when it is met:
 
 ## 11. World map
 
-```
-            [STORMSTONE RISE]
-                   |
-             WHISPER MEADOW
-                   |
- MIRROR LAKE -- MAPLE VILLAGE -- BRAMBLEWOOD
-```
+This branch contains the five new region corridors. The ordered route,
+planned gates and loop-route diagram are in
+[the progression contract](plans/01_progression_contract.md); story blockers,
+loops and daily events are not integrated into this snapshot.
 
-| Area | Feel | Kin | Levels |
-| --- | --- | --- | --- |
-| MAPLE VILLAGE | home, Old Hearth plaza, Bout Ring | — | — |
-| WHISPER MEADOW | open grass, flowers, ledges, windy | PUFFOWL, DANDELAMB, ZAPPET, SKYWISP, NIBBIT, VOLTUX | 2-9 |
-| BRAMBLEWOOD | dense forest, mushrooms, logs, creek | THORNIP, MOSSHELL, NIBBIT, SKYWISP, CINDERUB, WISPIRE, FLARIX | 4-11 |
-| MIRROR LAKE | shore, reeds, docks, field station | AQUAPO, BUBBLIN, GOLEMIT, FROSTOAT, ZAPPET, PUFFOWL | 5-12 |
-| STORMSTONE RISE | windswept hilltop, standing stones | DRAKORA (story), VOLTUX, ZAPPET | — |
+| Act | Areas present in this branch | Target wild levels (§5 of contract) |
+| --- | --- | --- |
+| I | Maple Village, Whisper Meadow, Bramblewood, Mirror Lake, Stormstone Rise | 2–15 |
+| II | Brookmill Trail, Brookmill, Copperline Road, Lumen City | 10–22 |
+| III | Heron Fen, Reedwick, Saltwind Trail, Port Brine | 17–23 |
+| IV | Cinder Crossing, Railhead, Cinder Road, Cindermoor, Ember Tunnel | 24–32 |
+| V | Stormstep Foothills, Timberline, Frostpine Pass, Frosthollow, Glimmer Caverns | 28–36 |
+| VI | Hollow Downs, Ashen Fields, Gravewood, Duskmere | 33–40 |
+| VII | Mistfen, Moonveil Path, Dreamspire, Dust Library | 37–43 |
+| VIII | Ossuary and Bone Throne | 44–50 |
+
+These are **contract targets**, not a verified current zone-level scan; the
+shared E6 zone table and final story gate checks remain pending. The old
+`docs/images/world.png` does not depict these corridors yet.
 
 Wild kin are **visible** in the grass: they wander, and brimming ones run at
 you. Wardens on routes challenge you when you step into their line of sight;

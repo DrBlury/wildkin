@@ -1333,6 +1333,8 @@ static void test_balance(void)
     party_count = 0;
 }
 
+#include "playthrough/act_balance.h"
+
 int main(void)
 {
     setvbuf(stdout, NULL, _IONBF, 0);
@@ -1349,6 +1351,7 @@ int main(void)
     test_wardens_and_story();
     test_animations_and_sound();
     test_balance();
+    test_act_balance();
     if (failures == 0) {
         printf("all game checks passed\n");
         return 0;

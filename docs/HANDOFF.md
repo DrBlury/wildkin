@@ -1,5 +1,30 @@
 # WILDKIN expansion: handoff
 
+> **Plan 12 QA slice (isolated region-map base):** The five region corridors
+> are present, but the story gates, loops, events and saga are pending.
+> `tools/test_game.c` now includes an act-level XP/coin diagnostic; it is not
+> a playthrough or a balance pass until the integrated build is compiled and
+> the reported Master deltas are reviewed. `tools/playthrough/README.md`
+> explains why the current shot harness cannot produce route timings.
+> A baseline `make test` is blocked by duplicate `FLAG_FEN_RIVETS`, missing
+> `DK_WATERWHEEL`/`DK_HERON_STATUE`, unresolved `MAP_GREYWATER_FJORD`, and
+> cascading `HERON_FEN_DECOR` parse error; generated save layout also needs a reviewed
+> golden update after integration. No v5 migration regression or human
+> playtest has been claimed. See the [plan 12 checklist](plans/12_balance_integration_qa.md)
+> and handoffs: [admin](handoff/admin.md) [battle](handoff/battle.md) [craft](handoff/craft.md) [east](handoff/east.md) [elevation](handoff/elevation.md) [engine_routes](handoff/engine_routes.md) [far](handoff/far.md) [farm](handoff/farm.md) [fusion](handoff/fusion.md) [grass](handoff/grass.md) [grim](handoff/grim.md) [kin_a](handoff/kin_a.md) [kin_b](handoff/kin_b.md) [kin_fusion_a](handoff/kin_fusion_a.md) [kin_fusion_b](handoff/kin_fusion_b.md) [kin_rare_legend](handoff/kin_rare_legend.md) [north](handoff/north.md) [puzzles](handoff/puzzles.md) [towns_east](handoff/towns_east.md) [towns_far](handoff/towns_far.md) [towns_north_grim](handoff/towns_north_grim.md) [towns_west](handoff/towns_west.md) [travel](handoff/travel.md) [ui](handoff/ui.md) [west](handoff/west.md).
+
+> **Disposable compile probe (not this branch's build):** after neutralizing only
+> the four compile blockers in a `/tmp` source copy, `tools/test_game.c` compiled
+> with zero warnings. Its normal-bout simulation gave mean-team arrival deltas
+> versus Master minimum of **+3, +5, +7, +10, +18, +21, +23** in Acts I–VII;
+> **all seven exceed the ±2 target**. The probe also had three unrelated
+> save/load failures from the stale generated save layout. The model counts
+> optional map wardens and every satchel and ignores survival, so these are
+> over-inclusive estimates, not verified critical-path levels. Gross coins
+> by Act III were **56,995c** versus the **500c** ferry target (all mapped
+> satchels sold, no purchases); this cannot establish real affordability.
+
+
 > **ADMIN mode (2026-09-27):** in the title's debug menu (SELECT+START), the
 > ADMIN MODE row adds an ADMIN entry to the START menu. It can add coins, give
 > any item, add any kin with any moveset, teach any move and heal the team.

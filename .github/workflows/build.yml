@@ -27,13 +27,16 @@ jobs:
       - name: Generated art is up to date
         run: |
           make art
-          git diff --exit-code -- src/gfx_ui.h src/gfx_monsters.h src/gfx_field.h src/gfx_battle.h src/gfx_travel.h src/gfx_craft.h src/gfx_fusion.h src/gfx_rune.h src/gfx_keepers.h src/species_data.h
+          git diff --exit-code -- src/gfx_ui.h src/gfx_monsters.h src/gfx_field.h src/gfx_battle.h src/gfx_travel.h src/gfx_craft.h src/gfx_fusion.h src/gfx_rune.h src/gfx_keepers.h src/species_data.h src/game/world/debug
 
       - name: Build the ROM
         run: make
 
       - name: Host tests (rules, bouts, maps, menus, balance)
         run: make test
+
+      - name: Generated save layout is up to date
+        run: git diff --exit-code -- src/game/world/save_layout.inc
 
       - uses: actions/upload-artifact@v4
         with:
