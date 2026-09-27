@@ -1,5 +1,24 @@
 # Plan 12 scripted playtime — measured ROM checkpoints, not act totals
 
+## Current expansion ROM: four-actor layout follow-up (2026-09-27)
+
+Branch `finish-timing-layout` at expansion base `87beed5`; local `make` produced `game.gba`/`game.elf` (3,649,680-byte ROM) and `make shot` built `build/shot`. The runner resolves the anonymous Battle by a unique DWARF member signature: **21,396 bytes**, with `state=792`, `result=820`, `timer=860` (and the other live offsets supplied to C at invocation). This replaces the older 10,556-byte/source-line policy. Blank in-memory SRAM; setup/debug warp excluded. No human playtest and no full act result.
+
+| Act | Last verified checkpoint on this ROM | Frames | Minutes | Outcome |
+| --- | --- | ---: | ---: | --- |
+| I | Meadow (23,22) | 50 | 0.014 | Checkpoint only |
+| II | Brookmill Trail shore → Brookmill (37,17) → Copperline entry (0,17) | 1393 | 0.389 | Last settled checkpoint; at Copperline (9,17) warden bout intro stalls with state 0/timer 1; exit 2 at 2220 attempted frames/0.619 min, no victory |
+| III | Heron Fen (22,19), adjacent to warden | 840 | 0.234 | Last settled checkpoint; warden bout intro stalls with state 0/timer 1; exit 2 at 1514 attempted frames/0.422 min, no victory |
+| IV | Cinder Crossing (33,18) | 50 | 0.014 | Checkpoint only |
+| V | Foothills (25,30) | 57 | 0.016 | Checkpoint only |
+| VI | Hollow Downs (33,20) | 58 | 0.016 | Checkpoint only |
+| VII | Mistfen (24,27) | 50 | 0.014 | Checkpoint only |
+| VIII | Ossuary 1 (15,10), bout initiated | 524 attempted | 0.146 attempted | Battle ran and party lost; recovery to map 5, not a victory |
+
+The Act II/III success tests fail on this ROM: both bouts enter mode 8 but the intro timer stops advancing at 1. After 300 unchanged intro iterations the runner fails closed instead of counting arbitrary stalled frames. This is a ROM-observed runtime blocker, not evidence of a won warden fight or of a particular source-code defect; Act VIII's different bout does progress to loss. Until the intro issue is resolved, the old branch's Copperline/Lumen and Heron/Reedwick victories below are **historical measurements on an older ROM, not current expansion evidence**. Even once bouts work, a pair fight will stop at an explicit unsupported actor/target-policy error rather than fake a single-target win. Master wins, properly prepared party, natural Act II/III starts, healing and human timing remain unmeasured.
+
+## Historical pre-merge measurements
+
 2026-09-27, isolated branch `finish-timing-followup`, based on 2837b2e (integrated shore fix and fail-closed runner). Local `make && make shot` produced `game.gba`, matching `game.elf`, and `build/shot`; runner compiled against libmGBA. Reproduce with `python3 tools/playthrough/run.py tools/playthrough/actN.route` in `/tmp/wildkin-finish-timing-followup`. Blank memory-backed SRAM; no user save opened. Timer rate: 59.7275 ROM frames/s. Setup/debug warp excluded; blocked waits included in attempted count. `CHECKPOINTS_COMPLETE` is not a full act.
 
 | Act | Last ROM checkpoint | Frames observed | Minutes | Outcome |

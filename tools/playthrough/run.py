@@ -23,28 +23,61 @@ def symbols():
     return [found[name] for name in ('cur_map', 'player', 'game_mode', 'story_bits', 'dialog_count',
                                      'dialog_phase', 'battle', 'party', 'MOVES', 'warp')]
 
+# These are the only live RAM/ROM fields consumed by runner.c. Resolve anonymous
+# structures by their complete distinctive field signature, not source line.
+LAYOUT_FIELDS = {
+    'battle': ('kind', 'team', 'team2', 'team_idx', 'ally', 'pair', 'no_run',
+               'state', 'cursor', 'move_cursor', 'result', 'timer'),
+    'monster': ('moves', 'pp', 'hp', 'name'),
+    'move': ('cat', 'power', 'acc', 'effect'),
+}
+
+
+def parse_layout(output):
+    """Resolve unique DWARF structures; never guess offsets from source lines."""
+    structures = []
+    blocks = re.split(r'(?=^ <1><[0-9a-f]+>: Abbrev Number: \d+ \(DW_TAG_structure_type\))',
+                      output, flags=re.M)
+    for block in blocks[1:]:
+        header, *children = re.split(r'(?=^ <2><[0-9a-f]+>: Abbrev Number: \d+ \(DW_TAG_member\))',
+                                      block.split('\n <1><', 1)[0], flags=re.M)
+        size_match = re.search(r'DW_AT_byte_size\s+: (\d+)\b', header)
+        if not size_match:
+            continue
+        members = {}
+        for child in children:
+            name = re.search(r'DW_AT_name\s+: (?:\([^\n]*\): )?([A-Za-z_][A-Za-z_0-9]*)\s*$',
+                             child, re.M)
+            location = re.search(r'DW_AT_data_member_location\s*:\s*(\d+)\b', child)
+            if name:
+                members.setdefault(name.group(1), []).append(int(location.group(1)) if location else None)
+        structures.append((int(size_match.group(1)), members))
+    layout = {}
+    for label, fields in LAYOUT_FIELDS.items():
+        matches = [(size, members) for size, members in structures
+                   if all(field in members for field in fields)]
+        if len(matches) != 1:
+            raise ValueError(f'ELF {label} layout is missing or ambiguous ({len(matches)} candidates)')
+        size, members = matches[0]
+        for field in fields:
+            offsets = members[field]
+            width = (4 if label == 'battle' and field != 'no_run' or
+                     label == 'monster' and field in ('moves', 'pp') else 1)
+            if len(offsets) != 1 or offsets[0] is None or not 0 <= offsets[0] <= size - width:
+                raise ValueError(f'ELF {label}.{field} offset is missing, ambiguous or out of bounds')
+        layout[label] = {'size': size, **{field: members[field][0] for field in fields}}
+    return layout
+
+
 def check_layout():
-    """Fail closed if ARM battle layouts changed from the inspected source."""
     output = subprocess.check_output(['arm-none-eabi-readelf', '--debug-dump=info',
                                       str(ROOT / 'game.elf')], text=True)
-    expected = {
-        155: (10556, {'kind': 0, 'team': 4, 'team_idx': 344, 'ally': 348,
-                       'no_run': 368, 'state': 416, 'cursor': 424,
-                       'move_cursor': 428, 'result': 444}),
-        11: (56, {'moves': 4, 'pp': 8, 'hp': 12}),
-        154: (28, {'cat': 5, 'power': 6, 'acc': 7, 'effect': 10}),
-    }
-    structs = re.findall(r'<1><[^>]+>: Abbrev Number: \d+ \(DW_TAG_structure_type\)(.*?)(?=\n <1><|\Z)',
-                         output, re.S)
-    for line, (size, members) in expected.items():
-        matches = [struct for struct in structs
-                   if re.search(r'DW_AT_decl_line\s+: ' + str(line) + r'\b', struct)
-                   and re.search(r'DW_AT_byte_size\s+: ' + str(size) + r'\b', struct)]
-        if not any(all(re.search(r'DW_AT_name\s+: (?:\([^\n]*\): )?' + re.escape(name) +
-                                 r'\n(?:[^\n]*\n){0,6}?' +
-                                 r'\s*<\w+>\s+DW_AT_data_member_location: ' + str(offset) + r'\b',
-                                 candidate) for name, offset in members.items()) for candidate in matches):
-            raise ValueError(f'ELF structure at source line {line} differs from runner policy')
+    return parse_layout(output)
+
+
+def layout_args(layout):
+    return [str(layout[label][field]) for label, fields in LAYOUT_FIELDS.items()
+            for field in ('size', *fields)]
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -106,7 +139,7 @@ def main():
     if any(line.startswith('flag ') for line in converted[start_index + 1:]):
         parser.error('prerequisite flags must precede start')
     try:
-        check_layout()
+        layout = check_layout()
     except ValueError as exc:
         parser.error(str(exc))
     build = ROOT / 'build'
@@ -118,7 +151,7 @@ def main():
     subprocess.run(['cc', '-std=c11', '-O2', '-Wall', '-Wextra', '-I' + prefix + '/include',
                     '-o', str(binary), str(ROOT / 'tools/playthrough/runner.c'),
                     '-L' + prefix + '/lib', '-lmgba'], check=True)
-    return subprocess.run([str(binary), str(ROOT / 'game.gba'), str(route), *symbols()]).returncode
+    return subprocess.run([str(binary), str(ROOT / 'game.gba'), str(route), *symbols(), *layout_args(layout)]).returncode
 
 if __name__ == '__main__':
     sys.exit(main())

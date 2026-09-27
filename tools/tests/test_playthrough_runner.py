@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tools.playthrough.run import ROOT, check_layout, ids
+from tools.playthrough.run import ROOT, check_layout, ids, parse_layout, layout_args
 
 
 class PlaythroughRunnerTest(unittest.TestCase):
@@ -12,6 +12,30 @@ class PlaythroughRunnerTest(unittest.TestCase):
         if not (ROOT / 'game.elf').exists():
             self.skipTest('build local ROM first with make')
         check_layout()
+
+    def test_layout_rejects_missing_and_duplicate_members(self):
+        if not (ROOT / 'game.elf').exists():
+            self.skipTest('build local ROM first with make')
+        dwarf = subprocess.check_output(['arm-none-eabi-readelf', '--debug-dump=info',
+                                         str(ROOT / 'game.elf')], text=True)
+        layout = parse_layout(dwarf)
+        self.assertGreater(layout['battle']['size'], layout['battle']['timer'])
+        self.assertEqual(layout_args(layout)[8], str(layout['battle']['state']))
+        for modified in (dwarf.replace('DW_TAG_structure_type', 'DW_TAG_typedef'),
+                         dwarf.replace('DW_AT_data_member_location:',
+                                       'DW_AT_missing_member_location:')):
+            with self.subTest(modified=modified[:80]), self.assertRaises(ValueError):
+                parse_layout(modified)
+        synthetic = (" <1><abc>: Abbrev Number: 1 (DW_TAG_structure_type)\n"
+                     "    DW_AT_byte_size : 100\n" + ''.join(
+                         f" <2><{i:x}>: Abbrev Number: 2 (DW_TAG_member)\n"
+                         f"    DW_AT_name : {name}\n"
+                         f"    DW_AT_data_member_location: {i}\n"
+                         for i, name in enumerate(('kind', 'team', 'team2', 'team_idx',
+                                                    'ally', 'pair', 'no_run', 'state',
+                                                    'cursor', 'move_cursor', 'result', 'timer'))))
+        with self.assertRaisesRegex(ValueError, 'ambiguous'):
+            parse_layout(dwarf + synthetic)
 
     def test_route_ids_are_unique(self):
         for file, prefix in [('all_ids.inc', 'MAP_'), ('all_flag_ids.inc', 'FLAG_')]:
