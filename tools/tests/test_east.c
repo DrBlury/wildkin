@@ -58,6 +58,7 @@ static void test_lumen_heights(void)
     }
     CHECK(decor_ok, "every decor kind on the east maps fits in VRAM next to the tileset");
 
+    flag_set(FLAG_LANTERN_CREST);
     map_load(MAP_LUMEN);
     flood_ex(24, 0, FLOOD_SOLVED);
     CHECK(reached_lv(41, 20, 1) && reached_lv(42, 20, 0) && reached_lv(42, 20, 1) && reached_lv(44, 20, 1),
@@ -67,6 +68,7 @@ static void test_lumen_heights(void)
     CHECK(elev_level_at(24, 11, -1, -1) == 2 && elev_level_at(24, 5, -1, -1) == 3 &&
               elev_level_at(24, 30, -1, -1) == 0 && elev_level_at(9, 18, -1, -1) == 1,
           "Lumen: canal quarter 0, west terrace 1, Beacon terrace 2, the Crown 3");
+    flag_clear(FLAG_LANTERN_CREST);
 }
 
 static int accord_warp_registered(void)
@@ -94,12 +96,34 @@ static void test_edges(void)
           "Copperline G5 uses an enterable door at (20,34), not a south edge");
     CHECK(edge_open(MAP_COPPERLINE, LINK_E, 20, 21) && edge_open(MAP_LUMEN, LINK_W, 20, 21),
           "Copperline <-> Lumen at y 20-21");
-    CHECK(edge_open(MAP_LUMEN, LINK_N, 24, 25) && MAPS[MAP_LUMEN].link[LINK_N] == MAP_MISTFEN,
-          "Lumen -> Mistfen at x 24-25");
-    CHECK(edge_open(MAP_LUMEN, LINK_E, 20, 21) && MAPS[MAP_LUMEN].link[LINK_E] == MAP_CINDER_CROSSING,
-          "Lumen -> Cinder Crossing at y 20-21");
+    CHECK(!edge_open(MAP_LUMEN, LINK_N, 24, 25) && MAPS[MAP_LUMEN].link[LINK_N] == MAP_MISTFEN,
+          "G6 closes the Lumen -> Mistfen edge before Lantern");
+    CHECK(!edge_open(MAP_LUMEN, LINK_E, 20, 21) && MAPS[MAP_LUMEN].link[LINK_E] == MAP_CINDER_CROSSING,
+          "G3 closes the Lumen -> Cinder Crossing edge before Tide");
     CHECK(edge_open(MAP_ELDERWOOD, LINK_N, 30, 31) && edge_open(MAP_WOOD, LINK_S, 30, 31),
-          "Elderwood <-> Bramblewood at x 30-31");
+          "Elderwood and Bramblewood retain their edge geometry; the interior thorns and boulder gate passage");
+    map_load(MAP_WOOD);
+    CHECK(!flood_open(43, 17, FLOOD_WALK) && !flood_open(43, 18, FLOOD_WALK),
+          "G1 seals both Bramblewood departures before the calm");
+    map_load(MAP_ELDERWOOD);
+    CHECK(!flood_open(30, 2, FLOOD_WALK) && !flood_open(31, 2, FLOOD_WALK),
+          "postgame thorns seal the interior Elderwood route before Ossurex");
+    flag_set(FLAG_STORM_CALMED);
+    map_load(MAP_WOOD);
+    CHECK(flood_open(43, 17, FLOOD_WALK) && flood_open(43, 18, FLOOD_WALK),
+          "G1 opens both Bramblewood exits after the calm");
+    flag_set(FLAG_TIDE_CREST);
+    CHECK(edge_open(MAP_LUMEN, LINK_E, 20, 21), "G3 opens the Cinder edge after Tide");
+    flag_set(FLAG_LANTERN_CREST);
+    CHECK(edge_open(MAP_LUMEN, LINK_N, 24, 25), "G6 opens the Mistfen edge after Lantern");
+    flag_set(FLAG_CREST_ANVIL);
+    flag_set(FLAG_OSSUREX_ANSWERED);
+    map_load(MAP_ELDERWOOD);
+    CHECK(flood_open(30, 2, FLOOD_WALK) && flood_open(31, 2, FLOOD_WALK),
+          "postgame Elderwood interior opens after Ossurex");
+    flag_clear(FLAG_STORM_CALMED); flag_clear(FLAG_TIDE_CREST);
+    flag_clear(FLAG_LANTERN_CREST); flag_clear(FLAG_CREST_ANVIL);
+    flag_clear(FLAG_OSSUREX_ANSWERED);
     /* only the contracted cells are open on the region's outer edges */
     int tight = 1;
     map_load(MAP_LUMEN);
@@ -123,6 +147,11 @@ static void test_edges(void)
 
 static void test_doors(void)
 {
+    map_load(MAP_COPPERLINE);
+    CHECK(!(cell_attr(20, 34) & A_DOOR), "G5 checkpoint door is sealed before Rime");
+    flag_set(FLAG_RIME_CREST);
+    map_load(MAP_COPPERLINE);
+    CHECK(cell_attr(20, 34) & A_DOOR, "G5 checkpoint door opens after Rime");
     int ok = 1, count = 0;
     for (int i = 0; i < WARP_COUNT; i++) {
         int dest = WARPS[i].dest, is_east = 0;
@@ -149,6 +178,7 @@ static void test_doors(void)
         if (best != i) ok = 0;
     }
     CHECK(ok && count >= 15, "every east door lands on its exit mat and the mat leads back out");
+    flag_clear(FLAG_RIME_CREST);
 
     /* walk in and back out of the Volt Hall for real */
     fresh_game();
@@ -180,6 +210,11 @@ static void test_reach(void)
     queue[tail] = MAP_LAND_OFFICE; qx[tail] = 5; qy[tail++] = 8;
     flag_set(FLAG_OSSUREX_ANSWERED);
     flag_set(FLAG_MINE_LIGHT_CACHE);
+    flag_set(FLAG_STORM_CALMED);
+    flag_set(FLAG_TIDE_CREST);
+    flag_set(FLAG_CREST_ANVIL);
+    flag_set(FLAG_RIME_CREST);
+    flag_set(FLAG_LANTERN_CREST);
     int all_ok = 1;
     while (head < tail) {
         int m = queue[head], sx = qx[head], sy = qy[head];
