@@ -174,7 +174,7 @@ RIME crest.
 
 | Area | What you find there |
 | --- | --- |
-| **Maple Village** | Home, the raised Old Hearth plaza, the market, the Almanac House on its knoll, the Hearth Hall, the shop, the sunken Bout Ring, the Garden House and the Maple Run bridge |
+| **Maple Village** | A village on four levels: home and the bakery on the north ridge, the Almanac House on its knoll, the raised Old Hearth plaza, High Street with the Hearth Hall and the shop, the sunken Bout Ring, a lily pond, and the Maple Run bridge you cross on top or walk under along the creek. Look for a gap in the thicket |
 | **Whisper Meadow** (north) | Open grass, flower beds, ledges to hop down, the kite flyer and a shepherd with a PUFFLEECE. Wild kin Lv 2-9 |
 | **Bramblewood** (east) | Dense forest, a creek with bridges, mushrooms, a hermit's cabin. Wild kin Lv 4-11 |
 | **Mirror Lake** (west) | A shore with reeds, a dock and rowboat, and Dr. Vass's field station. Wild kin Lv 5-11 |
@@ -236,11 +236,11 @@ build use an ability in the field.
 | Town | Hall | Type | Puzzle | Crest |
 | --- | --- | --- | --- | --- |
 | Lumen City | VOLT HALL | SPARK | Floor switches raise and lower crackling barriers. Find the right order. | VOLT: **LIGHT** brightens dark caves |
-| Port Brine | CURRENT HALL | TIDE | Water currents carry you. Choose which one to ride. | TIDE: **SURF** across water |
+| Port Brine | CURRENT HALL | TIDE | One-way channels between isles. Floodgate switches reroute the water, and one switch flips every time the current carries you over it. | TIDE: **SURF** across water |
 | Cindermoor | ANVIL HALL | METAL | Push boulders onto pressure plates to open the gates. | ANVIL: **STRENGTH** moves boulders |
-| Frosthollow | RIME HALL | FROST | You slide across the ice until something stops you. | RIME: **FLY** to any town you have visited |
-| Duskmere | LANTERN CRYPT | HOLLOW | A dark maze with a small circle of light, ghost floors and a false wall. | LANTERN: the Ossuary gate opens for holders of all six crests |
-| Dreamspire | MIRROR HALL | DREAM | Teleport pads link mirrored rooms, and one of them leads you back to the start. | DREAM: **TELEPORT** back to the last Hearth Hall |
+| Frosthollow | RIME HALL | FROST | A slide maze on the lower rink, then a pumice boulder to push into place so your slide stops under the dais. | RIME: **FLY** to any town you have visited |
+| Duskmere | LANTERN CRYPT | HOLLOW | A dark crypt in a small circle of light. Candle switches open the sanctum gates, but some seal the way you came; star pads lead out. | LANTERN: the Ossuary gate opens for holders of all six crests |
+| Dreamspire | MIRROR HALL | DREAM | Six rooms in mirrored pairs: opening one doorway shuts its twin, and pad pairs link the rooms. | DREAM: **TELEPORT** back to the last Hearth Hall |
 
 <table>
 <tr>
@@ -487,8 +487,15 @@ At Lumen's **Resonance Works**, Engineer Nell shows you four machines:
   walk up and challenge you.
 - **Height**: terraces, cliffs and ledges, stairs, bridges you cross on top
   and walk under the other way, tunnels and hidden passages
-  ([docs/ELEVATION.md](docs/ELEVATION.md)). Maple Village sits on two
-  terraces either side of a creek ravine.
+  ([docs/ELEVATION.md](docs/ELEVATION.md)). Every town is built on
+  several levels, with a bridge or tunnel you pass both over and under and a
+  hidden path to find. Found passages stay open in your save.
+- **Grass that moves**: each region has its own tall grass (meadow, reeds,
+  flowers, golden, dune, snow-capped, glowing moss, dead bracken, ember brush,
+  moonpetal) that sways in the wind and parts when you walk through; only
+  your legs disappear in it.
+- **Puzzles that are proven solvable**: a solver plays every puzzle map with
+  the game's own movement rules and checks that nothing can trap you.
 - **A storm you can end**: until DRAKORA is answered the Vale is dark, rain
   falls and lightning flashes. Afterwards the sky clears.
 - **78 maps across twelve tilesets** (village, wild, interior, city, coast,
