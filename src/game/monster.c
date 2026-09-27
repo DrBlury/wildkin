@@ -248,6 +248,16 @@ static int monster_xp_yield(const Monster *foe, int trainer)
     return xp < 1 ? 1 : xp;
 }
 
+/* A lower-level foe gives less XP to each stronger recipient; equal or
+ * higher-level foes retain full XP. The denominator grows with the gap. */
+static int monster_scaled_xp(int xp, int foe_level, int recipient_level)
+{
+    int gap = recipient_level - foe_level;
+    if (gap <= 0) return xp < 1 ? 1 : xp;
+    int scaled = xp * 3 / (3 + gap);
+    return scaled < 1 ? 1 : scaled;
+}
+
 /* ---------------- battle math ---------------- */
 
 static int type_effectiveness(int move_type, int species)

@@ -22,7 +22,8 @@ static void qa_gain(int species, int level, int trainer)
     int lead = qa_lead_slot++ % party_count;
     for (int p = 0; p < party_count; p++) {
         Monster *m = &party[p];
-        m->xp += p == lead ? xp : xp / 2; /* round-robin lead, half XP for each bench kin */
+        int share = p == lead ? xp : xp / 2; /* round-robin lead, bench half */
+        m->xp += monster_scaled_xp(share, level, m->level);
         while (m->level < MAX_LEVEL && m->xp >= xp_for_level(m->level + 1)) m->level++;
     }
 }

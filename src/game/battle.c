@@ -1032,7 +1032,7 @@ static void award_xp(const Monster *foe)
     int others = 0;
     Monster *me = &party[battle.ally];
     if (me->hp > 0 && me->level < MAX_LEVEL) {
-        int xp = xp_share(battle.ally, base);
+        int xp = monster_scaled_xp(xp_share(battle.ally, base), foe->level, me->level);
         str_copy(msg, kin_name(me));
         str_put(msg, " gained ");
         str_put_int(msg, xp);
@@ -1046,7 +1046,8 @@ static void award_xp(const Monster *foe)
     bsay(others == 1 ? "Your other kin gained XP too!" : "The rest of your team gained XP too!");
     for (int i = 0; i < party_count; i++)
         if (i != battle.ally && party[i].hp > 0 && party[i].level < MAX_LEVEL)
-            bev_push(EV_XP, SIDE_ALLY, i, xp_share(i, base));
+            bev_push(EV_XP, SIDE_ALLY, i,
+                     monster_scaled_xp(xp_share(i, base), foe->level, party[i].level));
 }
 
 /* HOARDER: 10% per hoarding kin to bring back something after a win. */
