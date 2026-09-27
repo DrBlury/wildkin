@@ -120,8 +120,8 @@ static void test_edges(void)
         int open = !(cell_attr(x, map_h - 1) & A_SOLID);
         if (open != (x == 11 || x == 12)) ok = 0;
     }
-    CHECK(ok && MAPS[MAP_FROSTPINE].link[LINK_S] == MAP_RISE,
-          "Frostpine Pass opens south onto Stormstone Rise at exactly x 11-12");
+    CHECK(ok && MAPS[MAP_FROSTPINE].link[LINK_S] == MAP_TIMBERLINE,
+          "Frostpine Pass opens south onto Timberline at exactly x 11-12");
     map_load(MAP_WHITECROWN);
     ok = !(cell_attr(19, map_h - 1) & A_SOLID) && !(cell_attr(20, map_h - 1) & A_SOLID);
     map_load(MAP_FROSTHOLLOW);
@@ -376,9 +376,67 @@ static void test_frosthollow(void)
           "Frosthollow: the sunken store is a pit in the market terrace");
 }
 
+static void test_routes(void)
+{
+    CHECK(MAPS[MAP_RISE].link[LINK_N] == MAP_FOOTHILLS &&
+          MAPS[MAP_FOOTHILLS].link[LINK_N] == MAP_TIMBERLINE &&
+          MAPS[MAP_TIMBERLINE].link[LINK_N] == MAP_FROSTPINE,
+          "the Rise-Foothills-Timberline-Frostpine edges are reciprocal");
+    map_load(MAP_FOOTHILLS);
+    int open_s = 1, open_n = 1, boulders = 0, solid = 1;
+    for (int x = 0; x < map_w; x++) {
+        open_s &= (!(cell_attr(x, 59) & A_SOLID)) == (x == 11 || x == 12);
+        open_n &= (!(cell_attr(x, 0) & A_SOLID)) == (x == 19 || x == 20);
+    }
+    for (int i = 0; i < tobj_count; i++)
+        if (tobj[i].kind == OBJ_BOULDER) {
+            boulders++;
+            solid &= tobj[i].arg == 0 && tobj[i].x >= 11 && tobj[i].x <= 12;
+        }
+    CHECK(open_s && open_n && boulders == 3 && solid,
+          "G4 has three STRENGTH rocks between the Rise landing and the uphill exit");
+    CHECK(!cell_walkable(11, 56) && !cell_walkable(12, 56),
+          "without STRENGTH both lanes of the rockfall are blocked");
+    /* The eastern rock can be driven north four cells with STRENGTH.
+     * Check the resulting open route, not just the static blocked state. */
+    int east_rock = -1;
+    for (int i = 0; i < tobj_count; i++)
+        if (tobj[i].kind == OBJ_BOULDER && tobj[i].x == 12 && tobj[i].y == 56) east_rock = i;
+    CHECK(east_rock >= 0 && cell_walkable(12, 55) && cell_walkable(12, 54) &&
+          cell_walkable(12, 53) && cell_walkable(12, 52), "the eastern boulder has four legal northward pushes");
+    if (east_rock >= 0) {
+        tobj[east_rock].y = 52;
+        grid_cell(12, 56);
+        grid_cell(12, 52);
+        flood_ex(12, 58, FLOOD_WALK);
+        CHECK(reached(19, 0), "after STRENGTH opens the east lane, Timberline is reachable");
+        map_load(MAP_FOOTHILLS);
+    }
+    CHECK(MAPS[MAP_FOOTHILLS].w == 40 && MAPS[MAP_FOOTHILLS].h == 60 &&
+          MAPS[MAP_TIMBERLINE].w == 40 && MAPS[MAP_TIMBERLINE].h == 36,
+          "north route maps fit the size contract");
+    map_load(MAP_TIMBERLINE);
+    open_s = open_n = 1;
+    for (int x = 0; x < map_w; x++) {
+        open_s &= (!(cell_attr(x, 35) & A_SOLID)) == (x == 19 || x == 20);
+        open_n &= (!(cell_attr(x, 0) & A_SOLID)) == (x == 11 || x == 12);
+    }
+    CHECK(open_s && open_n && warp_from(MAP_TIMBERLINE, MAP_TIMBER_LODGE) >= 0 &&
+          warp_from(MAP_TIMBERLINE, MAP_TIMBER_SAWMILL) >= 0,
+          "Timberline connects both route segments and its two interiors");
+    int fp = 0;
+    for (int i = 0; i < FLY_POINT_COUNT; i++) fp |= FLY_POINTS[i].map == MAP_TIMBERLINE;
+    CHECK(fp && (MAPS[MAP_TIMBER_LODGE].flags & MF_HEAL), "Timberline has a fly point and a warm hearth");
+    CHECK(QUESTS[QUEST_LOST_AXE].name && npc_on(MAP_STORM_CAVE, SCR_STORM_GNAWLORD) >= 0,
+          "the LOST AXE quest and cave encounter are registered");
+    CHECK(TRAINERS[TR_N_SIGRUN].level[0] == 34 && TRAINERS[TR_N_SIGRUN].level[5] == 37,
+          "Sigrun's Hall Master team follows the Act V target");
+}
+
 int main(void)
 {
     test_edges();
+    test_routes();
     test_frosthollow();
     test_rime_hall();
     test_caves();

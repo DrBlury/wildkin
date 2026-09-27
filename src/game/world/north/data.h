@@ -606,26 +606,180 @@ static const DecorPlace STARGAZER_DECOR[] = {
 /* ---------------- wild kin (docs/EXPANSION.md 4: SNOW, PEAK, CAVE) ---------------- */
 
 static const WildSlot WILD_FROSTPINE[] = {
-    { SP_FLURRABBIT, 22, 18, 22 }, { SP_TUXFLAKE, 18, 18, 22 }, { SP_YAKLING, 16, 19, 23 },
-    { SP_RAMBLET, 14, 18, 22 }, { SP_FROSTOAT, 10, 19, 23 }, { SP_GLACIBLOB, 6, 20, 24 },
-    { SP_MOONHARE, 8, 21, 24, WHEN_NIGHT }, { SP_PUFFOWL, 8, 19, 22, WHEN_DAY },
+    { SP_FLURRABBIT, 22, 30, 34 }, { SP_TUXFLAKE, 18, 30, 34 }, { SP_YAKLING, 16, 30, 34 },
+    { SP_RAMBLET, 14, 30, 34 }, { SP_FROSTOAT, 10, 30, 34 }, { SP_GLACIBLOB, 6, 30, 34 },
+    { SP_MOONHARE, 8, 30, 34, WHEN_NIGHT }, { SP_PUFFOWL, 8, 30, 34, WHEN_DAY },
 };
 static const WildSlot WILD_WHITECROWN[] = {
-    { SP_CRAGHORN, 18, 27, 31 }, { SP_GLACIYAK, 14, 28, 32 }, { SP_EMPERICE, 12, 27, 31 },
-    { SP_RAMBLET, 14, 26, 29 }, { SP_FLURRABBIT, 14, 26, 29 },
-    { SP_MOONHARE, 12, 28, 31, WHEN_NIGHT }, { SP_TENGALE, 3, 30, 33, WHEN_DAY },
-    { SP_WENDIGAUNT, 2, 30, 33, WHEN_NIGHT },
+    { SP_CRAGHORN, 18, 44, 50 }, { SP_GLACIYAK, 14, 44, 50 }, { SP_EMPERICE, 12, 44, 50 },
+    { SP_RAMBLET, 14, 44, 50 }, { SP_FLURRABBIT, 14, 44, 50 },
+    { SP_MOONHARE, 12, 44, 50, WHEN_NIGHT }, { SP_TENGALE, 3, 44, 50, WHEN_DAY },
+    { SP_WENDIGAUNT, 2, 44, 50, WHEN_NIGHT },
 };
 static const WildSlot WILD_GLIMMER[] = {
-    { SP_DIGGET, 22, 23, 27 }, { SP_SQUEAKLE, 22, 23, 27 }, { SP_QUARTZLING, 18, 24, 27 },
-    { SP_BLINKET, 14, 23, 26 }, { SP_GOLEMIT, 10, 24, 27 }, { SP_LURELING, 6, 24, 27 },
+    { SP_DIGGET, 22, 30, 34 }, { SP_SQUEAKLE, 22, 30, 34 }, { SP_QUARTZLING, 18, 30, 34 },
+    { SP_BLINKET, 14, 30, 34 }, { SP_GOLEMIT, 10, 30, 34 }, { SP_LURELING, 6, 30, 34 },
 };
 static const WildSlot WILD_GLIMMER_DEEP[] = {
-    { SP_QUARTZLING, 20, 27, 30 }, { SP_SQUEAKLE, 18, 26, 29 }, { SP_NOCTAVE, 12, 28, 31 },
-    { SP_DIGGET, 14, 26, 29 }, { SP_QUARTZPEDE, 8, 29, 32 }, { SP_BLINKET, 10, 27, 30 },
-    { SP_METEORB, 3, 29, 32, WHEN_NIGHT },
+    { SP_QUARTZLING, 20, 32, 36 }, { SP_SQUEAKLE, 18, 32, 36 }, { SP_NOCTAVE, 12, 32, 36 },
+    { SP_DIGGET, 14, 32, 36 }, { SP_QUARTZPEDE, 8, 32, 36 }, { SP_BLINKET, 10, 32, 36 },
+    { SP_METEORB, 3, 32, 36, WHEN_NIGHT },
 };
 static const WildSlot WILD_GLIMMER_LAKE[] = {
     { SP_LURELING, 40, 24, 28 }, { SP_BUBBLIN, 30, 23, 27 }, { SP_TUXFLAKE, 20, 24, 27 },
     { SP_ABYSSLURE, 5, 28, 31, WHEN_NIGHT },
+};
+
+/* Act V: the rockfall, switchback trail, logging hamlet and lost-axe cave. */
+static const char *const FOOTHILLS_ROWS[] = {
+    "PpPpPpPpPpPpPpPpPpP==pPpPpPpPpPpPpPpPpPp", /*  0 */
+    "p..................==..................p", /*  1 */
+    "P..PP..............==..............PP..P", /*  2 */
+    "p..pp..............==..............pp..p", /*  3 */
+    "P..PP..............==...,,,,,,,,,,.PP..P", /*  4 */
+    "p..pp..............==...,,,,,,,,,,.pp..p", /*  5 */
+    "P..PP..............==...,,,,,,,,,,.PP..P", /*  6 */
+    "p..pp..............==...,,,,,,,,,,.pp..p", /*  7 */
+    "P..PP......,,,,....==...,,,,,,,,,,.PP..P", /*  8 */
+    "p..pp......,,,,....==...,,,,.,,,,,.pp..p", /*  9 */
+    "P..PP......,,,,....==...,,,,,,,,,,.PP..P", /* 10 */
+    "p..pp......,,,,....==...,,,,,,,,,,.pp..p", /* 11 */
+    "P..PP.....,,,,.....==..,,,,,,,,,,,.PP..P", /* 12 */
+    "p..pp...tt,,,,.....==..,,,,,,,tt,,.pp..p", /* 13 */
+    "P..PP...TT,,,,.....==..,,,,,,,TT,,.PP..P", /* 14 */
+    "p..pp...tt,,,,.....==..,,,,...tt...pp..p", /* 15 */
+    "P.......TT,,,......==.,,,,....TT...,,..P", /* 16 */
+    "p.......tt,,,.....C==C,,,,....t....,,..p", /* 17 */
+    "P.......TT,,,==...CCCC,,,,....TT...,,..P", /* 18 */
+    "p.......tt,,,==...CCCC,,,,....tt...,,..p", /* 19 */
+    "P.......TT,,.==...CCCC,,,.....TT..,,,..P", /* 20 */
+    "p.......tt,,.==...CCCC,,,.....tt..,,,..p", /* 21 */
+    "P.......TT,,.==...CCCC,,,.....TT..,,,..P", /* 22 */
+    "p.......tt,,.==...====,,,.....tt..,,,..p", /* 23 */
+    "P......,TT,..==...====,,......TT.,,,,..P", /* 24 */
+    "p......,tt,..==...CCCC,,......tt.,,,,..p", /* 25 */
+    "P......,TT,..==...CCCC,,......TT.,,,,..P", /* 26 */
+    "p......,,,,..==...CCCC,,.........,,,,..p", /* 27 */
+    "P.....,,,,...==...CCCC,.........,,,,...P", /* 28 */
+    "p.....,,,,...==...CCCC,.........,,,,...p", /* 29 */
+    "P.....,,,,...==...CCCC,.........,,,,...P", /* 30 */
+    "p.....,,,,...==...CCCC,........CCCCC...p", /* 31 */
+    "P....,,,,....==...CCCC.........CCCCC...P", /* 32 */
+    "p....,,,,....==...CCCC.........C...C...p", /* 33 */
+    "P....,,,,....==...CCCC.........C.=.C...P", /* 34 */
+    "p....,,,,....==...CCCC.........,.=.....p", /* 35 */
+    "P...,,,,.....==..,CCCC........,,.......P", /* 36 */
+    "p...,,,,.....==..,CCCC........,,,,.....p", /* 37 */
+    "P...,,,,....==...,,,,.........,,,,.....P", /* 38 */
+    "p...,,,,....=========.........,,,,.....p", /* 39 */
+    "P..,,,,.....=========........,,,,......P", /* 40 */
+    "p..,,,,.....=========........,,,,......p", /* 41 */
+    "P..,,,,.....===.=====........,,,,......P", /* 42 */
+    "p..,,,,.....=========........,,,,......p", /* 43 */
+    "P..,,,......=========.......,,,,.......P", /* 44 */
+    "p..,,,......=========.......,,,,.......p", /* 45 */
+    "P...........=========..................P", /* 46 */
+    "p...........=========..................p", /* 47 */
+    "P...........=========..................P", /* 48 */
+    "p...........=========..................p", /* 49 */
+    "P...........=========..................P", /* 50 */
+    "p...........=========..................p", /* 51 */
+    "P...........=========..................P", /* 52 */
+    "p...........=========..................p", /* 53 */
+    "PCCCCCCCCCC==CCCCCCCCCCCCCCCCCCCCCCCCCCC", /* 54 */
+    "pCCCCCCCCCC==CCCCCCCCCCCCCCCCCCCCCCCCCCC", /* 55 */
+    "PCCCCCCCCCC==...CCCCCCCCCCCCCCCCCCCCCCCC", /* 56 */
+    "pCCCCCCCCCC==...CCCCCCCCCCCCCCCCCCCCCCCC", /* 57 */
+    "PCCCCCCCCCC==...CCCCCCCCCCCCCCCCCCCCCCCC", /* 58 */
+    "PCCCCCCCCCC==CCCCCCCCCCCCCCCCCCCCCCCCCCC", /* 59 */
+};
+static const char *const TIMBERLINE_ROWS[] = {
+    "PpPpPpPpPpP==pPpPpPpPpPpPpPpPpPpPpPpPpPp", /*  0 */
+    "p..........==..........................p", /*  1 */
+    "P......................................P", /*  2 */
+    "p.ppppppppp..ppp..===..................p", /*  3 */
+    "P.PPPPPPPPP..PPP..===..................P", /*  4 */
+    "p.ppppppppp..ppp..===..................p", /*  5 */
+    "P.PPPPPPPPP..PPP..===..................P", /*  6 */
+    "p.ppppppppp..ppp..===..................p", /*  7 */
+    "P.PPPPPPPPP..PPP..===..................P", /*  8 */
+    "p.ppppppppp..ppp..===..................p", /*  9 */
+    "P.PPPPPPPPP..PPP..===..................P", /* 10 */
+    "p.ppppppppp..ppp..===..................p", /* 11 */
+    "P.................===..................P", /* 12 */
+    "p.................===..................p", /* 13 */
+    "P.......=.........===.........=........P", /* 14 */
+    "p.................===..................p", /* 15 */
+    "P.................===..................P", /* 16 */
+    "p.................===..................p", /* 17 */
+    "P.................===..................P", /* 18 */
+    "p.................===..................p", /* 19 */
+    "P.................===..................P", /* 20 */
+    "p.................===..................p", /* 21 */
+    "P.................===..................P", /* 22 */
+    "p.................===..................p", /* 23 */
+    "P.................===..................P", /* 24 */
+    "p.................===..................p", /* 25 */
+    "P.................===..................P", /* 26 */
+    "p.................===..................p", /* 27 */
+    "P.................===..................P", /* 28 */
+    "p.................===..................p", /* 29 */
+    "P.................===..................P", /* 30 */
+    "p.................===..................p", /* 31 */
+    "P.................===..................P", /* 32 */
+    "p.................===..................p", /* 33 */
+    "P.................===..................P", /* 34 */
+    "PpPpPpPpPpPpPpPpPpP==pPpPpPpPpPpPpPpPpPp", /* 35 */
+};
+static const char *const TIMBER_LODGE_ROWS[] = {
+    "WWnWWkWWnWWWW", "wwwwwwwwwwwww", ":::::::::::::", ":::<=====>:::",
+    ":::::::::::::", ":::::::::::::", ":::::::::::::", ":::::::::::::", "::::::D::::::",
+};
+static const char *const TIMBER_SAWMILL_ROWS[] = {
+    "WWnWWkWWnWWWW", "wwwwwwwwwwwww", ":::::::::::::", ":::<=====>:::",
+    ":::::::::::::", ":::::::::::::", ":::::::::::::", ":::::::::::::", "::::::D::::::",
+};
+static const char *const STORM_CAVE_ROWS[] = {
+    "XxXxXxXxXxXxXxXxXxXx", /*  0 */
+    "x..................x", /*  1 */
+    "X..,....,....,.....X", /*  2 */
+    "x.,....,....,....,.x", /*  3 */
+    "X.....,....,....,..X", /*  4 */
+    "x....,....,....,...x", /*  5 */
+    "X...,....,....,....X", /*  6 */
+    "x..,....,....,.....x", /*  7 */
+    "X.,....,....,....,.X", /*  8 */
+    "x.....,....,....,..x", /*  9 */
+    "X....,....,....,...X", /* 10 */
+    "x...,....,....,....x", /* 11 */
+    "X..,....,....,.....X", /* 12 */
+    "x..................x", /* 13 */
+    "XXXXXXXXXXDXXXXXXXXX", /* 14 */
+};
+static const Stamp FOOTHILLS_STAMPS[] = { STAMP(W, CABIN, 31, 32) };
+static const DecorPlace FOOTHILLS_DECOR[] = {
+    DP(SIGNPOST, 13, 57), DP(SIGNPOST, 15, 42), DP(CAMPFIRE, 28, 20),
+    DP(ROCK, 33, 35), DP(ROCK, 27, 9),
+};
+static const MapObj FOOTHILLS_OBJS[] = {
+    OBJ(BOULDER, 11, 56, 0), OBJ(BOULDER, 12, 56, 0), OBJ(BOULDER, 11, 54, 0),
+    OBJ(BERRY, 7, 44, 25),
+};
+static const Stamp TIMBERLINE_STAMPS[] = { STAMP(SN, HOUSE, 6, 11), STAMP(SN, HOUSE, 28, 11) };
+static const DecorPlace TIMBERLINE_DECOR[] = {
+    DP(LOG, 7, 21), DP(LOG, 8, 21), DP(STUMP, 27, 21),
+    DP(CAMPFIRE, 19, 18), DP(SIGNPOST, 15, 30), DP(SKI_RACK, 24, 17),
+};
+static const MapObj TIMBERLINE_OBJS[] = { OBJ(BERRY, 35, 26, 26) };
+static const MapObj STORM_CAVE_OBJS[] = { OBJ(BOULDER, 10, 10, 0) };
+static const WildSlot WILD_FOOTHILLS_LOW[] = {
+    { SP_RAMBLET, 20, 28, 32 }, { SP_CRAGHORN, 5, 30, 32 },
+    { SP_PUFFOWL, 10, 28, 31, WHEN_DAY }, { SP_HOOTLORD, 5, 30, 32, WHEN_NIGHT },
+    { SP_VOLTUX, 15, 28, 32 }, { SP_STORMHAWK, 10, 29, 32 },
+    { SP_TRUFFLOAR, 10, 28, 31, WHEN_DAY }, { SP_FLYSQUIRL, 15, 28, 32 },
+};
+static const WildSlot WILD_FOOTHILLS_SNOW[] = {
+    { SP_FLURRABBIT, 28, 29, 32 }, { SP_YAKLING, 25, 29, 32 },
+    { SP_FROSTOAT, 22, 30, 32 }, { SP_TUXFLAKE, 20, 29, 32 },
+    { SP_MOONHARE, 5, 30, 32, WHEN_NIGHT },
 };
