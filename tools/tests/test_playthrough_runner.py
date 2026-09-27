@@ -86,7 +86,7 @@ class PlaythroughRunnerTest(unittest.TestCase):
         self.assertIn('WARDEN line=15 map=', result.stdout)
         self.assertIn('BOUT_END kind=warden result=1', result.stdout)
         self.assertIn('EDGE line=19 map=', result.stdout)
-        self.assertIn('wardens=1 wild_wins=0 wild_runs=0', result.stdout)
+        self.assertIn('BOUT_END kind=warden result=1 wild_wins=0 wild_runs=0 wardens=1 frames=3040', result.stdout)
         route = (ROOT / 'tools/playthrough/act2.route').read_text().split('way MAP_BROOKMILL 37 17')[0]
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'hearth.route'
@@ -98,6 +98,35 @@ class PlaythroughRunnerTest(unittest.TestCase):
             self.assertRegex(hearth.stdout, r'DOOR line=\d+ map=\d+ x=5 y=8 frames=\d+')
             self.assertIn('CHECKPOINTS_COMPLETE', hearth.stdout)
 
+    def test_act2_hall_switches_and_party_gate(self):
+        if not (ROOT / 'game.elf').exists():
+            self.skipTest('build local ROM first with make')
+        route = ROOT / 'tools/playthrough/act2.route'
+        result = subprocess.run(['python3', str(ROOT / 'tools/playthrough/run.py'), str(route)],
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('DOOR line=27 map=19 x=7 y=16 frames=4324', result.stdout)
+        for group in range(3):
+            self.assertRegex(result.stdout, rf'SWITCH line=\d+ group={group} state=1 frames=\d+')
+        self.assertIn('WAY line=44 map=19 x=7 y=3 frames=6154', result.stdout)
+        self.assertRegex(result.stdout, r'CHECKPOINTS_COMPLETE frames=6154 .* wardens=2 wild_wins=0')
+        self.assertNotIn('MASTER line=', result.stdout)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'master-gate.route'
+            path.write_text(route.read_text() + 'party_min 4\n')
+            blocked = subprocess.run(['python3', str(ROOT / 'tools/playthrough/run.py'), str(path)],
+                                     capture_output=True, text=True)
+            self.assertEqual(blocked.returncode, 2, blocked.stderr)
+            self.assertIn('reason=insufficient in-game party for Master map=19 x=7 y=3', blocked.stderr)
+            self.assertIn('frames=6154', blocked.stderr)
+            self.assertNotIn('MASTER line=', blocked.stdout)
+            path.write_text(route.read_text().replace('switch MAP_VOLT_HALL 0 1',
+                                                      'switch MAP_VOLT_HALL 0 0'))
+            wrong = subprocess.run(['python3', str(ROOT / 'tools/playthrough/run.py'), str(path)],
+                                   capture_output=True, text=True)
+            self.assertEqual(wrong.returncode, 2, wrong.stderr)
+            self.assertIn('reason=Hall switch state mismatch map=19 x=4 y=13', wrong.stderr)
+
     def test_invalid_routes_fail_before_emulation(self):
         cases = [
             ('start MAP_MEADOW\nstart MAP_MEADOW\n', 'exactly one start'),
@@ -108,6 +137,9 @@ class PlaythroughRunnerTest(unittest.TestCase):
             ('start MAP_MEADOW\nwarden MAP_MEADOW 0 0 sideways\n', 'direction'),
             ('start MAP_MEADOW\ndoor MAP_MEADOW 0 0 sideways MAP_TOWN\n', 'direction'),
             ('start MAP_MEADOW\ndoor MAP_MEADOW 0 0 east MAP_INVALID\n', 'destination'),
+            ('start MAP_MEADOW\nswitch MAP_VOLT_HALL 3 1\n', 'switch needs'),
+            ('start MAP_MEADOW\nparty_min 7\n', 'party_min needs'),
+            ('start MAP_MEADOW\nmaster FLAG_VOLT_CREST MAP_VOLT_HALL 7 3 north\n', 'invalid command'),
         ]
         if not (ROOT / 'game.elf').exists():
             self.skipTest('build local ROM first with make')

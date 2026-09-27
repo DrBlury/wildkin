@@ -9,7 +9,7 @@
 static color_t pixels[256 * 256];
 static struct mCore *core;
 static unsigned map_addr, player_addr, mode_addr, flags_addr, dialog_addr;
-static unsigned phase_addr, battle_addr, party_addr, moves_addr, warp_addr;
+static unsigned phase_addr, battle_addr, party_addr, moves_addr, warp_addr, switch_addr, party_count_addr;
 static int wild_wins, wild_runs, wardens, dialogs, wild_limit = 6;
 /* Filled only after run.py verifies unique ELF structures and all members. */
 static struct {
@@ -167,17 +167,18 @@ static void step(int line, unsigned direction, int *last_kind) {
     }
 }
 int main(int argc, char **argv) {
-    if (argc != 36) { fprintf(stderr, "usage: runner rom route 10 addresses 23 ELF layout values\n"); return 1; }
+    if (argc != 38) { fprintf(stderr, "usage: runner rom route 12 addresses 23 ELF layout values\n"); return 1; }
     map_addr = strtoul(argv[3], 0, 16); player_addr = strtoul(argv[4], 0, 16);
     mode_addr = strtoul(argv[5], 0, 16); flags_addr = strtoul(argv[6], 0, 16); dialog_addr = strtoul(argv[7], 0, 16);
     phase_addr = strtoul(argv[8], 0, 16); battle_addr = strtoul(argv[9], 0, 16);
     party_addr = strtoul(argv[10], 0, 16); moves_addr = strtoul(argv[11], 0, 16); warp_addr = strtoul(argv[12], 0, 16);
+    switch_addr = strtoul(argv[13], 0, 16); party_count_addr = strtoul(argv[14], 0, 16);
     /* Layout argument order is LAYOUT_FIELDS in run.py: size then members. */
     unsigned offsets[23];
     for (int i = 0; i < 23; i++) {
         char *end;
-        unsigned long value = strtoul(argv[13 + i], &end, 10);
-        if (!argv[13 + i][0] || *end || value > 0xfffffffful) {
+        unsigned long value = strtoul(argv[15 + i], &end, 10);
+        if (!argv[15 + i][0] || *end || value > 0xfffffffful) {
             fprintf(stderr, "invalid ELF layout argument %d\n", i); return 1;
         }
         offsets[i] = (unsigned)value;
@@ -250,6 +251,22 @@ int main(int argc, char **argv) {
         } else if (!strcmp(op, "wild_limit") && sscanf(buf, "%*s %d", &a) == 1 && started && (a == 3 || a == 6)) {
             wild_limit = a;
             printf("WILD_LIMIT per_map=%d\n", a);
+        } else if (!strcmp(op, "switch") &&
+                   sscanf(buf, "%*s %d %d %d", &a, &b, &c) == 3 && started &&
+                   b >= 0 && b < 3 && (c == 0 || c == 1)) {
+            static const int switch_x[] = { 4, 3, 11 }, switch_y[] = { 13, 9, 9 };
+            if (map() != a || x() != switch_x[b] || y() != switch_y[b])
+                fail(line, "Hall switch tile mismatch");
+            int last_kind = -1;
+            /* Waypoints can report coordinates before a step finishes. Settle the tile
+             * before checking either ON or OFF, so OFF cannot pass prematurely. */
+            for (int i = 0; i < 16; i++) step(line, 0, &last_kind);
+            if (map() != a || mode() != 0 || rd32(dialog_addr) || rd32(warp_addr) || rd8(switch_addr + b) != c)
+                fail(line, "Hall switch state mismatch");
+            printf("SWITCH line=%d group=%d state=%d frames=%lu\n", line, b, c, frames);
+        } else if (!strcmp(op, "party_min") && sscanf(buf, "%*s %d", &a) == 1 && started && a >= 1 && a <= 6) {
+            if (rd32(party_count_addr) < a) fail(line, "insufficient in-game party for Master");
+            printf("PARTY count=%d minimum=%d\n", rd32(party_count_addr), a);
         } else if (!strcmp(op, "warden") && sscanf(buf, "%*s %d %d %d %d", &a, &b, &c, &line_direction) == 4 && started) {
             if (map() != a || x() != b || y() != c || mode() != 0)
                 fail(line, "warden interaction starting checkpoint mismatch");

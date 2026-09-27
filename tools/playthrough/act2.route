@@ -20,3 +20,32 @@ way MAP_COPPERLINE 35 18
 way MAP_COPPERLINE 35 20
 way MAP_COPPERLINE 42 20
 edge MAP_COPPERLINE east MAP_LUMEN
+# Enter Beacon plaza at (23,20), climb (24,10), cross Crown walk to Hall door.
+way MAP_LUMEN 23 20
+way MAP_LUMEN 23 11
+way MAP_LUMEN 24 11
+way MAP_LUMEN 24 9
+way MAP_LUMEN 24 7
+way MAP_LUMEN 20 7
+way MAP_LUMEN 10 7
+
+door MAP_LUMEN 10 7 north MAP_VOLT_HALL
+# Step on switches a/b/c; each state assertion reads the live ROM switch group.
+way MAP_VOLT_HALL 7 13
+way MAP_VOLT_HALL 4 13
+switch MAP_VOLT_HALL 0 1
+way MAP_VOLT_HALL 2 12
+way MAP_VOLT_HALL 2 9
+way MAP_VOLT_HALL 3 9
+switch MAP_VOLT_HALL 1 1
+way MAP_VOLT_HALL 2 9
+way MAP_VOLT_HALL 2 12
+way MAP_VOLT_HALL 12 12
+way MAP_VOLT_HALL 12 9
+way MAP_VOLT_HALL 11 9
+switch MAP_VOLT_HALL 2 1
+way MAP_VOLT_HALL 13 9
+way MAP_VOLT_HALL 13 6
+way MAP_VOLT_HALL 7 6
+way MAP_VOLT_HALL 7 3
+# Fara (7,2) is not challenged: current debug warp party has only one Lv20 kin.

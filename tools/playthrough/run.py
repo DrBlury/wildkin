@@ -21,7 +21,7 @@ def symbols():
     output = subprocess.check_output(['arm-none-eabi-nm', str(ROOT / 'game.elf')], text=True)
     found = dict((name, address) for address, _, name in re.findall(r'^(\w+)\s+(\w)\s+(\w+)$', output, re.M))
     return [found[name] for name in ('cur_map', 'player', 'game_mode', 'story_bits', 'dialog_count',
-                                     'dialog_phase', 'battle', 'party', 'MOVES', 'warp')]
+                                     'dialog_phase', 'battle', 'party', 'MOVES', 'warp', 'sw_on', 'party_count')]
 
 # These are the only live RAM/ROM fields consumed by runner.c. Resolve anonymous
 # structures by their complete distinctive field signature, not source line.
@@ -91,12 +91,12 @@ def main():
         parts = line.split('#', 1)[0].split()
         if not parts:
             continue
-        if parts[0] not in ('start', 'flag', 'way', 'edge', 'door', 'warden', 'wild_limit'):
+        if parts[0] not in ('start', 'flag', 'way', 'edge', 'door', 'warden', 'wild_limit', 'switch', 'party_min'):
             parser.error(f'line {number}: invalid command {parts[0]}')
-        expected = {'start': 2, 'flag': 2, 'way': 4, 'edge': 4, 'door': 6, 'warden': 5, 'wild_limit': 2}[parts[0]]
+        expected = {'start': 2, 'flag': 2, 'way': 4, 'edge': 4, 'door': 6, 'warden': 5, 'wild_limit': 2, 'switch': 4, 'party_min': 2}[parts[0]]
         if len(parts) != expected:
             parser.error(f'line {number}: expected {expected - 1} arguments')
-        table = flags if parts[0] == 'flag' else maps if parts[0] != 'wild_limit' else None
+        table = flags if parts[0] == 'flag' else maps if parts[0] not in ('wild_limit', 'party_min') else None
         if table is not None and parts[1] not in table:
             parser.error(f"line {number}: unknown ID {parts[1]}")
         if table is not None:
@@ -130,6 +130,11 @@ def main():
             if not (0 <= x < 64 and 0 <= y < 64) or parts[4] not in ('north', 'south', 'west', 'east'):
                 parser.error(f'line {number}: warden needs valid adjacent position and direction')
             parts[4] = str({'north': 6, 'south': 7, 'west': 5, 'east': 4}[parts[4]])
+        if parts[0] == 'switch' and (parts[1] != str(maps['MAP_VOLT_HALL']) or
+                                     parts[2] not in ('0', '1', '2') or parts[3] not in ('0', '1')):
+            parser.error(f'line {number}: switch needs group 0..2 and state 0 or 1')
+        if parts[0] == 'party_min' and parts[1] not in ('1', '2', '3', '4', '5', '6'):
+            parser.error(f'line {number}: party_min needs 1..6')
         if parts[0] == 'wild_limit' and parts[1] not in ('3', '6'):
             parser.error(f'line {number}: wild_limit must be 3 (hamlet) or 6 (route)')
         converted.append(' '.join(parts))

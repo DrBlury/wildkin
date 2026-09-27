@@ -7,3 +7,27 @@ Route grammar: `flag FLAG_NAME` **before** the single `start MAP_NAME`; `way MAP
 The timer excludes title debug warp/flag setup from frames; attempted movement, dialog advances, bouts, and blocked waits are counted at 59.7275 fps. During ordinary dialog it pulses A for two VBlank input polls followed by two release frames; a one-frame pulse could miss Juno’s queued warden call. Unanswered choice prompts fail closed. Warden bouts are never fled; the runner selects the highest available power×accuracy attacking move from the live ROM move table (not the full type/stage-aware `ai_score`), and fails for forced switches, depleted attacking PP, loss, or unhandled menus. It fights the first six wild wins on each route or three on a hamlet when `wild_limit 3` is set; subsequent encounters attempt flight, never flight from a no-run bout. It does not fabricate wild encounters merely to reach the quota. Its debug warp grants only one Lv20 FLARIX; healing, properly levelled four-kin team, tonic use and return to Hearth are not yet scripted. No arrival-level/balance or whole-act timing claim can be made until those and the quest/Hall checkpoints are actually navigated and measured. In particular do not multiply a short segment by 2.5 to claim human playtime.
 
 `tools/playthrough/actN.route` are exploratory entry checkpoints, **not act-completion scripts**. On the field-stack-fixed ROM, Act II physically fights Juno and reaches Lumen (3,466 frames / 0.967 min); Act III fights the Fen warden and reaches Reedwick (2,076 frames / 0.579 min). Both count one verified warden victory but zero observed wild wins and do not reach a Hall. A separate historical probe entered Brookmill Hearth without healing. See `docs/playtest/plan12-scripted.md` for distinct current and historical results. Human Acts II/III and the 16–18-hour playtime target remain unmeasured.
+
+## Act II Hall approach (isolated ROM checkpoint)
+
+`act2.route` now walks Lumen's Beacon stair and Crown to the Volt Hall door,
+then steps on the three floor switches in a/b/c order and reaches (7,3),
+adjacent to Fara. `switch MAP_VOLT_HALL group state` requires the player to be
+on the group's actual tile, waits 16 timed frames for the walking
+animation to toggle the live ELF-resolved `sw_on[group]`, then asserts the
+state. It never writes puzzle RAM. `party_min N` reads the ROM's `party_count`
+and blocks if fewer than N kin are present; a disposable probe appending
+`party_min 4` to this route exits 2 at Fara's adjacent tile. These are
+checkpoints, not a completed Master bout or crest. The Hall's first warden
+is encountered and defeated en route; other Hall wardens are not silently
+credited. The existing debug warp still supplies only one Lv20 FLARIX.
+
+Fara uses a YES/NO challenge, not the `warden` interaction; no Master
+choice handler has been verified with a prepared party, so the passing route
+does not interact with her. `heal` and A-triggered `interact` are likewise
+not implemented: this approach requires neither, and no healer outcome is
+claimed. Add them only with observed dialog/menu and HP/PP evidence. The
+entry-flag setup is still a debug prerequisite, not a representative Act I
+save; absence of wild bouts does not satisfy the plan's 3/6 encounter quota.
+See [Act II timing](../../docs/handoff/act2_timing.md) for exact frames and
+reproduction of the party gate.
