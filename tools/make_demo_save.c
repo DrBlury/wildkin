@@ -2,7 +2,8 @@
  * Writes a mid-game save file for screenshots and playtesting:
  *
  *   cc -std=c11 -o build/make_demo_save tools/make_demo_save.c
- *   build/make_demo_save OUT.sav [MAP X Y [calm] [low]]
+ *   build/make_demo_save --list-maps
+ *   build/make_demo_save OUT.sav [MAP X Y [calm] [low] ...]
  *
  * The save has a team of five, a stocked bag, a good part of the Lorebook,
  * the TWIN CRYSTAL and the RING SASH, and puts the player at MAP (index
@@ -107,8 +108,13 @@ static int demo_move(const char *name)
 
 int main(int argc, char **argv)
 {
+    if (argc == 2 && !strcmp(argv[1], "--list-maps")) {
+        for (int i = 0; i < MAP_COUNT; i++)
+            if (MAPS[i].name) printf("%d\t%s\n", i, MAPS[i].name);
+        return 0;
+    }
     if (argc < 2) {
-        fprintf(stderr, "usage: %s OUT.sav [MAP X Y [calm] [low] [beaten] [night] [rain] [farm] [travel] [fusion] [evolve] [runestone] [move=NAME]]\n", argv[0]);
+        fprintf(stderr, "usage: %s OUT.sav [MAP X Y [calm] [low] [beaten] [night] [rain] [farm] [travel] [fusion] [evolve] [runestone] [bridge-built] [mist-lifted] [front-west] [front-dream] [caravan-brookmill] [move=NAME]]\n", argv[0]);
         return 1;
     }
     game_init();
@@ -116,6 +122,7 @@ int main(int argc, char **argv)
     new_game();
     int calm = 0, low = 0, beaten = 0, night = 0, rain = 0, farm_on = 0;
     int travel_on = 0, fusion_on = 0, evolve_on = 0, rune_on = 0;
+    int bridge = 0, mist = 0, front = -1, caravan = 0;
     const char *move_name = 0;
     for (int i = 5; i < argc; i++) {
         if (!strcmp(argv[i], "calm")) calm = 1;
@@ -128,6 +135,11 @@ int main(int argc, char **argv)
         if (!strcmp(argv[i], "fusion")) fusion_on = 1;
         if (!strcmp(argv[i], "evolve")) evolve_on = 1;
         if (!strcmp(argv[i], "runestone")) rune_on = 1;
+        if (!strcmp(argv[i], "bridge-built")) bridge = 1;
+        if (!strcmp(argv[i], "mist-lifted")) mist = 1;
+        if (!strcmp(argv[i], "front-west")) front = ER_WEST;
+        if (!strcmp(argv[i], "front-dream")) front = ER_DREAM;
+        if (!strcmp(argv[i], "caravan-brookmill")) caravan = 1;
         if (!strncmp(argv[i], "move=", 5)) move_name = argv[i] + 5;
     }
     static const u8 TEAM[5] = { SP_PYREFOX, SP_AXOLURK, SP_ZAPPET, SP_DANDELAMB, SP_GOLEMIT };
@@ -158,11 +170,33 @@ int main(int argc, char **argv)
     flags_story_clear(); flag_set(FLAG_STARTER); flag_set(FLAG_INTRO); flag_set(FLAG_TWIN_CRYSTAL); flag_set(FLAG_PIP_GIFT); flag_set(FLAG_GRAN_GIFT); flag_set(FLAG_BAKER_GIFT); flag_set(FLAG_LEAF_STONE); flag_set(FLAG_SASH); flag_set(FLAG_STORM_TOLD);
     trainer_mark_beaten(TR_MARLO);
     if (calm) flag_set(FLAG_STORM_CALMED);
+    if (bridge) flag_set(FLAG_PROJECT_CINDER_BRIDGE);
+    if (mist) flag_set(FLAG_LANTERN_CREST);
+    if (front >= 0 || caravan) {
+        flag_set(FLAG_VOLT_CREST);
+        if (front == ER_DREAM) flag_set(FLAG_LANTERN_CREST);
+        events_new_day_impl();
+        if (front >= 0) {
+            events.front_region = (u8)front;
+            events.front_kind = WX_FOG;
+            events.front_days = 1;
+        }
+        if (caravan) {
+            events.caravan_map = 6;
+            events.active[1] = EV_CARAVAN;
+            events.arg[1] = 6;
+        }
+    }
     for (int i = 0; i < LORE_COUNT; i += 2) lore_learn(i);
     lore_learn(LORE_KINDLING);
     lore_learn(LORE_RING_SASH);
     int map = argc > 2 ? atoi(argv[2]) : MAP_MEADOW;
     int x = argc > 3 ? atoi(argv[3]) : 19, y = argc > 4 ? atoi(argv[4]) : 40;
+    if (map < 0 || map >= MAP_COUNT || !MAPS[map].name ||
+        x < 0 || x >= MAPS[map].w || y < 0 || y >= MAPS[map].h) {
+        fprintf(stderr, "invalid demo map or position: %d at %d,%d\n", map, x, y);
+        return 1;
+    }
     for (int i = 0; beaten && i < NPC_COUNT; i++)
         if (NPCS[i].map == map && NPCS[i].trainer != NO_TRAINER) trainer_mark_beaten(NPCS[i].trainer);
     if (night) gtime.minute = 22 * 60;

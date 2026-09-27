@@ -172,6 +172,10 @@ Each picture below is a **labeled full-map render from the game renderer**, not 
 
 <sub>Brookmill waterwheel: recorded from the built ROM with the mGBA shot harness.</sub>
 
+<img src="docs/images/routes/cinder-bridge.gif" width="480" alt="Cinder Crossing's broken span, then the repaired bridge crossed in a recorded ROM run">
+
+<sub>Cinder bridge: unbuilt and built project saves, recorded as consecutive game frames. Fog-front and caravan-arrival clips await visible in-game effects.</sub>
+
 **Events and quests.** The Vale Gazette in Hearth houses reports daily happenings; the caravan has route-specific stops, and regional fronts and outbreaks can change a day's conditions. The quest log follows Elspeth's cross-region courier chain and surveys, plus local ring, lamp, chalk and cairn threads. Town project offers include the Brookmill tram, Cinder bridge, Timberline lift, Reedwick punt and Maple market; construction completes after dawn when requirements are met. Event presentation and some project visuals remain incomplete—see [integration status](docs/HANDOFF.md).
 
 The world is a web of regions around the Vale. Walk off an edge into the next area, take a door, sail on the ferry, or fly between towns once you hold the RIME crest. For connections and gates, see [the world-area table](docs/WORLD.md#11-world-map) and [the progression contract](docs/plans/01_progression_contract.md#2-the-new-world-graph).
@@ -702,7 +706,7 @@ That writes `game.gba`. Other targets:
 | `make maps` | Render every map to `build/maps/*.png` |
 | `make shot` | Build the headless screenshot harness (needs libmgba: `brew install mgba`) |
 | `python3 tools/make_media.py` | Re-record the README media (requires the ROM and `make shot` for clips; Pillow for route renders) |
-| `python3 tools/make_media.py world routes mill-wheel` | Regenerate the positioned world map, labeled route stills and Brookmill wheel clip |
+| `python3 tools/make_media.py world routes mill-wheel cinder-bridge` | Regenerate the map, route stills, Brookmill wheel and repaired Cinder bridge clips |
 | `make clean` | Remove build output |
 
 ### How it is made
