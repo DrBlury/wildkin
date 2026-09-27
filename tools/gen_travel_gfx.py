@@ -1362,24 +1362,30 @@ MAP_PAL = Pal([('K', (40, 32, 56)), ('D', (36, 70, 144)), ('S', (56, 104, 184)),
                ('F', (40, 94, 64)), ('R', (148, 140, 150)), ('r', (96, 88, 104)), ('I', (184, 206, 230)),
                ('V', (178, 150, 214)), ('L', (206, 80, 50)), ('A', (128, 112, 104))])
 
-# Every place on the town map: key, x, y, kind (town, route, lair, isle).
-# Region owners: these are the pixels FLY markers are drawn at; set your
-# FlyPoint map_x/map_y to the same numbers (Maple Village is 104,110).
-SPOTS = [
-    ('MAPLE', 104, 110, 'town'), ('MEADOW', 100, 92, 'route'), ('RISE', 94, 74, 'route'),
-    ('WOOD', 128, 110, 'route'), ('LAKE', 78, 110, 'route'), ('WILLOW', 102, 130, 'town'),
-    ('SALTWIND', 54, 112, 'route'), ('PORT_BRINE', 30, 108, 'town'), ('SEA_ROUTE', 26, 128, 'route'),
-    ('GULL_ISLE', 22, 146, 'town'), ('DROWNED_BELL', 46, 146, 'lair'),
-    ('FROSTPINE', 86, 56, 'route'), ('FROSTHOLLOW', 84, 38, 'town'), ('WHITECROWN', 76, 22, 'lair'),
-    ('SKY_ISLE', 122, 12, 'isle'), ('GLIMMER', 114, 38, 'route'), ('STARFALL', 140, 30, 'lair'),
-    ('COPPERLINE', 152, 110, 'route'), ('LUMEN', 156, 88, 'town'), ('ELDERWOOD', 126, 132, 'lair'),
-    ('MOONVEIL', 160, 68, 'route'), ('DREAMSPIRE', 166, 48, 'town'), ('DUST_LIBRARY', 192, 40, 'lair'),
-    ('CINDER_ROAD', 180, 88, 'route'), ('CINDERMOOR', 204, 88, 'town'), ('EMBER_TUNNEL', 220, 74, 'route'),
-    ('CALDERA', 228, 58, 'lair'), ('CLOCKWORK', 206, 112, 'lair'),
-    ('ASHEN', 156, 132, 'route'), ('GRAVEWOOD', 178, 134, 'route'), ('DUSKMERE', 198, 134, 'town'),
-    ('OSSUARY', 216, 140, 'route'), ('BONE_THRONE', 232, 150, 'lair'),
-]
-SPOT = {k: (x, y) for (k, x, y, _) in SPOTS}
+# UI pixels are authored in world/worldpos.inc alongside warp layout hints.
+# The engine's FLY markers resolve positions from WM_SPOTS, not duplicated flypoint pixels.
+def load_spots():
+    """Read the C/UI town positions from the shared world authoring table."""
+    import re
+    spots = []
+    with open(os.path.join(ROOT, 'src', 'game', 'world', 'worldpos.inc')) as source:
+        lines = source.readlines()
+    for line in lines:
+        match = re.fullmatch(r'TOWN_SPOT\(([A-Z0-9_]+),\s*(MAP_[A-Z0-9_]+),\s*(\d+),\s*(\d+),\s*(town|route|lair|isle)\)', line.strip())
+        if line.strip().startswith("TOWN_SPOT(") and not match:
+            raise ValueError("invalid town-map spot: " + line.strip())
+        if match:
+            key, _, x, y, kind = match.groups()
+            if any(spot[0] == key for spot in spots):
+                raise ValueError('duplicate town-map spot: ' + key)
+            if not (4 <= int(x) < 236 and 4 <= int(y) < 156):
+                raise ValueError('town-map spot outside marker bounds: ' + key)
+            spots.append((key, int(x), int(y), kind))
+    return spots
+
+
+SPOTS = load_spots()
+SPOT = {key: (x, y) for key, x, y, _ in SPOTS}
 
 ROUTES = [
     ('MAPLE', 'MEADOW'), ('MEADOW', 'RISE'), ('RISE', 'FROSTPINE'), ('FROSTPINE', 'FROSTHOLLOW'),
@@ -1607,7 +1613,14 @@ def paint_town_map():
                 if 0 <= xx < W and 0 <= yy < H and land[yy][xx] and img[yy][xx] not in (M['Y'], M['K']):
                     if img[yy][xx] in (M['G'], M['W'], M['V'], M['I']):
                         img[yy][xx] = M['g'] if img[yy][xx] == M['G'] else M['R']
-    for (a, b) in ROUTES:
+    # Only add a contract road when its authored endpoint positions exist.
+    route_segments = [('WOOD', 'BROOKMILL'), ('BROOKMILL', 'COPPERLINE'),
+                      ('LAKE', 'REEDWICK'), ('REEDWICK', 'SALTWIND'),
+                      ('RISE', 'TIMBERLINE'), ('TIMBERLINE', 'FROSTPINE'),
+                      ('CINDER_ROAD', 'RAILHEAD'), ('RAILHEAD', 'CINDERMOOR')]
+    replaced = {('WOOD', 'COPPERLINE'), ('LAKE', 'SALTWIND'),
+                ('RISE', 'FROSTPINE'), ('CINDER_ROAD', 'CINDERMOOR')}
+    for (a, b) in [r for r in ROUTES if r not in replaced] + route_segments:
         path(a, b)
     for (a, b) in SEA_ROUTES:
         path(a, b, sea=True)
