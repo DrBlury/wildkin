@@ -221,9 +221,16 @@ static void trainer_mark_beaten(int t) { bit_set(trainer_bits, t); }
 
 #define MAP_MAX_W 64
 #define MAP_MAX_H 64
-EWRAM_BSS static u16 map_cells[MAP_MAX_W * MAP_MAX_H];
-EWRAM_BSS static u16 map_ground[MAP_MAX_W * MAP_MAX_H];  /* ground under overlay cells (trees) */
-EWRAM_BSS static u8 map_decor[MAP_MAX_W * MAP_MAX_H];  /* decor instance + 1, 0 = none */
+EWRAM_BSS static u16 map_cells_store[MAP_MAX_W * MAP_MAX_H];
+EWRAM_BSS static u16 map_ground_store[MAP_MAX_W * MAP_MAX_H];
+EWRAM_BSS static u8 map_decor_store[MAP_MAX_W * MAP_MAX_H];
+EWRAM_BSS static u16 seam_cells_store[MAP_MAX_W * MAP_MAX_H];
+EWRAM_BSS static u16 seam_ground_store[MAP_MAX_W * MAP_MAX_H];
+EWRAM_BSS static u8 seam_decor_store[MAP_MAX_W * MAP_MAX_H];
+static u16 *map_cells = map_cells_store;
+static u16 *map_ground = map_ground_store;  /* ground under overlay cells */
+static u8 *map_decor = map_decor_store;    /* decor instance + 1, 0 = none */
+static int seam_bank; /* 0 = primary data live; 1 = neighbour data live */
 static u16 decor_base[DK_COUNT];                        /* VRAM tile of each loaded kind */
 static int decor_tiles_used;                            /* first free scene tile */
 static int decor_tiles_wanted;                          /* ...had every decor kind fitted (tests) */
@@ -438,6 +445,32 @@ static s16 ring_x[16][16], ring_y[16][16]; /* map cell cached in each ring slot 
 static int cam_x, cam_y;
 static int cam_scripted;
 static int field_anim_frame;
+/* World-space origin keeps both maps on the same ring slots during an edge. */
+static int seam_origin_x;
+static int seam_pending = MAP_NONE;
+static int seam_entering;
+static struct {
+    int map, origin, ready, preview, preparing, progress, y0, rejected;
+    s16 x[16][16], y[16][16];
+    u16 bottom[16][16][4], mid[16][16][4], top[16][16][4];
+} seam EWRAM_BSS;
+
+/* Predecoded neighbour terrain stays in a second EWRAM bank. Switching
+ * pointers is bounded work; the GBA's single elevation grid is untouched
+ * while flat edge previews render (full elevation decodes on arrival). */
+static void seam_use_neighbour(void)
+{
+    map_cells = seam_bank ? map_cells_store : seam_cells_store;
+    map_ground = seam_bank ? map_ground_store : seam_ground_store;
+    map_decor = seam_bank ? map_decor_store : seam_decor_store;
+}
+
+static void seam_use_current(void)
+{
+    map_cells = seam_bank ? seam_cells_store : map_cells_store;
+    map_ground = seam_bank ? seam_ground_store : map_ground_store;
+    map_decor = seam_bank ? seam_decor_store : map_decor_store;
+}
 
 static void ring_invalidate(void)
 {
@@ -522,10 +555,13 @@ static int dyn_cell(int mx, int my, u16 bottom[4], u16 mid[4], u16 top[4]);
 
 static void render_cell(int mx, int my)
 {
-    int rx = mx & 15, ry = my & 15;
-    if (ring_x[ry][rx] == mx && ring_y[ry][rx] == my) return;
-    ring_x[ry][rx] = (s16)mx;
-    ring_y[ry][rx] = (s16)my;
+    int wx = mx + (seam.preview ? seam.origin : seam_origin_x);
+    int rx = wx & 15, ry = my & 15;
+    if (!seam.preview) {
+        if (ring_x[ry][rx] == wx && ring_y[ry][rx] == my) return;
+        ring_x[ry][rx] = (s16)wx;
+        ring_y[ry][rx] = (s16)my;
+    }
     const TilesetDef *t = tset();
     u16 bottom[4], top[4], mid[4] = { 0, 0, 0, 0 };
     int v = map_cell(mx, my);
@@ -568,7 +604,17 @@ static void render_cell(int mx, int my)
         for (int i = 0; i < 4; i++) dst[i] = q[i];
     }
     if (map_elevated) elev_render_cover(mx, my, bottom, mid, top);
-    dyn_cell(mx, my, bottom, mid, top);
+    if (!seam.preview) dyn_cell(mx, my, bottom, mid, top);
+    if (seam.preview) {
+        seam.x[ry][rx] = (s16)wx;
+        seam.y[ry][rx] = (s16)my;
+        for (int i = 0; i < 4; i++) {
+            seam.bottom[ry][rx][i] = bottom[i];
+            seam.mid[ry][rx][i] = mid[i];
+            seam.top[ry][rx][i] = top[i];
+        }
+        return;
+    }
     u16 *b = VRAM_MAP(SB_FIELD_BOTTOM), *tp = VRAM_MAP(SB_FIELD_TOP), *m = VRAM_MAP(SB_PANEL);
     int idx = ry * 2 * 32 + rx * 2;
     static const u8 OFF[4] = { 0, 1, 32, 33 };
@@ -582,7 +628,7 @@ static void render_cell(int mx, int my)
 /* Force a cell to be redrawn (after its look changed at run time). */
 __attribute__((unused)) static void field_redraw_cell(int mx, int my)
 {
-    ring_x[my & 15][mx & 15] = -32768;
+    ring_x[my & 15][(mx + seam_origin_x) & 15] = -32768;
 }
 
 static int floor_div16(int v)
@@ -608,10 +654,39 @@ static void field_render_view(void)
     REG_BG2HOFS = (u16)cam_x;
     REG_BG2VOFS = (u16)cam_y;
     travel_dark_present();
+    if (seam_pending != MAP_NONE) {
+        const MapDef *dest = &MAPS[seam_pending];
+        for (int i = 0; i < dest->decor_count; i++) {
+            int k = dest->decor[i].kind;
+            if (decor_base[k]) continue;
+            const DecorDef *d = &DECOR_DEFS[map_tileset][k];
+            decor_base[k] = (u16)decor_tiles_used;
+            copy32(VRAM_SCENE_TILES + decor_tiles_used * 8,
+                   decor_tiles + d->tile_first * 8, (unsigned)d->tile_count * 8);
+            decor_tiles_used += d->tile_count;
+            break; /* stage a single decor block per vblank */
+        }
+    }
     int x0 = floor_div16(cam_x), y0 = floor_div16(cam_y);
     for (int my = y0; my <= y0 + 10; my++)
-        for (int mx = x0; mx <= x0 + 15; mx++)
-            render_cell(mx, my);
+        for (int wx = x0; wx <= x0 + 15; wx++) {
+            int rx = wx & 15, ry = my & 15;
+            if (wx >= seam_origin_x && wx < seam_origin_x + map_w) {
+                render_cell(wx - seam_origin_x, my);
+            } else if (seam.ready && seam.x[ry][rx] == wx && seam.y[ry][rx] == my &&
+                       (ring_x[ry][rx] != wx || ring_y[ry][rx] != my)) {
+                u16 *b = VRAM_MAP(SB_FIELD_BOTTOM), *m = VRAM_MAP(SB_PANEL), *t = VRAM_MAP(SB_FIELD_TOP);
+                int idx = ry * 64 + rx * 2;
+                static const u8 off[4] = { 0, 1, 32, 33 };
+                for (int i = 0; i < 4; i++) {
+                    b[idx + off[i]] = seam.bottom[ry][rx][i];
+                    m[idx + off[i]] = seam.mid[ry][rx][i];
+                    t[idx + off[i]] = seam.top[ry][rx][i];
+                }
+                ring_x[ry][rx] = (s16)wx;
+                ring_y[ry][rx] = (s16)my;
+            }
+        }
 }
 
 /* ---------------- tileset, decor & weather palettes ---------------- */
@@ -640,6 +715,7 @@ static u16 field_tint(u16 c);
  * world/grim/scripts.c. */
 static int grim_ash_active(int map);
 /* Matching tilesets can still have different map-dependent palette tints. */
+static int time_raining_here(void);
 static int edge_palette_compatible(int source, int dest)
 {
     if (MAPS[source].tileset != MAPS[dest].tileset) return 0;
@@ -647,8 +723,18 @@ static int edge_palette_compatible(int source, int dest)
         (MAPS[source].flags & MF_OUTDOOR) && !(MAPS[source].flags & MF_DEBUG);
     int storm_dest = flag(FLAG_STARTER) && !flag(FLAG_STORM_CALMED) &&
         (MAPS[dest].flags & MF_OUTDOOR) && !(MAPS[dest].flags & MF_DEBUG);
+    const MapDef *a = &MAPS[source], *b = &MAPS[dest];
+    int tint_source = !!(a->flags & MF_OUTDOOR) && !(a->flags & (MF_NIGHTLESS | MF_DEBUG));
+    int tint_dest = !!(b->flags & MF_OUTDOOR) && !(b->flags & (MF_NIGHTLESS | MF_DEBUG));
+    int saved_map = cur_map;
+    cur_map = source;
+    int rain_source = time_raining_here();
+    cur_map = dest;
+    int rain_dest = time_raining_here();
+    cur_map = saved_map;
     return !!storm_source == !!storm_dest &&
-           !!grim_ash_active(source) == !!grim_ash_active(dest);
+           !!grim_ash_active(source) == !!grim_ash_active(dest) &&
+           tint_source == tint_dest && rain_source == rain_dest;
 }
 static u16 grim_ash_tint(u16 c);
 static void grim_draw_ash(void);
@@ -695,9 +781,130 @@ static void field_load_tileset(void)
         decor_tiles_used += d->tile_count;
     }
     field_load_palettes();
+    seam_origin_x = 0;
+    seam.ready = seam.preparing = 0;
+    seam.rejected = seam_pending = MAP_NONE;
     ring_invalidate();
     travel_load_gfx();
     grass_tileset_loaded();
+}
+
+/* Decode the adjacent map once, then render four offscreen border cells per
+ * field frame. Both decoded maps are backed up in EWRAM while rendering; the
+ * active game arrays, actors, objects and save bits remain authoritative. The
+ * eight-column strip covers every neighbour cell visible before crossing. */
+static int seam_can_preview(int dest, int side)
+{
+    const MapDef *d = &MAPS[dest];
+    if (!edge_palette_compatible(cur_map, dest) || cur_map == MAP_WILLOW_ACRE ||
+        dest == MAP_WILLOW_ACRE || seam.rejected == dest ||
+        (MAPS[cur_map].elev && d->elev) ||
+        d->w < 16 || d->h != map_h || d->h > 40 || map_h > 40 ||
+        MAPS[cur_map].link_off[side] ||
+        d->link_off[side == LINK_E ? LINK_W : LINK_E] ||
+        d->link[side == LINK_E ? LINK_W : LINK_E] != cur_map ||
+        decor_tiles_wanted > decor_tiles_used) return 0;
+    int wanted = decor_tiles_used;
+    u8 seen[DK_COUNT] = { 0 };
+    for (int i = 0; i < d->decor_count; i++) {
+        int k = d->decor[i].kind;
+        if (!decor_base[k] && !seen[k]) {
+            wanted += DECOR_DEFS[map_tileset][k].tile_count;
+            seen[k] = 1;
+        }
+    }
+    if (wanted > SCENE_TILE_MAX) return 0;
+    /* Berry plots depend on live farm state in the other map. */
+    for (int i = 0; i < d->obj_count; i++)
+        if (d->objs[i].kind == OBJ_BERRY &&
+            (side == LINK_E ? d->objs[i].x < 8 : d->objs[i].x >= d->w - 8)) return 0;
+    return 1;
+}
+
+static void seam_prepare(int dest, int origin, int side)
+{
+    if (!seam_can_preview(dest, side)) return;
+    if (seam.ready && seam.map == dest && seam.origin == origin) {
+        int probe = side == LINK_E ? 0 : MAPS[dest].w - 8;
+        int wx = origin + probe;
+        int y0 = floor_div16(cam_y);
+        for (int y = y0 - 1; y <= y0 + 12; y++) {
+            int rx = wx & 15, ry = y & 15;
+            if (seam.x[ry][rx] == wx && seam.y[ry][rx] == y) continue;
+            int source = cur_map, source_w = map_w, source_h = map_h;
+            int elevated = map_elevated;
+            seam_use_neighbour();
+            cur_map = dest;
+            map_w = MAPS[dest].w;
+            map_h = MAPS[dest].h;
+            map_elevated = 0; /* same flat border approved at preparation */
+            seam.preview = 1;
+            for (int x = probe; x < probe + 8; x++) render_cell(x, y);
+            seam.preview = 0;
+            seam_use_current();
+            cur_map = source;
+            map_w = (u8)source_w;
+            map_h = (u8)source_h;
+            map_elevated = (u8)elevated;
+            break; /* one predictive row per frame */
+        }
+        return;
+    }
+    seam_pending = dest;
+    for (int i = 0; i < MAPS[dest].decor_count; i++)
+        if (!decor_base[MAPS[dest].decor[i].kind]) return;
+    seam_pending = MAP_NONE;
+    int source = cur_map, source_w = map_w, source_h = map_h;
+    int dest_w = MAPS[dest].w, dest_h = MAPS[dest].h;
+    int source_elevated = map_elevated;
+    if (!seam.preparing || seam.map != dest || seam.origin != origin) {
+        seam.map = dest;
+        seam.origin = origin;
+        seam.ready = 0;
+        seam.preparing = 1;
+        seam.progress = 0;
+        seam.y0 = floor_div16(cam_y) - 2;
+        seam_use_neighbour();
+        cur_map = dest;
+        map_w = (u8)dest_w;
+        map_h = (u8)dest_h;
+        map_decode(dest);
+        /* Elevation data can share the single array only if the preview
+         * border is flat; otherwise use the ordinary palette-safe fade. */
+        int probe = side == LINK_E ? 0 : dest_w - 8;
+        for (int y = 0; y < dest_h; y++)
+            for (int x = probe; x < probe + 8; x++)
+                if (map_elevated && map_elev[y * dest_w + x]) {
+                    seam.preparing = 0;
+                    seam.rejected = dest;
+                }
+        seam_use_current();
+        cur_map = source;
+        map_w = (u8)source_w;
+        map_h = (u8)source_h;
+        map_elevated = (u8)source_elevated;
+        return;
+    }
+    seam_use_neighbour();
+    cur_map = dest;
+    map_w = (u8)dest_w;
+    map_h = (u8)dest_h;
+    map_elevated = 0; /* the preview border was checked to be flat */
+    seam.preview = 1;
+    int probe = side == LINK_E ? 0 : dest_w - 8;
+    int row = seam.progress / 8, col = seam.progress & 7;
+    for (int x = col; x < col + 4; x++) render_cell(probe + x, seam.y0 + row);
+    seam.preview = 0;
+    seam_use_current();
+    cur_map = source;
+    map_w = (u8)source_w;
+    map_h = (u8)source_h;
+    map_elevated = (u8)source_elevated;
+    seam.progress += 4;
+    if (seam.progress == 128) {
+        seam.preparing = 0;
+        seam.ready = 1;
+    }
 }
 
 /* Tile-data swaps for rippling water, swaying flowers and animated decor. */
@@ -835,7 +1042,7 @@ static void map_patches_reapply(void)
     if (cur_map < 0 || cur_map >= MAP_COUNT || !MAPS[cur_map].patch_count) return;
     map_decode(cur_map);
     travel_patch_elevation_refresh();
-    ring_invalidate();
+    if (!seam_entering) ring_invalidate();
 }
 
 /* Re-evaluate event-controlled people and terrain after provider changes. */
@@ -953,8 +1160,10 @@ static void field_update_camera(void)
     if (cam_scripted) return;
     int px = player.x * 16 + player.ox, py = player.y * 16 + player.oy;
     int mw = map_w * 16, mh = map_h * 16;
-    cam_x = mw <= SCREEN_WIDTH ? (mw - SCREEN_WIDTH) / 2
-                               : clampi(px + 8 - SCREEN_WIDTH / 2, 0, mw - SCREEN_WIDTH);
+    int left = seam.ready && seam.origin < seam_origin_x ? -128 : 0;
+    int right = seam.ready && seam.origin > seam_origin_x ? mw - 112 : mw - SCREEN_WIDTH;
+    cam_x = seam_origin_x * 16 + (mw <= SCREEN_WIDTH ? (mw - SCREEN_WIDTH) / 2
+                                                       : clampi(px + 8 - SCREEN_WIDTH / 2, left, right));
     cam_y = mh <= SCREEN_HEIGHT ? (mh - SCREEN_HEIGHT) / 2
                                 : clampi(py + 8 - SCREEN_HEIGHT / 2, 0, mh - SCREEN_HEIGHT);
 }
@@ -1050,6 +1259,8 @@ static void keeper_palette(u16 *dst, int kind, int vary);
 
 static void field_draw_sprites(void)
 {
+    int world_cam_x = cam_x;
+    cam_x -= seam_origin_x * 16; /* sprite and travel positions remain map-local */
     FieldSprite list[96];
     int n = 0;
     int lift = actor_lift(&player) + travel_player_lift();
@@ -1160,6 +1371,7 @@ static void field_draw_sprites(void)
                  OT_EMOTE + emote.kind * 4, SQ16, OBANK_EMOTE, 1, 0);
     travel_draw_floor();
     draw_weather();
+    cam_x = world_cam_x;
 }
 
 static void field_load_objects(void)
@@ -1362,8 +1574,64 @@ static int held_dir(void)
 
 static void field_begin_warp(int dest, int x, int y, int facing);
 static void field_warp_short(void);
+static int travel_speed(int base);
+static void travel_map_entered(int map);
+static void field_on_enter(void);
 static void wild_touch(int slot);
 static void edge_blocked(void);
+
+/* Copy the still-visible old side of the ring before changing map state.
+ * Entries already streamed for the destination will be drawn live after the
+ * map swap; the source entries survive in this EWRAM strip as they scroll out. */
+static void seam_capture_source(int source, int origin)
+{
+    u16 *b = VRAM_MAP(SB_FIELD_BOTTOM), *m = VRAM_MAP(SB_PANEL), *t = VRAM_MAP(SB_FIELD_TOP);
+    for (int ry = 0; ry < 16; ry++)
+        for (int rx = 0; rx < 16; rx++) {
+            int wx = ring_x[ry][rx], y = ring_y[ry][rx];
+            seam.x[ry][rx] = seam.y[ry][rx] = -32768;
+            if (wx < origin || wx >= origin + MAPS[source].w || y < 0 || y >= MAPS[source].h)
+                continue;
+            seam.x[ry][rx] = (s16)wx;
+            seam.y[ry][rx] = (s16)y;
+            int idx = ry * 64 + rx * 2;
+            static const u8 off[4] = { 0, 1, 32, 33 };
+            for (int i = 0; i < 4; i++) {
+                seam.bottom[ry][rx][i] = b[idx + off[i]];
+                seam.mid[ry][rx][i] = m[idx + off[i]];
+                seam.top[ry][rx][i] = t[idx + off[i]];
+            }
+        }
+    seam.map = source;
+    seam.origin = origin;
+    seam.preparing = 0;
+    seam.ready = 1;
+}
+
+static void seam_cross(int dest, int x, int y, int dir)
+{
+    int source = cur_map, old_origin = seam_origin_x;
+    seam_capture_source(source, old_origin);
+    seam_bank ^= 1; /* the predecoded neighbour becomes the live map bank */
+    seam_use_current();
+    seam_origin_x = dir == DIR_RIGHT ? old_origin + map_w : old_origin - MAPS[dest].w;
+    map_load(dest);
+    player.x = (s16)x;
+    player.y = (s16)y;
+    player.ox = (s8)(-DIR_DX[dir] * 16);
+    player.oy = 0;
+    player.moving = 1;
+    player.hop = 0;
+    player.facing = (u8)dir;
+    player.level = (u8)elev_level_at(x, y, -1, dir);
+    travel_map_entered(dest);
+    follower_reset();
+    seam_entering = 1;
+    field_on_enter();
+    seam_entering = 0;
+    music_map_changed(dest);
+    actor_step(&player, travel_speed(key_down(KEY_B) ? 2 : 1));
+}
 
 /* Walking off the edge of a map into a linked neighbour. */
 static int try_edge_link(int dir, int nx, int ny)
@@ -1383,6 +1651,14 @@ static int try_edge_link(int dir, int nx, int ny)
     case LINK_S: y = 0; x = nx + m->link_off[l]; break;
     case LINK_W: x = d->w - 1; y = ny + m->link_off[l]; break;
     default: x = 0; y = ny + m->link_off[l]; break;
+    }
+    if ((l == LINK_E || l == LINK_W) && seam.ready && seam.map == m->link[l] &&
+        seam_can_preview(m->link[l], l) &&
+        seam.origin == seam_origin_x + (l == LINK_E ? map_w : -d->w) &&
+        x >= 0 && x < d->w && y >= 0 && y < d->h &&
+        !travel_surfing() && cell_walkable(player.x, player.y)) {
+        seam_cross(m->link[l], x, y, dir);
+        return 1;
     }
     field_begin_warp(m->link[l], clampi(x, 0, d->w - 1), clampi(y, 0, d->h - 1), dir);
     if (edge_palette_compatible(cur_map, m->link[l])) field_warp_short();
@@ -1495,6 +1771,13 @@ static void elev_player_arrived(void)
 /* One frame of overworld control. */
 static int field_player_update(void)
 {
+    if (flag(FLAG_STARTER)) {
+        const MapDef *m = &MAPS[cur_map];
+        if (player.x >= map_w - 12 && m->link[LINK_E] != MAP_NONE)
+            seam_prepare(m->link[LINK_E], seam_origin_x + map_w, LINK_E);
+        else if (player.x < 12 && m->link[LINK_W] != MAP_NONE)
+            seam_prepare(m->link[LINK_W], seam_origin_x - MAPS[m->link[LINK_W]].w, LINK_W);
+    }
     if (travel_update()) return 0;
     if (player.moving) {
         int speed = travel_speed(player.hop ? 2 : key_down(KEY_B) ? 2 : 1);
