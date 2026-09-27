@@ -163,6 +163,59 @@ static void check_order(int act)
     else printf("ok: act %d excludes all later critical-path maps\n", act);
 }
 
+/* These local checks complement the world-order flood: they require actual
+ * collision changes at each gate rather than an inferred story prerequisite. */
+static void check_gate_cells(void)
+{
+    map_load(MAP_WOOD);
+    CHECK(!flood_open(43, 17, FLOOD_WALK) && !flood_open(43, 18, FLOOD_WALK),
+          "G1 road wardens close both Bramblewood exits before the calm");
+    map_load(MAP_LAKE);
+    CHECK(!flood_open(0, 31, FLOOD_WALK) && !flood_open(0, 32, FLOOD_WALK),
+          "G1 road wardens close both Lake exits before the calm");
+    flag_set(FLAG_STORM_CALMED);
+    map_load(MAP_WOOD);
+    CHECK(flood_open(43, 17, FLOOD_WALK) && flood_open(43, 18, FLOOD_WALK),
+          "G1 releases the east road after the calm");
+    map_load(MAP_LAKE);
+    CHECK(flood_open(0, 31, FLOOD_WALK) && flood_open(0, 32, FLOOD_WALK),
+          "G1 releases the west road after the calm");
+    flag_clear(FLAG_STORM_CALMED);
+
+    map_load(MAP_HERON_FEN);
+    CHECK((cell_attr(29, 19) & (A_WATER | A_DEEP)) == (A_WATER | A_DEEP),
+          "G2 missing planks are deep water before rivets");
+    flag_set(FLAG_FEN_RIVETS);
+    map_load(MAP_HERON_FEN);
+    CHECK(flood_open(29, 19, FLOOD_WALK), "G2 boardwalk opens with rivets");
+    flag_clear(FLAG_FEN_RIVETS);
+
+    map_load(MAP_CINDER_CROSSING);
+    CHECK((cell_attr(7, 20) & A_WATER) && !flood_open(7, 20, FLOOD_WALK),
+          "G3 washed-out bridge needs SURF before repair");
+    flag_set(FLAG_PROJECT_CINDER_BRIDGE);
+    map_load(MAP_CINDER_CROSSING);
+    CHECK(flood_open(7, 20, FLOOD_WALK), "G3 rebuilt bridge is walkable without SURF");
+    flag_clear(FLAG_PROJECT_CINDER_BRIDGE);
+
+    map_load(MAP_FOOTHILLS);
+    CHECK(!flood_open(11, 56, FLOOD_WALK) && !flood_open(12, 56, FLOOD_WALK),
+          "G4 Strength rocks seal both foothill entrance cells");
+    map_load(MAP_ACCORD_GATE);
+    CHECK(!flood_open(6, 6, FLOOD_WALK), "G5 Audra blocks the checkpoint without Rime");
+    flag_set(FLAG_RIME_CREST);
+    map_load(MAP_ACCORD_GATE);
+    CHECK(flood_open(6, 6, FLOOD_WALK), "G5 checkpoint opens and leaves the return lane clear");
+    flag_clear(FLAG_RIME_CREST);
+
+    map_load(MAP_MISTFEN);
+    CHECK(!flood_open(24, 52, FLOOD_WALK), "G6 fog seals the north road without Lantern");
+    flag_set(FLAG_LANTERN_CREST);
+    map_load(MAP_MISTFEN);
+    CHECK(flood_open(24, 52, FLOOD_WALK), "G6 Ward Lantern parts the fog");
+    flag_clear(FLAG_LANTERN_CREST);
+}
+
 static void check_levels(void)
 {
     int bad = 0;
@@ -187,6 +240,7 @@ int main(void)
     fresh_game();
     flag_set(FLAG_STARTER);
     flag_set(FLAG_STORM_TOLD); /* story introduction is prerequisite to answering DRAKORA */
+    check_gate_cells();
     int party_level = 8;
     for (int act = 1; act <= 7; act++) {
         solve();
