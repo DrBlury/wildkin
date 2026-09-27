@@ -131,6 +131,17 @@ static void test_maps(void)
     CHECK(stamps_ok && decor_ok, "stamps and decor fit their maps (and exist in the map's tileset)");
     CHECK(budget_ok, "each map's tileset plus its decor fits the scene tiles");
 
+    /* Inspect the completed topology here; progression tests exercise each gate closed. */
+    flag_set(FLAG_STORM_CALMED);
+    flag_set(FLAG_VOLT_CREST);
+    flag_set(FLAG_FEN_RIVETS);
+    flag_set(FLAG_TIDE_CREST);
+    flag_set(FLAG_CREST_ANVIL);
+    flag_set(FLAG_RIME_CREST);
+    flag_set(FLAG_LANTERN_CREST);
+    flag_set(FLAG_OSSUREX_ANSWERED);
+    flag_set(FLAG_MINE_LIGHT_CACHE);
+
     /* links are two-way and land on walkable cells */
     int links_ok = 1;
     static const u8 BACK[4] = { LINK_S, LINK_N, LINK_E, LINK_W };
@@ -184,15 +195,6 @@ static void test_maps(void)
     }
     CHECK(doors_ok, "every door warp sits on a building's door cell");
 
-    /* Test the completed world topology; gate-closed states are checked by progression tests. */
-    flag_set(FLAG_STORM_CALMED);
-    flag_set(FLAG_FEN_RIVETS);
-    flag_set(FLAG_TIDE_CREST);
-    flag_set(FLAG_CREST_ANVIL);
-    flag_set(FLAG_RIME_CREST);
-    flag_set(FLAG_LANTERN_CREST);
-    flag_set(FLAG_OSSUREX_ANSWERED);
-    flag_set(FLAG_MINE_LIGHT_CACHE);
     int reach_ok = 1;
     for (int m = 0; m < MAP_COUNT; m++) {
         map_load(m);
