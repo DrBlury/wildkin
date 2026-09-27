@@ -1,0 +1,5 @@
+{ MAP_SCORCHWASTE_1, 23, 5, "GLASS DUNES: Obsidian lanes and cooling crust. DUSKMERE lies beyond the ash." },
+{ MAP_SCORCHWASTE_2, 21, 34, "ASH FLATS: The Accord watches the cave. Bring the Lantern crest." },
+{ MAP_AURORA_RIDGE_1, 5, 17, "STAR CAIRN: Look for the northern lights after dusk." },
+{ MAP_AURORA_RIDGE_2, 46, 17, "FROZEN FALL: Lantern and Dream crests reveal the cave beyond." },
+{ MAP_GREYWATER_FJORD, 12, 20, "GREYWATER: Sail south to Port Brine. The north cave needs STRENGTH." },

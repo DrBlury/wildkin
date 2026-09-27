@@ -12,4 +12,5 @@
 #include "elev/satchels.inc"
 #include "ui/satchels.inc"
 #include "story/satchels.inc"
+#include "links/satchels.inc"
 #include "debug/satchels.inc"

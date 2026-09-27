@@ -12,4 +12,5 @@
 #include "elev/lore_ids.inc"
 #include "ui/lore_ids.inc"
 #include "story/lore_ids.inc"
+#include "links/lore_ids.inc"
 #include "debug/lore_ids.inc"

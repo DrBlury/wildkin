@@ -11,4 +11,6 @@
 #include "travel/quests.inc"
 #include "elev/quests.inc"
 #include "ui/quests.inc"
+#include "story/quests.inc"
+#include "links/quests.inc"
 #include "debug/quests.inc"

@@ -11,4 +11,6 @@
 #include "travel/lsrc_ids.inc"
 #include "elev/lsrc_ids.inc"
 #include "ui/lsrc_ids.inc"
+#include "story/lsrc_ids.inc"
+#include "links/lsrc_ids.inc"
 #include "debug/lsrc_ids.inc"

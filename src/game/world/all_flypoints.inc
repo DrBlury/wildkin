@@ -11,4 +11,6 @@
 #include "travel/flypoints.inc"
 #include "elev/flypoints.inc"
 #include "ui/flypoints.inc"
+#include "story/flypoints.inc"
+#include "links/flypoints.inc"
 #include "debug/flypoints.inc"

@@ -12,4 +12,5 @@
 #include "elev/flag_ids.inc"
 #include "ui/flag_ids.inc"
 #include "story/flag_ids.inc"
+#include "links/flag_ids.inc"
 #include "debug/flag_ids.inc"

@@ -11,4 +11,6 @@
 #include "travel/zone_ids.inc"
 #include "elev/zone_ids.inc"
 #include "ui/zone_ids.inc"
+#include "story/zone_ids.inc"
+#include "links/zone_ids.inc"
 #include "debug/zone_ids.inc"

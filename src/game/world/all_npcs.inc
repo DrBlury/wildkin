@@ -12,4 +12,5 @@
 #include "elev/npcs.inc"
 #include "ui/npcs.inc"
 #include "story/npcs.inc"
+#include "links/npcs.inc"
 #include "debug/npcs.inc"

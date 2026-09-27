@@ -12,4 +12,5 @@
 #include "elev/trainer_ids.inc"
 #include "ui/trainer_ids.inc"
 #include "story/trainer_ids.inc"
+#include "links/trainer_ids.inc"
 #include "debug/trainer_ids.inc"

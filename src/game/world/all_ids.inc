@@ -12,4 +12,5 @@
 #include "elev/ids.inc"
 #include "ui/ids.inc"
 #include "story/ids.inc"
+#include "links/ids.inc"
 #include "debug/ids.inc"

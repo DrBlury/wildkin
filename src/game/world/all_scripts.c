@@ -12,4 +12,5 @@
 #include "elev/scripts.c"
 #include "ui/scripts.c"
 #include "story/scripts.c"
+#include "links/scripts.c"
 #include "debug/scripts.c"

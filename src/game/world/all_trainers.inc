@@ -12,4 +12,5 @@
 #include "elev/trainers.inc"
 #include "ui/trainers.inc"
 #include "story/trainers.inc"
+#include "links/trainers.inc"
 #include "debug/trainers.inc"
