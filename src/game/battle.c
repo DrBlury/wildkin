@@ -35,7 +35,7 @@
  * speed (battle_ui.c / anim.c).
  */
 
-enum { SIDE_ALLY, SIDE_ENEMY };
+enum { SIDE_ALLY, SIDE_ENEMY, SIDE_ALLY_2, SIDE_ENEMY_2, BATTLE_ACTORS };
 enum { BK_WILD, BK_TRAINER };
 enum { BR_NONE, BR_WIN, BR_LOSE, BR_RUN, BR_CAUGHT };
 
@@ -72,6 +72,8 @@ enum {
     BCUE_WIN, BCUE_MASTER_WIN, BCUE_CAUGHT, BCUE_LOSE, BCUE_RUN, BCUE_END,
 };
 static void (*battle_music_hook)(int cue);
+
+static void battle_set_title(const char *name, int master); /* battle_ui.c */
 
 static void battle_cue(int cue)
 {
@@ -143,22 +145,25 @@ enum {
 #define HITF_LAST   0x2000
 #define HITF_NODMG  0x4000
 
-#define BEV_MAX 96
+#define BEV_MAX 192
 #define BEV_TEXT 96
 
 typedef struct {
-    u8 type, side;
+    u8 type, side, target;  /* actor IDs 0/2 ally, 1/3 foe; target belongs to EV_ANIM */
     s16 a, b;
     char text[BEV_TEXT];
 } BEvent;
 
 static struct {
     int kind;
-    Monster team[TEAM_MAX];
-    int team_count, team_idx;
-    int ally;                 /* party slot in battle */
-    s8 stages[2][STAT_COUNT];
-    u8 flinch[2];
+    Monster team[TEAM_MAX], team2[TEAM_MAX];
+    int team_count, team_idx, team_count2, team_idx2;
+    int ally, ally2;           /* party positions, not save IDs */
+    int pair, target;          /* pair mode and current move target actor */
+    u8 foe_paid[2];           /* each faint awards XP exactly once */
+    u8 participants_by_foe[2]; /* party-slot masks for each active foe */
+    s8 stages[BATTLE_ACTORS][STAT_COUNT];
+    u8 flinch[BATTLE_ACTORS];
     u8 participants;          /* party slots that fought the current foe */
     u8 fought;                /* party slots that took part in this bout */
     u8 no_run;                /* story bouts: running is refused */
@@ -176,7 +181,9 @@ static struct {
     int cursor, move_cursor, bag_cursor, bag_scroll;
     int escape_tries;
     int result;
-    int prize;
+    int prize, prize2;
+    char foe_title2[24];
+    const char *lose_line2;
     int timer;
 
     BEvent ev[BEV_MAX];
@@ -198,7 +205,7 @@ static struct {
         int fade;                    /* dozing: 0..16 */
         int caught;                  /* wild foe's species is befriended */
         u16 pal[16];                 /* sprite palette (lustre applied) */
-    } disp[2];
+    } disp[BATTLE_ACTORS];
     u32 disp_xp;
     int hud_dirty;
     int ui_dirty;
@@ -209,7 +216,17 @@ static struct {
 
 static Monster *side_mon(int side)
 {
-    return side == SIDE_ALLY ? &party[battle.ally] : &battle.team[battle.team_idx];
+    switch (side) {
+    case SIDE_ALLY: return &party[battle.ally];
+    case SIDE_ALLY_2: return &party[battle.ally2];
+    case SIDE_ENEMY_2: return &battle.team2[battle.team_idx2];
+    default: return &battle.team[battle.team_idx];
+    }
+}
+
+static int battle_target(int actor)
+{
+    return battle.pair ? battle.target : !actor;
 }
 
 /* ---------------- event queue ---------------- */
@@ -220,6 +237,7 @@ static BEvent *bev_push(int type, int side, int a, int b)
     BEvent *e = &battle.ev[battle.ev_count++];
     e->type = (u8)type;
     e->side = (u8)side;
+    e->target = (u8)((type == EV_ANIM) ? battle_target(side) : side);
     e->a = (s16)a;
     e->b = (s16)b;
     e->text[0] = 0;
@@ -237,6 +255,7 @@ static BEvent *bev_insert_next(int type, int side, int a, int b, int offset)
     BEvent *e = &battle.ev[at];
     e->type = (u8)type;
     e->side = (u8)side;
+    e->target = (u8)((type == EV_ANIM) ? battle_target(side) : side);
     e->a = (s16)a;
     e->b = (s16)b;
     e->text[0] = 0;
@@ -263,7 +282,7 @@ static void bsay_wait(const char *s)
 static void side_name(char *dst, int side)
 {
     dst[0] = 0;
-    if (side == SIDE_ENEMY) str_copy(dst, battle.kind == BK_WILD ? "Wild " : "Foe ");
+    if (side & 1) str_copy(dst, battle.kind == BK_WILD ? "Wild " : "Foe ");
     str_put(dst, kin_name(side_mon(side)));
 }
 
@@ -387,7 +406,7 @@ static void bond_add(Monster *m, int d)
 
 static int bond_high(int side)
 {
-    return side == SIDE_ALLY && side_mon(side)->bond >= 200;
+    return !(side & 1) && side_mon(side)->bond >= 200;
 }
 
 static void check_faint(int side)
@@ -399,7 +418,7 @@ static void check_faint(int side)
     side_name(msg, side);
     str_put(msg, " dozed off!");
     bsay_wait(msg);
-    if (side == SIDE_ALLY) bond_add(m, -3);
+    if (!(side & 1)) bond_add(m, -3);
 }
 
 /* Can the battler act this turn? Queues the reason if not. */
@@ -438,7 +457,7 @@ static int can_act(int side)
 
 static void apply_secondary(int side, const Move *mv)
 {
-    int foe = !side;
+    int foe = battle_target(side);
     Monster *def = side_mon(foe);
     if (mv->effect == EF_NONE || mv->effect == EF_HIGHCRIT || mv->effect == EF_TWICE ||
         mv->effect == EF_DRAIN || mv->effect == EF_RECOIL || mv->effect == EF_PUNISH ||
@@ -502,7 +521,7 @@ static int move_targets_foe(const Move *mv)
 /* Handles absorbing and floating traits; returns 1 if the move was stopped. */
 static int trait_blocks_move(int side, int move)
 {
-    int foe = !side;
+    int foe = battle_target(side);
     Monster *def = side_mon(foe);
     if (move == M_LAST_GASP) return 0;
     if (trait_absorbs(def, move)) {
@@ -525,7 +544,7 @@ static int trait_blocks_move(int side, int move)
 /* STATIC FUR / EMBERSKIN / SPORESKIN: physical attackers may catch it. */
 static void contact_traits(int side, const Move *mv)
 {
-    int foe = !side;
+    int foe = battle_target(side);
     Monster *att = side_mon(side), *def = side_mon(foe);
     if (mv->cat != CAT_PHYS || att->hp == 0 || att->status != STATUS_NONE) return;
     int st = def->trait == TR_STATIC_FUR ? STATUS_NUMB : def->trait == TR_EMBERSKIN ? STATUS_BRN :
@@ -537,7 +556,7 @@ static void contact_traits(int side, const Move *mv)
 
 static void use_status_move(int side, int move)
 {
-    int foe = !side;
+    int foe = battle_target(side);
     Monster *att = side_mon(side), *def = side_mon(foe);
     const Move *mv = &MOVES[move];
     if (move_targets_foe(mv) && trait_blocks_move(side, move)) return;
@@ -561,7 +580,7 @@ static void use_status_move(int side, int move)
         for (int s = 0; s < STAT_COUNT; s++)
             if (mv->param & SM(s)) change_stat(foe, s, mv->stages);
     } else if (mv->effect == EF_SELF_STAT) {
-        bev_push(EV_ANIM, side, move, HITF_NODMG | HITF_LAST);
+        bev_push(EV_ANIM, side, move, HITF_NODMG | HITF_LAST)->target = (u8)side;
         for (int s = 0; s < STAT_COUNT; s++)
             if (mv->param & SM(s)) change_stat(side, s, mv->stages);
     } else if (mv->effect == EF_HEAL) {
@@ -569,7 +588,7 @@ static void use_status_move(int side, int move)
             bsay("But its HP is already full!");
             return;
         }
-        bev_push(EV_ANIM, side, move, HITF_NODMG | HITF_LAST);
+        bev_push(EV_ANIM, side, move, HITF_NODMG | HITF_LAST)->target = (u8)side;
         heal_side(side, att->max_hp / 2 > 0 ? att->max_hp / 2 : 1);
         bsay_side(side, " recovered its vigor!");
     }
@@ -577,7 +596,7 @@ static void use_status_move(int side, int move)
 
 static void use_move(int side, int move)
 {
-    int foe = !side;
+    int foe = battle_target(side);
     Monster *att = side_mon(side), *def = side_mon(foe);
     const Move *mv = &MOVES[move];
     char msg[BEV_TEXT], name[32];
@@ -733,7 +752,8 @@ static int ai_score(const Monster *self, const s8 *st_self, const Monster *foe, 
 
 static int ai_move_score(int side, int move)
 {
-    return ai_score(side_mon(side), battle.stages[side], side_mon(!side), battle.stages[!side], move);
+    int foe = battle_target(side);
+    return ai_score(side_mon(side), battle.stages[side], side_mon(foe), battle.stages[foe], move);
 }
 
 /* The best attack score `a` has against `d` (fresh stages). */
@@ -833,9 +853,10 @@ static void resolve_move_slot(int side, int slot)
 /* GLOWER: when a kin enters, its glare lowers the foe's ATTACK. */
 static void entry_traits(int side)
 {
-    if (!has_trait(side, TR_GLOWER) || side_mon(side)->hp == 0 || side_mon(!side)->hp == 0) return;
+    int foe = battle_target(side);
+    if (!has_trait(side, TR_GLOWER) || side_mon(side)->hp == 0 || side_mon(foe)->hp == 0) return;
     trait_say(side, "glared at its foe!");
-    change_stat(!side, STAT_ATK, -1);
+    change_stat(foe, STAT_ATK, -1);
 }
 
 /* A meal buff (craft.c) gives every kin you send out extra starting stages. */
@@ -859,9 +880,11 @@ static void enemy_send_out(int idx)
 {
     char msg[BEV_TEXT];
     battle.team_idx = idx;
+    battle.foe_paid[0] = 0;
     for (int s = 0; s < STAT_COUNT; s++) battle.stages[SIDE_ENEMY][s] = 0;
     battle.flinch[SIDE_ENEMY] = 0;
     battle.participants = (u8)(1u << battle.ally);
+    battle.participants_by_foe[0] = battle.participants;
     battle.foe_entered = (u8)battle.turn;
     str_copy(msg, battle.foe_title);
     str_put(msg, " sent out ");
@@ -889,7 +912,7 @@ static void enemy_switch_to(int idx)
 static void end_of_turn(void)
 {
     battle.turn++;
-    for (int side = 0; side < 2; side++) {
+    for (int side = 0; side < (battle.pair ? BATTLE_ACTORS : 2); side++) {
         Monster *m = side_mon(side);
         battle.flinch[side] = 0;
         if (m->hp == 0) continue;
@@ -943,7 +966,7 @@ static void queue_ally_fainted(void);
 static void finish_turn(void)
 {
     Monster *foe = side_mon(SIDE_ENEMY), *me = side_mon(SIDE_ALLY);
-    if (battle.result != BR_NONE) return;
+    if (battle.result != BR_NONE || battle.pair) return;
     if (foe->hp == 0) {
         queue_enemy_fainted();
         /* both dozed off at once (recoil): your next kin, too */
@@ -962,14 +985,39 @@ static int move_priority(int side, int slot)
     return MOVES[side_mon(side)->moves[slot]].priority;
 }
 
-static int ally_goes_first(int ally_slot, int enemy_slot)
+/* Actor IDs reserve 0/2 for ally positions and 1/3 for opposing positions.
+ * A choice names its actor, not just its team. */
+typedef struct {
+    int actor, priority, speed, tie;
+} BattleTurnChoice;
+
+static void battle_order_choices(BattleTurnChoice *choices, int count)
 {
-    int pa = move_priority(SIDE_ALLY, ally_slot), pe = move_priority(SIDE_ENEMY, enemy_slot);
-    if (pa != pe) return pa > pe;
-    int sa = battle_stat(side_mon(SIDE_ALLY), battle.stages[SIDE_ALLY], STAT_SPE);
-    int se = battle_stat(side_mon(SIDE_ENEMY), battle.stages[SIDE_ENEMY], STAT_SPE);
-    if (sa != se) return sa > se;
-    return (int)rng_range(2);
+    for (int i = 1; i < count; i++) {
+        BattleTurnChoice choice = choices[i];
+        int j = i;
+        while (j > 0 && (choices[j - 1].priority < choice.priority ||
+               (choices[j - 1].priority == choice.priority && choices[j - 1].speed < choice.speed) ||
+               (choices[j - 1].priority == choice.priority && choices[j - 1].speed == choice.speed &&
+                choices[j - 1].tie < choice.tie))) {
+            choices[j] = choices[j - 1];
+            j--;
+        }
+        choices[j] = choice;
+    }
+}
+
+/* A chosen target that dozed off before its attack is redirected only to
+ * the other live opponent, never to a teammate or a fainted position. */
+static int battle_live_target(int actor, int preferred, unsigned live)
+{
+    if (actor < 0 || actor > 3) return -1;
+    unsigned opponents = actor & 1 ? 0x5u : 0xAu;
+    live &= opponents;
+    if (preferred >= 0 && preferred < 4 && (live & (1u << preferred))) return preferred;
+    for (int target = 0; target < 4; target++)
+        if (live & (1u << target)) return target;
+    return -1;
 }
 
 /* The foe acts after the player used an item, switched or failed to run. */
@@ -995,9 +1043,17 @@ static void battle_take_turn(int ally_slot)
         return;
     }
     int enemy_slot = ai_choose_move(SIDE_ENEMY);
-    int first = ally_goes_first(ally_slot, enemy_slot) ? SIDE_ALLY : SIDE_ENEMY;
+    BattleTurnChoice choices[2] = {
+        { SIDE_ALLY, move_priority(SIDE_ALLY, ally_slot),
+          battle_stat(side_mon(SIDE_ALLY), battle.stages[SIDE_ALLY], STAT_SPE), 0 },
+        { SIDE_ENEMY, move_priority(SIDE_ENEMY, enemy_slot),
+          battle_stat(side_mon(SIDE_ENEMY), battle.stages[SIDE_ENEMY], STAT_SPE), 0 },
+    };
+    if (choices[0].priority == choices[1].priority && choices[0].speed == choices[1].speed)
+        choices[0].tie = rng_range(2) ? 1 : -1;
+    battle_order_choices(choices, 2);
     for (int k = 0; k < 2; k++) {
-        int side = k == 0 ? first : !first;
+        int side = choices[k].actor;
         if (side_mon(side)->hp == 0 || side_mon(!side)->hp == 0) break;
         if (!can_act(side)) continue;
         resolve_move_slot(side, side == SIDE_ALLY ? ally_slot : enemy_slot);
@@ -1132,6 +1188,309 @@ static void queue_ally_fainted(void)
         return;
     }
     battle.return_state = BST_FORCED;
+}
+
+/* Four-active pair rules. Presentation owns the choice UI and calls this
+ * only after both player actions are selected. No pair is started by the
+ * single-bout entry points. */
+typedef struct {
+    int kind;           /* ACT_MOVE, ACT_SWITCH or ACT_ITEM */
+    int slot;           /* move index, party index or item ID */
+    int target;         /* opposing actor ID for a move */
+    int item_target;    /* party index for an item */
+} BattlePairAction;
+
+static unsigned battle_pair_live(void)
+{
+    unsigned live = 0;
+    for (int actor = 0; actor < BATTLE_ACTORS; actor++)
+        if (side_mon(actor)->hp) live |= 1u << actor;
+    return live;
+}
+
+static void battle_pair_stage_meal(int actor)
+{
+    int boosted = 0;
+    for (int stat = 0; stat < STAT_COUNT; stat++) {
+        int bonus = clampi(meal_stat_stage(stat), -6, 6);
+        if (!bonus) continue;
+        battle.stages[actor][stat] = (s8)clampi(battle.stages[actor][stat] + bonus, -6, 6);
+        boosted = 1;
+    }
+    if (boosted) {
+        bev_push(EV_STAT, actor, 1, 0);
+        bsay_side(actor, " is fired up by your cooking!");
+    }
+}
+
+static void battle_pair_send_out(int actor, int idx);
+
+static int battle_pair_item_usable(int item, int target)
+{
+    if (item < 0 || item >= ITEM_COUNT || bag[item] <= 0 ||
+        target < 0 || target >= party_count) return 0;
+    const Item *it = &ITEMS[item];
+    Monster *m = &party[target];
+    if (it->kind == IK_XSTAT) return it->param < STAT_COUNT &&
+        battle.stages[target == battle.ally2 ? SIDE_ALLY_2 : SIDE_ALLY][it->param] < 6;
+    if (it->kind == IK_HEAL) return m->hp > 0 && m->hp < m->max_hp;
+    if (it->kind == IK_HEAL_CURE) return m->hp > 0 && (m->hp < m->max_hp || m->status);
+    if (it->kind == IK_FULL_HEAL) return m->hp > 0 && m->status;
+    if (it->kind == IK_WAKE || it->kind == IK_REVIVE) return m->hp == 0;
+    if (it->kind == IK_TEA || it->kind == IK_TEA_ALL) {
+        for (int i = 0; i < MAX_MOVES; i++)
+            if (m->moves[i] != MOVE_NONE && m->pp[i] < MOVES[m->moves[i]].pp) return 1;
+    }
+    return 0;  /* lanterns cannot catch a trainer's kin */
+}
+
+static void battle_pair_apply_item(int actor, int item, int target)
+{
+    if (!battle_pair_item_usable(item, target)) return;
+    const Item *it = &ITEMS[item];
+    Monster *m = &party[target];
+    int was_fainted = m->hp == 0;
+    bag[item]--;
+    char msg[BEV_TEXT];
+    str_copy(msg, "You used ");
+    str_put(msg, it->name);
+    str_put(msg, "!");
+    bsay(msg);
+    if (it->kind == IK_XSTAT) {
+        change_stat(actor, it->param, 2);
+        return;
+    }
+    int active = target == battle.ally ? SIDE_ALLY :
+                 target == battle.ally2 ? SIDE_ALLY_2 : -1;
+    if (it->kind == IK_HEAL || it->kind == IK_WAKE || it->kind == IK_REVIVE ||
+        it->kind == IK_HEAL_CURE) {
+        int amount = it->kind == IK_WAKE ? m->max_hp / 2 :
+                     it->kind == IK_REVIVE ? m->max_hp : it->param;
+        int cured = it->kind == IK_HEAL_CURE && m->status != STATUS_NONE;
+        m->hp = (u16)clampi(m->hp + (amount > 0 ? amount : 1), 0, m->max_hp);
+        if (it->kind != IK_HEAL) { m->status = STATUS_NONE; m->sleep_turns = 0; }
+        if (active >= 0) {
+            if (was_fainted) battle_pair_send_out(active, target);
+            else bev_push(EV_HP, active, m->hp, 0);
+            if (cured) bev_push(EV_STATUS, active, STATUS_NONE, 0);
+        }
+    } else if (it->kind == IK_FULL_HEAL) {
+        m->status = STATUS_NONE;
+        m->sleep_turns = 0;
+        if (active >= 0) bev_push(EV_STATUS, active, STATUS_NONE, 0);
+    } else {
+        for (int i = 0; i < MAX_MOVES; i++)
+            if (m->moves[i] != MOVE_NONE)
+                m->pp[i] = (u8)(it->kind == IK_TEA_ALL ? MOVES[m->moves[i]].pp :
+                                clampi(m->pp[i] + it->param, 0, MOVES[m->moves[i]].pp));
+    }
+    bev_push(EV_SFX, 0, SFX_SPARKLE, 0);
+    str_copy(msg, kin_name(m));
+    str_put(msg, " felt better!");
+    bsay(msg);
+}
+
+/* Called by battle_ui.c after battle_reset. A rejected pair leaves the
+ * single-bout fields untouched, so the caller can start the solo warden. */
+MAYBE_UNUSED static int battle_pair_setup(const TrainerTeam *first, const TrainerTeam *second)
+{
+    int spare = -1;
+    for (int i = 0; i < party_count; i++)
+        if (i != battle.ally && party[i].hp) { spare = i; break; }
+    if (spare < 0 || !first || !second || !first->count || !second->count) return 0;
+    battle.pair = 1;
+    battle.ally2 = spare;
+    battle.team_count = clampi(first->count, 1, TEAM_MAX);
+    battle.team_count2 = clampi(second->count, 1, TEAM_MAX);
+    battle.team_idx = battle.team_idx2 = 0;
+    for (int i = 0; i < battle.team_count; i++)
+        battle.team[i] = monster_make(first->species[i], first->level[i]);
+    for (int i = 0; i < battle.team_count2; i++)
+        battle.team2[i] = monster_make(second->species[i], second->level[i]);
+    battle.prize = first->prize;
+    battle.prize2 = second->prize;
+    battle.lose_line = first->lose_line;
+    battle.lose_line2 = second->lose_line;
+    battle_set_title(first->name ? first->name : "WARDEN", 0);
+    str_copy(battle.foe_title2, "WARDEN ");
+    if (second->name && str_len(second->name) + 7 < sizeof(battle.foe_title2))
+        str_put(battle.foe_title2, second->name);
+    battle.participants_by_foe[0] = battle.participants_by_foe[1] =
+        (u8)((1u << battle.ally) | (1u << battle.ally2));
+    battle.participants = battle.participants_by_foe[0];
+    battle.fought = battle.participants;
+    battle.foe_paid[0] = battle.foe_paid[1] = 0;
+    battle.target = SIDE_ENEMY;
+    return 1;
+}
+
+static int battle_pair_reserve(int actor)
+{
+    if (actor == SIDE_ALLY || actor == SIDE_ALLY_2) {
+        for (int i = 0; i < party_count; i++)
+            if (i != battle.ally && i != battle.ally2 && party[i].hp) return i;
+    } else {
+        Monster *team = actor == SIDE_ENEMY ? battle.team : battle.team2;
+        int count = actor == SIDE_ENEMY ? battle.team_count : battle.team_count2;
+        int current = actor == SIDE_ENEMY ? battle.team_idx : battle.team_idx2;
+        for (int i = 0; i < count; i++)
+            if (i != current && team[i].hp) return i;
+    }
+    return -1;
+}
+
+static void battle_pair_send_out(int actor, int idx)
+{
+    if (actor == SIDE_ALLY) battle.ally = idx;
+    else if (actor == SIDE_ALLY_2) battle.ally2 = idx;
+    else if (actor == SIDE_ENEMY) battle.team_idx = idx;
+    else battle.team_idx2 = idx;
+    for (int stat = 0; stat < STAT_COUNT; stat++) battle.stages[actor][stat] = 0;
+    battle.flinch[actor] = 0;
+    if (!(actor & 1)) {
+        battle.fought |= (u8)(1u << idx);
+        for (int i = 0; i < 2; i++)
+            if (side_mon(SIDE_ENEMY + i * 2)->hp)
+                battle.participants_by_foe[i] |= (u8)(1u << idx);
+    } else {
+        int foe = actor == SIDE_ENEMY ? 0 : 1;
+        battle.foe_paid[foe] = 0;
+        battle.participants_by_foe[foe] =
+            (u8)((side_mon(SIDE_ALLY)->hp ? 1u << battle.ally : 0) |
+                 (side_mon(SIDE_ALLY_2)->hp ? 1u << battle.ally2 : 0));
+    }
+    char msg[BEV_TEXT];
+    str_copy(msg, actor & 1 ? (actor == SIDE_ENEMY ? battle.foe_title : battle.foe_title2)
+                                  : "Out you come");
+    str_put(msg, actor & 1 ? " sent out " : ", ");
+    str_put(msg, kin_name(side_mon(actor)));
+    str_put(msg, "!");
+    bsay(msg);
+    bev_push(EV_SEND_OUT, actor, idx, 0);
+    if (!(actor & 1)) battle_pair_stage_meal(actor);
+    battle.target = battle_live_target(actor, actor & 1 ? SIDE_ALLY : SIDE_ENEMY, battle_pair_live());
+    if (battle.target >= 0) entry_traits(actor);
+}
+
+/* Replacements happen between turns. Each defeated kin pays XP once, even
+ * when recoil and residual damage defeat both opposing positions together. */
+static void battle_pair_finish_turn(void)
+{
+    if (battle.result != BR_NONE) return;
+    for (int i = 0; i < 2; i++) {
+        int actor = SIDE_ENEMY + i * 2;
+        if (side_mon(actor)->hp || battle.foe_paid[i]) continue;
+        battle.foe_paid[i] = 1;
+        battle.participants = battle.participants_by_foe[i];
+        award_xp(side_mon(actor));
+        int next = battle_pair_reserve(actor);
+        if (next >= 0) battle_pair_send_out(actor, next);
+    }
+    if (!side_mon(SIDE_ENEMY)->hp && !side_mon(SIDE_ENEMY_2)->hp) {
+        char msg[BEV_TEXT];
+        bev_push(EV_CUE, 0, BCUE_WIN, 0);
+        bsay_wait("You beat both wardens!");
+        if (battle.lose_line) bsay_wait(battle.lose_line);
+        if (battle.lose_line2) bsay_wait(battle.lose_line2);
+        int prizes[2] = { battle.prize, battle.prize2 };
+        for (int i = 0; i < 2; i++) {
+            str_copy(msg, "You got ");
+            str_put_int(msg, prizes[i]);
+            str_put(msg, "c for winning!");
+            bev_push(EV_MONEY, 0, prizes[i], 0);
+            bsay_wait(msg);
+        }
+        battle_finish(BR_WIN);
+        return;
+    }
+    for (int i = 0; i < 2; i++) {
+        int actor = i * 2;
+        if (side_mon(actor)->hp) continue;
+        int next = battle_pair_reserve(actor);
+        if (next >= 0) battle_pair_send_out(actor, next);
+    }
+    if (!side_mon(SIDE_ALLY)->hp && !side_mon(SIDE_ALLY_2)->hp) {
+        bsay_wait("You have no more kin that can go on!");
+        bsay_wait("You hurried back to the HEARTH HALL...");
+        battle_finish(BR_LOSE);
+    }
+}
+
+/* Return 0 for an invalid choice without spending PP or advancing time.
+ * The renderer must present two choices (an empty slot may be ACT_MOVE with
+ * slot -1); opponent choices are selected before the four-action sort. */
+MAYBE_UNUSED static int battle_take_double_turn(const BattlePairAction actions[2])
+{
+    if (!battle.pair || battle.result != BR_NONE || !actions) return 0;
+    int move[4] = { -1, -1, -1, -1 };
+    int target[4] = { actions[0].target, 0, actions[1].target, 0 };
+    for (int i = 0; i < 2; i++) {
+        int actor = i * 2;
+        const BattlePairAction *a = &actions[i];
+        if (!side_mon(actor)->hp) continue;
+        if (a->kind == ACT_SWITCH) {
+            if (a->slot < 0 || a->slot >= party_count || party[a->slot].hp == 0 ||
+                a->slot == battle.ally || a->slot == battle.ally2 ||
+                (actions[1 - i].kind == ACT_SWITCH && actions[1 - i].slot == a->slot)) return 0;
+        } else if (a->kind == ACT_ITEM) {
+            if (a->slot >= 0 && a->slot < ITEM_COUNT && ITEMS[a->slot].kind == IK_XSTAT &&
+                a->item_target != (actor == SIDE_ALLY ? battle.ally : battle.ally2)) return 0;
+            if (!battle_pair_item_usable(a->slot, a->item_target) ||
+                (side_mon((1 - i) * 2)->hp && actions[1 - i].kind == ACT_ITEM &&
+                 actions[1 - i].slot == a->slot && bag[a->slot] < 2)) return 0;
+        } else if (a->kind == ACT_MOVE) {
+            if (a->slot < -1 || a->slot >= MAX_MOVES ||
+                (a->slot >= 0 && (side_mon(actor)->moves[a->slot] == MOVE_NONE ||
+                                  !side_mon(actor)->pp[a->slot]))) return 0;
+            move[actor] = a->slot;
+        } else return 0;
+    }
+    BattleTurnChoice ordered[4];
+    int count = 0;
+    unsigned live = battle_pair_live();
+    for (int actor = 0; actor < BATTLE_ACTORS; actor++) {
+        if (!(live & (1u << actor))) continue;
+        if (actor & 1) {
+            battle.target = battle_live_target(actor,
+                actor == SIDE_ENEMY ? SIDE_ALLY : SIDE_ALLY_2, live);
+            move[actor] = ai_choose_move(actor);
+            target[actor] = battle.target;
+        }
+        int priority = !(actor & 1) && actions[actor / 2].kind == ACT_SWITCH ? 7 :
+                       !(actor & 1) && actions[actor / 2].kind == ACT_ITEM ? 6 :
+                       move_priority(actor, move[actor]);
+        ordered[count++] = (BattleTurnChoice){ actor, priority,
+            battle_stat(side_mon(actor), battle.stages[actor], STAT_SPE), (int)rng_range(32768) };
+    }
+    battle_order_choices(ordered, count);
+    for (int i = 0; i < count; i++) {
+        int actor = ordered[i].actor;
+        if (!side_mon(actor)->hp) continue;
+        int foe = battle_live_target(actor, target[actor], battle_pair_live());
+        if (foe < 0) continue;
+        battle.target = foe;
+        if (!(actor & 1) && actions[actor / 2].kind == ACT_SWITCH) {
+            bev_push(EV_WITHDRAW, actor, 0, 0);
+            battle_pair_send_out(actor, actions[actor / 2].slot);
+            continue;
+        }
+        if (!(actor & 1) && actions[actor / 2].kind == ACT_ITEM) {
+            battle_pair_apply_item(actor, actions[actor / 2].slot,
+                                   actions[actor / 2].item_target);
+            continue;
+        }
+        if (can_act(actor)) {
+            if (!(actor & 1)) {
+                battle.participants_by_foe[(foe - 1) / 2] |=
+                    (u8)(1u << (actor == SIDE_ALLY ? battle.ally : battle.ally2));
+            }
+            resolve_move_slot(actor, move[actor]);
+        }
+    }
+    end_of_turn();
+    battle_pair_finish_turn();
+    battle_play();
+    return 1;
 }
 
 /* ---------------- player actions ---------------- */
