@@ -11,9 +11,11 @@ Two maps show everything:
 - **TEST HEIGHTS** (`src/game/world/elev/data.h`, debug WARP menu): every
   feature on one small map.
 - **MAPLE VILLAGE** (`src/game/world/village/data.h`): a real town built
-  with it (terraces either side of a creek ravine, the road over the Maple
-  Run bridge and the lane under it, a ridge, a knoll, a raised plaza, a
-  sunken bout ring, dells, ledges and a hidden gap in a thicket).
+  with it (four levels: the road over the Maple Run bridge and the lane
+  under it in the creek ravine, a stepped wooded ridge and a knoll over
+  two-row faces, a raised plaza, a sunken bout ring, a terrace with a
+  jutting edge over the pond dell, a mill pond, a ledge yard and a hidden
+  gap in a thicket).
 
 | in front of the bridge | under it | on it |
 | --- | --- | --- |
@@ -275,7 +277,7 @@ mouth cell of a `TUNNEL`) or in a wall of rocks.
 6. `make test`: the reachability test floods every map level-aware (people,
    satchels, signs, doors, exits and grass must be reachable), the
    elevation lint checks stairs, ledges and bridges, and the tile budget
-   test checks tileset + decor ≤ 512 tiles. Grep the tests for your map's
+   test checks tileset + decor ≤ `SCENE_TILE_MAX` (768) tiles. Grep the tests for your map's
    coordinates (`tools/test_field.c`, `tools/tests/*.c`) and update them.
 7. In the ROM: `make shot` and a demo save
    (`build/make_demo_save OUT.sav MAP_ID X Y calm`, see
@@ -320,14 +322,31 @@ Colours: the art is drawn with the town colour names; `elevation.ROLES`
 maps them per tileset (rock ramp + outline + lip colours must share one
 palette bank, the four wood colours another). To tune a tileset's look,
 change its ROLES entry (or pass `elev={...}` to `finish_tileset`); run
-`make art` and commit the regenerated headers. Tile counts after the art:
-grim 497 of 500; coast 407 (the Current Hall and the Drowned Bell moved to
-their own 'tide' tileset, docs/handoff/towns_west.md) — a region needing
-more room can drop the elevation art (remove its ROLES entry) if it doesn't
-use heights, or split its interiors off like 'tide'.
+`python3 tools/gen_field_gfx.py` and commit the regenerated headers.
+
+A ROLES entry can also carry options (not colours):
+
+| option | what it does |
+| --- | --- |
+| `'deck': 'wood'` | the default plank bridge (colours `b_out wd_lt wd_base wd_dk`) |
+| `'deck': 'iron'` | riveted iron plates between girders (volcanic: Cindermoor's Iron Bridge) |
+| `'deck': 'stone'` | flagstones between parapets with a coping (city: pale sandstone; dream: moonstone; snow: frosted granite) |
+| `'deck_roles'` | maps the deck colour names `d_out d_hi d_lt d_base d_dk d_dkr` to six colours of **one** bank (iron and stone only) |
+| `'frost': True` | snow settles on the lit top edges of the cliff slabs (snow: the light, frost-capped granite of Frosthollow's valley) |
+
+The deck style is per tileset: every bridge on that tileset gets it (the
+engine has one `deck_h`/`deck_v` table per tileset; a per-bridge style
+would need a second table in `ElevArt` and a flag on `EF(BRIDGE_*)`).
+
+Tileset sizes with the art (limit 600 per tileset in gen_field_gfx): town
+322, wild 330, city 407, coast 415, snow 435, grim 476, volcanic 410,
+dream 395, farm 557. A region needing more room can drop the elevation
+art (remove its ROLES entry) if it doesn't use heights, or split its
+interiors off like 'tide'.
 
 **The real budget is per map**: the tileset plus every decor kind the map
-uses must fit the 512-tile scene charblock. `field_load_tileset()` silently
+uses must fit the scene tiles (`SCENE_TILE_MAX`, 768 since the farm
+seasons merge; it was 512). `field_load_tileset()` silently
 skips a kind that doesn't fit and it is then drawn from the tileset's own
-tiles (garbage). `decor_tiles_used > 512` never trips because of that skip;
+tiles (garbage). `decor_tiles_used > SCENE_TILE_MAX` never trips because of that skip;
 check `decor_base[kind]` for every kind instead (tools/tests/test_west.c).

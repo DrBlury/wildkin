@@ -25,9 +25,11 @@ A valley town under Whitecrown on four levels:
 | 0 | **The Hollow**, **Steam Hollow**, low town | a gorge right across the town: lane, skating rink (flat ground, snow buffer rows around it), the bathhouse and the steaming pool under the three-row east cliff; the frozen lake reaching the west and south-west edges, the Alder house, the pond, the south road. |
 | 1 / 3 | **South terrace**, **Stargazer's Knoll** | the terrace the bridge lands on; the knoll (3) with the stargazer's house and telescope, its cliff running off the south edge. |
 
-- **Over and under:** the Hollow Bridge (`BRIDGE_V 19-20, rows 23-29`) carries
-  the road over the Hollow; the Hollow lane runs under it, and it is the only
-  way to the bathhouse (from the lake basin in the west, or by the ledges).
+- **Over and under:** the Hollow Bridge (`BRIDGE_V 19-20, rows 23-25`, stone)
+  carries the road over the Hollow onto a spur of the south terrace
+  (18-21, rows 26-29); the Hollow lane runs under it on rows 24-25 (hidden
+  for two steps), and it is the only way from the lake basin in the west to
+  the bathhouse (besides the terrace stairs and the ledges).
 - **Stairs:** Crownside two-step staircase (19-20, 9-10); south road
   (19-20, 36); from the Hollow up onto the south terrace (26,30); side stairs
   climbing two levels onto the knoll (32-33, 33).
@@ -115,10 +117,9 @@ A stilt town on peat isles in the black mere, under the Hollowing's ash:
 
 ## Left / ideas
 
-- The player is hidden entirely under the Hollow Bridge (it is 7 rows long);
-  a wider, shorter crossing would show the hat, as under the Long Walk.
-- Snow faces are dark grey rock with a white lip; a lighter, frostier rock
-  (the snow `ROLES` entry in tools/elevation.py) would suit the valley.
+- Done (docs/handoff/elevation.md, "Town art pass"): the Hollow Bridge is 3
+  rows long over a narrowed Hollow; snow cliffs are light, frost-capped
+  granite; snow bridges are frosted stone.
 - Frosthollow's decor budget is full (510/512); a new decor kind needs one
   dropped. Grim has room again (Duskmere 509 with 13 kinds; the fields and
   Gravewood ~460).
