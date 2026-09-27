@@ -132,6 +132,11 @@ static void game_draw(void)
 
 static void game_init(void)
 {
+    events_new_day = events_new_day_impl;
+    events_weather_here = events_weather_here_impl;
+    events_wild_override = events_wild_override_impl;
+    events_map_entered = events_map_entered_impl;
+    npc_event_active = events_active;
     music_init();
     music_map_init();
     gfx_init_tables();

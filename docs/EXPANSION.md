@@ -617,11 +617,10 @@ Each Hall has a Master and 3-5 wardens. Beat the Master for a crest.
 ## 9. World map
 
 The long-route progression target, including the loops and one-way gate
-conditions, is [plan 01 §2–5](plans/01_progression_contract.md). The map
-below shows only the five new region corridors present in this branch; it
-is **not** a claim that the planned gates, shortcuts or events work yet.
+conditions, is [plan 01 §2–5](plans/01_progression_contract.md). The table lists the region corridors and loop routes now registered; it
+does not prove every planned gate, event reward or playthrough milestone.
 
-| Corridor | Added maps on this branch (in route order) |
+| Corridor | Registered maps (in route order) |
 | --- | --- |
 | East, Bramblewood → Copperline | Brookmill Trail → Brookmill |
 | West, Mirror Lake → Saltwind | Heron Fen → Reedwick |
@@ -629,9 +628,10 @@ is **not** a claim that the planned gates, shortcuts or events work yet.
 | North, Stormstone Rise → Frostpine | Stormstep Foothills → Timberline |
 | March, Copperline → Ashen Fields | Accord Checkpoint → Hollow Downs (including Waychapel) |
 | Dream, Lumen → Moonveil Path | Mistfen (including Pilgrim Rest) |
+| Loop shortcuts | Scorchwaste 1/2, Aurora Ridge 1/2, Greywater Fjord |
 
-The far-side joins, checkpoint and fog/bridge gates still need integration
-validation; the eventual loop routes are not present here. The existing
+The cave shortcuts have scripted crest checks and reciprocal guides;
+cell-level progression and return-to-Hearth proofs are still pending. The existing
 [world image](images/world.png) predates these routes and must be re-rendered
 after `WORLD_POS` and loops arrive. Do not use it as evidence of this graph.
 
@@ -656,9 +656,8 @@ Dreamspire); LIBRARY; ELDER (Elderwood Heart).
 
 **Edge contracts.** See [plan 01 §6](plans/01_progression_contract.md#6-new-maps-names-ids-sizes-owners)
 for the planned openings and the region handoffs for current map ownership.
-This branch has unmerged cross-region joins (including a reference to the
-unmerged Greywater loop), so the route graph and gate return paths must be
-checked again after integration. The older direct Copperline → Ashen and
+The Greywater, Scorchwaste and Aurora external edges are reciprocal;
+full gate return paths still need a cell-level solver. The older direct Copperline → Ashen and
 Lumen → Cinder Road/Moonveil edges are **not** the target graph.
 
 ---

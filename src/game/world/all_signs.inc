@@ -11,7 +11,6 @@
 #include "travel/signs.inc"
 #include "elev/signs.inc"
 #include "ui/signs.inc"
-#include "story/signs.inc"
 #include "links/signs.inc"
 #include "events/signs.inc"
 #include "saga/signs.inc"

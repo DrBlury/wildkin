@@ -85,6 +85,44 @@ static void test_gates(void)
           "no automatic cave warp bypasses the local crest checks");
 }
 
+static void test_integrated_joins(void)
+{
+    CHECK(MAPS[MAP_CINDERMOOR].link[LINK_S] == MAP_SCORCHWASTE_1 &&
+          MAPS[MAP_FROSTHOLLOW].link[LINK_E] == MAP_AURORA_RIDGE_1 &&
+          MAPS[MAP_PORT_BRINE].link[LINK_N] == MAP_GREYWATER_FJORD,
+          "external loop edges are reciprocal");
+    fresh_game();
+    map_load(MAP_CINDERMOOR);
+    int heat_closed = cell_attr(20, 37) & A_SOLID;
+    map_load(MAP_FROSTHOLLOW);
+    int ice_closed = cell_attr(42, 18) & A_SOLID;
+    flag_set(FLAG_LANTERN_CREST);
+    map_load(MAP_CINDERMOOR);
+    int heat_open = !(cell_attr(20, 37) & A_SOLID);
+    flag_set(FLAG_RIME_CREST);
+    map_load(MAP_FROSTHOLLOW);
+    int ice_open = !(cell_attr(42, 18) & A_SOLID);
+    CHECK(heat_closed && heat_open && ice_closed && ice_open,
+          "Cindermoor and Frosthollow approaches open only after their crests");
+    int back[3] = { 0 }, from[3] = { MAP_DUSKMERE, MAP_DREAMSPIRE, MAP_FROSTPINE };
+    int scr[3] = { SCR_LINKS_DUSK_RETURN, SCR_LINKS_DREAM_RETURN, SCR_LINKS_FROST_RETURN };
+    for (int i = 0; i < NPC_COUNT; i++)
+        for (int k = 0; k < 3; k++)
+            if (NPCS[i].map == from[k] && NPCS[i].script == scr[k]) back[k]++;
+    CHECK(back[0] == 1 && back[1] == 1 && back[2] == 1 &&
+          !has_warp(MAP_DUSKMERE, MAP_SCORCHWASTE_2) &&
+          !has_warp(MAP_DREAMSPIRE, MAP_AURORA_RIDGE_2) &&
+          !has_warp(MAP_FROSTPINE, MAP_GREYWATER_FJORD),
+          "every cave has one checked reverse guide and no ungated warp");
+    map_load(MAP_SCORCHWASTE_2);
+    int dusk_land = cell_walkable(4, 21);
+    map_load(MAP_AURORA_RIDGE_2);
+    int dream_land = cell_walkable(49, 19);
+    map_load(MAP_GREYWATER_FJORD);
+    CHECK(dusk_land && dream_land && cell_walkable(20, 7),
+          "reverse cave landings remain walkable");
+}
+
 static void test_content(void)
 {
     int count[5] = { 0 }, ice = 0, sea = 0, chest = 0;
@@ -119,6 +157,7 @@ int main(void)
     test_maps();
     test_internal_edges();
     test_gates();
+    test_integrated_joins();
     test_content();
     printf("%d links failures\n", failures);
     return failures != 0;

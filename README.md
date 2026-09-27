@@ -37,10 +37,10 @@ lairs.
 | | |
 | --- | --- |
 | **174 kin** | 18 types, 20 rares, 10 legends and 44 fusion kin woven at the Loom |
-| **The Vale and five regions** | outdoor routes, towns, caves, crypts, halls and lairs; additional corridor maps are in progress |
+| **The Vale and five regions** | outdoor routes, towns, caves, crypts, halls and lairs; new route corridors and loop maps are registered |
 | **6 Halls** | each with a puzzle, wardens and a six-kin Hall Master who awards a crest |
 | **Systems** | day and night, weather, farming, crafting minigames, energy and fusion, bikes, ferries and field abilities |
-| **161 Lorebook entries** | in 14 chapters, and **12 quests** in a quest log |
+| **Lorebook and quests** | regional lore, story, projects and field notes |
 
 <table>
 <tr>
@@ -149,22 +149,22 @@ mGBA lets you change any of these under *Settings → Controllers*.
 
 ### The Vale's routes (work in progress)
 
-This branch adds Brookmill Trail/Brookmill to the east, Heron Fen/Reedwick to
+This build adds Brookmill Trail/Brookmill to the east, Heron Fen/Reedwick to
 the west, Cinder Crossing/Railhead and Mistfen to the far routes, Stormstep
 Foothills/Timberline to the north, and Hollow Downs/Waychapel toward the
 March. Their target order and gates are in the
 [progression contract](docs/plans/01_progression_contract.md). The story
-blockers, cross-region quests, daily events and loop shortcuts are **not yet
-integrated**. The world image below is from the earlier map set, not a view
-of these new corridors. New route screenshots and clips must wait for a
-buildable integrated ROM; no new images are claimed here.
-
+blockers, cross-region quests, daily events, projects and loop shortcuts are
+integrated. Some planned event mechanics and route presentation
+remain incomplete; see [integration status](docs/HANDOFF.md). The world
+image below is from the earlier map set, not a view of these
+new corridors and loops; new route screenshots and clips are pending.
 
 The world is a web of regions around the Vale. Walk off an edge into the next
 area, take a door, sail on the ferry, or fly between towns once you hold the
 RIME crest.
 
-The new corridors on this branch are listed in
+The integrated corridors and loops are listed in
 [the world-area table](docs/WORLD.md#11-world-map). The complete *planned*
 map, with connections, gates and shortcuts, is in
 [the progression contract](docs/plans/01_progression_contract.md#2-the-new-world-graph).

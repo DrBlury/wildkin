@@ -430,10 +430,10 @@ Every kin is rolled when it is met:
 
 ## 11. World map
 
-This branch contains the five new region corridors. The ordered route,
-planned gates and loop-route diagram are in
-[the progression contract](plans/01_progression_contract.md); story blockers,
-loops and daily events are not integrated into this snapshot.
+The regional corridors, story blockers, loop maps, daily event data and saga
+projects are integrated. The planned route order and complete gate contract
+are in [the progression contract](plans/01_progression_contract.md); the
+current build has not passed a cell-level act progression playthrough.
 
 | Act | Areas present in this branch | Target wild levels (§5 of contract) |
 | --- | --- | --- |
@@ -445,6 +445,7 @@ loops and daily events are not integrated into this snapshot.
 | VI | Hollow Downs, Ashen Fields, Gravewood, Duskmere | 33–40 |
 | VII | Mistfen, Moonveil Path, Dreamspire, Dust Library | 37–43 |
 | VIII | Ossuary and Bone Throne | 44–50 |
+| Loops | Scorchwaste 1/2, Aurora Ridge 1/2, Greywater Fjord | 36–45 |
 
 These are **contract targets**, not a verified current zone-level scan; the
 shared E6 zone table and final story gate checks remain pending. The old

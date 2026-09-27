@@ -11,7 +11,6 @@
 #include "travel/lore.inc"
 #include "elev/lore.inc"
 #include "ui/lore.inc"
-#include "story/lore.inc"
 #include "links/lore.inc"
 #include "events/lore.inc"
 #include "saga/lore.inc"

@@ -5,6 +5,7 @@
 /* Compile the E3-facing authored placements as metadata on the E1/E2 base;
  * runtime visibility and physical gating require E3 and E6 integration. */
 typedef struct { int map, x, y, show, hide; } StoryPlacement;
+#undef PERSON_IF
 #undef PERSON
 #define PERSON(map, x, y, chr, face, beh, scr, lore, name, text) \
     { map, x, y, 0, 0 }

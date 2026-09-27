@@ -11,7 +11,6 @@
 #include "travel/data.h"
 #include "elev/data.h"
 #include "ui/data.h"
-#include "story/data.h"
 #include "links/data.h"
 #include "events/data.h"
 #include "saga/data.h"

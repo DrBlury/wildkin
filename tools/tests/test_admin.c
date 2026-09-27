@@ -483,17 +483,17 @@ static void test_save_round_trip(void)
     SaveData *d = (SaveData *)sram;
     CHECK(d->options[12] == 1, "(the switch is options byte 12)");
     d->options[12] = 0;
-    d->checksum_v6 = save_checksum(d);
+    d->checksum_v7 = save_checksum(d);
     SaveData *b = (SaveData *)(sram + SAVE_BACKUP_OFFSET);
     b->options[12] = 0;
-    b->checksum_v6 = save_checksum(b);
+    b->checksum_v7 = save_checksum(b);
     opt.admin = 1;
     CHECK(save_load_from(sram) == SAVE_VERSION && opt.admin == 0 && !start_menu_has(SM_ADMIN),
           "an older version-5 save loads with admin mode off");
 
     /* a stray value is clamped */
     d->options[12] = 7;
-    d->checksum_v6 = save_checksum(d);
+    d->checksum_v7 = save_checksum(d);
     CHECK(save_load_from(sram) == SAVE_VERSION && opt.admin == 1, "(a stray byte reads as on, never as 7)");
 
     /* a version-4 save (no admin byte at all) */

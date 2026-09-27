@@ -1,29 +1,23 @@
 # WILDKIN expansion: handoff
 
-> **Plan 12 QA slice (isolated region-map base):** The five region corridors
-> are present, but the story gates, loops, events and saga are pending.
-> `tools/test_game.c` now includes an act-level XP/coin diagnostic; it is not
-> a playthrough or a balance pass until the integrated build is compiled and
-> the reported Master deltas are reviewed. `tools/playthrough/README.md`
-> explains why the current shot harness cannot produce route timings.
-> A baseline `make test` is blocked by duplicate `FLAG_FEN_RIVETS`, missing
-> `DK_WATERWHEEL`/`DK_HERON_STATUE`, unresolved `MAP_GREYWATER_FJORD`, and
-> cascading `HERON_FEN_DECOR` parse error; generated save layout also needs a reviewed
-> golden update after integration. No v5 migration regression or human
-> playtest has been claimed. See the [plan 12 checklist](plans/12_balance_integration_qa.md)
-> and handoffs: [admin](handoff/admin.md) [battle](handoff/battle.md) [craft](handoff/craft.md) [east](handoff/east.md) [elevation](handoff/elevation.md) [engine_routes](handoff/engine_routes.md) [far](handoff/far.md) [farm](handoff/farm.md) [fusion](handoff/fusion.md) [grass](handoff/grass.md) [grim](handoff/grim.md) [kin_a](handoff/kin_a.md) [kin_b](handoff/kin_b.md) [kin_fusion_a](handoff/kin_fusion_a.md) [kin_fusion_b](handoff/kin_fusion_b.md) [kin_rare_legend](handoff/kin_rare_legend.md) [north](handoff/north.md) [puzzles](handoff/puzzles.md) [towns_east](handoff/towns_east.md) [towns_far](handoff/towns_far.md) [towns_north_grim](handoff/towns_north_grim.md) [towns_west](handoff/towns_west.md) [travel](handoff/travel.md) [ui](handoff/ui.md) [west](handoff/west.md).
-
-> **Disposable compile probe (not this branch's build):** after neutralizing only
-> the four compile blockers in a `/tmp` source copy, `tools/test_game.c` compiled
-> with zero warnings. Its normal-bout simulation gave mean-team arrival deltas
-> versus Master minimum of **+3, +5, +7, +10, +18, +21, +23** in Acts I–VII;
-> **all seven exceed the ±2 target**. The probe also had three unrelated
-> save/load failures from the stale generated save layout. The model counts
-> optional map wardens and every satchel and ignores survival, so these are
-> over-inclusive estimates, not verified critical-path levels. Gross coins
-> by Act III were **56,995c** versus the **500c** ferry target (all mapped
-> satchels sold, no purchases); this cannot establish real affordability.
-
+> **Wave 2–4 integration (2026-09-27):** Links `330a69d`, Events
+> `2f11c89`, Saga `50fd42e` and QA `c732942` are merged, after wave-one
+> Story. The route registration lists share the same saved-ID order, and
+> `tools/gen_save_layout.py --accept-growth` approved the combined manifest.
+> Reciprocal Scorchwaste/Aurora/Greywater edges and crest-checked cave guides
+> are wired. `make art`, the ROM build and 30 of 31 non-puzzle host suites pass;
+> the QA act diagnostic still fails all seven ±2 Master arrival assertions
+> (+3, +5, +7, +10, +18, +21, +23). It assumes all mapped wardens and
+> satchels, so these are **not** measured critical-path levels. The full
+> puzzle solver is separately owned and currently bounded; do not claim
+> soft-lock proof. Event daily rolls persist in the v7 event module; an
+> authenticated v6 fixture migrates and v5/v4 tests pass. Known remaining
+> acceptance gaps include the cell-level progression/return solver, event
+> rematch teams and festival rewards, visual project construction, loop-route
+> slide/double-bout mechanics, act playthrough timings and human playtests.
+> See [wave one](handoff/wave1_integration.md), [Links](handoff/links_routes.md),
+> [Events](handoff/events_routes.md), [Saga](handoff/saga_routes.md), and the
+> [QA contract](plans/12_balance_integration_qa.md).
 
 > **ADMIN mode (2026-09-27):** in the title's debug menu (SELECT+START), the
 > ADMIN MODE row adds an ADMIN entry to the START menu. It can add coins, give
@@ -39,9 +33,9 @@
 > UI canvas moved to 0x6000 (`UI_TILE_BASE`), screenblocks are 28-31. The map budget tests now
 > count decor kinds that do not fit (field.c used to drop them silently: PORT BRINE needed 598).
 
-> **Puzzles (2026-09-27):** `tools/tests/test_puzzles.c` now proves every
-> map solvable and soft-lock free with the real movement code; see
-> `docs/handoff/puzzles.md` for what it checks and the Hall fixes.
+> **Earlier puzzle checkpoint:** `tools/tests/test_puzzles.c` is the
+> real-movement solver; the current expanded map set is not yet green under
+> its bounded search. See the wave 2–4 status above and `docs/handoff/puzzles.md`.
 
 > **Update (2026-09-26, later):** every area is now implemented and merged
 > into `expansion`: the 16 first-round branches plus a second round of 11

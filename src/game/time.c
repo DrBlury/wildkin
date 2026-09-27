@@ -28,7 +28,7 @@ typedef struct {
 } TimeState;
 
 enum { WEATHER_CLEAR, WEATHER_RAIN, WEATHER_COUNT };
-enum { WX_CLEAR, WX_RAIN, WX_STORM, WX_FOG, WX_SNOW, WX_ASH, WX_HEAT, WX_AURORA };
+enum { WX_CLEAR, WX_RAIN, WX_STORM, WX_FOG, WX_SNOW, WX_ASH, WX_HEAT, WX_AURORA, WX_COUNT };
 static int (*events_weather_here)(int map);
 static void (*events_new_day)(void);
 static void (*daily_extra_hook)(void);

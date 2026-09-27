@@ -203,10 +203,10 @@ int main(void)
     CHECK((MAPS[MAP_REED_HEARTH].flags & MF_HEAL) != 0,
           "Reedwick has a separate Hearth interior");
     map_load(MAP_PORT_BRINE);
-    CHECK(MAPS[MAP_PORT_BRINE].link[LINK_N] == MAP_NONE &&
+    CHECK(MAPS[MAP_PORT_BRINE].link[LINK_N] == MAP_GREYWATER_FJORD &&
               (cell_attr(20, 0) & A_WATER) && (cell_attr(21, 0) & A_WATER) &&
               !open_cell(20, 0) && !open_cell(21, 0),
-          "Greywater Fjord mouth remains closed until the Links wave");
+          "Greywater Fjord mouth links after Links integration but still needs SURF");
     flood_ex(1, 12, FLOOD_SURF);
     CHECK(reached(20, 0) && reached(21, 0), "SURF can reach both fjord edge water cells");
 

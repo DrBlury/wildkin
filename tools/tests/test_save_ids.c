@@ -62,7 +62,26 @@ static void test_v5_load(void)
     fresh_game();
     CHECK(save_load_from(sram) == 5 && cur_map == MAP_LAKE && player.x == 30 &&
           flag(FLAG_LEAF_STONE) && party_count == 1,
-          "checksum-verified v5 prefix loads and migrates into v6");
+          "checksum-verified v5 prefix loads and migrates into v7");
+}
+
+static void test_v6_load(void)
+{
+    fresh_game();
+    give_starter();
+    flag_set(FLAG_LEAF_STONE);
+    field_enter_map(MAP_LAKE, 30, 17, DIR_LEFT);
+    save_capture(&sample);
+    sample.version = 6;
+    sample.size = (u8 *)&sample.events - (u8 *)&sample;
+    sample.mod_size[6] = 0;
+    sample.checksum_v6 = fnv_bytes(&sample, (u8 *)&sample.checksum_v6 - (u8 *)&sample);
+    memset(sram, 0xFF, sizeof(sram));
+    memcpy(sram, &sample, sample.size);
+    fresh_game();
+    CHECK(save_load_from(sram) == 6 && cur_map == MAP_LAKE && player.x == 30 &&
+          flag(FLAG_LEAF_STONE) && party_count == 1 && events.rolled_day == gtime.day,
+          "authenticated v6 save migrates while initializing today's events");
 }
 
 static void test_visits(void)
@@ -86,6 +105,7 @@ int main(void)
 {
     test_layout_growth();
     test_v5_load();
+    test_v6_load();
     test_visits();
     return failures ? 1 : 0;
 }

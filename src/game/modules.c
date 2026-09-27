@@ -10,6 +10,8 @@ static void modules_reset(void)
     fusion_reset();
     travel_reset();
     quest_reset();
+    EventState empty = { 0 };
+    events = empty;
 }
 
 static void modules_validate(void)

@@ -138,8 +138,13 @@ static const char *const CINDERMOOR_ROWS[] = {
     "ttt.........,,,,,,,,,,..........-q55555555555555", /* 35 */
     "TTTT.....TTT,,,,,,,,,,.....TTTT..1b5555555555555", /* 36 */
     "tttt.....ttt,,,,,,,,,,.....tttt...1b555555555555", /* 37 */
-    "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT.1b55555555555", /* 38 */
-    "tttttttttttttttttttttttttttttttttt..455555555555", /* 39 */
+    "TTTTTTTTTTTTTTTTTTTT==TTTTTTTTTTTTTTb55555555555", /* 38 */
+    "tttttttttttttttttttt==ttttttttttttTT455555555555", /* 39 */
+};
+
+static const char *const CINDERMOOR_HEAT_WALL[] = { "TT" };
+static const MapPatch CINDERMOOR_LINK_PATCHES[] = {
+    { .flag = FLAG_LANTERN_CREST, .invert = 1, .x = 20, .y = 37, .w = 2, .h = 1, .rows = CINDERMOOR_HEAT_WALL },
 };
 
 /* heights (0-3), stairs (^ v < >) and ledges (_): docs/ELEVATION.md */
