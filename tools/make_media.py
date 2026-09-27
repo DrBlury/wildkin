@@ -8,6 +8,10 @@ always shows the current game:
     python3 tools/make_media.py            # everything
     python3 tools/make_media.py routes     # labeled route renders (needs Pillow)
     python3 tools/make_media.py world      # stitched outdoor layout (needs Pillow)
+    python3 tools/make_media.py mill-wheel cinder-bridge heron-fog mistfen-fog
+
+Weather clips require visible ROM frame differences. The caravan command captures
+a dawn event diagnostic but refuses a GIF while arrival is only a stationary NPC pop-in.
 """
 
 import glob
@@ -24,11 +28,49 @@ ROM = os.path.join(ROOT, 'game.gba')
 sys.path.insert(0, os.path.join(ROOT, 'tools'))
 import make_gif  # noqa: E402
 
-MAP_IDS = {'TOWN': 0, 'HOME': 1, 'LAB': 3, 'REST': 5, 'MEADOW': 7, 'RISE': 8, 'WOOD': 9, 'LAKE': 10,
-           'LUMEN': 14, 'VOLT_HALL': 19, 'WORKS': 20, 'PORT_BRINE': 27, 'GULL_ISLE': 29, 'CURRENT_HALL': 32,
-           'DROWNED_BELL': 36, 'FROSTHOLLOW': 39, 'SKY_ISLE': 41, 'RIME_HALL': 44, 'STARFALL': 48,
-           'BROOKMILL': 27, 'DUSKMERE': 53, 'CRYPT': 57, 'BONE_THRONE': 60, 'CINDERMOOR': 63, 'DREAMSPIRE': 65,
-           'ANVIL_HALL': 69, 'CALDERA': 71, 'MIRROR_HALL': 74, 'LIBRARY': 75, 'WILLOW_ACRE': 76}
+# Resolve IDs from the same compiled MAPS table used by the save writer.
+# Explicit aliases are only for historical media names that differ from the map title.
+MAP_TITLES = {
+    'TOWN': 'MAPLE VILLAGE', 'HOME': 'YOUR HOUSE', 'LAB': 'ALMANAC HOUSE',
+    'REST': 'HEARTH HALL', 'MEADOW': 'WHISPER MEADOW', 'RISE': 'STORMSTONE RISE',
+    'WOOD': 'BRAMBLEWOOD', 'LAKE': 'MIRROR LAKE', 'LUMEN': 'LUMEN CITY',
+    'WORKS': 'RESONANCE WORKS', 'GULL_ISLE': 'GULL ISLE',
+    'CRYPT': 'LANTERN CRYPT', 'LIBRARY': 'DUST LIBRARY',
+    'STARFALL': 'STARFALL GROTTO', 'CALDERA': 'CALDERA HEART',
+}
+_map_ids = None
+
+
+def save_executable():
+    exe = os.path.join(ROOT, 'build', 'make_demo_save')
+    os.makedirs(WORK, exist_ok=True)
+    subprocess.check_call(['cc', '-std=c11', '-Wno-unused-function', '-o', exe,
+                           os.path.join(ROOT, 'tools', 'make_demo_save.c')])
+    return exe
+
+
+def map_ids(exe):
+    global _map_ids
+    if _map_ids is None:
+        entries = subprocess.check_output([exe, '--list-maps'], text=True)
+        ids = {}
+        for line in entries.splitlines():
+            number, title = line.split('\t', 1)
+            if title in ids:
+                raise ValueError('ambiguous compiled map title: ' + title)
+            ids[title] = int(number)
+        if 'BROOKMILL' not in ids or 'PORT BRINE' not in ids or ids['BROOKMILL'] == ids['PORT BRINE']:
+            raise ValueError('incomplete or colliding compiled map listing')
+        _map_ids = ids
+    return _map_ids
+
+
+def saved_map_id(name, exe):
+    title = MAP_TITLES.get(name, name.replace('_', ' '))
+    try:
+        return map_ids(exe)[title]
+    except KeyError as exc:
+        raise ValueError('map %s (%s) not present in compiled ROM source' % (name, title)) from exc
 
 
 class Script:
@@ -70,12 +112,9 @@ class Script:
 
 
 def demo_save(name, map_name, x, y, calm=False, low=False, extra=()):
-    exe = os.path.join(ROOT, 'build', 'make_demo_save')
-    if True:  # always rebuild: it includes the whole game
-        subprocess.check_call(['cc', '-std=c11', '-Wno-unused-function', '-o', exe,
-                               os.path.join(ROOT, 'tools', 'make_demo_save.c')])
+    exe = save_executable() if _map_ids is None else os.path.join(ROOT, 'build', 'make_demo_save')
     path = os.path.join(WORK, name + '.sav')
-    args = [exe, path, str(MAP_IDS[map_name]), str(x), str(y)] + (['calm'] if calm else []) + (['low'] if low else []) + list(extra)
+    args = [exe, path, str(saved_map_id(map_name, exe)), str(x), str(y)] + (['calm'] if calm else []) + (['low'] if low else []) + list(extra)
     subprocess.check_call(args, stdout=subprocess.DEVNULL)
     return path
 
@@ -214,9 +253,12 @@ def render_world():
 
 
 ROUTE_STILLS = (
-    ('brookmill-trail', 26), ('brookmill', 27), ('heron-fen', 44), ('reedwick', 45),
-    ('stormstep-foothills', 63), ('timberline', 64), ('hollow-downs', 80),
-    ('waychapel', 81), ('cinder-crossing', 98), ('railhead', 99), ('mistfen', 103),
+    ('brookmill-trail', 'BROOKMILL TRAIL'), ('brookmill', 'BROOKMILL'),
+    ('heron-fen', 'HERON FEN'), ('reedwick', 'REEDWICK'),
+    ('stormstep-foothills', 'STORMSTEP FOOTHILLS'), ('timberline', 'TIMBERLINE'),
+    ('hollow-downs', 'HOLLOW DOWNS'), ('waychapel', 'WAYCHAPEL'),
+    ('cinder-crossing', 'CINDER CROSSING'), ('railhead', 'RAILHEAD'),
+    ('mistfen', 'MISTFEN'),
 )
 
 
@@ -254,7 +296,9 @@ def clip_routes():
     maps, _ = render_world()
     destination = os.path.join(OUT, 'routes')
     os.makedirs(destination, exist_ok=True)
-    for slug, mid in ROUTE_STILLS:
+    exe = save_executable()
+    for slug, title in ROUTE_STILLS:
+        mid = map_ids(exe)[title]
         image = route_image(maps, mid)
         label_map(image, maps[mid][0], 8, 8)
         path = os.path.join(destination, slug + '.png')
@@ -289,6 +333,99 @@ def clip_mill_wheel():
     save = demo_save('mill_wheel', 'BROOKMILL', 19, 15, calm=True, extra=['beaten'])
     run(Script().boot().wait(30).rec('mill_wheel', 3).wait(100).stop(), save)
     gif('mill_wheel', 'routes/mill-wheel.gif', delay=5)
+
+
+def record_route(name, map_name, x, y, extra=(), travel=None):
+    """Capture consecutive, unaltered ROM frames on a deterministic demo save."""
+    save = demo_save(name, map_name, x, y, calm=True, extra=('beaten',) + extra)
+    for stale in route_frames(name):
+        os.remove(stale)
+    script = Script().boot().wait(32).rec(name, 4).wait(18)
+    if travel:
+        script.tap(travel).hold(travel, 80).wait(22)
+    else:
+        script.wait(72)
+    run(script.stop(), save)
+    return name
+
+
+def route_frames(prefix):
+    return sorted(glob.glob(os.path.join(WORK, prefix + '_[0-9][0-9][0-9][0-9].png')))
+
+
+def assert_route_change(first, second, min_pixels=500):
+    """A state transition must alter the game image, not just repeat a still."""
+    from PIL import Image, ImageChops
+    a, b = route_frames(first), route_frames(second)
+    if len(a) < 5 or len(b) < 5:
+        raise RuntimeError('insufficient game frames for route clip')
+    # Identical camera/player coordinates before movement; skip the title/boot.
+    before, after = Image.open(a[1]).convert('RGB'), Image.open(b[1]).convert('RGB')
+    changed = sum(1 for p in ImageChops.difference(before, after).getdata() if p != (0, 0, 0))
+    if changed < min_pixels:
+        raise RuntimeError('route states do not differ visibly (%d pixels)' % changed)
+    frames = b[1:]
+    unique = len({Image.open(f).convert('RGB').tobytes() for f in frames})
+    if unique < 4:
+        raise RuntimeError('route recording is effectively static (%d unique frames)' % unique)
+    print('verified %s -> %s: %d state pixels, %d unique motion frames' %
+          (first, second, changed, unique))
+
+
+def clip_cinder_bridge():
+    """Actual Cinder Crossing broken span, then the repaired walkable deck."""
+    before = record_route('cinder_before', 'CINDER_CROSSING', 5, 20, travel='RIGHT')
+    after = record_route('cinder_after', 'CINDER_CROSSING', 5, 20,
+                         extra=('bridge-built',), travel='RIGHT')
+    assert_route_change(before, after)
+    gif([before, after], 'routes/cinder-bridge.gif', delay=6)
+
+
+def require_fog_visuals():
+    with open(os.path.join(ROOT, 'src', 'game', 'farm.c')) as field:
+        if 'case WX_FOG:' not in field.read():
+            raise RuntimeError('WX_FOG has no field renderer yet; defer fog GIF until weather visuals merge')
+
+
+def clip_heron_fog():
+    # When the weather branch draws WX_FOG, compare this against the clear save.
+    record_route('heron_clear', 'HERON_FEN', 22, 19, extra=('front-clear',))
+    record_route('heron_fog', 'HERON_FEN', 22, 19, extra=('front-west',))
+    require_fog_visuals()
+    assert_route_change('heron_clear', 'heron_fog', min_pixels=4000)
+    gif(['heron_clear', 'heron_fog'], 'routes/heron-fog.gif')
+
+
+def clip_mistfen_fog():
+    # The lantern crest opens a path; fog lifting also requires field visuals.
+    record_route('mist_fog', 'MISTFEN', 23, 52, extra=('front-dream',), travel='RIGHT')
+    record_route('mist_clear', 'MISTFEN', 23, 52, extra=('front-clear', 'mist-lifted'), travel='RIGHT')
+    require_fog_visuals()
+    assert_route_change('mist_fog', 'mist_clear', min_pixels=4000)
+    gif(['mist_fog', 'mist_clear'], 'routes/mistfen-fog.gif')
+
+
+def clip_caravan_arriving():
+    """Record the actual day rollover: caravan stop 5 -> Brookmill stop 6."""
+    save = demo_save('caravan_eve', 'BROOKMILL', 11, 13, calm=True,
+                     extra=('beaten', 'caravan-eve'))
+    for stale in route_frames('caravan_arrive'):
+        os.remove(stale)
+    run(Script().boot().rec('caravan_arrive', 3).wait(125).stop(), save)
+    frames = route_frames('caravan_arrive')
+    if len(frames) < 35:
+        raise RuntimeError('not enough frames to show the daily caravan arrival')
+    from PIL import Image, ImageChops
+    # Ignore daybreak's screen-wide palette change; the NPC spawn must change
+    # the same small area where Merriweather stands and remain visible.
+    def npc_area(path):
+        return Image.open(path).convert('RGB').crop((120, 40, 150, 80))
+    before, after = npc_area(frames[2]), npc_area(frames[-3])
+    changed = sum(c != (0, 0, 0) for c in ImageChops.difference(before, after).getdata())
+    if changed < 120:
+        raise RuntimeError('no visible in-game caravan arrival at day rollover (%d pixels)' % changed)
+    print('verified dawn spawn: %d NPC-area pixels changed' % changed)
+    raise RuntimeError('Merriweather spawns instantly at dawn; no moving caravan/arrival animation exists in this ROM')
 
 
 def clip_regions():
@@ -531,7 +668,8 @@ class Canvas1:
 
 CLIPS = {
     'title': clip_title, 'village': clip_village, 'warden': clip_warden, 'bout': clip_bout,
-    'lorebook': clip_lorebook, 'menus': clip_menus, 'places': clip_places, 'world': clip_world, 'routes': clip_routes, 'mill-wheel': clip_mill_wheel,
+    'lorebook': clip_lorebook, 'menus': clip_menus, 'places': clip_places, 'world': clip_world, 'routes': clip_routes, 'mill-wheel': clip_mill_wheel, 'cinder-bridge': clip_cinder_bridge,
+    'heron-fog': clip_heron_fog, 'mistfen-fog': clip_mistfen_fog, 'caravan-arriving': clip_caravan_arriving,
     'regions': clip_regions, 'elevation': clip_elevation, 'crops': clip_crops, 'farm': clip_farm, 'bridge': clip_bridge, 'moves': clip_moves, 'travel': clip_travel,
     'runestone': clip_runestone, 'fusion': clip_fusion, 'evolve': clip_evolve, 'area': clip_area,
 }
@@ -540,7 +678,7 @@ CLIPS = {
 def main(argv):
     os.makedirs(OUT, exist_ok=True)
     os.makedirs(WORK, exist_ok=True)
-    for name in (argv or list(CLIPS)):
+    for name in (argv or [n for n in CLIPS if n != 'caravan-arriving']):
         print('--', name)
         CLIPS[name]()
     if not argv:
