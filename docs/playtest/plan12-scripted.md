@@ -1,6 +1,17 @@
 # Plan 12 scripted playtime — measured ROM checkpoints, not act totals
 
-## Post-stack-fix expansion ROM: Act III title transition (2026-09-27)
+## Current field-stack-fixed ROM: route checkpoints (2026-09-27)
+
+The production ROM runs with blank in-memory SRAM, title debug warp and required flags before the timed start, no warp after start. The timer presses buttons for two input polls and counts the full dialog, walking and warden bout. The built `game.gba` and `game.elf` match; frame rate is 59.7275/s. Both fixtures end at their first town and are **not act-completion scripts**.
+
+| Route | Last verified checkpoint | Frames | Minutes | Outcome |
+| --- | --- | ---: | ---: | --- |
+| Act II | Brookmill Trail shore → Brookmill → Copperline Juno victory → Lumen entry (0,20) | 3466 | 0.967 | `BOUT_END kind=warden result=1` at frame 3040; one warden, zero wild; no Volt Hall |
+| Act III | Heron Fen warden victory → Reedwick entry (39,19) | 2076 | 0.579 | `BOUT_END kind=warden result=1` at frame 1609; one warden, zero wild; no Current Hall |
+
+Act II's route faces Juno from (36,18), then steps back west around her still-occupied tile and continues on y20. The earlier field→title return in Act III was an IWRAM stack collision in `field_draw_sprites`, not a normal loss; the scratch arrays are now in EWRAM and a ROM/ELF placement test covers that choice. The earlier intro hang was a separate nested field draw in the battle wipe. There is no properly prepared four-kin team, Hall quest choice policy, measured recovery, required wild encounter quota, or full-act endpoint in these fixtures. Do not apply the 2.5× human factor or claim the 16–18-hour target from these partial times. Human templates remain blank.
+
+## Historical post-battle-fix ROM: Act III title transition (2026-09-27)
 
 Isolated branch `finish-act3-timing` at `91a32fb`; `make` built a matching 3,651,872-byte ROM and ELF and `make shot` built `build/shot`. Blank in-memory SRAM, title debug warp and three prerequisites before timed route; no post-start warp or fabricated victory. Scripted frames at 59.7275 fps, not human playtime.
 

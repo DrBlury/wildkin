@@ -83,7 +83,9 @@ class PlaythroughRunnerTest(unittest.TestCase):
                                 capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn('WAY line=7 map=', result.stdout)
-        self.assertIn('EDGE line=16 map=', result.stdout)
+        self.assertIn('WARDEN line=15 map=', result.stdout)
+        self.assertIn('BOUT_END kind=warden result=1', result.stdout)
+        self.assertIn('EDGE line=19 map=', result.stdout)
         self.assertIn('wardens=1 wild_wins=0 wild_runs=0', result.stdout)
         route = (ROOT / 'tools/playthrough/act2.route').read_text().split('way MAP_BROOKMILL 37 17')[0]
         with tempfile.TemporaryDirectory() as directory:

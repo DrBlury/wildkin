@@ -11,9 +11,10 @@
 > Regional weather and festival effects, direct A-to-examine FIELD NOTES,
 > animated tram/lift/punt scenes, the wagon arrival, and five authentic
 > route/event GIFs are integrated. The event animation is transient and does
-> not change save IDs. ROM-backed Act II currently reaches Lumen in 2,971
-> frames; full act timing, Act III victory, and human Acts II/III playtests are
-> still unverified. The 16–18-hour target must not be inferred from partial
+> not change save IDs. ROM-backed Act II reaches Lumen after Juno in 3,466
+> frames; Act III reaches Reedwick after a Fen warden in 2,076 frames.
+> Full-act timing and human Acts II/III playtests remain unverified. The
+> 16–18-hour target must not be inferred from partial
 > scripted segments. See [doubles](handoff/double_bouts.md),
 > [playtime](handoff/playtime.md) and the [route media](../README.md).
 >

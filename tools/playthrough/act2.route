@@ -1,5 +1,6 @@
 # Act II East: debug warp to Brookmill Trail; G1 prerequisite at act start.
 # Shore x34,y19 bypasses the raised bridge; Sorrel occupies (58,18).
+# Juno at (36,19) is faced from north; return west around her occupied tile.
 flag FLAG_STORM_CALMED
 start MAP_BROOKMILL_TRAIL
 way MAP_BROOKMILL_TRAIL 34 18
@@ -13,6 +14,9 @@ edge MAP_BROOKMILL_TRAIL east MAP_BROOKMILL
 way MAP_BROOKMILL 37 17
 edge MAP_BROOKMILL east MAP_COPPERLINE
 way MAP_COPPERLINE 33 17
-way MAP_COPPERLINE 33 20
+way MAP_COPPERLINE 36 18
+warden MAP_COPPERLINE 36 18 south
+way MAP_COPPERLINE 35 18
+way MAP_COPPERLINE 35 20
 way MAP_COPPERLINE 42 20
 edge MAP_COPPERLINE east MAP_LUMEN

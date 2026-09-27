@@ -64,7 +64,10 @@ static void frame(unsigned keys, int timed) {
     }
 }
 static void press(unsigned keys) {
+    /* Two frames on/off make each edge visible to the ROM's VBlank input poll. */
     frame(keys, 1);
+    frame(keys, 1);
+    frame(0, 1);
     frame(0, 1);
 }
 static void tap(unsigned keys) {
