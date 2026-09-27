@@ -89,6 +89,7 @@ static void field_return(void);
 static void travel_legend_go(int obj);    /* world/travel/scripts.c */
 static void travel_chest_go(int obj);     /* world/travel/scripts.c */
 static int farm_berry_interact(int patch);
+static int saga_note_examine(int map, int x, int y);
 static void worldmap_open(int fly);
 static void travel_dark_off(void);
 
@@ -1450,8 +1451,12 @@ static int obj_interact(int x, int y)
     int nl = player.level;
     if (map_elevated) elev_enter(player.x, player.y, player.level, player.facing, &nl);
     int i = obj_at_lv(x, y, nl);   /* what stands on the level you face (a deck or the ground) */
+    int noted = saga_note_examine(cur_map, x, y);
     if (i < 0) {
-        if (travel.surfing || !travel_surf_cell(x, y)) return 0;
+        if (travel.surfing || !travel_surf_cell(x, y)) {
+            if (noted) dlg_say("You mark this spot in your FIELD NOTES.");
+            return noted;
+        }
         if (travel_ability_kin(AB_SURF) >= 0) surf_ask();
         else dlg_say("The water is deep blue. A kin that can SURF could carry you across (TIDE CREST, level 20).");
         return 1;
