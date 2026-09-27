@@ -147,33 +147,34 @@ mGBA lets you change any of these under *Settings → Controllers*.
 
 ## 🌍 The world
 
-### The Vale's routes (work in progress)
+### The Vale's routes
 
-This build adds Brookmill Trail/Brookmill to the east, Heron Fen/Reedwick to
-the west, Cinder Crossing/Railhead and Mistfen to the far routes, Stormstep
-Foothills/Timberline to the north, and Hollow Downs/Waychapel toward the
-March. Their target order and gates are in the
-[progression contract](docs/plans/01_progression_contract.md). The story
-blockers, cross-region quests, daily events, projects and loop shortcuts are
-integrated. Some planned event mechanics and route presentation
-remain incomplete; see [integration status](docs/HANDOFF.md). The world
-image below is from the earlier map set, not a view of these
-new corridors and loops; new route screenshots and clips are pending.
+The eastern Brookmill Trail joins Brookmill and Copperline; Heron Fen and Reedwick open the western return. Cinder Crossing leads to Railhead, while Mistfen links the far routes to Moonveil. Stormstep Foothills climbs toward Timberline; Hollow Downs leads toward the March, with Waychapel as an indoor stop. The [progression contract](docs/plans/01_progression_contract.md) gives the intended gate order; [integration status](docs/HANDOFF.md) records outstanding mechanics.
 
-The world is a web of regions around the Vale. Walk off an edge into the next
-area, take a door, sail on the ferry, or fly between towns once you hold the
-RIME crest.
+The stitched image uses the game renderer's edge connections and `WORLD_POS` placement hints. Warp-only or disconnected outdoors without hints (including Hollow Downs) cannot be positioned in it; their individual renders appear below. Doors, ferry crossings, and flight do not appear as drawn edge connections.
 
-The integrated corridors and loops are listed in
-[the world-area table](docs/WORLD.md#11-world-map). The complete *planned*
-map, with connections, gates and shortcuts, is in
-[the progression contract](docs/plans/01_progression_contract.md#2-the-new-world-graph).
+<img src="docs/images/routes/world.png" alt="Game-rendered outdoor maps with edge-linked route corridors; unpositioned maps are omitted">
 
+<sub>Game-rendered outdoor layout at noon in clear weather; 34 positioned maps, not a gameplay screenshot.</sub>
 
+Each picture below is a **labeled full-map render from the game renderer**, not a captured player viewport or proof of event weather or project state.
 
-<img src="docs/images/world.png" alt="Earlier overworld map, before the new route corridors">
+| Area render | Area render |
+| --- | --- |
+| **Brookmill Trail**<br><img src="docs/images/routes/brookmill-trail.png" width="340" alt="Labeled game-rendered full map of Brookmill Trail"> | **Brookmill**<br><img src="docs/images/routes/brookmill.png" width="340" alt="Labeled game-rendered full map of Brookmill"> |
+| **Heron Fen**<br><img src="docs/images/routes/heron-fen.png" width="340" alt="Labeled game-rendered full map of Heron Fen"> | **Reedwick**<br><img src="docs/images/routes/reedwick.png" width="340" alt="Labeled game-rendered full map of Reedwick"> |
+| **Cinder Crossing**<br><img src="docs/images/routes/cinder-crossing.png" width="340" alt="Labeled game-rendered full map of Cinder Crossing"> | **Railhead**<br><img src="docs/images/routes/railhead.png" width="340" alt="Labeled game-rendered full map of Railhead"> |
+| **Mistfen**<br><img src="docs/images/routes/mistfen.png" width="340" alt="Labeled game-rendered full map of Mistfen"> | **Stormstep Foothills**<br><img src="docs/images/routes/stormstep-foothills.png" width="340" alt="Labeled game-rendered full map of Stormstep Foothills"> |
+| **Timberline**<br><img src="docs/images/routes/timberline.png" width="340" alt="Labeled game-rendered full map of Timberline"> | **Hollow Downs**<br><img src="docs/images/routes/hollow-downs.png" width="340" alt="Labeled game-rendered full map of Hollow Downs"> |
+| **Waychapel (indoor rest stop)**<br><img src="docs/images/routes/waychapel.png" width="340" alt="Labeled game-rendered full map of Waychapel (indoor rest stop)"> |  |
 
-<sub>Earlier outdoor map, drawn by the game; the new route corridors are not shown.</sub>
+<img src="docs/images/routes/mill-wheel.gif" width="320" alt="Brookmill waterwheel animated in a recorded ROM run">
+
+<sub>Brookmill waterwheel: recorded from the built ROM with the mGBA shot harness.</sub>
+
+**Events and quests.** The Vale Gazette in Hearth houses reports daily happenings; the caravan has route-specific stops, and regional fronts and outbreaks can change a day's conditions. The quest log follows Elspeth's cross-region courier chain and surveys, plus local ring, lamp, chalk and cairn threads. Town project offers include the Brookmill tram, Cinder bridge, Timberline lift, Reedwick punt and Maple market; construction completes after dawn when requirements are met. Event presentation and some project visuals remain incomplete—see [integration status](docs/HANDOFF.md).
+
+The world is a web of regions around the Vale. Walk off an edge into the next area, take a door, sail on the ferry, or fly between towns once you hold the RIME crest. For connections and gates, see [the world-area table](docs/WORLD.md#11-world-map) and [the progression contract](docs/plans/01_progression_contract.md#2-the-new-world-graph).
 
 ### The Vale
 
@@ -700,7 +701,8 @@ That writes `game.gba`. Other targets:
 | `make art` | Regenerate every art header from the Python generators |
 | `make maps` | Render every map to `build/maps/*.png` |
 | `make shot` | Build the headless screenshot harness (needs libmgba: `brew install mgba`) |
-| `python3 tools/make_media.py` | Re-record every GIF and screenshot in this README |
+| `python3 tools/make_media.py` | Re-record the README media (requires the ROM and `make shot` for clips; Pillow for route renders) |
+| `python3 tools/make_media.py world routes mill-wheel` | Regenerate the positioned world map, labeled route stills and Brookmill wheel clip |
 | `make clean` | Remove build output |
 
 ### How it is made
