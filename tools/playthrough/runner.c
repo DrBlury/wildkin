@@ -11,6 +11,13 @@ static struct mCore *core;
 static unsigned map_addr, player_addr, mode_addr, flags_addr, dialog_addr;
 static unsigned phase_addr, battle_addr, party_addr, moves_addr, warp_addr;
 static int wild_wins, wild_runs, wardens, dialogs, wild_limit = 6;
+/* Filled only after run.py verifies unique ELF structures and all members. */
+static struct {
+    unsigned kind, team, team2, team_idx, ally, pair, no_run;
+    unsigned state, cursor, move_cursor, result, timer;
+    unsigned monster_size, moves, pp, hp;
+    unsigned move_size, cat, power, acc, effect;
+} layout;
 enum { KEY_A = 1u, KEY_RIGHT = 1u << 4,
        KEY_LEFT = 1u << 5, KEY_UP = 1u << 6, KEY_DOWN = 1u << 7 };
 static int rd8(unsigned a) { return core->busRead8(core, a); }
@@ -21,8 +28,8 @@ static void quiet(struct mLogger *l, int c, enum mLogLevel level, const char *fm
 static struct mLogger logger = { quiet, NULL };
 static int rd16(unsigned a) { return core->busRead16(core, a); }
 static int rd32(unsigned a) { return (int)core->busRead32(core, a); }
-static int battle_state(void) { return rd32(battle_addr + 416); }
-static int battle_kind(void) { return rd32(battle_addr); }
+static int battle_state(void) { return rd32(battle_addr + layout.state); }
+static int battle_kind(void) { return rd32(battle_addr + layout.kind); }
 static int map(void) { return rd32(map_addr); }
 static int x(void) { return (short)rd16(player_addr); }
 static int y(void) { return (short)rd16(player_addr + 2); }
@@ -47,16 +54,16 @@ static void fail(int line, const char *message) {
 /* The ROM move table is read-only. Rank usable attacking moves by expected raw
  * power; type effectiveness/status utility cannot be inferred from raw strength. */
 static int best_move(void) {
-    int ally = rd32(battle_addr + 348);
+    int ally = rd32(battle_addr + layout.ally);
     if (ally < 0 || ally >= 6) return -1;
-    unsigned mon = party_addr + (unsigned)ally * 56;
+    unsigned mon = party_addr + (unsigned)ally * layout.monster_size;
     int best = -1, score = -1;
     for (int i = 0; i < 4; i++) {
-        int id = rd8(mon + 4 + i), pp = rd8(mon + 8 + i);
+        int id = rd8(mon + layout.moves + i), pp = rd8(mon + layout.pp + i);
         if (id <= 0 || id >= 130 || !pp) continue;
-        unsigned move = moves_addr + (unsigned)id * 28;
-        if (rd8(move + 5) >= 2) continue; /* CAT_STATUS */
-        int power = rd8(move + 6), accuracy = rd8(move + 7);
+        unsigned move = moves_addr + (unsigned)id * layout.move_size;
+        if (rd8(move + layout.cat) >= 2) continue; /* CAT_STATUS */
+        int power = rd8(move + layout.power), accuracy = rd8(move + layout.acc);
         int value = power * (accuracy ? accuracy : 100);
         if (value > score) { score = value; best = i; }
     }
@@ -65,20 +72,32 @@ static int best_move(void) {
 static void drive_battle(int line, int *last_kind) {
     int kind = battle_kind(), state = battle_state();
     if (kind != 0 && kind != 1) fail(line, "unknown battle kind");
+    if (rd32(battle_addr + layout.pair)) fail(line, "paired bout needs explicit actor/target policy");
     if (*last_kind < 0) {
         *last_kind = kind;
         printf("BOUT kind=%s map=%d x=%d y=%d wild_wins=%d\n",
                kind ? "warden" : "wild", map(), x(), y(), wild_wins);
     }
+    static int intro_timer = -1, intro_still = 0;
+    if (state == 0) {
+        int timer = rd32(battle_addr + layout.timer);
+        if (timer == intro_timer) intro_still++;
+        else intro_still = 0;
+        intro_timer = timer;
+        if (intro_still > 300) fail(line, "battle intro stalled; ROM timer unchanged");
+    } else {
+        intro_timer = -1;
+        intro_still = 0;
+    }
     if (state == 2) { /* action */
         int flee = !kind && wild_wins >= wild_limit;
-        if (flee && rd8(battle_addr + 368)) fail(line, "wild bout forbids fleeing");
-        int cursor = rd32(battle_addr + 424), target = flee ? 3 : 0;
+        if (flee && rd8(battle_addr + layout.no_run)) fail(line, "wild bout forbids fleeing");
+        int cursor = rd32(battle_addr + layout.cursor), target = flee ? 3 : 0;
         if (cursor < 0 || cursor > 3) fail(line, "invalid battle action cursor");
         if (cursor != target) press(KEY_DOWN);
         else press(KEY_A);
     } else if (state == 3) { /* move grid */
-        int target = best_move(), cursor = rd32(battle_addr + 428);
+        int target = best_move(), cursor = rd32(battle_addr + layout.move_cursor);
         if (target < 0) fail(line, "no usable attacking move; recovery needed");
         if (cursor < 0 || cursor > 3) fail(line, "invalid battle move cursor");
         if (cursor == target) press(KEY_A);
@@ -101,7 +120,7 @@ static void step(int line, unsigned direction, int *last_kind) {
     else if (previous_mode == 0) frame(direction, 1);
     else fail(line, "unhandled mode; manual recovery/healing required");
     if (previous_mode == 8 && mode() != 8) {
-        int result = rd32(battle_addr + 444);
+        int result = rd32(battle_addr + layout.result);
         if (result == 2) fail(line, "party lost; no unmeasured recovery");
         if (*last_kind == 1) {
             if (result != 1) fail(line, "warden did not end in victory");
@@ -115,11 +134,29 @@ static void step(int line, unsigned direction, int *last_kind) {
     }
 }
 int main(int argc, char **argv) {
-    if (argc != 13) { fprintf(stderr, "usage: runner rom route mapAddr playerAddr modeAddr flagsAddr dialogAddr phaseAddr battleAddr partyAddr movesAddr warpAddr\n"); return 1; }
+    if (argc != 36) { fprintf(stderr, "usage: runner rom route 10 addresses 23 ELF layout values\n"); return 1; }
     map_addr = strtoul(argv[3], 0, 16); player_addr = strtoul(argv[4], 0, 16);
     mode_addr = strtoul(argv[5], 0, 16); flags_addr = strtoul(argv[6], 0, 16); dialog_addr = strtoul(argv[7], 0, 16);
     phase_addr = strtoul(argv[8], 0, 16); battle_addr = strtoul(argv[9], 0, 16);
     party_addr = strtoul(argv[10], 0, 16); moves_addr = strtoul(argv[11], 0, 16); warp_addr = strtoul(argv[12], 0, 16);
+    /* Layout argument order is LAYOUT_FIELDS in run.py: size then members. */
+    unsigned offsets[23];
+    for (int i = 0; i < 23; i++) {
+        char *end;
+        unsigned long value = strtoul(argv[13 + i], &end, 10);
+        if (!argv[13 + i][0] || *end || value > 0xfffffffful) {
+            fprintf(stderr, "invalid ELF layout argument %d\n", i); return 1;
+        }
+        offsets[i] = (unsigned)value;
+    }
+    layout.kind = offsets[1]; layout.team = offsets[2]; layout.team2 = offsets[3];
+    layout.team_idx = offsets[4]; layout.ally = offsets[5]; layout.pair = offsets[6];
+    layout.no_run = offsets[7]; layout.state = offsets[8]; layout.cursor = offsets[9];
+    layout.move_cursor = offsets[10]; layout.result = offsets[11]; layout.timer = offsets[12];
+    layout.monster_size = offsets[13]; layout.moves = offsets[14];
+    layout.pp = offsets[15]; layout.hp = offsets[16];
+    layout.move_size = offsets[18]; layout.cat = offsets[19];
+    layout.power = offsets[20]; layout.acc = offsets[21]; layout.effect = offsets[22];
     mLogSetDefaultLogger(&logger);
     core = mCoreFind(argv[1]);
     if (!core || !core->init(core)) { fprintf(stderr, "libmgba core initialization failed\n"); return 1; }
