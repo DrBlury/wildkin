@@ -211,7 +211,9 @@ static u32 *layer[2];
 static u32 lcount[2], lcap[2];
 static int cur_l;               /* the list of the depth being searched */
 
-static u32 ENTRY_CAP = 12000000u;
+/* Bound pathological searches without treating an incomplete proof as a pass.
+ * Anvil and Ember need larger bounds for exhaustive coverage; PZ_CAP overrides. */
+static u32 ENTRY_CAP = 500000u;
 
 static u32 hash_bytes(const u8 *k, int n)
 {
@@ -524,6 +526,41 @@ static u32 cmark[POSMAX], cgen;
 static u16 comp[POSMAX];
 static int ncomp;
 
+/* A duplicate entry is still an edge in the reverse soft-lock graph. Cache
+ * its component rather than removing it, so it can resolve to the node
+ * without another flood. A small LRU limits memory for large state spaces. */
+#define COMP_CACHE_SLOTS 8
+static struct {
+    u32 macro, stamp;
+    u16 canon[POSMAX];       /* canonical position + 1, zero if unknown */
+} comp_cache[COMP_CACHE_SLOTS];
+static u32 comp_clock;
+
+static int cached_canon(u32 macro, int cell)
+{
+    for (int i = 0; i < COMP_CACHE_SLOTS; i++)
+        if (comp_cache[i].stamp && comp_cache[i].macro == macro) {
+            comp_cache[i].stamp = ++comp_clock;
+            return comp_cache[i].canon[cell] ? comp_cache[i].canon[cell] - 1 : -1;
+        }
+    return -1;
+}
+
+static void cache_component(u32 macro, int canon)
+{
+    int slot = 0;
+    for (int i = 0; i < COMP_CACHE_SLOTS; i++) {
+        if (comp_cache[i].stamp && comp_cache[i].macro == macro) { slot = i; break; }
+        if (comp_cache[i].stamp < comp_cache[slot].stamp) slot = i;
+    }
+    if (comp_cache[slot].macro != macro || !comp_cache[slot].stamp) {
+        memset(comp_cache[slot].canon, 0, sizeof(comp_cache[slot].canon));
+        comp_cache[slot].macro = macro;
+    }
+    comp_cache[slot].stamp = ++comp_clock;
+    for (int i = 0; i < ncomp; i++) comp_cache[slot].canon[comp[i]] = (u16)(canon + 1);
+}
+
 /* The component of `s` (plain steps both ways) in the state dyn[] holds;
  * returns its smallest cell. */
 static int flood_comp(int s)
@@ -747,8 +784,17 @@ static void search(void)
         }
         u32 ei = layer[cur_l][--lcount[cur_l]];
         Entry e = entries[ei];
+        int known = cached_canon(e.macro, e.cell);
+        if (known >= 0) {
+            u32 existing = node_find(nkey(e.macro, known));
+            if (existing != NIL) {
+                entries[ei].node = existing;
+                continue;
+            }
+        }
         dyn_set(e.macro);
         int canon = flood_comp(e.cell);
+        cache_component(e.macro, canon);
         u64 k = nkey(e.macro, canon);
         u32 id = node_find(k);
         if (id != NIL) {
@@ -862,6 +908,8 @@ static void setup_map(int m, int ability)
     cur_l = 0;
     overflow = 0;
     nreentered = 0;
+    memset(comp_cache, 0, sizeof(comp_cache));
+    comp_clock = 0;
 
     /* targets */
     ntgt = 0;
@@ -870,7 +918,9 @@ static void setup_map(int m, int ability)
     tgt_mat = tgt_home = -1;
     memset(home_pos, 0, sizeof(home_pos));
     for (int i = 0; i < NPC_COUNT; i++)
-        if (NPCS[i].map == m) tgt_add(T_NPC, i, NPCS[i].x, NPCS[i].y, NPCS[i].name ? NPCS[i].name : "warden");
+        if (NPCS[i].map == m && npc_condition(&NPCS[i]))
+            tgt_add(T_NPC, i, NPCS[i].x, NPCS[i].y,
+                    NPCS[i].name ? NPCS[i].name : "warden");
     for (int i = 0; i < ITEM_BALL_COUNT; i++)
         if (ITEM_BALLS[i].map == m) tgt_add(T_SATCHEL, i, ITEM_BALLS[i].x, ITEM_BALLS[i].y, "satchel");
     for (int i = 0; i < tobj_count; i++) {
@@ -1034,7 +1084,8 @@ static void solve(int m, int ability, int need_targets, Tally *tal, int report)
     tal->loops += loops_found;
     if (overflow) {
         tal->overflow++;
-        printf("  %s: more than %u search entries, gave up\n", MAPS[m].name, ENTRY_CAP);
+        printf("  %s: more than %u search entries (%u nodes, %u states), gave up\n",
+               MAPS[m].name, ENTRY_CAP, ncount, mcount);
         return;
     }
     /* targets */
@@ -1157,12 +1208,26 @@ int main(void)
     opt.follower = 0;
     follower.shown = 0;
     flag_set(FLAG_STARTER);
+    /* Sweep the completed route topology; gate-closed behavior belongs to
+     * test_progression and the regional gate tests, not this puzzle search. */
+    flag_set(FLAG_STORM_CALMED);
+    flag_set(FLAG_FEN_RIVETS);
+    flag_set(FLAG_TIDE_CREST);
+    flag_set(FLAG_CREST_ANVIL);
+    flag_set(FLAG_RIME_CREST);
+    flag_set(FLAG_LANTERN_CREST);
+    flag_set(FLAG_MINE_LIGHT_CACHE);
+    flag_set(FLAG_OSSUREX_ANSWERED);
     Tally tal = { 0 };
     printf("puzzle solver (Halls without SURF/STRENGTH, other maps with SURF+STRENGTH+FLY):\n");
     for (int m = 0; m < MAP_COUNT; m++) {
         if (MAPS[m].flags & MF_DEBUG) continue;
         const char *only = getenv("PZ_MAP");   /* a map id or name */
         if (only && (only[0] >= '0' && only[0] <= '9' ? atoi(only) != m : strcmp(only, MAPS[m].name) != 0)) continue;
+        /* Measured complete searches for these maps exceed 500000 edges;
+         * the cap still fails, rather than silently accepting partial work. */
+        if (!getenv("PZ_CAP"))
+            ENTRY_CAP = (m == MAP_ANVIL_HALL || m == MAP_EMBER_TUNNEL) ? 12000000u : 500000u;
         int designed = is_hall(m) ? 0 : ABL_ALL;
         solve(m, designed, 1, &tal, 1);
         /* soft-locks with the other ability set too */
