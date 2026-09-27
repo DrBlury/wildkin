@@ -105,12 +105,124 @@ static void test_teams_and_pacing(void)
     CHECK(max == 15, "Rise wild levels end at 15 in Act I");
 }
 
+static void test_encounters(void)
+{
+    static const struct { int map, trigger, win, trainer, script; } encounters[] = {
+        { MAP_TOWN, FLAG_STARTER, FLAG_SORREL_MAPLE, TR_SORREL_MAPLE, SCR_STORY_SORREL },
+        { MAP_MEADOW, FLAG_SASH, FLAG_SORREL_MEADOW, TR_SORREL_MEADOW, SCR_STORY_SORREL },
+        { MAP_BROOKMILL_TRAIL, FLAG_STORM_CALMED, FLAG_SORREL_BROOKMILL, TR_SORREL_BROOKMILL, SCR_STORY_SORREL },
+        { MAP_LUMEN, FLAG_STORM_CALMED, FLAG_STILL_LUMEN, TR_STILL_LUMEN, SCR_STORY_STILL },
+        { MAP_SALTWIND, FLAG_VOLT_CREST, FLAG_STILL_SALTWIND, TR_STILL_SALTWIND, SCR_STORY_STILL },
+        { MAP_PORT_BRINE, FLAG_VOLT_CREST, FLAG_SORREL_HARBOUR, TR_SORREL_HARBOUR, SCR_STORY_SORREL },
+        { MAP_EMBER_TUNNEL, FLAG_TIDE_CREST, FLAG_STILL_EMBER, TR_STILL_EMBER, SCR_STORY_STILL },
+        { MAP_GLIMMER_1, FLAG_CREST_ANVIL, FLAG_STILL_GLIMMER, TR_STILL_GLIMMER, SCR_STORY_STILL },
+        { MAP_BARROW_A, FLAG_RIME_CREST, FLAG_STILL_BARROW, TR_STILL_VESTA, SCR_STORY_VESTA },
+        { MAP_OSSUARY_1, FLAG_CREST_DREAM, FLAG_SORREL_FINALE, TR_SORREL_FINALE, SCR_STORY_SORREL },
+    };
+    fresh_game();
+    for (unsigned k = 0; k < sizeof(encounters) / sizeof(encounters[0]); k++) {
+        const int map = encounters[k].map;
+        int found = 0, placement = -1, trainer = encounters[k].trainer;
+        for (int n = 0; n < NPC_COUNT; n++) {
+            const NpcDef *p = &NPCS[n];
+            if (p->map != map || p->script != encounters[k].script ||
+                p->show_flag != encounters[k].trigger || p->hide_flag != encounters[k].win) continue;
+            found++;
+            placement = n;
+        }
+        CHECK(found == 1, "encounter has one registered conditional NPC and win flag");
+        CHECK(SCRIPT_FNS[encounters[k].script] != 0, "encounter script is dispatched");
+        CHECK((encounters[k].script == SCR_STORY_SORREL ? story_rival_trainer_for(map) : story_still_trainer_for(map)) == trainer,
+              "encounter dispatches its authored battle team");
+        if (placement < 0) continue;
+        const NpcDef *p = &NPCS[placement];
+        map_load(map);
+        CHECK(p->x >= 0 && p->y >= 0 && p->x < map_w && p->y < map_h &&
+              !(cell_attr(p->x, p->y) & (A_SOLID | A_WATER | A_LEDGE)) &&
+              item_ball_at(p->x, p->y) < 0, "encounter stands on passable, unoccupied ground");
+        int clashes = 0;
+        for (int n = 0; n < NPC_COUNT; n++)
+            if (n != placement && NPCS[n].map == map && NPCS[n].x == p->x && NPCS[n].y == p->y) clashes++;
+        CHECK(!clashes, "encounter does not overlap another NPC");
+        int nearby = 0;
+        flag_set(encounters[k].trigger);
+        for (int n = 0; n < NPC_COUNT; n++)
+            if (NPCS[n].map == map && npc_condition(&NPCS[n]) &&
+                absi((int)NPCS[n].x - p->x) <= 8 &&
+                absi((int)NPCS[n].y - p->y) <= 6) nearby++;
+        CHECK(nearby <= 7, "encounter viewport keeps within seven NPC sprites");
+        flag_set(encounters[k].trigger);
+        CHECK(npc_condition(p), "encounter appears after the preceding story flag");
+        flag_set(encounters[k].win);
+        CHECK(!npc_condition(p), "encounter disappears after its own win");
+        flag_clear(encounters[k].trigger);
+        flag_clear(encounters[k].win);
+        if (encounters[k].trigger)
+            CHECK(!npc_condition(p), "encounter is absent before its preceding story flag");
+        story_bout_flag = encounters[k].win;
+        story_bout_end(BR_LOSE);
+        CHECK(!flag(encounters[k].win), "a lost encounter is retryable");
+        story_bout_flag = encounters[k].win;
+        story_bout_end(BR_WIN);
+        CHECK(flag(encounters[k].win), "a won encounter saves its stable completion flag");
+        CHECK(!flag(FLAG_STORM_CALMED) && !flag(FLAG_VOLT_CREST) &&
+              !flag(FLAG_TIDE_CREST) && !flag(FLAG_CREST_ANVIL) &&
+              !flag(FLAG_RIME_CREST) && !flag(FLAG_LANTERN_CREST) &&
+              !flag(FLAG_CREST_DREAM), "encounter wins cannot open a route gate");
+        flag_clear(encounters[k].trigger);
+        flag_clear(encounters[k].win);
+    }
+    int dream = 0;
+    for (int n = 0; n < NPC_COUNT; n++)
+        if (NPCS[n].map == MAP_DREAMSPIRE && NPCS[n].script == SCR_STORY_VESTA &&
+            NPCS[n].show_flag == FLAG_LANTERN_CREST && NPCS[n].hide_flag == FLAG_CREST_DREAM) dream++;
+    CHECK(dream == 1, "Vesta's reconciliation appears only during the Dream crest window");
+    static const struct { int trainer, low, high; } bands[] = {
+        { TR_STILL_LUMEN, 18, 22 }, { TR_STILL_SALTWIND, 19, 23 },
+        { TR_STILL_EMBER, 27, 33 }, { TR_STILL_GLIMMER, 30, 37 },
+        { TR_STILL_VESTA, 35, 40 },
+    };
+    for (unsigned k = 0; k < sizeof(bands) / sizeof(bands[0]); k++) {
+        int in_band = 1;
+        const TrainerDef *team = &TRAINERS[bands[k].trainer];
+        for (int slot = 0; slot < team->count; slot++)
+            if (team->level[slot] < bands[k].low || team->level[slot] > bands[k].high)
+                in_band = 0;
+        CHECK(in_band, "Stillwarden team stays within its act's level band");
+    }
+}
+
+static void test_story_budgets(void)
+{
+    int locations = 1, collisions = 0, budget = 1;
+    for (int map = 0; map < MAP_COUNT; map++) {
+        int count = 0;
+        for (int n = 0; n < NPC_COUNT; n++) {
+            const NpcDef *p = &NPCS[n];
+            if (p->map != map) continue;
+            count++;
+            if (p->x < 0 || p->y < 0 || p->x >= MAPS[map].w || p->y >= MAPS[map].h)
+                locations = 0;
+            for (int o = n + 1; o < NPC_COUNT; o++)
+                if (NPCS[o].map == map && NPCS[o].x == p->x && NPCS[o].y == p->y &&
+                    !((p->show_flag && NPCS[o].hide_flag == p->show_flag) ||
+                      (NPCS[o].show_flag && p->hide_flag == NPCS[o].show_flag))) collisions++;
+        }
+        if (count > 24) budget = 0;
+    }
+    CHECK(locations, "all registered NPCs are in bounds");
+    CHECK(!collisions, "NPC placements do not share live cells");
+    CHECK(budget, "each map fits the 24-person definition budget");
+}
+
 int main(void)
 {
     test_g1_metadata();
     test_wires();
     test_sorrel();
     test_teams_and_pacing();
+    test_encounters();
+    test_story_budgets();
     printf("story: %d failure(s)\n", failures);
     return failures ? 1 : 0;
 }

@@ -1,4 +1,4 @@
-/* Story dialogue and local callbacks. Region NPC placement is deferred until E3. */
+/* Story dialogue and callbacks for the registered route encounters. */
 __attribute__((unused)) static int story_act(void)
 {
     if (flag(FLAG_OSSUREX_ANSWERED)) return 9;
@@ -89,16 +89,50 @@ static int story_rival_starter(void)
 
 static int story_rival_flag_for(int map)
 {
-    if (map == MAP_TOWN) return FLAG_SORREL_MAPLE;
-    if (map == MAP_MEADOW) return FLAG_SORREL_MEADOW;
-    return 0;
+    switch (map) {
+    case MAP_TOWN: return FLAG_SORREL_MAPLE;
+    case MAP_MEADOW: return FLAG_SORREL_MEADOW;
+    case MAP_BROOKMILL_TRAIL: return FLAG_SORREL_BROOKMILL;
+    case MAP_PORT_BRINE: return FLAG_SORREL_HARBOUR;
+    case MAP_OSSUARY_1: return FLAG_SORREL_FINALE;
+    default: return 0;
+    }
 }
 
 static int story_rival_trainer_for(int map)
 {
-    if (map == MAP_TOWN) return TR_SORREL_MAPLE;
-    if (map == MAP_MEADOW) return TR_SORREL_MEADOW;
-    return NO_TRAINER;
+    switch (map) {
+    case MAP_TOWN: return TR_SORREL_MAPLE;
+    case MAP_MEADOW: return TR_SORREL_MEADOW;
+    case MAP_BROOKMILL_TRAIL: return TR_SORREL_BROOKMILL;
+    case MAP_PORT_BRINE: return TR_SORREL_HARBOUR;
+    case MAP_OSSUARY_1: return TR_SORREL_FINALE;
+    default: return NO_TRAINER;
+    }
+}
+
+static int story_still_trainer_for(int map)
+{
+    switch (map) {
+    case MAP_LUMEN: return TR_STILL_LUMEN;
+    case MAP_SALTWIND: return TR_STILL_SALTWIND;
+    case MAP_EMBER_TUNNEL: return TR_STILL_EMBER;
+    case MAP_GLIMMER_1: return TR_STILL_GLIMMER;
+    case MAP_BARROW_A: return TR_STILL_VESTA;
+    default: return NO_TRAINER;
+    }
+}
+
+static int story_still_flag_for(int map)
+{
+    switch (map) {
+    case MAP_LUMEN: return FLAG_STILL_LUMEN;
+    case MAP_SALTWIND: return FLAG_STILL_SALTWIND;
+    case MAP_EMBER_TUNNEL: return FLAG_STILL_EMBER;
+    case MAP_GLIMMER_1: return FLAG_STILL_GLIMMER;
+    case MAP_BARROW_A: return FLAG_STILL_BARROW;
+    default: return 0;
+    }
 }
 
 static int story_bout_flag;
@@ -130,6 +164,10 @@ static void scr_story_sorrel(int npc)
 {
     int trainer = story_rival_trainer_for(cur_map);
     if (trainer == NO_TRAINER) return;
+    if (cur_map == MAP_TOWN && !flag(FLAG_STARTER)) {
+        dlg_say("SORREL: Kindling is today! I will wait while you meet your first kin.");
+        return;
+    }
     if (party_first_healthy() < 0) {
         dlg_say("SORREL: Your kin are dozing. Rest first; I can wait.");
         return;
@@ -138,14 +176,38 @@ static void scr_story_sorrel(int npc)
     dlg_call(story_rival_bout, npc);
 }
 
-static void scr_story_still(int npc)
+static void story_still_bout(int npc)
 {
     (void)npc;
-    dlg_say("We rang the bell so no kin would need a bout. But the brimming has nowhere to go.");
+    int trainer = story_still_trainer_for(cur_map);
+    if (trainer != NO_TRAINER)
+        story_start_bout(trainer, story_still_flag_for(cur_map));
+}
+
+static void scr_story_still(int npc)
+{
+    int trainer = story_still_trainer_for(cur_map);
+    if (trainer == NO_TRAINER) return;
+    if (party_first_healthy() < 0) {
+        dlg_say("HUSHER: Your kin need a rest. The bell can wait.");
+        return;
+    }
+    dlg_say("HUSHER: We rang the bell to spare kin a bout. But the brimming has nowhere to go. Will you show me another way?");
+    dlg_say(TRAINERS[trainer].intro);
+    dlg_call(story_still_bout, npc);
 }
 
 static void scr_story_vesta(int npc)
 {
-    (void)npc;
-    dlg_say("VESTA: I wanted a gentler Vale. The hush only made the hollow kernels stir. Help me put it right.");
+    if (cur_map == MAP_DREAMSPIRE) {
+        dlg_say("VESTA: I came to ask Vesper for help. The hush made the March worse. OSSUREX is brimming; perhaps we can listen together.");
+        return;
+    }
+    if (cur_map != MAP_BARROW_A) return;
+    if (party_first_healthy() < 0) {
+        dlg_say("VESTA: Let your kin rest. I will be here when you return.");
+        return;
+    }
+    dlg_say("VESTA: I wanted a gentler Vale. But the hush woke these hollow kernels. Will you show me how your kin answer?");
+    dlg_call(story_still_bout, npc);
 }

@@ -40,3 +40,37 @@ No region map links, engine files, art generators, or other region files were ch
 ## Verification on isolated base
 
 Run `cc -std=c11 -Wall -Wextra -Wno-missing-field-initializers -Wno-unused-function -o /tmp/wildkin-test-story tools/tests/test_story.c && /tmp/wildkin-test-story`. It tests wire once-only/latest precedence, Sorrel starter triangle and persistence, win/loss flag isolation, team size/levels, Rise level cap, and G1 authored coordinates. E3/E4/E6/E9 integration and cross-region progression cannot be validated on this base.
+
+## Current integration: story encounters in the complete route worktree
+
+The historical wave-1 notes above remain for provenance; this section supersedes their
+"wait for placement" status. `story/npcs.inc` is now registered by `all_npcs.inc`.
+The reserved Sorrel Brookmill Trail (58,18), Port Brine quay (20,23), and
+Ossuary entrance (6,3) bouts are live. The Lumen Husher (32,12),
+Saltwind Husher (35,17), Ember Bellwright (16,17), Glimmer Muffle (19,15),
+and Vesta in Barrow A (7,5) have real trainer-team callbacks and set their
+respective reserved `FLAG_SORREL_*` / `FLAG_STILL_*` only on wins. Losses leave
+them available. Vesta also speaks in Dreamspire (32,23), shown after Lantern
+and gone after Dream. The flags never open gates; the crest/storm order remains
+unchanged. NPCs use available `KID_B`, `WARDEN_B`, and `ELDER` sprites: no
+unique Sorrel portrait, robe, or Vesta art has been authored in this scope.
+
+The Sorrel and Husher show flag is the incoming crest/story flag, hide flag
+is their own victory. This allows a missed/skipped bout to remain available
+on return after its nominal act, instead of silently losing a retry. The one
+exception is Dreamspire Vesta, who explicitly hides when Dream is earned.
+`FLAG_STARTER` has numeric value zero, which means unrestricted in
+`PERSON_IF`; Maple Sorrel is visible before Kindling but only offers a warm
+pre-Kindling line until the flag is set. A strict before-Kindling appearance
+window requires a nonzero Kindling flag set in the engine's starter setter.
+
+Still outside this ownership/API surface: the ally-side double-bout and shared
+heals in Glimmer (so `FLAG_SORREL_TEAMUP` remains unused), Gravewood's
+night-time lost-kin encounter/follower and `FLAG_SORREL_LANTERN`, E4 camera
+and departure cutscenes, crest-stage quest markers/retiming in grim/saga,
+`EV_HUSH` wild population overrides in events, and the unique cast art.
+None is represented as a completed scripted encounter. Maple wire delivery
+remains at its existing Hearth hook; other Hearth callbacks belong to their
+region/engine owners. Story tests check actual registered NPCs, passable
+cells, flags, callbacks, 24-person map definitions, and a nearby seven-sprite
+viewport around each new encounter. A full camera-state sweep is not covered.
