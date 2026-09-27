@@ -297,6 +297,7 @@ static int item_from_code(u16 code);
 
 static void farm_reset(void)
 {
+    events_caravan_reset();
     u8 *raw = (u8 *)&farm;
     for (unsigned i = 0; i < sizeof(farm); i++) raw[i] = 0;
     farm.version = FARM_VERSION;
@@ -610,7 +611,8 @@ static void plot_redraw(int pi)
 #define OT_FARM_BERRY OT_FARM            /* 2 frames x 4 tiles (off the farm) */
 #define OT_FARM_FX (OT_FARM + 8)         /* FXT_COUNT tiles */
 #define OT_FARM_CURSOR (OT_FARM + 16)    /* 4 tiles */
-#define OT_WEATHER (OT_FARM + 20)        /* 7 x 8x8 tiles, below travel's 640 */
+#define OT_WEATHER (OT_FARM + 20)        /* 7 x 8x8 tiles */
+#define OT_CARAVAN (OT_FARM + 32)        /* 8 tiles, below travel's 640 */
 enum { WFX_SNOW, WFX_FOG, WFX_HEAT, WFX_GLOW, WFX_STREAM, WFX_STAR, WFX_ASH, WFX_COUNT };
 /* Existing emote bank: 2 white, 3 warm red, 4 cyan, 5 grey, 6 pale gold. */
 static const char *const WEATHER_ART[WFX_COUNT][8] = {
@@ -623,6 +625,40 @@ static const char *const WEATHER_ART[WFX_COUNT][8] = {
     { "........", "........", "....5...", "...565..", "....6...", "........", "........", "........" },
 };
 
+/* A 32x16 covered cart; the existing farm item palette supplies all colours. */
+static const char *const CARAVAN_ART[16] = {
+    "..........fffffffffffff.........",
+    "........ffccccccccccccff........",
+    "......ffccccccccccccccccff......",
+    "....ffccccccccccccccccccccff....",
+    "..ffccccccccccccccccccccccccff..",
+    "..faaccccccccccccccccccccccccaf.",
+    ".faabbbbbbbbbbbbbbbbbbbbbbbbaaf.",
+    "faaabbbbbbbbbbbbbbbbbbbbbbbbaaaf",
+    "faaaabbbbbbbbbbbbbbbbbbbbbbaaaaf",
+    "faaaabbbbbbbbbbbbbbbbbbbbbbaaaaf",
+    ".faaaabbbbbbbbbbbbbbbbbbbbaaaaf.",
+    "..ffffffffffffffffffffffffffff..",
+    "....bbbbb..............bbbbb....",
+    "....bbfbb..............bbfbb....",
+    ".....fff................fff.....",
+    "................................",
+};
+static void caravan_load_tiles(void)
+{
+    for (int t = 0; t < 8; t++) {
+        u32 rows[8];
+        for (int y = 0; y < 8; y++) {
+            u32 row = 0;
+            for (int x = 0; x < 8; x++) {
+                char c = CARAVAN_ART[(t / 4) * 8 + y][(t % 4) * 8 + x];
+                if (c >= 'a' && c <= 'g') row |= (u32)(c - 'a' + 9) << (x * 4);
+            }
+            rows[y] = row;
+        }
+        copy32(VRAM_OBJ_TILES + (OT_CARAVAN + t) * 8, rows, 8);
+    }
+}
 static void weather_load_tiles(void)
 {
     for (int t = 0; t < WFX_COUNT; t++) {
@@ -1832,6 +1868,7 @@ static void farm_map_loaded(void)
     for (int i = 0; i < FARM_WORKERS; i++) farm_kin[i].shown = 0;
     fx_freeze = 0;
     weather_load_tiles();
+    caravan_load_tiles();
     if (cur_map == MAP_WILLOW_ACRE) {
         fx_load_farm();
         if (farm.owned) {
@@ -1857,6 +1894,7 @@ static void farm_tick(void)
         keys_now = 0;           /* the player stands still while the tool works */
     }
     fx_update();
+    events_caravan_tick();
     if (cur_map != MAP_WILLOW_ACRE) return;
     workers_update();
     if (farm.owned && !player.moving) {
@@ -1993,9 +2031,23 @@ static void farm_draw(void)
 {
     /* Battle FX reuse these tiles; the first field draw after another screen restores them. */
     static unsigned last_field_draw;
-    if ((unsigned)frame_count != last_field_draw + 1) weather_load_tiles();
+    if ((unsigned)frame_count != last_field_draw + 1) {
+        weather_load_tiles();
+        caravan_load_tiles();
+    }
     last_field_draw = (unsigned)frame_count;
     farm_canvas_draw();
+    int wagon_x = events_caravan_wagon_x();
+    if (wagon_x >= 0) {
+        int person_y = -1;
+        for (int i = 0; i < NPC_COUNT; i++)
+            if (events_caravan_person(i)) { person_y = NPCS[i].y * 16; break; }
+        if (person_y >= 0) {
+            for (int i = 0; i < 7; i++) obj_palette[FARM_OBANK * 16 + 9 + i] = FX_PAL[i];
+            spr_push(wagon_x - cam_x, person_y - cam_y - 4, OT_CARAVAN,
+                     WIDE32x16, FARM_OBANK, 2, 0);
+        }
+    }
     /* the plot you face */
     if (farm_here() && !player.moving && game_mode == MODE_FIELD && !dialog_active()) {
         int fx = player.x + DIR_DX[player.facing], fy = player.y + DIR_DY[player.facing], nl;

@@ -11,6 +11,13 @@ typedef struct {
     u8 festival_claimed, tourney_wins;
 } EventState;
 static EventState events;
+/* Visual-only arrival state: never serialized with the event module. */
+#define CARAVAN_ARRIVAL_FRAMES 64
+static struct { u16 day; u8 map, stop, frame, active, seen; s16 start_x; } caravan_arrival;
+static void events_caravan_reset(void)
+{
+    caravan_arrival.active = caravan_arrival.seen = 0;
+}
 
 typedef struct { u8 map, min_act; const char *name; } CaravanStop;
 static const CaravanStop CARAVAN_ROUTE[] = {
@@ -136,6 +143,8 @@ static void events_new_day_impl(void)
         events.caravan_map = 0;
         if (act < 2) events.caravan_map = 7; /* Maple remains reachable in Act I */
     }
+    /* A newly rolled stop can enter from the edge even if dawn occurs here. */
+    caravan_arrival.active = 0;
     events.active[1] = EV_CARAVAN;
     events.arg[1] = events.caravan_map;
     if (events.front_days && previous_day + 1 == gtime.day && events.front_region < ER_COUNT &&
@@ -301,10 +310,75 @@ static int events_claim(int kind, int map)
     events.visit_claimed = 1;
     return 1;
 }
+static int events_caravan_person(int i)
+{
+    return NPCS[i].map == cur_map && NPCS[i].script == SCR_CARAVAN &&
+           events_active(NPCS[i].event);
+}
+static void events_caravan_reveal(int visible)
+{
+    for (int i = 0; i < NPC_COUNT; i++)
+        if (events_caravan_person(i)) {
+            npc_visible[i] = (u8)visible;
+            if (!visible) npc_kin[i].shown = 0;
+        }
+}
+static int events_caravan_spot_x(void)
+{
+    for (int i = 0; i < NPC_COUNT; i++)
+        if (events_caravan_person(i)) return NPCS[i].x * 16;
+    return -1;
+}
+static void events_caravan_start(int map)
+{
+    caravan_arrival.active = 0;
+    if (!events_caravan_here(map) || events_caravan_spot_x() < 0) return;
+    if (caravan_arrival.seen && caravan_arrival.day == gtime.day &&
+        caravan_arrival.stop == events.caravan_map && caravan_arrival.map == map) return;
+    field_update_camera();
+    caravan_arrival.day = gtime.day;
+    caravan_arrival.stop = events.caravan_map;
+    caravan_arrival.map = (u8)map;
+    int target = events_caravan_spot_x() - 32;
+    caravan_arrival.start_x = (s16)(target - cam_x > SCREEN_WIDTH / 2 ?
+                                    cam_x + SCREEN_WIDTH : cam_x - 32);
+    caravan_arrival.frame = 0;
+    caravan_arrival.active = caravan_arrival.seen = 1;
+    events_caravan_reveal(0);
+}
+static void events_caravan_tick(void)
+{
+    if (!caravan_arrival.active && events_caravan_here(cur_map) &&
+        (!caravan_arrival.seen || caravan_arrival.day != gtime.day)) events_caravan_start(cur_map);
+    if (!caravan_arrival.active) return;
+    if (!events_caravan_here(cur_map) || caravan_arrival.map != cur_map ||
+        caravan_arrival.day != gtime.day ||
+        caravan_arrival.stop != events.caravan_map) {
+        caravan_arrival.active = 0;
+        return;
+    }
+    events_caravan_reveal(0); /* a night refresh must not pop Merriweather in early */
+    if (warp.active) return;
+    if (++caravan_arrival.frame >= CARAVAN_ARRIVAL_FRAMES) {
+        caravan_arrival.active = 0;
+        field_events_refresh();
+    }
+}
+static int events_caravan_wagon_x(void)
+{
+    if (!caravan_arrival.seen || !events_caravan_here(cur_map) ||
+        caravan_arrival.day != gtime.day || caravan_arrival.stop != events.caravan_map) return -1;
+    int spot = events_caravan_spot_x();
+    if (spot < 0) return -1;
+    int target = spot - 32;
+    if (!caravan_arrival.active) return target;
+    return caravan_arrival.start_x + (target - caravan_arrival.start_x) *
+           caravan_arrival.frame / CARAVAN_ARRIVAL_FRAMES;
+}
 static void events_map_entered_impl(int map)
 {
     if (events.rolled_day != gtime.day) events_new_day_impl();
-    (void)map; /* E10 refreshes NPC conditions and weather on entry. */
+    events_caravan_start(map);
 }
 static const char *events_gazette_line(int i)
 {
