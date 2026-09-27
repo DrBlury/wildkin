@@ -1,0 +1,8 @@
+# Playtime measurement handoff
+
+Scope: `tools/playthrough/` and `docs/playtest/plan12-scripted.md`, isolated worktree only. Plan 12 §3/6 requested an act-by-act, frame-counted critical-path lower bound plus a human pass. The ROM-backed harness and eight act entry fixtures exist, but **the full-playtime deliverable is incomplete**. Do not publish a 16–18h measurement or treat short segments as act totals.
+
+- Run `make && python3 tools/playthrough/run.py tools/playthrough/act2.route`; repeat for `act3.route` and other acts. `make shot` separately validated existing libmGBA availability. The runner resolves live ELF symbols and enum IDs and checks coordinates; it never reads or changes user saves.
+- Act II reached Brookmill Trail (34,19) in 50 traversed frames and then failed at the bridge/towpath; Act III reached Heron Fen (22,19) in 827 frames and stalled at the adjacent route warden. See the measured table and failed-attempt counts in `docs/playtest/plan12-scripted.md`.
+- Missing: state-aware dialog handling, best-move warden policy, wild policy (fight first six per route / three per hamlet then flee), recovery/heal assumptions, and waypoint graph with tested map transitions and required quest/Hall beats. A Lv20 debug-warp kin cannot stand in for correctly levelled act-party balance. The current runner intentionally returns exit 2 on stalls; replacing those stops with unverified `wait` or RAM teleports would invalidate the lower bound.
+- Keep save compatibility verification separate: no save layout changed here and no existing `.sav` used. Preserve current `docs/playtest/act2.md` and `act3.md` templates for a real tester; no player actions were simulated or requested on the user's behalf.

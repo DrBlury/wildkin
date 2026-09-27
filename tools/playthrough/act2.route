@@ -1,0 +1,7 @@
+# Act II East: debug warp to Brookmill Trail. G1 storm calmed at act start.
+flag FLAG_STORM_CALMED
+start MAP_BROOKMILL_TRAIL
+way MAP_BROOKMILL_TRAIL 34 18
+way MAP_BROOKMILL_TRAIL 34 19
+way MAP_BROOKMILL_TRAIL 50 19
+way MAP_BROOKMILL_TRAIL 61 17

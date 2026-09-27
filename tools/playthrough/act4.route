@@ -1,0 +1,7 @@
+# Act 4 ROM segment; debug warp, prior-act flags, checked coordinate.
+flag FLAG_STORM_CALMED
+flag FLAG_VOLT_CREST
+flag FLAG_FEN_RIVETS
+flag FLAG_TIDE_CREST
+start MAP_CINDER_CROSSING
+way MAP_CINDER_CROSSING 33 18

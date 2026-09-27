@@ -1,0 +1,7 @@
+# Act 5 ROM segment; debug warp, prior-act flags, checked coordinate.
+flag FLAG_STORM_CALMED
+flag FLAG_VOLT_CREST
+flag FLAG_TIDE_CREST
+flag FLAG_CREST_ANVIL
+start MAP_FOOTHILLS
+way MAP_FOOTHILLS 25 30

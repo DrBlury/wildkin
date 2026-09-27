@@ -1,0 +1,10 @@
+# Act 8 ROM segment; debug warp, prior-act flags, checked coordinate.
+flag FLAG_STORM_CALMED
+flag FLAG_VOLT_CREST
+flag FLAG_TIDE_CREST
+flag FLAG_CREST_ANVIL
+flag FLAG_RIME_CREST
+flag FLAG_LANTERN_CREST
+flag FLAG_CREST_DREAM
+start MAP_OSSUARY_1
+way MAP_OSSUARY_1 12 10
