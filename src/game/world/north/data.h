@@ -684,13 +684,13 @@ static const char *const FOOTHILLS_ROWS[] = {
     "p...........=========..................p", /* 49 */
     "P...........=========..................P", /* 50 */
     "p..........CC========..................p", /* 51 */
-    "P..........==========..................P", /* 52 */
-    "p..........==========..................p", /* 53 */
+    "P..........==C=======..................P", /* 52 */
+    "p..........C=========..................p", /* 53 */
     "PCCCCCCCCCC===CCCCCCCCCCCCCCCCCCCCCCCCCC", /* 54 */
-    "pCCCCCCCCCC===CCCCCCCCCCCCCCCCCCCCCCCCCC", /* 55 */
+    "pCCCCCCCCCC==CCCCCCCCCCCCCCCCCCCCCCCCCCC", /* 55 */
     "PCCCCCCCCCC==C..CCCCCCCCCCCCCCCCCCCCCCCC", /* 56 */
-    "pCCCCCCCCCC==...CCCCCCCCCCCCCCCCCCCCCCCC", /* 57 */
-    "PCCCCCCCCCC==...CCCCCCCCCCCCCCCCCCCCCCCC", /* 58 */
+    "pCCCCCCCCCCC=...CCCCCCCCCCCCCCCCCCCCCCCC", /* 57 */
+    "PCCCCCCCCCCC=...CCCCCCCCCCCCCCCCCCCCCCCC", /* 58 */
     "PCCCCCCCCCC==CCCCCCCCCCCCCCCCCCCCCCCCCCC", /* 59 */
 };
 static const char *const TIMBERLINE_ROWS[] = {
