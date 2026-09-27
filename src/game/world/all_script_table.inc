@@ -14,4 +14,5 @@
 #include "story/script_table.inc"
 #include "links/script_table.inc"
 #include "events/script_table.inc"
+#include "saga/script_table.inc"
 #include "debug/script_table.inc"

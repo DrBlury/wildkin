@@ -14,4 +14,5 @@
 #include "story/trainers.inc"
 #include "links/trainers.inc"
 #include "events/trainers.inc"
+#include "saga/trainers.inc"
 #include "debug/trainers.inc"

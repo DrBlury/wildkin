@@ -14,4 +14,5 @@
 #include "story/signs.inc"
 #include "links/signs.inc"
 #include "events/signs.inc"
+#include "saga/signs.inc"
 #include "debug/signs.inc"

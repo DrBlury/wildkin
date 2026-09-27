@@ -14,4 +14,5 @@
 #include "story/trainer_ids.inc"
 #include "links/trainer_ids.inc"
 #include "events/trainer_ids.inc"
+#include "saga/trainer_ids.inc"
 #include "debug/trainer_ids.inc"

@@ -14,4 +14,5 @@
 #include "story/flypoints.inc"
 #include "links/flypoints.inc"
 #include "events/flypoints.inc"
+#include "saga/flypoints.inc"
 #include "debug/flypoints.inc"

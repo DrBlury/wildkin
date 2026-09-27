@@ -14,4 +14,5 @@
 #include "story/lore_ids.inc"
 #include "links/lore_ids.inc"
 #include "events/lore_ids.inc"
+#include "saga/lore_ids.inc"
 #include "debug/lore_ids.inc"

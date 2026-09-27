@@ -14,4 +14,5 @@
 #include "story/quests.inc"
 #include "links/quests.inc"
 #include "events/quests.inc"
+#include "saga/quests.inc"
 #include "debug/quests.inc"

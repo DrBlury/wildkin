@@ -14,4 +14,5 @@
 #include "story/zones.inc"
 #include "links/zones.inc"
 #include "events/zones.inc"
+#include "saga/zones.inc"
 #include "debug/zones.inc"

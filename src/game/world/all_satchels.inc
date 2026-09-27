@@ -14,4 +14,5 @@
 #include "story/satchels.inc"
 #include "links/satchels.inc"
 #include "events/satchels.inc"
+#include "saga/satchels.inc"
 #include "debug/satchels.inc"

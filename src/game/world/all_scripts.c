@@ -14,4 +14,5 @@
 #include "story/scripts.c"
 #include "links/scripts.c"
 #include "events/scripts.c"
+#include "saga/scripts.c"
 #include "debug/scripts.c"

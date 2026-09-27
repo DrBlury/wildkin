@@ -14,4 +14,5 @@
 #include "story/npcs.inc"
 #include "links/npcs.inc"
 #include "events/npcs.inc"
+#include "saga/npcs.inc"
 #include "debug/npcs.inc"

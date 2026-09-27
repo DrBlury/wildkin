@@ -14,4 +14,5 @@
 #include "story/maps.inc"
 #include "links/maps.inc"
 #include "events/maps.inc"
+#include "saga/maps.inc"
 #include "debug/maps.inc"

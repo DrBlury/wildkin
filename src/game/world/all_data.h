@@ -14,4 +14,5 @@
 #include "story/data.h"
 #include "links/data.h"
 #include "events/data.h"
+#include "saga/data.h"
 #include "debug/data.h"
