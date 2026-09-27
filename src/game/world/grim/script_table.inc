@@ -11,3 +11,6 @@
     [SCR_SISTER] = scr_sister,
     [SCR_MORWEN] = scr_morwen,
     [SCR_VIGIL] = scr_vigil,
+    [SCR_AUDRA] = scr_audra,
+    [SCR_MAUD] = scr_maud,
+    [SCR_ACCORD_SHOP] = scr_accord_shop,

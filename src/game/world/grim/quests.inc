@@ -6,3 +6,4 @@
         "The ash farmer in ASHEN FIELDS wants a BONE LANTERN for his pumpkin patch. Look for one in GRAVEWOOD." },
     [QUEST_MIRE_LETTER] = { "A LETTER TO THE MIRE",
         "Carry the mourner's letter from GRAVEWOOD to her sister, WIDOW MAREN, in DUSKMERE's MIRE HOUSE." },
+    [QUEST_BARROW_CANDLES] = { "BARROW CANDLES", "Light candles in both barrows and at the chalk cairn. Return to SISTER MAUD." },

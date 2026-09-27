@@ -204,3 +204,9 @@
         "luck.\n\n"
         "Duskmere kept its lanterns lit anyway. Old promises are good promises.",
         0 },
+    [LORE_HOLLOW_DOWNS] = { LCH_PLACES, LSRC_AUDRA, "HOLLOW DOWNS",
+        "The chalk downs mark the Accord's quarantine line. Its barrows hold the old kin of the March. HOLLOW kernels borrow bone and ash to make new bodies. The Waychapel keeps a light for travellers.",
+        "The Accord holds the March until a warden bears four crests.\fKeep a steady light among the barrows." },
+    [LORE_KINSHIP_VOW] = { LCH_HOLLOWING, LSRC_MAUD, "KINSHIP VOWS",
+        "At the Waychapel, Sister Maud tends three candles for the lost. A kernel does not cease to matter when its body falls away.",
+        "The old vows still hold: care for every kernel, even the ones left behind." },

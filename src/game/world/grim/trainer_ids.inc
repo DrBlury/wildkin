@@ -5,3 +5,9 @@
     TR_MORWEN,                            /* LANTERN CRYPT Hall Master (TT_MASTER) */
     TR_CORVIN, TR_ELSPETH,                /* THE OSSUARY */
     TR_GRIMSBY, TR_HESTER,                /* OSSUARY DEEPS */
+    TR_AUDRA_PATROL,
+    TR_DIGGER,
+    TR_PILGRIM_A,
+    TR_PILGRIM_B,
+    TR_CUTTER,
+    TR_DOWNS_WATCH,
