@@ -7,3 +7,6 @@
     { MAP_DUSKMERE, 31, 8, "THE LANTERN CRYPT\fHALL MASTER MORWEN. Bring your own light; the walls will not help you." },
     { MAP_DUSKMERE, 31, 18, "THE OSSUARY\fSealed by the Wardens' Accord. The gate opens for holders of all six crests." },
     { MAP_LANTERN_CRYPT, 10, 18, "The plaque reads:\fIN THE DARK, THE WALLS LIE. WHAT LOOKS OPEN MAY BE CLOSED, AND WHAT LOOKS CLOSED MAY OPEN." },
+    { MAP_HOLLOW_DOWNS, 19, 4, "HOLLOW DOWNS\fNorth: Accord checkpoint. South: ASHEN FIELDS. The Waychapel stands on the chalk knoll." },
+    { MAP_HOLLOW_DOWNS, 26, 19, "The chalk horse was cut before the Burning. Buried kin wake where the old candles go dark." },
+    { MAP_BARROW_B, 2, 3, "Old burial customs left kernels among the bones. HOLLOW kin borrow what the living leave behind." },

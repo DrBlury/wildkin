@@ -393,6 +393,14 @@ static int on_throne(int x, int y)
  * obj_interact, so the OBJ_LEGEND on the throne plays this story. */
 static int grim_interact(int x, int y)
 {
+    int candle = cur_map == MAP_BARROW_A && x == 4 && y == 3 ? FLAG_CANDLE_A :
+                 cur_map == MAP_BARROW_B && x == 4 && y == 3 ? FLAG_CANDLE_B :
+                 cur_map == MAP_HOLLOW_DOWNS && x == 12 && y == 29 ? FLAG_CANDLE_CAIRN : 0;
+    if (candle) {
+        if (!flag(candle)) { flag_set(candle); dlg_say("You light a candle for the buried kin."); }
+        else dlg_say("The candle is still burning.");
+        return 1;
+    }
     if (!on_throne(x, y)) return 0;
     if (grim_healed()) {
         dlg_say(flag(FLAG_OSSUREX_JOINED) ? "The Bone Throne is empty. Its bones are cool to the touch."
@@ -431,4 +439,70 @@ static void scr_vigil(int npc)
         return;
     }
     dlg_say("Face the throne and lay your hand on the bones. It will wake for you. Go softly.");
+}
+
+/* Until E3 visibility is merged the captain physically occupies the only lane.
+ * Talk lets a qualified warden through without letting an early player walk by. */
+static void grim_across_accord(int ignored)
+{
+    (void)ignored;
+    field_begin_warp(MAP_HOLLOW_DOWNS, 20, 2, DIR_DOWN);
+}
+
+static void grim_back_to_copperline(int ignored)
+{
+    (void)ignored;
+    field_begin_warp(MAP_COPPERLINE, 20, 34, DIR_UP);
+}
+
+static void scr_audra(int npc)
+{
+    (void)npc;
+    if (player.y < 6) {
+        dlg_say("ACCORD PASS checked. Follow me back to COPPERLINE.");
+        dlg_call(grim_back_to_copperline, 0);
+        return;
+    }
+    if (!flag(FLAG_RIME_CREST)) {
+        char msg[120];
+        str_copy(msg, "Only wardens with four crests may enter the March. You have ");
+        str_put_int(msg, grim_crest_count());
+        str_put(msg, ".");
+        dlg_say(msg);
+        return;
+    }
+    dlg_say("Four crests. The quarantine opens to you. HOLLOW kin borrow bone and ash to build a body; keep your lantern lit.");
+    lore_reveal(LSRC_AUDRA, "HOLLOW kin bind their kernels to borrowed remains. Steady light calms the bind.");
+    dlg_call(grim_across_accord, 0);
+}
+
+static const u8 ACCORD_STOCK[] = { ITEM_BIG_TONIC, ITEM_HUSH_BELL, ITEM_BONE_LANTERN };
+static void accord_shop_answer(int choice)
+{
+    if (choice == 0) shop_open_stock(ACCORD_STOCK, (int)sizeof(ACCORD_STOCK));
+}
+static void scr_accord_shop(int npc)
+{
+    (void)npc;
+    dlg_ask("Accord supplies. Tonics, hush bells and bone lanterns?", SHOP_MENU, 3, accord_shop_answer);
+}
+
+static void scr_maud(int npc)
+{
+    (void)npc;
+    if (!quest_get(QUEST_BARROW_CANDLES)) {
+        quest_set(QUEST_BARROW_CANDLES, 1);
+        dlg_say("The Kinship vows ask us to remember the lost. Light both barrow candles and the cairn on the downs.");
+    } else if (!flag(FLAG_CANDLES_REWARD) && flag(FLAG_CANDLE_A) &&
+               flag(FLAG_CANDLE_B) && flag(FLAG_CANDLE_CAIRN)) {
+        flag_set(FLAG_CANDLES_REWARD);
+        quest_set(QUEST_BARROW_CANDLES, 255);
+        dlg_say("Three flames. The old vows hold. Take these bells for the way ahead.");
+        give_item(ITEM_HUSH_BELL, 3);
+    } else {
+        dlg_say(flag(FLAG_CANDLES_REWARD) ? "A flame for every traveller. Rest now."
+                                         : "Two candles in the barrows, one at the cairn. None need an item to light.");
+    }
+    lore_reveal(LSRC_MAUD, "The Kinship vow: care for every kernel, including the ones left behind.");
+    dlg_ask("Rest your kin at the WAYCHAPEL?", HEARTH_MENU, 3, heal_answer);
 }

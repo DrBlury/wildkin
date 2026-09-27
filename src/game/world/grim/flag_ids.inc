@@ -13,3 +13,7 @@
     FLAG_OSSUREX_JOINED,
     FLAG_ASH_HEALED_TOLD,   /* the Keeper heard the news */
     FLAG_VIGIL_GIFT,
+    FLAG_CANDLES_REWARD,
+    FLAG_CANDLE_A,
+    FLAG_CANDLE_B,
+    FLAG_CANDLE_CAIRN,

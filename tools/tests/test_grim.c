@@ -62,8 +62,8 @@ static int walkable_only(int map, int edge, int a, int b)
 
 static void test_maps(void)
 {
-    CHECK(walkable_only(MAP_ASHEN_FIELDS, LINK_N, 20, 21) && MAPS[MAP_ASHEN_FIELDS].link[LINK_N] == MAP_COPPERLINE,
-          "ASHEN FIELDS opens north only at x 20-21, into COPPERLINE ROAD");
+    CHECK(walkable_only(MAP_ASHEN_FIELDS, LINK_N, 20, 21) && MAPS[MAP_ASHEN_FIELDS].link[LINK_N] == MAP_HOLLOW_DOWNS,
+          "ASHEN FIELDS opens north only at x 20-21, into HOLLOW DOWNS");
     CHECK(walkable_only(MAP_ASHEN_FIELDS, LINK_E, 20, 21) && walkable_only(MAP_GRAVEWOOD, LINK_W, 20, 21) &&
               walkable_only(MAP_GRAVEWOOD, LINK_E, 20, 21) && walkable_only(MAP_DUSKMERE, LINK_W, 20, 21),
           "the March's east-west edges open at y 20-21 on both sides");
@@ -286,11 +286,57 @@ static void test_duskmere(void)
           "DUSKMERE: climbing out of the Ossuary lands beside the gate warden");
 }
 
+static void test_routes(void)
+{
+    CHECK(MAPS[MAP_ACCORD_GATE].w == 13 && MAPS[MAP_ACCORD_GATE].h == 9 &&
+          MAPS[MAP_HOLLOW_DOWNS].w == 60 && MAPS[MAP_HOLLOW_DOWNS].h == 40 &&
+          MAPS[MAP_WAYCHAPEL].flags & MF_HEAL, "checkpoint, downs and healing chapel have the planned dimensions");
+    CHECK(walkable_only(MAP_HOLLOW_DOWNS, LINK_S, 20, 21) &&
+          MAPS[MAP_HOLLOW_DOWNS].link[LINK_S] == MAP_ASHEN_FIELDS,
+          "Hollow Downs south matches Ashen's north opening");
+    CHECK(MAPS[MAP_HOLLOW_DOWNS].feat_count >= 3 && MAPS[MAP_BARROW_B].objs[0].arg == 255,
+          "hidden barrow entrances and the TRINKIT mimic are defined");
+    int captain = find_npc(MAP_ACCORD_GATE, "CAPTAIN AUDRA");
+    CHECK(captain >= 0 && NPCS[captain].x == 6 && NPCS[captain].y == 6 &&
+          MAPS[MAP_ACCORD_GATE].rows[6][5] == '#' && MAPS[MAP_ACCORD_GATE].rows[6][7] == '#',
+          "Audra physically blocks the checkpoint's single-cell lane");
+    int east_return = -1;
+    for (int i = 0; i < WARP_COUNT; i++)
+        if (WARPS[i].map == MAP_ACCORD_GATE && WARPS[i].x == 6 && WARPS[i].y == 8 &&
+            WARPS[i].dest == MAP_COPPERLINE) east_return = i;
+    CHECK(east_return >= 0 && WARPS[east_return].dx == 20 && WARPS[east_return].dy == 34 &&
+          NPCS[captain].y < 8, "East's (6,8) arrival returns to Copperline (20,34) and cannot walk past Audra");
+    fresh_game(); give_starter();
+    travel_award_crest(CREST_VOLT); travel_award_crest(CREST_TIDE); travel_award_crest(CREST_ANVIL);
+    field_enter_map(MAP_ACCORD_GATE, 6, 8, DIR_UP);
+    scr_audra(captain); run_dialog(3000);
+    CHECK(cur_map == MAP_ACCORD_GATE && !flag(FLAG_RIME_CREST) && grim_crest_count() == 3,
+          "G5 rejects three crests; the line counts crests but the Rime flag opens it");
+    flag_set(FLAG_RIME_CREST);
+    field_enter_map(MAP_ACCORD_GATE, 6, 8, DIR_UP);
+    scr_audra(captain); run_dialog(3000); settle();
+    CHECK(cur_map == MAP_HOLLOW_DOWNS, "G5 admits the warden with the Rime crest");
+    field_enter_map(MAP_HOLLOW_DOWNS, 20, 2, DIR_UP);
+    field_begin_warp(MAP_ACCORD_GATE, 6, 2, DIR_DOWN);
+    settle();
+    scr_audra(captain); run_dialog(3000); settle();
+    CHECK(cur_map == MAP_COPPERLINE, "the return passage does not trap the player south of G5");
+    fresh_game(); give_starter();
+    grim_interact(4, 3); /* wrong map: the first candle cannot be lit remotely */
+    CHECK(!flag(FLAG_CANDLE_A), "barrow candles only light at their own map");
+    field_enter_map(MAP_BARROW_A, 5, 3, DIR_RIGHT); grim_interact(4, 3);
+    field_enter_map(MAP_BARROW_B, 5, 3, DIR_RIGHT); grim_interact(4, 3);
+    field_enter_map(MAP_HOLLOW_DOWNS, 11, 29, DIR_RIGHT); grim_interact(12, 29);
+    CHECK(flag(FLAG_CANDLE_A) && flag(FLAG_CANDLE_B) && flag(FLAG_CANDLE_CAIRN),
+          "the three candle flags survive leaving the barrows");
+}
+
 int main(void)
 {
     setvbuf(stdout, NULL, _IONBF, 0);
     game_init();
     test_maps();
+    test_routes();
     test_duskmere();
     test_crypt();
     test_story();

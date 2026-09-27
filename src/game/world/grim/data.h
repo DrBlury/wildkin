@@ -117,6 +117,9 @@ static const char *const GRAVEWOOD_ROWS[] = {
  * where the sealed OSSUARY gate is cut into the hill's two-row cliff; the
  * only way to the gate is the lane UNDER the walk from the reed flats
  * (stairs 18-19,27 and ledges 22-23,27 lead down from the square).
+ * RESERVED LINKS CAVE: east hill (42,9), approached from (41,9).
+ * The Scorchwaste id and cave tile do not exist in this branch; leave this
+ * site sealed until Links supplies the reciprocal warp and rockfall.
  * HENBANE'S WALK (11-12, rows 27-30) crosses the flats to the APOTHECARY
  * ISLE; under it, a reed nook. A gap in the cypress screen (36-37,33) hides
  * the drowned chapel. */
@@ -385,11 +388,11 @@ static const DecorPlace ASHEN_FIELDS_DECOR[] = {
 static const MapObj ASHEN_FIELDS_OBJS[] = { OBJ(BERRY, 16, 20, 30), OBJ(BERRY, 31, 14, 31) };
 
 static const WildSlot WILD_ASHEN[] = {
-    { SP_DREGCROW, 20, 24, 28, WHEN_ANY }, { SP_CALCIPUP, 18, 24, 28, WHEN_ANY },
-    { SP_PUMPKLING, 16, 24, 27, WHEN_ANY }, { SP_SCYTHLING, 14, 25, 28, WHEN_DAY },
-    { SP_DIGGET, 12, 24, 27, WHEN_ANY }, { SP_STRAWSPECT, 8, 25, 29, WHEN_DAY },
-    { SP_JACKOGRIM, 6, 27, 30, WHEN_NIGHT }, { SP_REAPMANTIS, 4, 28, 31, WHEN_ANY },
-    { SP_CAWDAVER, 2, 29, 31, WHEN_NIGHT },
+    { SP_DREGCROW, 20, 34, 38, WHEN_ANY }, { SP_CALCIPUP, 18, 34, 38, WHEN_ANY },
+    { SP_PUMPKLING, 16, 34, 37, WHEN_ANY }, { SP_SCYTHLING, 14, 35, 38, WHEN_DAY },
+    { SP_DIGGET, 12, 34, 37, WHEN_ANY }, { SP_STRAWSPECT, 8, 35, 38, WHEN_DAY },
+    { SP_JACKOGRIM, 6, 37, 38, WHEN_NIGHT }, { SP_REAPMANTIS, 4, 38, 38, WHEN_ANY },
+    { SP_CAWDAVER, 2, 38, 38, WHEN_NIGHT },
 };
 
 /* ---------------- GRAVEWOOD ---------------- */
@@ -416,11 +419,11 @@ static const DecorPlace GRAVEWOOD_DECOR[] = {
 static const MapObj GRAVEWOOD_OBJS[] = { OBJ(BERRY, 5, 23, 32), OBJ(BERRY, 28, 8, 33) };
 
 static const WildSlot WILD_GRAVEWOOD[] = {
-    { SP_SHROOMLET, 18, 27, 31, WHEN_ANY }, { SP_WEBBIT, 16, 27, 31, WHEN_ANY },
-    { SP_OSSIHOUND, 10, 29, 32, WHEN_ANY }, { SP_SEXTONE, 10, 29, 32, WHEN_ANY },
-    { SP_REAPMANTIS, 8, 29, 32, WHEN_ANY }, { SP_MYCOLOSSUS, 6, 30, 33, WHEN_DAY },
-    { SP_CAWDAVER, 8, 29, 32, WHEN_ANY }, { SP_LACEWIDOW, 8, 30, 33, WHEN_NIGHT },
-    { SP_NOCTAVE, 6, 30, 33, WHEN_NIGHT }, { SP_HOPSHI, 2, 32, 34, WHEN_NIGHT },
+    { SP_SHROOMLET, 18, 35, 39, WHEN_ANY }, { SP_WEBBIT, 16, 35, 39, WHEN_ANY },
+    { SP_OSSIHOUND, 10, 37, 39, WHEN_ANY }, { SP_SEXTONE, 10, 37, 39, WHEN_ANY },
+    { SP_REAPMANTIS, 8, 37, 39, WHEN_ANY }, { SP_MYCOLOSSUS, 6, 38, 39, WHEN_DAY },
+    { SP_CAWDAVER, 8, 37, 39, WHEN_ANY }, { SP_LACEWIDOW, 8, 38, 39, WHEN_NIGHT },
+    { SP_NOCTAVE, 6, 38, 39, WHEN_NIGHT }, { SP_HOPSHI, 2, 39, 39, WHEN_NIGHT },
 };
 
 /* ---------------- DUSKMERE ---------------- */
@@ -446,10 +449,10 @@ static const DecorPlace DUSKMERE_DECOR[] = {
 };
 
 static const WildSlot WILD_MIRE[] = {
-    { SP_MUDDLE, 20, 28, 32, WHEN_ANY }, { SP_NOXKIT, 18, 28, 31, WHEN_ANY },
-    { SP_CRANICRAB, 16, 28, 31, WHEN_ANY }, { SP_BOGSHAMBLE, 10, 30, 33, WHEN_ANY },
-    { SP_SHROOMLET, 10, 28, 31, WHEN_DAY }, { SP_UMBRAKAT, 8, 30, 33, WHEN_NIGHT },
-    { SP_WICKLET, 3, 31, 33, WHEN_NIGHT },
+    { SP_MUDDLE, 20, 36, 40, WHEN_ANY }, { SP_NOXKIT, 18, 36, 39, WHEN_ANY },
+    { SP_CRANICRAB, 16, 36, 39, WHEN_ANY }, { SP_BOGSHAMBLE, 10, 38, 40, WHEN_ANY },
+    { SP_SHROOMLET, 10, 36, 39, WHEN_DAY }, { SP_UMBRAKAT, 8, 38, 40, WHEN_NIGHT },
+    { SP_WICKLET, 3, 39, 40, WHEN_NIGHT },
 };
 
 static const DecorPlace DUSK_HEARTH_DECOR[] = {
@@ -500,17 +503,17 @@ static const DecorPlace OSSUARY_2_DECOR[] = {
 };
 
 static const WildSlot WILD_OSSUARY[] = {
-    { SP_CRYPTCLAW, 18, 40, 44, WHEN_ANY }, { SP_OSSIHOUND, 16, 40, 44, WHEN_ANY },
-    { SP_SEXTONE, 14, 40, 43, WHEN_ANY }, { SP_SQUEAKLE, 12, 39, 42, WHEN_ANY },
-    { SP_NOCTAVE, 12, 41, 44, WHEN_ANY }, { SP_CAWDAVER, 10, 41, 44, WHEN_ANY },
-    { SP_RATTLEBONE, 4, 40, 43, WHEN_ANY }, { SP_TRINKIT, 3, 40, 43, WHEN_ANY },
+    { SP_CRYPTCLAW, 18, 44, 48, WHEN_ANY }, { SP_OSSIHOUND, 16, 44, 48, WHEN_ANY },
+    { SP_SEXTONE, 14, 44, 47, WHEN_ANY }, { SP_SQUEAKLE, 12, 44, 46, WHEN_ANY },
+    { SP_NOCTAVE, 12, 45, 48, WHEN_ANY }, { SP_CAWDAVER, 10, 45, 48, WHEN_ANY },
+    { SP_RATTLEBONE, 4, 44, 47, WHEN_ANY }, { SP_TRINKIT, 3, 44, 47, WHEN_ANY },
 };
 static const WildSlot WILD_OSSUARY_DEEP[] = {
-    { SP_CRYPTCLAW, 16, 43, 47, WHEN_ANY }, { SP_OSSIHOUND, 14, 43, 47, WHEN_ANY },
-    { SP_NOCTAVE, 14, 43, 47, WHEN_ANY }, { SP_BOGSHAMBLE, 12, 43, 47, WHEN_ANY },
-    { SP_REAPMANTIS, 12, 44, 47, WHEN_ANY }, { SP_CAWDAVER, 12, 44, 47, WHEN_ANY },
-    { SP_RATTLEBONE, 5, 43, 46, WHEN_ANY }, { SP_HOPSHI, 4, 45, 48, WHEN_ANY },
-    { SP_TRINKIT, 3, 43, 46, WHEN_ANY },
+    { SP_CRYPTCLAW, 16, 46, 50, WHEN_ANY }, { SP_OSSIHOUND, 14, 46, 50, WHEN_ANY },
+    { SP_NOCTAVE, 14, 46, 50, WHEN_ANY }, { SP_BOGSHAMBLE, 12, 46, 50, WHEN_ANY },
+    { SP_REAPMANTIS, 12, 47, 50, WHEN_ANY }, { SP_CAWDAVER, 12, 47, 50, WHEN_ANY },
+    { SP_RATTLEBONE, 5, 46, 49, WHEN_ANY }, { SP_HOPSHI, 4, 48, 50, WHEN_ANY },
+    { SP_TRINKIT, 3, 46, 49, WHEN_ANY },
 };
 
 /* ---------------- BONE THRONE ---------------- */
@@ -523,3 +526,120 @@ static const DecorPlace BONE_THRONE_DECOR[] = {
     DP(CR_CANDLES, 4, 8), DP(CR_CANDLES, 12, 8), DP(CR_BANNER, 4, 0), DP(CR_BANNER, 12, 0),
 };
 static const MapObj BONE_THRONE_OBJS[] = { OBJ(LEGEND, 8, 3, SP_OSSUREX) };
+
+/* Accord gate and the chalk downs. The two southern edge cells match Ashen x20-21. */
+static const char *const ACCORD_GATE_ROWS[] = {
+    "WWWWWWWWWWWWW",
+    "wwwwwwDwwwwww",
+    "####......###",
+    "####......###",
+    "######.######",
+    "######.######",
+    "######.######",
+    "####......###",
+    "######D######",
+};
+static const MapObj ACCORD_GATE_OBJS[] = { OBJ(LADDER, 6, 1, 0), OBJ(LADDER, 6, 8, 0) };
+static const char *const HOLLOW_DOWNS_ROWS[] = {
+    "CCCCCCCCCCCCCCCCCCCCddCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+    "cccccccccccccccccccc..cccccccccccccccccccccccccccccccccccccc",
+    "C...................==.....................................C",
+    "c...................==.....................................c",
+    "C...................==.....................................C",
+    "c....,,,,,,,,,,,,...==.....................................c",
+    "C....gggggggggggg...==.....................................C",
+    "c....,,,,,,,,,,,,...==.......==............................c",
+    "C....,,,,,,,,,,,,...==.......==............................C",
+    "c....gggggggggggg...==.......................mmmmmmmmm.....c",
+    "C....,,,,,,,,,,,,...==..ggggg==ggggggggg.....mmmmmmmmm.....C",
+    "c....,,,,,,,,,,,,...==..ggggg==ggggggggg.....mmmmmmmmm.....c",
+    "C.ggggggggg==gggggg.==.......................mmmmmmmmm.....C",
+    "c.ggggggggg==gggggg.==.......................mmmmmmmmm.....c",
+    "C....,,,,,,,,,,,,...==.............bbbbbbbbbbmmmmmmmmm.....C",
+    "c....gggggggggggg...==.............bbbbbbbbbbmmmmmmmmm.....c",
+    "C....,,,,,,,,,,,,...==.............bbbbbbbbbbmmmmmmmmm.....C",
+    "c....,,,,,,,,,,,,...==.............bbbbbbbbbbmmmmmmmmm.....c",
+    "C....gggggggggggg...==.............bbbbbbbbbbbbbb..........C",
+    "c...................==.............bbbbbbbbbbbbbb..........c",
+    "C...................==.............bbbbbbbbbbbbbb..........C",
+    "c...................==.............bbbbbbbbbbbbbb..........c",
+    "C...................==.............bbbbbbbbbbbbbb..........C",
+    "c...................==.............bbbbbbbbbbbbbb..........c",
+    "C...................==..ggggg==gggggggggbbbbbbbbb..........C",
+    "c...................==..ggggg==gggggggggbbbbbbbbb..........c",
+    "C...................==.............bbbbbbbbbbbbbb..........C",
+    "c.ggggggggg==gggggg.==.............bbbbbbbbbbbbbb..........c",
+    "C.gmmmmmmmm==gggggg.==.............bbbbbbbbbbbbbb..........C",
+    "c..mmmmmmmm.........==.............bbbbbbbbbbbbbb..........c",
+    "C..mmmmmmmm.........==.............bbbbbbbbbbbbbb..........C",
+    "c..mmmmmmmm.........==.............bbbbbbbbbbbbbb..........c",
+    "C..mmmmmmmm.........==.............bbbbbbbbbbbbbb..........C",
+    "c..mmmmmmmm.........==.....................................c",
+    "C..mmmmmmmm.........==.....................................C",
+    "c...................==.....................................c",
+    "C...................==.....................................C",
+    "c...................==.....................................c",
+    "CCCCCCCCCCCCCCCCCCCC==CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+    "cccccccccccccccccccc==cccccccccccccccccccccccccccccccccccccc",
+};
+static const char *const WAYCHAPEL_ROWS[] = {
+    "WWWWWWWWWWWWW",
+    "wwwwwwwwwwwww",
+    ".............",
+    ".............",
+    ".............",
+    ".............",
+    ".............",
+    ".............",
+    ".............",
+    "......D......",
+};
+static const char *const BARROW_A_ROWS[] = {
+    "WWWWWWWWWWWWW",
+    "wwwwwwwwwwwww",
+    ".............",
+    ".............",
+    ".............",
+    ".............",
+    ".............",
+    "......D......",
+};
+static const char *const BARROW_B_ROWS[] = {
+    "WWWWWWWWWWWWW",
+    "wwwwwwwwwwwww",
+    ".............",
+    ".............",
+    ".............",
+    ".............",
+    ".............",
+    "......D......",
+};
+static const DecorPlace HOLLOW_DOWNS_DECOR[] = {
+    DP(GR_LANTERN, 12, 29),
+    DP(GR_SIGN, 19, 4), DP(GR_SIGN, 26, 19), DP(GR_GRAVE, 11, 13), DP(GR_GRAVE, 29, 10),
+    DP(GR_GRAVE, 12, 28), DP(GR_FENCE, 25, 10), DP(GR_FENCE, 26, 10), DP(GR_FENCE, 27, 10),
+    DP(GR_FENCE, 32, 10), DP(GR_FENCE, 33, 10), DP(GR_FENCE, 34, 10),
+    DP(GR_FENCE, 25, 24), DP(GR_FENCE, 26, 24), DP(GR_FENCE, 27, 24),
+    DP(GR_FENCE, 32, 24), DP(GR_FENCE, 33, 24), DP(GR_FENCE, 34, 24),
+    DP(GR_BONES, 14, 14), DP(GR_BONES, 40, 30), DP(GR_LANTERN, 30, 9),
+    DP(GR_CROSS, 9, 7), DP(GR_CROSS, 10, 7), DP(GR_CROSS, 11, 7),
+    DP(GR_CROSS, 8, 8), DP(GR_CROSS, 12, 8), DP(GR_CROSS, 7, 9),
+    DP(GR_SHRUB, 38, 18), DP(GR_STUMP, 50, 20), DP(GR_WISP, 5, 32),
+};
+static const ElevFeat HOLLOW_DOWNS_FEATS[] = {
+    EF(HIDDEN, 11, 13, 1, 1), EF(HIDDEN, 29, 10, 1, 1),
+    EF(HIDDEN, 4, 32, 1, 1), EF(BRIDGE_H, 24, 20, 7, 2),
+};
+static const MapObj HOLLOW_DOWNS_OBJS[] = {
+    OBJ(BERRY, 46, 29, 34), OBJ(LADDER, 20, 1, 0), OBJ(LADDER, 30, 8, 0),
+    OBJ(LADDER, 11, 13, 0), OBJ(LADDER, 29, 10, 0),
+};
+static const MapObj BARROW_B_OBJS[] = { OBJ(CHEST, 9, 4, 255) };
+static const DecorPlace BARROW_DECOR[] = { DP(CR_CANDLES, 4, 3), DP(CR_PLAQUE, 2, 3) };
+static const WildSlot WILD_DOWNS[] = {
+    { SP_CALCIPUP, 20, 33, 36, WHEN_ANY }, { SP_DREGCROW, 20, 33, 36, WHEN_ANY },
+    { SP_DIGGET, 10, 33, 35, WHEN_ANY }, { SP_SCYTHLING, 10, 34, 37, WHEN_DAY },
+    { SP_STRAWSPECT, 10, 34, 37, WHEN_DAY }, { SP_JACKOGRIM, 10, 34, 37, WHEN_NIGHT },
+    { SP_OSSIHOUND, 5, 35, 37, WHEN_ANY }, { SP_NOXKIT, 10, 34, 37, WHEN_NIGHT },
+    { SP_RATTLEBONE, 2, 36, 37, WHEN_NIGHT },
+};

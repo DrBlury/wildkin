@@ -11,3 +11,6 @@
     SCR_SISTER,
     SCR_MORWEN,
     SCR_VIGIL,
+    SCR_AUDRA,
+    SCR_MAUD,
+    SCR_ACCORD_SHOP,
