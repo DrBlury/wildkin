@@ -505,7 +505,7 @@ static void test_secrets(void)
     CHECK(old.mod_size[4] == sizeof(TravelState) && sizeof(TravelState) == 41 + 8 + 16, "the travel blob grew for secrets and high map visits");
     old.mod_size[4] = 41;
     for (int i = 41; i < MOD_TRAVEL_MAX; i++) old.travel[i] = 0;
-    old.checksum_v6 = save_checksum(&old);
+    old.checksum_v7 = save_checksum(&old);
     travel.crests = 0;
     CHECK(save_valid(&old), "a save from before the secrets is valid");
     save_apply(&old);
@@ -514,7 +514,7 @@ static void test_secrets(void)
     old.map = MAP_EV_TEST;
     old.player_x = 22;
     old.player_y = 19;
-    old.checksum_v6 = save_checksum(&old);
+    old.checksum_v7 = save_checksum(&old);
     save_apply(&old);
     go(DIR_RIGHT);
     go(DIR_RIGHT);
@@ -582,8 +582,11 @@ static void lint(void)
         }
     }
     CHECK(farm_ok, "farm plots lie on plain ground of their terrace");
-    /* persistent bits of maps after TEST HEIGHTS: none (its gate and chest shifted nothing) */
-    CHECK(pbit_base(MAP_COUNT) == pbit_base(MAP_EV_TEST + 1), "no gate, chest or legend after TEST HEIGHTS");
+    /* Later loop routes may add persistent objects; their bit ranges remain disjoint. */
+    int bit_order = 1;
+    for (int m = MAP_EV_TEST + 1; m < MAP_COUNT; m++)
+        bit_order &= pbit_base(m + 1) >= pbit_base(m);
+    CHECK(bit_order, "later route puzzle bits follow TEST HEIGHTS without overlap");
 }
 
 int main(void)

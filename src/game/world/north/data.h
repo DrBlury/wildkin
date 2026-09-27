@@ -117,8 +117,8 @@ static const char *const FROSTHOLLOW_ROWS[] = {
     "ppp..........,,,,.############........pppppp", /* 15 */
     "PPP..........,,,,.############........PPPPPP", /* 16 */
     "pppPPP.......,,,,.############=======.pppppp", /* 17 */
-    "PPPppp.......,,,,..##########.........PPPPPP", /* 18 */
-    "ppp..........,,,,..==######.......,,,,pppppp", /* 19 */
+    "PPPppp.......,,,,..##########...............", /* 18 */
+    "ppp..........,,,,..==######.......,,,,......", /* 19 */
     "PPPPPPPPP..........==........RRRRR,,,,......", /* 20 */
     "ppppppppp........PP==PPPP....PPPPP..........", /* 21 */
     ".................pp==pppp....ppppp..........", /* 22 */
@@ -142,6 +142,11 @@ static const char *const FROSTHOLLOW_ROWS[] = {
 };
 
 /* heights (0-3), stairs (^ v < >) and ledges (_): docs/ELEVATION.md */
+static const char *const FROSTHOLLOW_ICE_WALL[] = { "P", "p" };
+static const MapPatch FROSTHOLLOW_LINK_PATCHES[] = {
+    { .flag = FLAG_RIME_CREST, .invert = 1, .x = 42, .y = 18, .w = 1, .h = 2, .rows = FROSTHOLLOW_ICE_WALL },
+};
+
 static const char *const FROSTHOLLOW_ELEV[] = {
     "33333333333333333333333333333333333333333333", /*  0 */
     "33333333333333333333333333333333333333333333", /*  1 */

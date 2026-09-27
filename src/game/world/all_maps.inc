@@ -11,7 +11,6 @@
 #include "travel/maps.inc"
 #include "elev/maps.inc"
 #include "ui/maps.inc"
-#include "story/maps.inc"
 #include "links/maps.inc"
 #include "events/maps.inc"
 #include "saga/maps.inc"

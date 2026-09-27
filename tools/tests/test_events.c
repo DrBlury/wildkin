@@ -6,6 +6,7 @@ int main(void)
 {
     game_init();
     fresh_game();
+    flag_set(FLAG_RIME_CREST); /* Exercise the full regional front rotation. */
     CHECK(sizeof(EventState) <= 64, "event save blob is at most 64 bytes");
     int different = 0, outbreaks = 0, weather = 0, caravan = 0;
     int stable = 1, gated = 1, short_lines = 1, validated = 1;
@@ -53,6 +54,15 @@ int main(void)
     events.front_region = ER_COUNT;
     events_validate();
     CHECK(events.front_region < ER_COUNT && events.rolled_day == gtime.day, "corrupt state re-rolls");
+    events.rolled_day = gtime.day;
+    EventState saved = events;
+    static u8 event_sram[32768];
+    memset(event_sram, 0xFF, sizeof(event_sram));
+    give_starter();
+    CHECK(save_write_to(event_sram), "event state writes with the current save");
+    new_game();
+    CHECK(save_load_from(event_sram) == SAVE_VERSION &&
+          !memcmp(&events, &saved, sizeof saved), "daily roll and caravan survive save and load");
     if (failures) printf("%d event check(s) FAILED\n", failures);
     else printf("all event checks passed\n");
     return failures ? 1 : 0;

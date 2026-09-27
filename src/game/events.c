@@ -22,8 +22,8 @@ static const CaravanStop CARAVAN_ROUTE[] = {
 typedef struct { u8 zone, species, min_act; const char *name, *place; } Outbreak;
 static const Outbreak OUTBREAKS[] = {
     { ZONE_MEADOW, SP_HUMBEE, 1, "HUMBEE", "MEADOW" },
-    { ZONE_BROOKMILL_TRAIL, SP_BLINKET, 2, "BLINKET", "BROOKMILL TRAIL" },
-    { ZONE_HERON_FEN, SP_PEBBOTTER, 3, "PEBBOTTER", "HERON FEN" },
+    { ZONE_BROOK_TRAIL, SP_BLINKET, 2, "BLINKET", "BROOKMILL TRAIL" },
+    { ZONE_FEN_REEDS, SP_PEBBOTTER, 3, "PEBBOTTER", "HERON FEN" },
     { ZONE_CINDER_ROAD, SP_KETTLEKIN, 4, "KETTLEKIN", "CINDER ROAD" },
     { ZONE_FROSTPINE, SP_FROSTOAT, 5, "FROSTOAT", "FROSTPINE" },
     { ZONE_ASHEN, SP_PUMPKLING, 6, "PUMPKLING", "ASHEN FIELDS" },
@@ -82,7 +82,7 @@ static int events_festival_for_day(int day)
     if (season == SEASON_WINTER && ordinal == 5) return FEST_FROST;
     return FEST_NONE;
 }
-static void events_new_day(void)
+static void events_new_day_impl(void)
 {
     if (events.rolled_day == gtime.day) return;
     u32 seed = time_day_seed();
@@ -143,12 +143,12 @@ static void events_validate(void)
         events.arg[0] >= OUTBREAK_COUNT || events.active[0] >= EV_COUNT || events.active[2] >= EV_COUNT) {
         events.rolled_day = 0;
         events.front_days = 0;
-        events_new_day();
+        events_new_day_impl();
     }
 }
 static int events_active(int ev)
 {
-    if (events.rolled_day != gtime.day) events_new_day();
+    if (events.rolled_day != gtime.day) events_new_day_impl();
     if (ev >= EV_CARAVAN_STOP_BASE && ev < EV_CARAVAN_STOP_BASE + CARAVAN_COUNT)
         return events.active[1] == EV_CARAVAN &&
                (events.caravan_map == ev - EV_CARAVAN_STOP_BASE ||
@@ -169,54 +169,47 @@ static int events_arg(int ev)
     return -1;
 }
 static int events_caravan_here(int map) { return events_active(EV_CARAVAN) && CARAVAN_ROUTE[events.caravan_map].map == map; }
-static int events_weather_here(int map)
+static int events_weather_here_impl(int map)
 {
     if (map < 0 || map >= MAP_COUNT || !(MAPS[map].flags & MF_OUTDOOR)) return WX_CLEAR;
-    if (events.rolled_day != gtime.day) events_new_day();
+    if (events.rolled_day != gtime.day) events_new_day_impl();
     if (events_region(map) == events.front_region &&
         (events.front_kind != WX_AURORA || time_is_night())) return events.front_kind;
     if (MAPS[map].flags & MF_SNOW) return WX_SNOW;
     if (MAPS[map].flags & MF_ASH) return WX_ASH;
     return gtime.weather == WEATHER_RAIN ? WX_RAIN : WX_CLEAR;
 }
-static int events_wild_override(int zone, WildSlot *slot)
+static void events_wild_override_impl(int zone, WildSlot *slot)
 {
-    if (!slot) return 0;
+    if (!slot) return;
     if (events_active(EV_OUTBREAK) && OUTBREAKS[events.arg[0]].zone == zone) {
         /* The caller's ordinary roll remains 5/6 of spawns. */
         if (rng_range(6) == 0) {
             slot->species = OUTBREAKS[events.arg[0]].species;
-            return 1;
+            return;
         }
     }
     if (events_active(EV_SURGE) && zone == ZONE_MEADOW) {
         slot->min_level = slot->min_level + 3 > 70 ? 70 : slot->min_level + 3;
         slot->max_level = slot->max_level + 3 > 70 ? 70 : slot->max_level + 3;
-        return 1;
     }
-    return 0;
 }
 static int events_rematch_ready(int trainer)
 {
-    if (events.rolled_day != gtime.day) events_new_day();
+    if (events.rolled_day != gtime.day) events_new_day_impl();
     for (int i = 0; i < REMATCH_COUNT; i++)
         if (REMATCHES[i].trainer == trainer && (events.rematch_bits[i / 8] & (1 << (i % 8)))) return 1;
     return 0;
 }
-static void events_rematch_used(int trainer)
+static void events_map_entered_impl(int map)
 {
-    for (int i = 0; i < REMATCH_COUNT; i++) if (REMATCHES[i].trainer == trainer)
-        events.rematch_bits[i / 8] &= (u8)~(1 << (i % 8));
-}
-static void events_map_entered(int map)
-{
-    if (events.rolled_day != gtime.day) events_new_day();
+    if (events.rolled_day != gtime.day) events_new_day_impl();
     (void)map; /* E10 refreshes NPC conditions and weather on entry. */
 }
 static const char *events_gazette_line(int i)
 {
     static char line[40];
-    if (events.rolled_day != gtime.day) events_new_day();
+    if (events.rolled_day != gtime.day) events_new_day_impl();
     switch (i) {
     case 0:
         if (events.front_kind == WX_AURORA) str_copy(line, "AURORA OVER ");

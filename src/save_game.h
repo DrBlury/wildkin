@@ -17,7 +17,7 @@
  * keeps the team, the shelf, the bag and the Almanac (each kin gets rolled
  * individuality and wakes up at home); version 1 keeps team, bag, Almanac.
  */
-#define SAVE_VERSION 6u
+#define SAVE_VERSION 7u
 #define SAVE_MAGIC 0x4D515354u
 #define SAVE_SLOT_SIZE 16384u
 #define SAVE_BACKUP_OFFSET SAVE_SLOT_SIZE
@@ -33,6 +33,7 @@ typedef struct { u16 code, count; } BagEntry;
 #define MOD_FUSION_MAX 256
 #define MOD_TRAVEL_MAX 256
 #define MOD_QUEST_MAX 128
+#define MOD_EVENTS_MAX 64
 
 #include "game/world/save_layout.inc"
 #define SAVE_LAYOUT_REGIONS 24
@@ -76,6 +77,8 @@ typedef struct {
     u32 checksum;                    /* v5 checksum at its original offset */
     SaveLayout layout;
     u32 checksum_v6;
+    u8 events[MOD_EVENTS_MAX];
+    u32 checksum_v7;
 } SaveData;
 
 typedef char SaveFitsSlot[sizeof(SaveData) <= SAVE_SLOT_SIZE ? 1 : -1];
@@ -87,6 +90,7 @@ typedef char ModCraftFits[sizeof(CraftState) <= MOD_CRAFT_MAX ? 1 : -1];
 typedef char ModFusionFits[sizeof(FusionState) <= MOD_FUSION_MAX ? 1 : -1];
 typedef char ModTravelFits[sizeof(TravelState) <= MOD_TRAVEL_MAX ? 1 : -1];
 typedef char ModQuestFits[sizeof(QuestState) <= MOD_QUEST_MAX ? 1 : -1];
+typedef char ModEventsFit[sizeof(EventState) <= MOD_EVENTS_MAX ? 1 : -1];
 
 /* ---- version 4 layout (read-only, for migration): kin without names ---- */
 typedef struct {
@@ -300,7 +304,7 @@ static u32 fnv_bytes(const void *p, unsigned n)
 
 static u32 save_checksum(const SaveData *data)
 {
-    return fnv_bytes(data, sizeof(*data) - sizeof(data->checksum_v6));
+    return fnv_bytes(data, sizeof(*data) - sizeof(data->checksum_v7));
 }
 
 /* Stable code for an item: a hash of its name (ids may move between builds). */
@@ -582,14 +586,16 @@ static void save_capture(SaveData *data)
     mod_store(data->fusion, &data->mod_size[3], &fusion, sizeof(fusion));
     mod_store(data->travel, &data->mod_size[4], &travel, sizeof(travel));
     mod_store(data->quest, &data->mod_size[5], &quest, sizeof(quest));
+    mod_store(data->events, &data->mod_size[6], &events, sizeof(events));
     save_layout_current(&data->layout);
-    data->checksum_v6 = save_checksum(data);
+    data->checksum_v6 = fnv_bytes(data, (u8 *)&data->checksum_v6 - (u8 *)data);
+    data->checksum_v7 = save_checksum(data);
 }
 
 static int save_valid(const SaveData *data)
 {
     if (data->magic != SAVE_MAGIC || data->version != SAVE_VERSION || data->size != sizeof(*data) ||
-        data->checksum_v6 != save_checksum(data) ||
+        data->checksum_v7 != save_checksum(data) ||
         !save_layout_valid(&data->layout) ||
         data->party_count > PARTY_MAX || data->storage_count > STORAGE_MAX ||
         data->bag_count > BAG_SAVE_MAX || data->money > 9999999u ||
@@ -651,6 +657,8 @@ static void save_apply(const SaveData *data)
     mod_load(&fusion, data->fusion, data->mod_size[3], sizeof(fusion));
     mod_load(&travel, data->travel, data->mod_size[4], sizeof(travel));
     mod_load(&quest, data->quest, data->mod_size[5], sizeof(quest));
+    mod_load(&events, data->events, data->mod_size[6], sizeof(events));
+    events_validate();
     modules_validate();
     map_load(data->map);
     player.x = (s16)data->player_x;
@@ -709,7 +717,8 @@ static int save_from_v4(const SaveDataV4 *d, SaveData *out)
     for (int i = 0; i < 128 && i < MOD_QUEST_MAX; i++) out->quest[i] = d->quest[i];
     save_layout_v5(&out->layout);
     if (!save_rebase(out)) return 0;
-    out->checksum_v6 = save_checksum(out);
+    out->checksum_v6 = fnv_bytes(out, (u8 *)&out->checksum_v6 - (u8 *)out);
+    out->checksum_v7 = save_checksum(out);
     return save_valid(out);
 }
 
@@ -926,6 +935,24 @@ static int save_load_from(volatile u8 *sram)
             return SAVE_VERSION;
         }
     }
+    /* v6 ends after checksum_v6. Verify it before appending the event module. */
+    for (int slot = 0; slot < 2; slot++) {
+        volatile u8 *base = sram + (slot ? SAVE_BACKUP_OFFSET : 0);
+        u8 *raw = (u8 *)&data;
+        for (unsigned i = 0; i < sizeof(data); i++) raw[i] = 0;
+        unsigned old_size = (u8 *)&data.events - (u8 *)&data;
+        sram_read(&data, base, old_size);
+        if (data.magic != SAVE_MAGIC || data.version != 6u || data.size != old_size ||
+            data.checksum_v6 != fnv_bytes(&data, (u8 *)&data.checksum_v6 - (u8 *)&data) ||
+            !save_layout_valid(&data.layout)) continue;
+        data.version = SAVE_VERSION;
+        data.size = sizeof(data);
+        if (!save_rebase(&data)) continue;
+        data.checksum_v7 = save_checksum(&data);
+        if (!save_valid(&data)) continue;
+        save_apply(&data);
+        return 6;
+    }
     /* v5 has the same prefix through checksum, before the appended v6 layout. */
     for (int slot = 0; slot < 2; slot++) {
         volatile u8 *base = sram + (slot ? SAVE_BACKUP_OFFSET : 0);
@@ -939,7 +966,9 @@ static int save_load_from(volatile u8 *sram)
         data.version = SAVE_VERSION;
         data.size = sizeof(data);
         if (!save_rebase(&data)) continue;
-        data.checksum_v6 = save_checksum(&data);
+        data.checksum_v6 = fnv_bytes(&data, (u8 *)&data.checksum_v6 - (u8 *)&data);
+        data.mod_size[6] = 0;
+        data.checksum_v7 = save_checksum(&data);
         if (!save_valid(&data)) continue;
         save_apply(&data);
         return 5;

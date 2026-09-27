@@ -297,7 +297,7 @@ static void test_save(void)
     memset(sram, 0xFF, sizeof(sram));
     CHECK(save_write_to(sram), "a save with nicknames writes");
     new_game();
-    CHECK(save_load_from(sram) == SAVE_VERSION && SAVE_VERSION == 6, "it loads back as version 6");
+    CHECK(save_load_from(sram) == SAVE_VERSION && SAVE_VERSION == 7, "it loads back as version 7");
     CHECK(name_is(&party[0], "BLAZE") && !strcmp(box_name(&storage[0]), "ZIP-ZAP!") &&
           !strcmp(box_name(&storage[1]), "GOLEMIT") && money == 777,
           "team and Shelf nicknames survive a save");
@@ -406,7 +406,7 @@ static void test_migration(void)
     memset(sram, 0xFF, sizeof(sram));
     CHECK(save_write_to(sram), "the migrated game saves");
     new_game();
-    CHECK(save_load_from(sram) == SAVE_VERSION && name_is(&party[0], "KINDLE"), "and loads back as version 6");
+    CHECK(save_load_from(sram) == SAVE_VERSION && name_is(&party[0], "KINDLE"), "and loads back as the current version");
 
     /* a broken v4 save is not taken */
     memset(sram, 0xFF, sizeof(sram));

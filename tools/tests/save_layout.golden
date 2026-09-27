@@ -14,6 +14,9 @@
     "elev",
     "ui",
     "story",
+    "links",
+    "events",
+    "saga",
     "debug"
   ],
   "ids": [
@@ -837,6 +840,101 @@
       ],
       [],
       []
+    ],
+    [
+      [
+        "MAP_SCORCHWASTE_1",
+        "MAP_SCORCHWASTE_2",
+        "MAP_AURORA_RIDGE_1",
+        "MAP_AURORA_RIDGE_2",
+        "MAP_GREYWATER_FJORD"
+      ],
+      [],
+      [
+        "links:0",
+        "links:1",
+        "links:2",
+        "links:3",
+        "links:4",
+        "links:5",
+        "links:6",
+        "links:7",
+        "links:8",
+        "links:9",
+        "links:10",
+        "links:11",
+        "links:12"
+      ],
+      [
+        "TR_LINK_ASH_A",
+        "TR_LINK_ASH_B",
+        "TR_LINK_ASH_C",
+        "TR_LINK_ASH_D",
+        "TR_LINK_ASH_E",
+        "TR_LINK_ASH_F",
+        "TR_LINK_STAR_A",
+        "TR_LINK_STAR_B",
+        "TR_LINK_STAR_C",
+        "TR_LINK_STAR_D",
+        "TR_LINK_STAR_E",
+        "TR_LINK_STAR_F",
+        "TR_LINK_FJORD_A",
+        "TR_LINK_FJORD_B",
+        "TR_LINK_FJORD_C",
+        "TR_LINK_FJORD_D",
+        "TR_LINK_FJORD_E"
+      ],
+      [],
+      [
+        "LORE_GLASS_DUNES",
+        "LORE_STAR_CAIRN",
+        "LORE_GREYWATER"
+      ]
+    ],
+    [
+      [],
+      [],
+      [],
+      [],
+      [],
+      []
+    ],
+    [
+      [],
+      [
+        "FLAG_PROJECT_TRAM",
+        "FLAG_PROJECT_CINDER_BRIDGE",
+        "FLAG_PROJECT_LIFT",
+        "FLAG_PROJECT_REED_FERRY",
+        "FLAG_PROJECT_MARKET",
+        "FLAG_COURIER_REUNITED",
+        "FLAG_RING_FOUND",
+        "FLAG_LAMP_FOUND",
+        "FLAG_CHALK_DRAWN",
+        "FLAG_IDA_READING"
+      ],
+      [],
+      [],
+      [
+        "QUEST_PROJECT_TRAM",
+        "QUEST_PROJECT_BRIDGE",
+        "QUEST_PROJECT_LIFT",
+        "QUEST_PROJECT_FERRY",
+        "QUEST_PROJECT_MARKET",
+        "QUEST_VALE_COURIER",
+        "QUEST_ALMANAC_SURVEY",
+        "QUEST_LEGEND_TRAIL",
+        "QUEST_HERONS_RING",
+        "QUEST_MINERS_LAMP",
+        "QUEST_CHALK_HORSE",
+        "QUEST_STARLIGHT_IDA",
+        "QUEST_FIELD_NOTES"
+      ],
+      [
+        "LORE_SAGA_COURIER",
+        "LORE_SAGA_LEGENDS",
+        "LORE_SAGA_ALMANAC"
+      ]
     ],
     [
       [
