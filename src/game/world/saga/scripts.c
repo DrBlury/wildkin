@@ -50,13 +50,6 @@ static void saga_notes_sync(void)
         if (saga_notes[i].solved_flag && flag(saga_notes[i].solved_flag))
             saga_note(i, 1);
 }
-static void saga_notes_here(int map)
-{
-    /* Regional scripts can call saga_note(id, solved) on examination. Until
-     * their handlers are wired, entering a mapped region records its hints. */
-    for (int i = 0; i < NOTE_COUNT; i++) if (saga_notes[i].map == map)
-        saga_note(i, saga_notes[i].solved_flag && flag(saga_notes[i].solved_flag));
-}
 
 static int saga_project_state(int proj)
 {
@@ -76,8 +69,8 @@ static void saga_project_new_day(void)
 }
 static void saga_entered(int map)
 {
+    (void)map;
     saga_project_new_day();
-    saga_notes_here(map);
     saga_notes_sync();
 }
 static void saga_bind(void)
@@ -327,7 +320,6 @@ static void scr_saga_book(int npc)
 static void scr_saga_notes(int npc)
 {
     (void)npc; saga_bind();
-    for (int i = 0; i < NOTE_COUNT; i++) if (saga_notes[i].map == cur_map) saga_note(i, 0);
     int found = 0, solved = 0, ready = 0;
     for (int i = 0; i < NOTE_COUNT; i++) if (saga_note_bit(i, 0)) {
         found++; solved += !!saga_note_bit(i, 3);
