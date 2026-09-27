@@ -1,16 +1,20 @@
-# Plan 12 scripted playtime — measured ROM segments, not act totals
+# Plan 12 scripted playtime — measured ROM checkpoints, not act totals
 
-2026-09-27, isolated branch `plan-routes-playtime`; `make` built local ROM and `make shot` built libmGBA. Reproduce from `/tmp/wildkin-plan-playtime` with `python3 tools/playthrough/run.py tools/playthrough/actN.route` after building. Blank in-memory SRAM, no external save input or save writes. Start warp and setup excluded. Time uses 59.7275 ROM frames/second. See [runner policy](../../tools/playthrough/README.md).
+2026-09-27, isolated branch `finish-timing-followup`, based on 2837b2e (integrated shore fix and fail-closed runner). Local `make && make shot` produced `game.gba`, matching `game.elf`, and `build/shot`; runner compiled against libmGBA. Reproduce with `python3 tools/playthrough/run.py tools/playthrough/actN.route` in `/tmp/wildkin-finish-timing-followup`. Blank memory-backed SRAM; no user save opened. Timer rate: 59.7275 ROM frames/s. Setup/debug warp excluded; blocked waits included in attempted count. `CHECKPOINTS_COMPLETE` is not a full act.
 
-| Act | ROM start / checked end | Verified traversed frames | Minutes | 2.5× human heuristic (not measured) | Result |
-| --- | --- | ---: | ---: | ---: | --- |
-| I | Meadow (20,22) → (23,22) | 49 | 0.014 | 0.034 | segment only |
-| II | Brookmill Trail (32,18) → (34,18) → (34,19) | 50 | 0.014 | 0.035 | stalls east at (34,19), 291 attempted frames / 0.081 min including blocked wait |
-| III | Heron Fen (32,20) → (50,19) → (22,19) | 827 | 0.231 | 0.577 | stalls west at (22,19), 1068 attempted frames / 0.298 min including blocked wait; warden at (21,19) |
-| IV | Cinder Crossing (30,18) → (33,18) | 51 | 0.014 | 0.036 | segment only |
-| V | Foothills (22,30) → (25,30) | 54 | 0.015 | 0.038 | segment only |
-| VI | Hollow Downs (30,20) → (33,20) | 53 | 0.015 | 0.037 | segment only |
-| VII | Mistfen (24,30) → (24,27) | 51 | 0.014 | 0.036 | segment only |
-| VIII | Ossuary 1 (15,10) | 0 verified | — | — | stalls immediately on adjacent move; warden at (15,9), 241 attempted frames / 0.067 min |
+| Act | Last ROM checkpoint | Frames observed | Minutes | Outcome |
+| --- | --- | ---: | ---: | --- |
+| I | Meadow (23,22) | 49 | 0.014 | Checkpoint only; no Master |
+| II | Brookmill Trail shore (50,19) → north of Sorrel (57,17) → Brookmill (0,17) → Copperline (0,17) → Lumen (0,20) | 3086 | 0.861 | Checkpoints only; Copperline road warden victory, zero wild; no Hall |
+| III | Heron Fen (22,19) warden victory → (10,18) → (1,19) → Reedwick (39,19) | 3462 | 0.966 | Checkpoints only; one ROM-observed warden victory (frame 2992), zero wild; Reedwick reached, no Hall |
+| IV | Cinder Crossing (33,18) | 50 | 0.014 | Checkpoint only |
+| V | Foothills (25,30) | 57 | 0.016 | Checkpoint only |
+| VI | Hollow Downs (33,20) | 59 | 0.016 | Checkpoint only |
+| VII | Mistfen (24,27) | 51 | 0.014 | Checkpoint only |
+| VIII | Ossuary 1 (15,10) | 556 attempted | 0.155 attempted | Adjacent warden battle lost with debug Lv20 starter; recovery to map 5, not traversed |
 
-The Act II obstruction is at the Brookmill bridge/towpath elevation transition, with field mode 0 and no checkpoint beyond (34,19); dialog=0, so collision/elevation rather than an active dialog. Act III's next tile is occupied by a route warden, which the runner cannot battle. Act VIII queues a dialog (dialog=2) at the start beside a warden. The other five green segments are only short, verified coordinate traversals, not critical paths. None reaches a Master or yields a lower bound for a **whole act**. The 2–2.5h per-act and 16–18h total figures in contract §10 remain targets, not observed results. No human Act II/III pass is represented here; the existing `act2.md` and `act3.md` remain unfilled user-facing templates.
+The Act II `BROOK_TRAIL_ELEV` bridge x27–34/y17–18 remains raised above the shore, so the old direct x34,18 → x35,18 waypoint still collides. The integrated shore fix opens x34,19 → x50,19. A deliberate probe continuing east at y19 blocked at (53,19), frame 1028, mode 0/dialog 0: `src/game/world/east/npcs.inc` has warden Tam on (54,19). This is a route waypoint error, **not** a newly proven source blocker. From (50,19), stepping north to (50,18), proceeding to (57,18), north to (57,17), and east avoids Tam and Sorrel (58,18); all are ROM-walked without a post-start teleport. Act II reaches Lumen after a Copperline road warden victory at frame 2577; the successful fixture ends at its entry, not at Volt Hall. An independent optional probe physically walked from the same Brookmill Trail start to Brookmill Hearth door (5,13), verified arrival inside at (5,8) in 868 frames/0.242 minutes; it did **not** heal and is not additive to the Act II fixture. A Lumen Hall probe reached the grand stairs (24,9) at frame 3806 but did not establish a passable continuation to the Hall: x22,9 blocked the simple westward waypoint. Do not count that probe as a Hall interaction or source defect until an alternate route has been verified.
+
+Act III's (21,19) Heron Fen warden is occupied even after victory; the fixture verifies victory and walks north around it to Reedwick. A separate Reedwick warden probe reached (27,19) at frame 3650, engaged the real warden at (26,19), then lost at frame 4714/1.315 minutes with the single debug Lv20 starter, recovering to map 5 (5,8); those attempted frames are **not** an Act III completion. No scripted healing, properly levelled four-kin party, Saltwind or Current Hall victory was measured. Act VIII loss likewise requires a correctly levelled party and in-game healing, not a RAM heal.
+
+No fixture reaches a Master or completes a whole act, so **none is an act lower bound**. Contract §10's 120 min Act I, 120–150 min Acts II–VII, 60 min Act VIII and 960–1080 min critical-path targets remain targets. A 2.5× human factor may be applied only to *complete* automated act runs and never substitutes for a human session. Automated scripting does not stand in for a human tester; `act2.md` and `act3.md` remain unfilled templates. See `docs/handoff/playtime.md` for reproducible human instructions.

@@ -50,13 +50,6 @@ static void saga_notes_sync(void)
         if (saga_notes[i].solved_flag && flag(saga_notes[i].solved_flag))
             saga_note(i, 1);
 }
-static void saga_notes_here(int map)
-{
-    /* Regional scripts can call saga_note(id, solved) on examination. Until
-     * their handlers are wired, entering a mapped region records its hints. */
-    for (int i = 0; i < NOTE_COUNT; i++) if (saga_notes[i].map == map)
-        saga_note(i, saga_notes[i].solved_flag && flag(saga_notes[i].solved_flag));
-}
 
 static int saga_project_state(int proj)
 {
@@ -76,8 +69,8 @@ static void saga_project_new_day(void)
 }
 static void saga_entered(int map)
 {
+    (void)map;
     saga_project_new_day();
-    saga_notes_here(map);
     saga_notes_sync();
 }
 static void saga_bind(void)
@@ -327,7 +320,6 @@ static void scr_saga_book(int npc)
 static void scr_saga_notes(int npc)
 {
     (void)npc; saga_bind();
-    for (int i = 0; i < NOTE_COUNT; i++) if (saga_notes[i].map == cur_map) saga_note(i, 0);
     int found = 0, solved = 0, ready = 0;
     for (int i = 0; i < NOTE_COUNT; i++) if (saga_note_bit(i, 0)) {
         found++; solved += !!saga_note_bit(i, 3);
@@ -356,11 +348,16 @@ static void scr_saga_notes(int npc)
 }
 static void scr_saga_ferry(int npc)
 { (void)npc; saga_project_talk(SAGA_FERRY, "ELSPETH: Four TIMBER, two SALT, 2000c for the ferry. Fund it?"); }
+static void saga_punt_sail(int to_lake)
+{
+    if (to_lake) travel_boat_to(MAP_LAKE, 31, 17);
+    else travel_boat_to(MAP_REEDWICK, 25, 20);
+}
 static void saga_punt_answer(int choice)
 {
     if (choice) return;
-    if (cur_map == MAP_REEDWICK) field_begin_warp(MAP_LAKE, 31, 17, DIR_RIGHT);
-    else field_begin_warp(MAP_REEDWICK, 25, 20, DIR_LEFT);
+    /* The voyage owns the display after the dialog callback has returned. */
+    dlg_call(saga_punt_sail, cur_map == MAP_REEDWICK);
 }
 static void scr_saga_punt(int npc)
 {
@@ -384,13 +381,17 @@ static void scr_saga_honey(int npc)
 }
 static int saga_tram_from;
 static const char *const saga_tram_choices[] = { "MAPLE", "BROOKMILL", "LUMEN", "CANCEL" };
-static void saga_tram_answer(int choice)
+static void saga_tram_ride(int choice)
 {
-    if (choice < 0 || choice >= 3 || choice == saga_tram_from) return;
     /* Town landings have a clear return path to their stop. */
     const int maps[] = { MAP_TOWN, MAP_BROOKMILL, MAP_LUMEN };
     const int xs[] = { 12, 31, 36 }, ys[] = { 17, 29, 20 };
-    field_begin_warp(maps[choice], xs[choice], ys[choice], DIR_DOWN);
+    travel_project_ride_to(PROJECT_RIDE_TRAM, maps[choice], xs[choice], ys[choice]);
+}
+static void saga_tram_answer(int choice)
+{
+    if (choice < 0 || choice >= 3 || choice == saga_tram_from) return;
+    dlg_call(saga_tram_ride, choice);
 }
 static void saga_tram_stop(int stop)
 {
@@ -402,11 +403,15 @@ static void saga_tram_stop(int stop)
 static void scr_saga_tram_maple(int npc) { (void)npc; saga_tram_stop(0); }
 static void scr_saga_tram_brook(int npc) { (void)npc; saga_tram_stop(1); }
 static void scr_saga_tram_lumen(int npc) { (void)npc; saga_tram_stop(2); }
+static void saga_lift_ride(int from_timberline)
+{
+    if (from_timberline) travel_project_ride_to(PROJECT_RIDE_LIFT, MAP_FOOTHILLS, 11, 52);
+    else travel_project_ride_to(PROJECT_RIDE_LIFT, MAP_TIMBERLINE, 11, 30);
+}
 static void saga_lift_answer(int choice)
 {
     if (choice) return;
-    if (cur_map == MAP_TIMBERLINE) field_begin_warp(MAP_FOOTHILLS, 11, 52, DIR_DOWN);
-    else field_begin_warp(MAP_TIMBERLINE, 11, 30, DIR_UP);
+    dlg_call(saga_lift_ride, cur_map == MAP_TIMBERLINE);
 }
 static void saga_lift_stop(void)
 {
@@ -417,8 +422,8 @@ static void saga_lift_stop(void)
 static void scr_saga_lift_low(int npc) { (void)npc; saga_lift_stop(); }
 static void scr_saga_lift_high(int npc) { (void)npc; saga_lift_stop(); }
 
-/* Until the far owner attaches its dormant E5 MapPatch, this keeps the
- * SURF-first route and the paid bridge bidirectional without a trap. */
+/* Keep the optional guide crossing for SURF and as a redundant return path
+ * while the rebuilt deck is validated by broader progression playthroughs. */
 static void saga_bridge_pass_answer(int choice)
 {
     if (choice) return;

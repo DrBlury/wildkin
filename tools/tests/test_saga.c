@@ -47,9 +47,9 @@ static void test_notes(void)
     }
     CHECK(!saga_note_bit(NOTE_WOOD_LOG, 0) && !saga_note_bit(NOTE_LAKE_ISLET, 0),
           "unvisited note locations stay hidden");
-    saga_entered(MAP_WOOD);
-    CHECK(saga_note_bit(NOTE_WOOD_LOG, 0) && saga_note_bit(NOTE_WOOD_FOG, 0),
-          "entering an old map records its ability-secret hints");
+    saga_entered(MAP_BROOKMILL_TRAIL);
+    CHECK(!saga_note_bit(NOTE_WOOD_LOG, 0) && !saga_note_bit(NOTE_WOOD_FOG, 0),
+          "entering a map never records its unexamined ability secrets");
     saga_note(NOTE_WOOD_LOG, 0);
     CHECK(saga_note_bit(NOTE_WOOD_LOG, 0) && !saga_note_bit(NOTE_WOOD_LOG, 3), "examining a spot records it unsolved");
     saga_note(NOTE_WOOD_LOG, 1);
@@ -86,6 +86,8 @@ static void test_notes_ui(void)
     CHECK(game_mode == MODE_FIELD, "B closes the quest log as before");
 
     saga_entered(MAP_COPPER_MINE);
+    CHECK(qlog_note_count(SAGA_LIGHT) == 0, "entering the mine does not discover the gallery");
+    saga_note_examine(MAP_COPPER_MINE, 29, 22);
     CHECK(qlog_note_count(SAGA_LIGHT) == 1 &&
           !strcmp(qlog_note_status(NOTE_MINE_LIGHT), "LOCKED"),
           "visited mine note is visible but locked without the crest");
