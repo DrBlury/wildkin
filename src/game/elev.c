@@ -298,23 +298,52 @@ static int elev_level_at(int x, int y, int hint, int facing)
 }
 
 /* OBJ priority for an actor: 1 (over the top layer) on a deck or tunnel
- * top, and in front of (just south of) a deck; 2 (under it) otherwise. */
-static int elev_obj_prio(const Actor *a)
+ * top, in front of (just south of) one and beside one on its level; 2
+ * (under it: the top layer clips it) otherwise.
+ *
+ * Decided from the cells the actor's 16x16 ground square stands on (one
+ * cell at rest; mid-step the cell it left and the one it is entering) and
+ * its level, never from the sprite's centre: an actor stepping between the
+ * cell in front of a deck and the cell under it stays at 2 for the whole
+ * step, so the deck's edge clips it smoothly as it walks in or out. (It
+ * used to be lifted over the deck up to the half-way pixel and then vanish
+ * at once, the follower doing the same one step behind.) `wide`: a 32-wide
+ * sprite centred on the cell (kin, the bike); people are 16 wide. Both are
+ * 32 tall, the head one cell up. */
+static int elev_obj_prio_w(const Actor *a, int wide)
 {
     if (!map_elevated) return 2;
+    wide = wide != 0;
     int px = a->x * 16 + a->ox, py = a->y * 16 + a->oy;
-    int cx = (px + 8) >> 4, cy = (py + 8) >> 4;
-    u16 e = elev_at(cx, cy);
-    int cov = EV_COVER(e);
-    if (ec_covers(cov)) {
-        if (cov == EC_HIDDEN || cov == EC_MOUTH) return 2;
-        return a->level >= EV_HI(e) && a->level != EV_LO(e) ? 1 : 2;
-    }
-    /* the head overlaps the cell(s) above: in front of a cover there */
-    for (int x = px >> 4; x <= (px + 15) >> 4; x++)
-        if (ec_covers(EV_COVER(elev_at(x, cy - 1)))) return 1;
+    int gx0 = px >> 4, gx1 = (px + 15) >> 4, gy0 = py >> 4, gy1 = (py + 15) >> 4;
+    /* under something: a deck or tunnel top above the actor's level, a
+     * tunnel mouth or a hidden passage (drawn over whoever is in it) */
+    for (int y = gy0; y <= gy1; y++)
+        for (int x = gx0; x <= gx1; x++) {
+            u16 e = elev_at(x, y);
+            int cov = EV_COVER(e);
+            if (ec_covers(cov) && (!ec_walkable(cov) || a->level < EV_HI(e))) return 2;
+        }
+    /* the sprite's cells (whole cells: a 32-wide sprite reaches half a cell
+     * past its ground square on both sides, the head a cell up; taken at
+     * the cells stood on, so nothing changes mid-step) overlap a cover it
+     * is not under: in front of it (the row above, where the cover ends
+     * there), or on it / beside it at its level */
+    for (int y = gy0 - 1; y <= gy1; y++)
+        for (int x = gx0 - wide; x <= gx1 + wide; x++) {
+            u16 e = elev_at(x, y);
+            int cov = EV_COVER(e);
+            if (!ec_covers(cov)) continue;
+            if (y < gy0) {
+                if (!ec_covers(EV_COVER(elev_at(x, gy0)))) return 1;
+            } else if (ec_walkable(cov) && a->level >= EV_HI(e) && a->level != EV_LO(e)) {
+                return 1;
+            }
+        }
     return 2;
 }
+
+static int elev_obj_prio(const Actor *a) { return elev_obj_prio_w(a, 0); }
 
 /* ---------------- drawing ---------------- */
 

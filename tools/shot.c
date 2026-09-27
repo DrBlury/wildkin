@@ -14,6 +14,10 @@
  *   stop              stop recording
  *   save FILE.sav     write the cartridge SRAM to a file
  *   peek ADDR LEN     print LEN bytes of bus memory at hex ADDR
+ *   layer N on|off    show / hide a video layer (0-3 BG0-BG3, 4 OBJ) from now
+ *                     on, by masking its DISPCNT bit before every frame (the
+ *                     game runs the same: runs that differ only in their
+ *                     layers give frames to diff: sprite vs layer checks)
  *   # comment
  * An optional save file is loaded read-only into cartridge SRAM.
  */
@@ -107,9 +111,15 @@ static struct {
     unsigned w, h;
 } rec;
 
+static unsigned layers_off;   /* DISPCNT bits masked off (layer N off) */
+
 /* Advance one frame, writing a recorded frame when due. */
 static void run_frame(struct mCore *core)
 {
+    if (layers_off) {
+        unsigned v = core->busRead16(core, 0x04000000u);
+        if (v & layers_off) core->busWrite16(core, 0x04000000u, (uint16_t)(v & ~layers_off));
+    }
     core->runFrame(core);
     if (!rec.active) return;
     if (rec.frame++ % rec.step) return;
@@ -202,6 +212,10 @@ int main(int argc, char **argv)
             printf("%08x:", addr);
             for (unsigned i = 0; i < len; i++) printf(" %02x", core->busRead8(core, addr + i));
             printf("\n");
+        } else if (!strcmp(cmd, "layer")) {
+            unsigned bit = 0x100u << atoi(a1);
+            if (strcmp(a2, "off")) layers_off &= ~bit;
+            else layers_off |= bit;
         } else if (!strcmp(cmd, "shot")) {
             write_png(core, a1, w, h, 2);
             printf("wrote %s\n", a1);

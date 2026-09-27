@@ -9,7 +9,8 @@
  * into maps.h, default Whisper Meadow) X, Y. With "calm" the storm is
  * already over (clear skies, DRAKORA answered); with "low" the team is
  * around level 6, for even early bouts; with "beaten" every warden on MAP
- * is already beaten (to replay a Hall's puzzle without bouts).
+ * is already beaten (to replay a Hall's puzzle without bouts); "night"
+ * sets the clock to 22:00, "rain" makes today rainy.
  */
 #define main gba_main
 #include "../src/main.c"
@@ -22,17 +23,19 @@
 int main(int argc, char **argv)
 {
     if (argc < 2) {
-        fprintf(stderr, "usage: %s OUT.sav [MAP X Y [calm] [low] [beaten]]\n", argv[0]);
+        fprintf(stderr, "usage: %s OUT.sav [MAP X Y [calm] [low] [beaten] [night] [rain]]\n", argv[0]);
         return 1;
     }
     game_init();
     rng_seed(20260926u);
     new_game();
-    int calm = 0, low = 0, beaten = 0;
+    int calm = 0, low = 0, beaten = 0, night = 0, rain = 0;
     for (int i = 5; i < argc; i++) {
         if (!strcmp(argv[i], "calm")) calm = 1;
         if (!strcmp(argv[i], "low")) low = 1;
         if (!strcmp(argv[i], "beaten")) beaten = 1;
+        if (!strcmp(argv[i], "night")) night = 1;
+        if (!strcmp(argv[i], "rain")) rain = 1;
     }
     static const u8 TEAM[5] = { SP_PYREFOX, SP_AXOLURK, SP_ZAPPET, SP_DANDELAMB, SP_GOLEMIT };
     static const u8 LV[5] = { 17, 15, 14, 13, 13 };
@@ -69,6 +72,8 @@ int main(int argc, char **argv)
     int x = argc > 3 ? atoi(argv[3]) : 19, y = argc > 4 ? atoi(argv[4]) : 40;
     for (int i = 0; beaten && i < NPC_COUNT; i++)
         if (NPCS[i].map == map && NPCS[i].trainer != NO_TRAINER) trainer_mark_beaten(NPCS[i].trainer);
+    if (night) gtime.minute = 22 * 60;
+    if (rain) gtime.weather = WEATHER_RAIN;
     field_enter_map(map, x, y, DIR_UP);
     static u8 sram[32768];
     for (unsigned i = 0; i < sizeof(sram); i++) sram[i] = 0xFF;

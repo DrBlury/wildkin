@@ -202,3 +202,60 @@ Screenshots (ROM, build/shot): `docs/images/towns_art/` — `cm_iron_over`,
 3-row deck), `fh_valley`, `mv_home`, `mv_knoll`, `mv_high_street`,
 `mv_dell`, `mv_hidden` (the "!" in the thicket gap), `mv_over`; renders
 `maple_village_map.png`, `frosthollow_map.png`.
+
+## Flicker under the bridge (2026-09-27)
+
+User report: at night in the rain, walking under the Maple Run bridge, the
+player / follower "flickers": pieces of them pop up over the deck. Reproduced
+in the ROM (build/shot, every frame of the crossing, night + rain demo save:
+`make_demo_save OUT MAP X Y night rain`, new options) and fixed; three causes:
+
+1. **The GBA OBJ priority quirk (the flicker itself).** The OBJ line buffer is
+   built in OAM order, and a later sprite of a *higher* priority lowers the
+   priority of the pixels already there **even through its transparent
+   pixels** (mGBA emulates it; real hardware does it). The rain streaks
+   (priority 1, pushed last), emotes, and a kin in front of the deck (a
+   32x32 box, priority 1, mostly transparent) punched the pixels of whoever
+   walked under the deck (priority 2) up through BG3, moving with the rain:
+   bits of the player's body flickering on the deck. Fix: `oam_end()` orders
+   the frame's OAM by priority (`oam_sort_prio`, stable, attr3/affine
+   matrices stay), so no higher-priority sprite comes after a lower one. Other
+   screens are unaffected (between priorities OAM order is otherwise
+   invisible).
+2. **Priority decided from the sprite's centre pixel** (`elev_obj_prio`): a
+   step from the cell in front of a deck to the cell under it flipped from 1
+   to 2 at the half-way pixel (24 px of sprite over the deck, then gone), the
+   follower doing the same a step later; walking **east-west under a
+   north-south deck** (Frosthollow, Duskmere's Henbane's Walk, Dreamspire)
+   the "cell above is a cover" rule lifted the actor over the deck while half
+   of it was already under. Now `elev_obj_prio_w(actor, wide)` decides from
+   the cells the ground square stands on (both cells mid-step): under a cover
+   in either → 2 for the whole step (the deck edge clips it smoothly); else 1
+   when the sprite's cells (whole cells; 32-wide sprites half a cell each
+   side: kin, the bike, the surf mount and its rider) overlap a cover in the
+   row above that ends there (in front) or a deck at the actor's level
+   (on / beside it). Nothing changes mid-step; the only pop left is the head
+   (16 px) of someone stopping in front of the deck.
+3. **Scroll written after the cell streaming** (`field_render_view`): writing
+   a new row of cells can run ~57 lines past vblank (measured in the ROM),
+   so the top of the screen showed the old scroll under the new OAM (a 1-2 px
+   slip against the deck edge while the camera moved). The scroll registers
+   are now written first, right after OAM; the new edge cells are still
+   written top to bottom ahead of the beam.
+
+- **Test** `tools/tests/test_elev_sprites.c`: every bridge and tunnel of
+  every height map (17 features, 39 crossings, ~10800 frames): the player +
+  follower under and back (on foot and on the bike), over the deck and its
+  ends and back, and a person, a person's kin and a wild kin walking under
+  while the player stands on the deck with a rain streak pushed over each.
+  Each frame it composes the screen from OAM, the OBJ tiles, the BG3 map and
+  scroll with the hardware OBJ-buffer rules (quirk included) and checks: no
+  pixel of an actor (or its shadow) under a cover shows over it, actors on a
+  deck have priority 1 and are never hidden, no priority-2 pixel ever shows
+  through BG3, no priority change mid-step. Without the OAM sort it fails on
+  the quirk; with the old centre-pixel rule it fails on mid-step flips and
+  on Frosthollow's lane. Plus the rule cell by cell and the OAM order.
+- **Tools**: `build/shot` has `layer N on|off` (masks a DISPCNT layer bit
+  before each frame; runs that differ only in layers diff cleanly).
+- Strips: `docs/images/elevation_flicker_before.png` / `_after.png` (Maple
+  Village, night + rain, walking south out from under the deck, every frame).
