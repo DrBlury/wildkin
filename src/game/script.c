@@ -42,6 +42,129 @@ static void set_battle_scene(int sc)
     battle_next_scene = sc >= 0 && sc < BSCENE_COUNT ? sc : BSCENE_MEADOW;
 }
 
+/* One cutscene walk and camera pan at a time; the path must outlive the callback. */
+static struct {
+    const u8 *path;
+    int npc, count, step, blocked, active, map;
+    void (*done)(int);
+    int arg;
+} cut_walk;
+static struct {
+    int active, frames, elapsed, start_x, start_y, end_x, end_y;
+    void (*done)(int);
+    int arg;
+} cut_pan;
+
+static int script_walking_npc(void) { return cut_walk.active ? cut_walk.npc : -2; }
+
+MAYBE_UNUSED static void npc_face(int npc, int dir)
+{
+    if (npc >= 0 && npc < NPC_COUNT && npc_visible[npc] && dir >= 0 && dir < 4)
+        npc_state[npc].facing = (u8)dir;
+}
+
+MAYBE_UNUSED static void npc_warp_out(int npc)
+{
+    if (npc < 0 || npc >= NPC_COUNT || !npc_visible[npc]) return;
+    npc_warped[npc] = 1;
+    npcs_refresh();
+}
+
+static void script_walk_start(int npc, const u8 *path, int n, void (*done)(int), int arg)
+{
+    if (cut_walk.active || cut_pan.active || !path || n <= 0 ||
+        (npc >= 0 && (npc >= NPC_COUNT || !npc_visible[npc]))) {
+        if (done) done(arg);
+        return;
+    }
+    cut_walk.path = path;
+    cut_walk.npc = npc;
+    cut_walk.count = n;
+    cut_walk.step = cut_walk.blocked = 0;
+    cut_walk.active = 1;
+    cut_walk.map = cur_map;
+    cut_walk.done = done;
+    cut_walk.arg = arg;
+}
+
+MAYBE_UNUSED static void npc_walk(int npc, const u8 *path, int n, void (*done)(int), int arg)
+{
+    script_walk_start(npc, path, n, done, arg);
+}
+
+MAYBE_UNUSED static void player_walk(const u8 *path, int n, void (*done)(int), int arg)
+{
+    script_walk_start(-1, path, n, done, arg);
+}
+
+MAYBE_UNUSED static void cam_pan_to(int x, int y, int frames, void (*done)(int), int arg)
+{
+    if (cut_walk.active || cut_pan.active || frames <= 0) {
+        if (done) done(arg);
+        return;
+    }
+    cut_pan.active = cam_scripted = 1;
+    cut_pan.frames = frames;
+    cut_pan.elapsed = 0;
+    cut_pan.start_x = cam_x;
+    cut_pan.start_y = cam_y;
+    cut_pan.end_x = clampi(x * 16 + 8 - SCREEN_WIDTH / 2, 0, map_w * 16 > SCREEN_WIDTH ? map_w * 16 - SCREEN_WIDTH : 0);
+    cut_pan.end_y = clampi(y * 16 + 8 - SCREEN_HEIGHT / 2, 0, map_h * 16 > SCREEN_HEIGHT ? map_h * 16 - SCREEN_HEIGHT : 0);
+    cut_pan.done = done;
+    cut_pan.arg = arg;
+}
+
+MAYBE_UNUSED static void cam_follow_player(void)
+{
+    cut_pan.active = cam_scripted = 0;
+    field_update_camera();
+}
+
+static int script_cutscene_update(void)
+{
+    if (cut_pan.active) {
+        int f = ++cut_pan.elapsed;
+        cam_x = cut_pan.start_x + (cut_pan.end_x - cut_pan.start_x) * f / cut_pan.frames;
+        cam_y = cut_pan.start_y + (cut_pan.end_y - cut_pan.start_y) * f / cut_pan.frames;
+        if (f >= cut_pan.frames) {
+            cut_pan.active = 0;
+            void (*done)(int) = cut_pan.done;
+            if (done) done(cut_pan.arg);
+        }
+        return 1;
+    }
+    if (!cut_walk.active) return 0;
+    if (cut_walk.map != cur_map) { cut_walk.active = 0; return 1; }
+    Actor *a = cut_walk.npc < 0 ? &player : &npc_state[cut_walk.npc];
+    if (a->moving) {
+        actor_step(a, 1);
+        return 1;
+    }
+    if (cut_walk.step >= cut_walk.count) {
+        cut_walk.active = 0;
+        void (*done)(int) = cut_walk.done;
+        if (done) done(cut_walk.arg);
+        return 1;
+    }
+    int dir = cut_walk.path[cut_walk.step];
+    if (dir >= 0 && dir < 4) {
+        int nx = a->x + DIR_DX[dir], ny = a->y + DIR_DY[dir], nl;
+        a->facing = (u8)dir;
+        int ek = elev_enter(a->x, a->y, a->level, dir, &nl);
+        if (ek != ELEV_BLOCK && cell_walkable_lv(nx, ny, nl, ek == ELEV_TOP) &&
+            (cut_walk.npc < 0 || (nx != player.x || ny != player.y)) &&
+            (cut_walk.npc >= 0 || npc_at(nx, ny) < 0)) {
+            actor_start_move(a, dir);
+            a->level = (u8)nl;
+            cut_walk.step++;
+            cut_walk.blocked = 0;
+            return 1;
+        }
+    }
+    if (++cut_walk.blocked >= 6) { cut_walk.blocked = 0; cut_walk.step++; }
+    return 1;
+}
+
 /* ---------------- the Kindling (Keeper Linden) ---------------- */
 
 static void keeper_confirm(int c);
@@ -109,6 +232,9 @@ static void relearn_pick_kin(int c);
 static int grim_keeper_talk(void);          /* world/grim/scripts.c: the Hollowing */
 static int grim_interact(int x, int y);     /* world/grim/scripts.c: the Bone Throne */
 static void grim_on_enter(void);
+static void (*events_map_entered)(int map);
+static void (*story_map_entered)(int map);
+static void (*saga_map_entered)(int map);
 
 static void keeper_after(void)
 {
@@ -479,7 +605,7 @@ static void check_spotting(void)
 {
     if (!party_count || party_first_healthy() < 0) return;
     for (int i = 0; i < NPC_COUNT; i++) {
-        if (NPCS[i].map != cur_map || NPCS[i].trainer == NO_TRAINER) continue;
+        if (!npc_visible[i] || NPCS[i].trainer == NO_TRAINER) continue;
         if (trainer_beaten(NPCS[i].trainer) || npc_state[i].moving) continue;
         if (!warden_sees(i)) continue;
         spot.active = 1;
@@ -919,6 +1045,10 @@ static void field_on_enter(void)
     if (cur_map == MAP_RISE) lore_story(LORE_STORMSTONE_RISE);
     if (cur_map == travel.last_hearth && opt.autosave && party_count) save_write();
     grim_on_enter();
+    if (events_map_entered) events_map_entered(cur_map);
+    if (story_map_entered) story_map_entered(cur_map);
+    if (saga_map_entered) saga_map_entered(cur_map);
+    field_events_refresh();
 }
 
 static int field_busy(void)
@@ -985,6 +1115,7 @@ static void field_update(void)
     if (spot_update()) return;
     time_tick();
     storm_update();
+    if (script_cutscene_update()) return;
     if (key_hit(KEY_START) && !player.moving) {
         sfx_play(SFX_CONFIRM);
         start_menu_open();
@@ -1036,6 +1167,7 @@ static void new_game(void)
     for (int i = 0; i < SP_COUNT; i++) dex_seen[i] = dex_caught[i] = 0;
     money = 3000;
     flags_reset();
+    cut_walk.active = cut_pan.active = cam_scripted = 0;
     modules_reset();
     hush_steps = 0;
     step_counter = 0;

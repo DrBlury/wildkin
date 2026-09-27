@@ -77,6 +77,28 @@ enum {
 #define WARDEN(map, x, y, chr, face, sight, tr, kin, text) \
     { map, x, y, CHR_##chr, DIR_##face, BEH_LOOK, SCR_WARDEN, NO_LORE, tr, sight, kin, 0, text }
 
+#define MAP_PATCHES(P) .patches = P, .patch_count = NDEC(P)
+#define SIGN_ROUTE(map, x, y, title, directions) { map, x, y, title "\n" directions }
+#define PERSON_EVENT(map, x, y, chr, face, beh, scr, lore, name, text, event_id) \
+    { map, x, y, CHR_##chr, DIR_##face, BEH_##beh, SCR_##scr, lore, NO_TRAINER, 0, NO_KIN, name, text, 0, 0, WHEN_ANY, event_id }
+
+/* Conditional people keep the original macros unchanged for existing regions. */
+#define PERSON_IF(map, x, y, chr, face, beh, scr, lore, name, text, show, hide) \
+    { map, x, y, CHR_##chr, DIR_##face, BEH_##beh, SCR_##scr, lore, NO_TRAINER, 0, NO_KIN, name, text, show, hide, WHEN_ANY, 0 }
+#define PERSON_WHEN(map, x, y, chr, face, beh, scr, lore, name, text, time) \
+    { map, x, y, CHR_##chr, DIR_##face, BEH_##beh, SCR_##scr, lore, NO_TRAINER, 0, NO_KIN, name, text, 0, 0, WHEN_##time, 0 }
+#define PERSON_KIN_IF(map, x, y, chr, face, beh, scr, lore, kin, name, text, show, hide) \
+    { map, x, y, CHR_##chr, DIR_##face, BEH_##beh, SCR_##scr, lore, NO_TRAINER, 0, kin, name, text, show, hide, WHEN_ANY, 0 }
+#define WARDEN_IF(map, x, y, chr, face, sight, tr, kin, text, show, hide) \
+    { map, x, y, CHR_##chr, DIR_##face, BEH_LOOK, SCR_WARDEN, NO_LORE, tr, sight, kin, 0, text, show, hide, WHEN_ANY, 0 }
+
+/* Route aliases are declared before the region map initializers. */
+#define SONG_ROUTE_EAST SONG_ROUTE
+#define SONG_ROUTE_WEST SONG_ROUTE
+#define SONG_ROUTE_NORTH SONG_ROUTE
+#define SONG_ROUTE_FAR SONG_ROUTE
+#define SONG_ROUTE_GRIM SONG_ROUTE
+
 /* ---------------- data ---------------- */
 
 #include "all_data.h"
@@ -113,7 +135,13 @@ static const WildZone WILD_ZONES[ZONE_COUNT] = {
 };
 
 /* Quests shown in the quest log (quest.c keeps their stages). */
-typedef struct { const char *name, *goal; } QuestDef;
+enum { QUEST_SIDE, QUEST_MAIN, QUEST_PROJECT, QUEST_EVENT, QUEST_CATEGORY_COUNT };
+typedef struct {
+    const char *name, *goal;
+    const char *const *stage_goals;
+    u8 n_stages, category;
+    const u8 *stage_maps; /* MAP_NONE means no marker; index is current stage */
+} QuestDef;
 static const QuestDef QUESTS[QUEST_COUNT] = {
     [QUEST_NONE_ID] = { "", "" },
 #include "all_quests.inc"

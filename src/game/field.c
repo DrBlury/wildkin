@@ -56,6 +56,14 @@ enum {
 };
 
 typedef struct {
+    u16 flag;                   /* zero = no flag condition */
+    u8 invert, x, y, w, h;
+    const char *const *rows;
+    const char *const *elev;
+    u8 event;                   /* zero = no event condition */
+} MapPatch;
+
+typedef struct {
     u8 w, h, tileset, scene;       /* scene: battle backdrop (SC_*) */
     const char *const *rows;
     const Stamp *stamps;
@@ -76,6 +84,8 @@ typedef struct {
     const char *const *elev;       /* height layer, one char per cell, or 0 (elev.c) */
     const ElevFeat *feats;         /* bridges, tunnels, hidden passages */
     u8 feat_count;
+    const MapPatch *patches;
+    u8 patch_count;
 } MapDef;
 
 /* Called at the end of every map load (music.c defines it; see script.c). */
@@ -97,6 +107,8 @@ typedef struct {
     u8 kin;             /* species walking beside them, or NO_KIN */
     const char *name;
     const char *text;   /* what they say (after the bout, for wardens) */
+    u16 show_flag, hide_flag;
+    u8 when, event;
 } NpcDef;
 
 #define TRAINER_TEAM_MAX 6
@@ -142,6 +154,10 @@ typedef struct { Actor a; u8 species, lustrous, shown; } KinActor;
 
 EWRAM_BSS static Actor npc_state[NPC_COUNT];      /* EWRAM: IWRAM is kept for the stack */
 EWRAM_BSS static KinActor npc_kin[NPC_COUNT];
+static u8 npc_visible[NPC_COUNT];
+static int (*npc_event_active)(int event);
+static void (*events_wild_override)(int zone, WildSlot *slot);
+static u8 npc_warped[NPC_COUNT];
 static KinActor follower;
 
 #define WILD_MAX 5
@@ -155,6 +171,7 @@ static int wild_spawn_timer;
 static int wild_battle_slot = -1;
 
 static int cur_map;
+static u8 map_w, map_h, map_tileset;
 static Actor player;
 /* Story flags, picked-up satchels and beaten wardens: bit arrays (the ids
  * come from each region's flag_ids.inc / satchels.inc / trainer_ids.inc). */
@@ -171,7 +188,20 @@ static void bit_set(u8 *bits, int i) { if (i >= 0) bits[i >> 3] |= (u8)(1u << (i
 static void bit_clear(u8 *bits, int i) { if (i >= 0) bits[i >> 3] &= (u8)~(1u << (i & 7)); }
 
 static int flag(int f) { return bit_get(story_bits, f); }
-static void flag_set(int f) { bit_set(story_bits, f); }
+static void npcs_refresh(void);
+static void map_patches_reapply(void);
+static void flag_set(int f)
+{
+    if (f < 0 || f >= FLAG_COUNT || flag(f)) return;
+    bit_set(story_bits, f);
+    npcs_refresh();
+    if (map_w && cur_map >= 0 && cur_map < MAP_COUNT)
+        for (int i = 0; i < MAPS[cur_map].patch_count; i++)
+            if (MAPS[cur_map].patches[i].flag == f) {
+                map_patches_reapply();
+                break;
+            }
+}
 __attribute__((unused)) static void flag_clear(int f) { bit_clear(story_bits, f); }
 __attribute__((unused)) static void flags_story_clear(void)
 {
@@ -194,7 +224,6 @@ static void trainer_mark_beaten(int t) { bit_set(trainer_bits, t); }
 EWRAM_BSS static u16 map_cells[MAP_MAX_W * MAP_MAX_H];
 EWRAM_BSS static u16 map_ground[MAP_MAX_W * MAP_MAX_H];  /* ground under overlay cells (trees) */
 EWRAM_BSS static u8 map_decor[MAP_MAX_W * MAP_MAX_H];  /* decor instance + 1, 0 = none */
-static u8 map_w, map_h, map_tileset;
 static u16 decor_base[DK_COUNT];                        /* VRAM tile of each loaded kind */
 static int decor_tiles_used;                            /* first free scene tile */
 static int decor_tiles_wanted;                          /* ...had every decor kind fitted (tests) */
@@ -269,7 +298,43 @@ static u16 map_infer_ground(const MapDef *m, int x, int y)
     return t->ground;
 }
 
+static int map_patch_active(const MapPatch *p)
+{
+    if (p->event && (!npc_event_active || !npc_event_active(p->event))) return 0;
+    if (!p->flag) return !p->invert;
+    return flag(p->flag) != !!p->invert;
+}
+
+static char map_patch_elev(const MapDef *m, int x, int y, char original)
+{
+    for (int i = 0; i < m->patch_count; i++) {
+        const MapPatch *p = &m->patches[i];
+        if (p->elev && p->x + p->w <= m->w && p->y + p->h <= m->h &&
+            map_patch_active(p) && x >= p->x && y >= p->y &&
+            x < p->x + p->w && y < p->y + p->h)
+            original = p->elev[y - p->y][x - p->x];
+    }
+    return original;
+}
+
 #include "elev.c"
+
+static void map_apply_patches(const MapDef *m, const TilesetDef *t)
+{
+    for (int i = 0; i < m->patch_count; i++) {
+        const MapPatch *p = &m->patches[i];
+        if (!map_patch_active(p) || !p->rows || p->x + p->w > m->w ||
+            p->y + p->h > m->h) continue;
+        for (int dy = 0; dy < p->h; dy++)
+            for (int dx = 0; dx < p->w; dx++) {
+                int x = p->x + dx, y = p->y + dy, index = y * m->w + x;
+                u16 value = legend_pick(legend_for(t, p->rows[dy][dx]), x, y);
+                map_cells[index] = value;
+                map_ground[index] = value < CELL_PATH && (t->mflags[value] & MTF_OVERLAY)
+                    ? (m->ground ? m->ground[index] : map_infer_ground(m, x, y)) : 0;
+            }
+    }
+}
 
 static void map_decode(int id)
 {
@@ -291,6 +356,7 @@ static void map_decode(int id)
             for (int dx = 0; dx < s->w; dx++)
                 map_cells[(s->y + dy) * m->w + s->x + dx] = (u16)(s->base + dy * s->w + dx);
     }
+    map_apply_patches(m, t);
     for (int i = 0; i < m->decor_count; i++) {
         const DecorPlace *p = &m->decor[i];
         const DecorDef *d = &DECOR_DEFS[m->tileset][p->kind];
@@ -370,6 +436,7 @@ static int cell_attr(int x, int y)
 
 static s16 ring_x[16][16], ring_y[16][16]; /* map cell cached in each ring slot */
 static int cam_x, cam_y;
+static int cam_scripted;
 static int field_anim_frame;
 
 static void ring_invalidate(void)
@@ -673,6 +740,40 @@ static void kin_place(KinActor *k, int species, int lustrous, int x, int y, int 
     k->shown = 1;
 }
 
+static int time_is_night(void);
+
+static int npc_condition(const NpcDef *n)
+{
+    if (n->map != cur_map || (n->show_flag && !flag(n->show_flag)) ||
+        (n->hide_flag && flag(n->hide_flag))) return 0;
+    if (n->when == WHEN_DAY && time_is_night()) return 0;
+    if (n->when == WHEN_NIGHT && !time_is_night()) return 0;
+    if (n->event && (!npc_event_active || !npc_event_active(n->event))) return 0;
+    return 1;
+}
+
+static int npc_should_show(int i)
+{
+    return !npc_warped[i] && npc_condition(&NPCS[i]);
+}
+
+static void npcs_refresh(void)
+{
+    for (int i = 0; i < NPC_COUNT; i++) {
+        int visible = npc_should_show(i);
+        if (!visible) npc_kin[i].shown = 0;
+        if (visible && !npc_visible[i] && NPCS[i].kin != NO_KIN) {
+            const Actor *a = &npc_state[i];
+            int bx = a->x + DIR_DX[DIR_BACK[a->facing]];
+            int by = a->y + DIR_DY[DIR_BACK[a->facing]];
+            if (a->facing == DIR_DOWN || a->facing == DIR_UP) { bx = a->x + 1; by = a->y; }
+            kin_place(&npc_kin[i], NPCS[i].kin, 0, bx, by, a->facing);
+            npc_kin[i].a.level = (u8)elev_level_at(bx, by, a->level, a->facing);
+        }
+        npc_visible[i] = (u8)visible;
+    }
+}
+
 static void npcs_reset(void)
 {
     for (int i = 0; i < NPC_COUNT; i++) {
@@ -686,17 +787,11 @@ static void npcs_reset(void)
         a->hop = 0;
         a->timer = (u16)(60 + rng_range(90));
         a->level = NPCS[i].map == cur_map ? (u8)elev_level_at(a->x, a->y, -1, a->facing) : 0;
+        npc_visible[i] = 0;
+        npc_warped[i] = 0;
         npc_kin[i].shown = 0;
-        if (NPCS[i].kin != NO_KIN && NPCS[i].map == cur_map) {
-            int bx = a->x + DIR_DX[DIR_BACK[a->facing]], by = a->y + DIR_DY[DIR_BACK[a->facing]];
-            if (NPCS[i].facing == DIR_DOWN || NPCS[i].facing == DIR_UP) {
-                bx = a->x + 1;
-                by = a->y;
-            }
-            kin_place(&npc_kin[i], NPCS[i].kin, 0, bx, by, a->facing);
-            npc_kin[i].a.level = (u8)elev_level_at(bx, by, a->level, a->facing);
-        }
     }
+    npcs_refresh();
 }
 
 static void wild_clear(void)
@@ -707,6 +802,9 @@ static void wild_clear(void)
 
 static void travel_map_loaded(int map);
 static void farm_map_loaded(void);
+
+static void ring_invalidate(void);
+static void travel_patch_elevation_refresh(void);
 
 static void map_load(int id)
 {
@@ -721,10 +819,25 @@ static void map_load(int id)
     farm_map_loaded();
 }
 
+static void map_patches_reapply(void)
+{
+    if (cur_map < 0 || cur_map >= MAP_COUNT || !MAPS[cur_map].patch_count) return;
+    map_decode(cur_map);
+    travel_patch_elevation_refresh();
+    ring_invalidate();
+}
+
+/* Re-evaluate event-controlled people and terrain after provider changes. */
+static void field_events_refresh(void)
+{
+    npcs_refresh();
+    map_patches_reapply();
+}
+
 static int npc_at(int x, int y)
 {
     for (int i = 0; i < NPC_COUNT; i++) {
-        if (NPCS[i].map != cur_map) continue;
+        if (!npc_visible[i]) continue;
         const Actor *a = &npc_state[i];
         if (a->x == x && a->y == y) return i;
         /* a walking NPC also occupies the cell it is leaving */
@@ -792,7 +905,7 @@ static int cell_walkable(int x, int y)
 static int npc_at_lv(int x, int y, int level)
 {
     for (int i = 0; i < NPC_COUNT; i++) {
-        if (NPCS[i].map != cur_map) continue;
+        if (!npc_visible[i]) continue;
         const Actor *a = &npc_state[i];
         if (a->level != level) continue;
         if (a->x == x && a->y == y) return i;
@@ -826,6 +939,7 @@ static int cell_walkable_lv(int x, int y, int level, int top)
 
 static void field_update_camera(void)
 {
+    if (cam_scripted) return;
     int px = player.x * 16 + player.ox, py = player.y * 16 + player.oy;
     int mw = map_w * 16, mh = map_h * 16;
     cam_x = mw <= SCREEN_WIDTH ? (mw - SCREEN_WIDTH) / 2
@@ -938,7 +1052,7 @@ static void field_draw_sprites(void)
     }
     int slot = 0;
     for (int i = 0; i < NPC_COUNT && n < 40; i++) {
-        if (NPCS[i].map != cur_map) continue;
+        if (!npc_visible[i]) continue;
         const Actor *a = &npc_state[i];
         int wx = a->x * 16 + a->ox, wy = a->y * 16 + a->oy;
         if (wx - cam_x >= -16 && wx - cam_x <= SCREEN_WIDTH && wy - cam_y >= -16 &&
@@ -1179,10 +1293,14 @@ static void follower_reset(void)
     follower_sync();
 }
 
+static int script_walking_npc(void);
 static void npcs_update(void)
 {
+    static int last_night = -1;
+    int night = time_is_night();
+    if (night != last_night) { last_night = night; npcs_refresh(); }
     for (int i = 0; i < NPC_COUNT; i++) {
-        if (NPCS[i].map != cur_map) continue;
+        if (!npc_visible[i] || script_walking_npc() == i) continue;
         Actor *a = &npc_state[i];
         KinActor *k = &npc_kin[i];
         if (k->shown && k->a.moving) actor_step(&k->a, 1);
@@ -1232,6 +1350,7 @@ static int held_dir(void)
 }
 
 static void field_begin_warp(int dest, int x, int y, int facing);
+static void field_warp_short(void);
 static void wild_touch(int slot);
 static void edge_blocked(void);
 
@@ -1255,6 +1374,7 @@ static int try_edge_link(int dir, int nx, int ny)
     default: x = 0; y = ny + m->link_off[l]; break;
     }
     field_begin_warp(m->link[l], clampi(x, 0, d->w - 1), clampi(y, 0, d->h - 1), dir);
+    if (m->tileset == d->tileset) field_warp_short();
     return 1;
 }
 
@@ -1448,6 +1568,11 @@ static Monster roll_wild(int zone)
         }
         r -= w;
     }
+    WildSlot chosen = *s;
+    if (events_wild_override) events_wild_override(zone, &chosen);
+    if (chosen.species >= SP_COUNT || chosen.min_level < 1 ||
+        chosen.max_level < chosen.min_level) chosen = *s;
+    s = &chosen;
     int level = s->min_level + (int)rng_range((unsigned)(s->max_level - s->min_level + 1));
     /* kin keep up a little with strong teams, so routes stay worth a bout */
     int over = party_max_level() - (s->max_level + 6);
@@ -1588,7 +1713,7 @@ static void wild_update(void)
 /* ---------------- warps & transitions ---------------- */
 
 static struct {
-    int active, timer, dest, x, y, facing;
+    int active, timer, dest, x, y, facing, duration;
 } warp;
 
 static void field_begin_warp(int dest, int x, int y, int facing)
@@ -1599,7 +1724,10 @@ static void field_begin_warp(int dest, int x, int y, int facing)
     warp.x = x;
     warp.y = y;
     warp.facing = facing;
+    warp.duration = 9;
 }
+
+static void field_warp_short(void) { warp.duration = 6; }
 
 static void field_on_enter(void);
 static void travel_map_entered(int map);
@@ -1627,12 +1755,13 @@ static int field_warp_update(void)
 {
     if (!warp.active) return 0;
     warp.timer++;
-    if (warp.timer <= 8) {
-        set_brightness(-warp.timer * 2);
-    } else if (warp.timer == 9) {
+    int half = warp.duration;
+    if (warp.timer < half) {
+        set_brightness(-warp.timer * 16 / half);
+    } else if (warp.timer == half) {
         field_enter_map(warp.dest, warp.x, warp.y, warp.facing);
-    } else if (warp.timer <= 18) {
-        set_brightness(-(18 - warp.timer) * 2);
+    } else if (warp.timer < half * 2) {
+        set_brightness(-(half * 2 - warp.timer) * 16 / half);
     } else {
         set_brightness(0);
         warp.active = 0;

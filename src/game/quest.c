@@ -3,7 +3,7 @@
  * regions add quest ids in world/<region>/ and advance them in scripts.
  */
 
-#define QUEST_MAX 48
+#define QUEST_MAX 96
 typedef char QuestsFit[QUEST_COUNT <= QUEST_MAX ? 1 : -1];
 
 typedef struct {
@@ -23,9 +23,26 @@ static void quest_validate(void)
 {
 }
 
+MAYBE_UNUSED static int quest_get(int q);
+MAYBE_UNUSED static int quest_is(int q, int stage) { return quest_get(q) == stage; }
+MAYBE_UNUSED static int quest_between(int q, int a, int b) { int st = quest_get(q); return st >= a && st <= b; }
+MAYBE_UNUSED static void quest_advance_to(int q, int stage)
+{
+    if (q > 0 && q < QUEST_COUNT && stage > quest.stage[q] && quest.stage[q] != 255)
+        quest.stage[q] = (u8)clampi(stage, 0, 255);
+}
+
 MAYBE_UNUSED static int quest_get(int q) { return q > 0 && q < QUEST_COUNT ? quest.stage[q] : 0; }
 MAYBE_UNUSED static void quest_set(int q, int stage) { if (q > 0 && q < QUEST_COUNT) quest.stage[q] = (u8)stage; }
 MAYBE_UNUSED static int quest_done(int q) { return quest_get(q) == 255; }
+
+static int quest_marker_map(int q)
+{
+    int stage = quest_get(q);
+    const QuestDef *def = &QUESTS[q];
+    return stage > 0 && stage != 255 && def->stage_maps && stage < def->n_stages
+        ? def->stage_maps[stage] : MAP_NONE;
+}
 
 /* ================================================================ */
 /*  The quest log                                                   */
@@ -58,12 +75,13 @@ static int quest_stage_of(int q)
 static void qlog_collect(void)
 {
     qlog.count = qlog.open = 0;
-    for (int pass = 0; pass < 2; pass++)
+    for (int pass = 0; pass < 2 * QUEST_CATEGORY_COUNT; pass++)
         for (int q = 1; q < quest_def_count && q < QUEST_MAX; q++) {
             int st = quest_stage_of(q);
-            if (!st || (st == 255) != pass) continue;
+            if (!st || (st == 255) != (pass >= QUEST_CATEGORY_COUNT) ||
+                quest_defs[q].category != pass % QUEST_CATEGORY_COUNT) continue;
             qlog.ids[qlog.count++] = q;
-            if (!pass) qlog.open++;
+            if (pass < QUEST_CATEGORY_COUNT) qlog.open++;
         }
     if (qlog.cursor >= qlog.count) qlog.cursor = qlog.count ? qlog.count - 1 : 0;
     if (qlog.cursor < qlog.scroll) qlog.scroll = qlog.cursor;
@@ -81,6 +99,11 @@ static void qlog_header(void)
     str_put_int(buf, qlog.count - qlog.open);
     str_put(buf, " DONE");
     text_draw_right(228, 8, buf);
+    if (qlog.count) {
+        static const char *const CATEGORIES[] = { "SIDE", "MAIN", "PROJECT", "EVENT" };
+        int cat = quest_defs[qlog.ids[qlog.cursor]].category;
+        text_draw_col(16, 20, CATEGORIES[cat < QUEST_CATEGORY_COUNT ? cat : QUEST_SIDE], INK_BLUE, INK_BLUE_SH);
+    }
 }
 
 static void qlog_list_redraw(void)
@@ -124,7 +147,12 @@ static void qlog_detail_redraw(void)
     pl_add(PL_HEADER, quest_defs[q].name);
     pl_add(quest_stage_of(q) == 255 ? PL_GOOD : PL_BAD, quest_stage_of(q) == 255 ? "DONE" : "IN PROGRESS");
     pl_add(PL_BLANK, 0);
-    pl_add_wrapped(quest_defs[q].goal, PL_TEXT);
+    int stage = quest_stage_of(q);
+    const QuestDef *def = &quest_defs[q];
+    const char *goal = def->goal;
+    if (stage != 255 && def->stage_goals && stage < def->n_stages && def->stage_goals[stage])
+        goal = def->stage_goals[stage];
+    pl_add_wrapped(goal, PL_TEXT);
     dex.scroll_px = dex.target_px = 0;
     panel_setup_map();
     panel_draw_scrollbar();

@@ -17,6 +17,8 @@
 # gbafix`) repairs the cartridge header after linking.
 # ---------------------------------------------------------------
 
+.DEFAULT_GOAL := all
+
 TARGET   := game
 ROMTITLE := WILDKIN
 

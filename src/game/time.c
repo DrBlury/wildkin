@@ -24,9 +24,14 @@ typedef struct {
     u8 weather;         /* WEATHER_* for today */
     u8 rain_days;       /* days of rain so far (a dry spell makes rain likelier) */
     u8 pad;
+    u32 save_seed; /* appended: old saves retain their original time fields */
 } TimeState;
 
 enum { WEATHER_CLEAR, WEATHER_RAIN, WEATHER_COUNT };
+enum { WX_CLEAR, WX_RAIN, WX_STORM, WX_FOG, WX_SNOW, WX_ASH, WX_HEAT, WX_AURORA };
+static int (*events_weather_here)(int map);
+static void (*events_new_day)(void);
+static void (*daily_extra_hook)(void);
 
 #define MINUTES_PER_DAY (24 * 60)
 #define DAWN_MINUTE (6 * 60)        /* the day counter turns over here */
@@ -46,6 +51,7 @@ static void time_reset(void)
     gtime.weather = WEATHER_CLEAR;
     gtime.rain_days = 0;
     gtime.pad = 0;
+    gtime.save_seed = rng_next() | 1u;
     tint_applied = -1;
 }
 
@@ -56,6 +62,7 @@ static void time_validate(void)
     if (gtime.minute >= MINUTES_PER_DAY) gtime.minute = 8 * 60;
     if (gtime.frames >= 60) gtime.frames = 0;
     if (gtime.weather >= WEATHER_COUNT) gtime.weather = WEATHER_CLEAR;
+    if (!gtime.save_seed) gtime.save_seed = 0x9E3779B9u; /* migrated save */
     tint_applied = -1;
 }
 
@@ -89,15 +96,40 @@ static void time_text(char *buf)
 
 /* ---------------- weather ---------------- */
 
+static int time_weather_here(int map)
+{
+    if (map < 0 || map >= MAP_COUNT) return WX_CLEAR;
+    if (events_weather_here) {
+        int kind = events_weather_here(map);
+        if (kind >= WX_CLEAR && kind <= WX_AURORA) return kind;
+    }
+    const MapDef *m = &MAPS[map];
+    if (m->flags & MF_SNOW) return WX_SNOW;
+    if (m->flags & MF_RAIN) return WX_RAIN;
+    return gtime.weather == WEATHER_RAIN ? WX_RAIN : WX_CLEAR;
+}
+
 static int time_raining_here(void)
 {
     const MapDef *m = &MAPS[cur_map];
     if (!(m->flags & MF_OUTDOOR) || (m->flags & (MF_NIGHTLESS | MF_DEBUG))) return 0;
-    return gtime.weather == WEATHER_RAIN || (m->flags & MF_RAIN);
+    int wx = time_weather_here(cur_map);
+    return wx == WX_RAIN || wx == WX_STORM;
 }
 
 /* Today's weather: dry spells make rain likelier (about 1 day in 4). */
 static u8 time_weather_fixed;   /* set: the weather stays as it is (tests, scripted days) */
+
+static u32 time_seed_for_day(int day)
+{
+    u32 h = gtime.save_seed ^ ((u32)day * 0x9E3779B9u);
+    h ^= h >> 16;
+    h *= 0x7FEB352Du;
+    h ^= h >> 15;
+    return h * 0x846CA68Bu ^ (h >> 16);
+}
+
+static u32 time_day_seed(void) { return time_seed_for_day(gtime.day); }
 
 static void time_roll_weather(void)
 {
@@ -106,8 +138,8 @@ static void time_roll_weather(void)
         gtime.weather = WEATHER_CLEAR;
         return;
     }
-    int odds = gtime.weather == WEATHER_RAIN ? 20 : 26;
-    gtime.weather = (int)rng_range(100) < odds ? WEATHER_RAIN : WEATHER_CLEAR;
+    int odds = time_seed_for_day(gtime.day - 1) % 100u < 26u ? 20 : 26;
+    gtime.weather = (time_day_seed() % 100u) < (unsigned)odds ? WEATHER_RAIN : WEATHER_CLEAR;
     if (gtime.weather == WEATHER_RAIN && gtime.rain_days < 255) gtime.rain_days++;
 }
 
@@ -177,6 +209,9 @@ static void time_new_day(void)
 {
     if (gtime.day < 9999) gtime.day++;
     time_roll_weather();
+    if (events_new_day) events_new_day();
+    if (daily_extra_hook) daily_extra_hook();
+    field_events_refresh();
     farm_new_day();
 }
 

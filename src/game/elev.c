@@ -77,7 +77,7 @@ static int ec_covers(int c) { return c != EC_NONE; }
 static char elev_char(const MapDef *m, int x, int y)
 {
     if (x < 0 || y < 0 || x >= m->w || y >= m->h) return '0';
-    char c = m->elev[y][x];
+    char c = map_patch_elev(m, x, y, m->elev[y][x]);
     return c ? c : '0';
 }
 

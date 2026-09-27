@@ -353,6 +353,13 @@ static void travel_map_loaded(int map)
     legends_build();
 }
 
+/* Keep moved boulders and switch state intact when flag/event terrain changes. */
+static void travel_patch_elevation_refresh(void)
+{
+    for (int i = 0; i < tobj_count; i++)
+        tobj[i].level = (u8)elev_level_at(tobj[i].x, tobj[i].y, -1, -1);
+}
+
 static int obj_attr(const TObj *o)
 {
     switch (o->kind) {
@@ -1732,6 +1739,7 @@ static void wm_update(void)
     }
 }
 
+static int quest_marker_map(int q);
 static void wm_draw(void)
 {
     static u8 seen[WM_COUNT];
@@ -1746,6 +1754,13 @@ static void wm_draw(void)
     if (wm.n) {
         const FlyPoint *f = &FLY_POINTS[wm.pt[wm.cur]];
         spr_push(f->map_x - 8, f->map_y - 8, OT_TX(TX_CURSOR0 + ((wm.t >> 4) & 1)), SQ16, OBANK_TFX, 0, 0);
+    }
+    for (int q = 1; q < QUEST_COUNT; q++) {
+        int map = quest_marker_map(q);
+        int spot = map >= 0 && map < MAP_COUNT ? map_spot(map) : -1;
+        if (spot >= 0 && spot < WM_COUNT)
+            spr_push(WM_SPOTS[spot][0] - 8, WM_SPOTS[spot][1] - 17,
+                     OT_TX(TX_PIN), SQ16, OBANK_TFX, 0, 0);
     }
     for (int s = 0; s < WM_COUNT; s++) {
         int kind = WM_SPOTS[s][2], tile;
