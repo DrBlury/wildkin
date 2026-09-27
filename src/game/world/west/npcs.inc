@@ -12,7 +12,7 @@
     PERSON(MAP_PORT_BRINE, 18, 24, FISHER, UP, LOOK, TALK, LSRC_FISHMONGER, "FISHMONGER",
            "Mackerel for the inn, sprats for the gulls, and the crab stays."),
     PERSON(MAP_PORT_BRINE, 6, 27, HERMIT, LEFT, LOOK, LIGHTKEEPER, LSRC_LIGHTKEEPER, "LIGHTKEEPER", 0),
-    PERSON(MAP_PORT_BRINE, 34, 20, GRAN, DOWN, WANDER, TALK, NO_LORE, "NET MENDER",
+    PERSON(MAP_PORT_BRINE, 34, 20, VILLAGER, DOWN, WANDER, TALK, NO_LORE, "NET MENDER",
            "The Hall Master MAREN was a fisher's girl. Now look at her. Still smells of the sea, though."),
     PERSON(MAP_PORT_BRINE, 20, 8, KID, DOWN, WANDER, TALK, NO_LORE, "KID",
            "I rode the current in the Hall all the way back to the door. Six times! It's the best."),
