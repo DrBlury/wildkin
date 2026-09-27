@@ -11,7 +11,8 @@
 static const int EAST_MAPS[] = {
     MAP_COPPERLINE, MAP_LUMEN, MAP_ELDERWOOD, MAP_LAND_OFFICE, MAP_LUMEN_HEARTH, MAP_LUMEN_MARKET,
     MAP_VOLT_HALL, MAP_RESONANCE_WORKS, MAP_BIKE_SHOP, MAP_LUMEN_HOUSE, MAP_CLOCKWORK_SPIRE,
-    MAP_LUMEN_INN, MAP_LUMEN_HOUSE_B,
+    MAP_LUMEN_INN, MAP_LUMEN_HOUSE_B, MAP_BROOKMILL_TRAIL, MAP_BROOKMILL,
+    MAP_BROOKMILL_MILL, MAP_BROOKMILL_HOUSE, MAP_BROOKMILL_REST, MAP_COPPER_MINE,
 };
 #define EAST_COUNT ((int)(sizeof(EAST_MAPS) / sizeof(EAST_MAPS[0])))
 
@@ -71,16 +72,24 @@ static void test_lumen_heights(void)
 static void test_edges(void)
 {
     CHECK(edge_open(MAP_COPPERLINE, LINK_W, 17, 18) && edge_open(MAP_WOOD, LINK_E, 17, 18) &&
-          MAPS[MAP_COPPERLINE].link[LINK_W] == MAP_WOOD && MAPS[MAP_WOOD].link[LINK_E] == MAP_COPPERLINE,
-          "Copperline <-> Bramblewood at y 17-18");
-    CHECK(edge_open(MAP_COPPERLINE, LINK_S, 20, 21) && MAPS[MAP_COPPERLINE].link[LINK_S] == MAP_ASHEN_FIELDS,
-          "Copperline -> Ashen Fields at x 20-21");
+          edge_open(MAP_BROOKMILL_TRAIL, LINK_W, 17, 18) &&
+          edge_open(MAP_BROOKMILL_TRAIL, LINK_E, 17, 18) &&
+          edge_open(MAP_BROOKMILL, LINK_W, 17, 18) && edge_open(MAP_BROOKMILL, LINK_E, 17, 18) &&
+          MAPS[MAP_BROOKMILL_TRAIL].link[LINK_E] == MAP_BROOKMILL &&
+          MAPS[MAP_BROOKMILL].link[LINK_E] == MAP_COPPERLINE &&
+          MAPS[MAP_COPPERLINE].link[LINK_W] == MAP_BROOKMILL &&
+          MAPS[MAP_WOOD].link[LINK_E] == MAP_BROOKMILL_TRAIL,
+          "Bramblewood -> Brookmill Trail -> Brookmill -> Copperline at y 17-18");
+    CHECK(MAPS[MAP_COPPERLINE].link[LINK_S] == MAP_NONE &&
+          WARPS[WARP_COUNT - 1].x == 20 && WARPS[WARP_COUNT - 1].y == 34 &&
+          WARPS[WARP_COUNT - 1].dest == MAP_ACCORD_GATE,
+          "Copperline G5 uses an enterable door at (20,34), not a south edge");
     CHECK(edge_open(MAP_COPPERLINE, LINK_E, 20, 21) && edge_open(MAP_LUMEN, LINK_W, 20, 21),
           "Copperline <-> Lumen at y 20-21");
-    CHECK(edge_open(MAP_LUMEN, LINK_N, 24, 25) && MAPS[MAP_LUMEN].link[LINK_N] == MAP_MOONVEIL,
-          "Lumen -> Moonveil Path at x 24-25");
-    CHECK(edge_open(MAP_LUMEN, LINK_E, 20, 21) && MAPS[MAP_LUMEN].link[LINK_E] == MAP_CINDER_ROAD,
-          "Lumen -> Cinder Road at y 20-21");
+    CHECK(edge_open(MAP_LUMEN, LINK_N, 24, 25) && MAPS[MAP_LUMEN].link[LINK_N] == MAP_MISTFEN,
+          "Lumen -> Mistfen at x 24-25");
+    CHECK(edge_open(MAP_LUMEN, LINK_E, 20, 21) && MAPS[MAP_LUMEN].link[LINK_E] == MAP_CINDER_CROSSING,
+          "Lumen -> Cinder Crossing at y 20-21");
     CHECK(edge_open(MAP_ELDERWOOD, LINK_N, 30, 31) && edge_open(MAP_WOOD, LINK_S, 30, 31),
           "Elderwood <-> Bramblewood at x 30-31");
     /* only the contracted cells are open on the region's outer edges */
@@ -92,7 +101,7 @@ static void test_edges(void)
         if ((x < 24 || x > 25) && walk_ok(x, 0)) tight = 0;
     map_load(MAP_COPPERLINE);
     for (int x = 0; x < map_w; x++)
-        if ((x < 20 || x > 21) && walk_ok(x, map_h - 1)) tight = 0;
+        if (walk_ok(x, map_h - 1)) tight = 0;
     CHECK(tight, "no stray openings on the contracted edges");
     const MapDef *w = &MAPS[MAP_WOOD];
     int boulders = 0;
@@ -113,7 +122,8 @@ static void test_doors(void)
         if (!is_east) continue;
         count++;
         map_load(WARPS[i].map);
-        if (!(cell_attr(WARPS[i].x, WARPS[i].y) & A_DOOR) || !walk_ok(WARPS[i].x, WARPS[i].y + 1)) ok = 0;
+        if (!(cell_attr(WARPS[i].x, WARPS[i].y) & A_DOOR) ||
+            !walk_ok(WARPS[i].x, WARPS[i].y == map_h - 1 ? WARPS[i].y - 1 : WARPS[i].y + 1)) ok = 0;
         map_load(dest);
         if (!(cell_attr(WARPS[i].dx, WARPS[i].dy) & A_EXIT)) {
             ok = 0;
@@ -128,7 +138,7 @@ static void test_doors(void)
             }
         if (best != i) ok = 0;
     }
-    CHECK(ok && count == 10, "every east door lands on its exit mat and the mat leads back out");
+    CHECK(ok && count == 15, "every east door lands on its exit mat and the mat leads back out");
 
     /* walk in and back out of the Volt Hall for real */
     fresh_game();
@@ -152,8 +162,8 @@ static void test_reach(void)
     u8 seen[MAP_COUNT];
     int queue[MAP_COUNT], qx[MAP_COUNT], qy[MAP_COUNT], head = 0, tail = 0;
     memset(seen, 0, sizeof(seen));
-    seen[MAP_COPPERLINE] = 1;
-    queue[tail] = MAP_COPPERLINE; qx[tail] = 0; qy[tail++] = 17;
+    seen[MAP_BROOKMILL_TRAIL] = 1;
+    queue[tail] = MAP_BROOKMILL_TRAIL; qx[tail] = 0; qy[tail++] = 17;
     seen[MAP_ELDERWOOD] = 1;
     queue[tail] = MAP_ELDERWOOD; qx[tail] = 30; qy[tail++] = 0;
     seen[MAP_LAND_OFFICE] = 1;
@@ -346,11 +356,11 @@ static void test_people(void)
     CHECK(limits, "at most 24 people and 7 characters per east map");
 
     int teams = 1;
-    for (int t = TR_DUNN; t <= TR_COGSWORTH; t++) {
+    for (int t = TR_DUNN; t <= TR_MINE_BOSS; t++) {
         const TrainerDef *d = &TRAINERS[t];
         if (d->count < 1 || d->count > 6) teams = 0;
         for (int i = 0; i < d->count; i++)
-            if (d->species[i] >= SP_COUNT || d->level[i] < 10 || d->level[i] > 45) teams = 0;
+            if (d->species[i] >= SP_COUNT || d->level[i] < 10 || d->level[i] > 55) teams = 0;
     }
     CHECK(teams, "east warden teams have 1-6 kin at sane levels");
     CHECK(TRAINERS[TR_FARA].count == 6, "MASTER FARA fields six kin");
@@ -371,7 +381,8 @@ static void test_people(void)
 
     /* lore sources all have entries */
     static const int SRC[] = { LSRC_MINER, LSRC_LUMEN_GUIDE, LSRC_LAMPLIGHTER, LSRC_TINKER, LSRC_VOLT_GUIDE,
-                               LSRC_GROVE, LSRC_CLOCKMAKER };
+                               LSRC_GROVE, LSRC_CLOCKMAKER, LSRC_TOLL, LSRC_HERON, LSRC_MILLER,
+                               LSRC_FIDDLER, LSRC_COPPER_RUSH };
     int lore_ok = 1;
     for (unsigned k = 0; k < sizeof(SRC) / sizeof(SRC[0]); k++) {
         int n = 0;
@@ -446,12 +457,62 @@ static void test_scripts(void)
     CHECK(flag(FLAG_VOLT_CREST) && travel_has_crest(CREST_VOLT) && trainer_beaten(TR_FARA) &&
           quest_done(QUEST_VOLT_HALL) && lore_is_known(LORE_VOLT_CREST),
           "beating FARA awards the VOLT CREST");
+    CHECK(!flag(FLAG_FEN_RIVETS), "FARA awards only the crest, not the boardwalk flag");
+    talk(vex);
+    CHECK(flag(FLAG_RIVET_BUNDLE) && !flag(FLAG_FEN_RIVETS),
+          "VEX grants the virtual rivet bundle, but not the boardwalk flag");
+    int holt = npc_named("GUILDMASTER HOLT");
+    talk(holt);
+    CHECK(flag(FLAG_FEN_RIVETS), "HOLT sets the boardwalk flag after VOLT");
+    fresh_game(); give_starter();
+    talk(holt);
+    CHECK(!flag(FLAG_FEN_RIVETS), "HOLT cannot open the Fen before VOLT");
+    flag_set(FLAG_VOLT_CREST);
+    talk(holt);
+    CHECK(flag(FLAG_FEN_RIVETS), "HOLT handles a pre-held crest without requiring VEX");
+    fresh_game(); give_starter();
+    int ada = npc_named("MILLER ADA");
+    talk(ada); talk(ada);
+    bag_add(ITEM_IRON_ORE, 3);
+    talk(ada);
+    CHECK(quest_done(QUEST_GRIST_WHEEL) && !bag[ITEM_IRON_ORE] && bag[ITEM_HONEY_BUN] == 2,
+          "MILLER ADA accepts three ore and gives the quest reward once");
+
+}
+
+static void test_routes(void)
+{
+    CHECK(MAPS[MAP_BROOKMILL_TRAIL].w == 64 && MAPS[MAP_BROOKMILL].w == 40 &&
+          MAPS[MAP_COPPER_MINE].w == 36 && (MAPS[MAP_COPPER_MINE].flags & MF_DARK),
+          "route widths, hamlet and optional dark mine match the contract");
+    CHECK(MAPS[MAP_BROOKMILL_REST].flags & MF_HEAL, "Brookmill has a Hearth");
+    CHECK(MAPS[MAP_BROOKMILL_TRAIL].feats[0].kind == EF_BRIDGE_H &&
+          MAPS[MAP_BROOKMILL_TRAIL].zone == ZONE_BROOK_TRAIL &&
+          WILD_ZONES[ZONE_BROOK_REEDS].count >= 5,
+          "the bridge, grass and uncommon reed encounters are defined");
+    CHECK(MAPS[MAP_COPPER_MINE].patch_count == 1 &&
+          MAPS[MAP_COPPER_MINE].patches[0].flag == FLAG_MINE_LIGHT_CACHE &&
+          MAPS[MAP_COPPER_MINE].patches[0].invert == 1,
+          "the optional mine gallery is shut before LIGHT");
+    CHECK(MAPS[MAP_ELDERWOOD].patches[0].flag == FLAG_OSSUREX_ANSWERED &&
+          MAPS[MAP_CLOCKWORK_SPIRE].patches[0].flag == FLAG_OSSUREX_ANSWERED,
+          "legend entrances need the post-game flag as well as STRENGTH");
+    int visible = 0, millpond = 0;
+    for (int i = 0; i < (int)(sizeof(ITEM_BALLS) / sizeof(ITEM_BALLS[0])); i++) {
+        visible += ITEM_BALLS[i].map == MAP_BROOKMILL_TRAIL;
+        millpond += ITEM_BALLS[i].map == MAP_BROOKMILL && ITEM_BALLS[i].item == ITEM_TIDE_LANTERN;
+    }
+    CHECK(visible >= 4 && millpond == 1, "trail rewards and SURF return reward are placed");
+    int timed = 0;
+    for (int i = 0; i < NPC_COUNT; i++) timed += NPCS[i].map == MAP_BROOKMILL && NPCS[i].when == WHEN_NIGHT;
+    CHECK(timed == 1, "the millpond fiddler comes out at night");
 }
 
 int main(void)
 {
     setvbuf(stdout, NULL, _IONBF, 0);
     game_init();
+    test_routes();
     test_lumen_heights();
     test_edges();
     test_doors();

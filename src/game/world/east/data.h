@@ -1,15 +1,20 @@
 /*
  * world/east/data.h -- map rows, stamps, decor, objects and wild slots for
  * REGION EAST (owner: W-EAST, docs/EXPANSION.md 9): COPPERLINE ROAD, LUMEN
- * CITY and its interiors, the VOLT HALL, the CLOCKWORK SPIRE, ELDERWOOD HEART
+ * CITY, BROOKMILL TRAIL, BROOKMILL and their interiors, the VOLT HALL,
+ * CLOCKWORK SPIRE, ELDERWOOD HEART
  * and the LAND OFFICE in Maple Village.
  *
  * Exits (edge contracts):
- *   COPPERLINE ROAD  west  y 17-18 <-> BRAMBLEWOOD east
- *                    south x 20-21 <-> ASHEN FIELDS north
+ *   BROOKMILL TRAIL  west  y 17-18 <-> BRAMBLEWOOD east
+ *                    east  y 17-18 <-> BROOKMILL west
+ *   BROOKMILL        west  y 17-18 <-> BROOKMILL TRAIL east
+ *                    east  y 17-18 <-> COPPERLINE west
+ *   COPPERLINE ROAD  west  y 17-18 <-> BROOKMILL east
+ *                    south (20,34) -> ACCORD CHECKPOINT door (no edge)
  *                    east  y 20-21 <-> LUMEN CITY west
- *   LUMEN CITY       north x 24-25 <-> MOONVEIL PATH south
- *                    east  y 20-21 <-> CINDER ROAD west
+ *   LUMEN CITY       north x 24-25 <-> MISTFEN south
+ *                    east  y 20-21 <-> CINDER CROSSING west
  *   ELDERWOOD HEART  north x 30-31 <-> BRAMBLEWOOD south (behind a STRENGTH
  *                    boulder on Bramblewood, WOOD_OBJS below)
  * Doors: see warps.inc. The CLOCKWORK SPIRE is entered through the clock
@@ -24,6 +29,298 @@
  * . : floors, < = > counter, D exit mat.
  */
 
+static const char *const BROOK_TRAIL_ROWS[] = {
+    "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP", /*  0 */
+    "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP", /*  1 */
+    "PP,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,PP", /*  2 */
+    "PP,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,PP", /*  3 */
+    "PP,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,PP", /*  4 */
+    "PP,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,PP", /*  5 */
+    "PP,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,PP", /*  6 */
+    "PP,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP", /*  7 */
+    "PP,,,,,mmmmmm,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP", /*  8 */
+    "PP,,,,,mmmmmm,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP", /*  9 */
+    "PP,,,,,mmmmmm,,,,rrrr,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP", /* 10 */
+    "PP,,,,,mmmmmm,,,,rrrr,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP", /* 11 */
+    "PP,,,,,mmmmmm,,,,rrrr,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP", /* 12 */
+    "PP,,,,,mmmmmm,,,,rrrr,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP", /* 13 */
+    "PP,,,,,mmmmmm,,,,rrrr,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP", /* 14 */
+    "PP............................................................PP", /* 15 */
+    "PP............................................................PP", /* 16 */
+    "================================================================", /* 17 */
+    "================================================================", /* 18 */
+    "PP............................................................PP", /* 19 */
+    "PP.......==...................==................==............PP", /* 20 */
+    "PPTTTTTT,==,,,,,,,,,,,,,,,,,,,==,,,,,,,,,,,,,,,,==,,,,,,,,,,,,PP", /* 21 */
+    "PPTTTTTT,==,,,,,,,,,,,,,~~~~~~==~~~~~~~~~~,,,,,,==,,,,,,,,,,,,PP", /* 22 */
+    "PPTTTTTT,==,,,,,,,,,,,,,~~~~~~==~~~~~~~~~~,,,,,,==,,,,,,,,,,,,PP", /* 23 */
+    "PPtttttt,==,,,,,,,,,,,,,~~~~~~==~~~~~~~~~~,,,,,,==,,,,,,,,,,,,PP", /* 24 */
+    "PPRRRRRRR==RRRRRRRRRRRRRRRRRRR==R...RRRRRRRRRRRR==RRRRRRRRRRRRPP", /* 25 */
+    "PPRRRRRRR==RRRRRRRRRRRRRRRRRRR==R...RRRRRRRRRRRR==RRRRRRRRRRRRPP", /* 26 */
+    "PP,,,,,,,==,,,,,,,,,,,,,,,,,,,==,,,,TTTTTT,,,,,,==,,,,,,,,,,,,PP", /* 27 */
+    "PP,,,,,,,==,,,,,,,,,,,,,,,,,,,==,,,,TTTTTT,,,,,,==,,,,,,,,,,,,PP", /* 28 */
+    "PP.......==...................==....TTTTTT......==............PP", /* 29 */
+    "PP.......==...................==....tttttt....................PP", /* 30 */
+    "PP............................................................PP", /* 31 */
+    "PP............................................................PP", /* 32 */
+    "PP,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,PP", /* 33 */
+    "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP", /* 34 */
+    "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP", /* 35 */
+};
+
+static const char *const BROOK_TRAIL_ELEV[] = {
+    "0000000000000000000000000000000000000000000000000000000000000000", /*  0 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /*  1 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /*  2 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /*  3 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /*  4 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /*  5 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /*  6 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /*  7 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /*  8 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /*  9 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /* 10 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /* 11 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /* 12 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /* 13 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /* 14 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /* 15 */
+    "000000000000000000000000000^000000^00000000000000000000000000000", /* 16 */
+    "0000000000000000000000000001111111100000000000000000000000000000", /* 17 */
+    "0000000000000000000000000001111111100000000000000000000000000000", /* 18 */
+    "000000000000000000000000000v000000v00000000000000000000000000000", /* 19 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /* 20 */
+    "0000000000_______00000000000000000000000000000000000000000000000", /* 21 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /* 22 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /* 23 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /* 24 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /* 25 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /* 26 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /* 27 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /* 28 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /* 29 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /* 30 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /* 31 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /* 32 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /* 33 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /* 34 */
+    "0000000000000000000000000000000000000000000000000000000000000000", /* 35 */
+};
+
+static const ElevFeat BROOK_TRAIL_FEATS[] = {
+    EF(BRIDGE_H, 27, 17, 8, 2), /* bridge over the old towpath */
+    EF(HIDDEN, 32, 25, 1, 1),   /* dark hollow: revisit with LIGHT */
+};
+static const DecorPlace BROOK_TRAIL_DECOR[] = {
+    DP(SIGNPOST, 3, 16), DP(SIGNPOST, 58, 16), DP(BRIDGE_H, 29, 17),
+    DP(STUMP, 36, 27), DP(STUMP, 39, 27),
+    DP(BERRY_BUSH, 52, 25), DP(BUSH, 6, 14), DP(BUSH, 55, 21),
+    DP(PEBBLES, 32, 27), DP(CRATE, 24, 22), DP(CAMPFIRE, 53, 11),
+    /* Caravan clearing (51-54, 10-12); outbreak reeds (45-52, 25-26). */
+};
+static const MapObj BROOK_TRAIL_OBJS[] = { OBJ(BERRY, 52, 25, 2) };
+static const WildSlot WILD_BROOK_TRAIL[] = {
+    { SP_PRICKLET, 20, 10, 13, WHEN_ANY }, { SP_SNUFFLET, 15, 10, 13, WHEN_DAY },
+    { SP_HUMBEE, 15, 10, 14, WHEN_DAY }, { SP_FLYSQUIRL, 10, 11, 14, WHEN_DAY },
+    { SP_RADISHOO, 15, 11, 14, WHEN_ANY }, { SP_SCYTHLING, 10, 12, 15, WHEN_DAY },
+    { SP_BLINKET, 15, 12, 15, WHEN_NIGHT }, { SP_RACCOIN, 10, 12, 15, WHEN_NIGHT },
+    { SP_QUILLDRUM, 4, 13, 15, WHEN_ANY },
+};
+static const WildSlot WILD_BROOK_REEDS[] = {
+    { SP_PEBBOTTER, 25, 12, 15, WHEN_ANY }, { SP_BUBBLIN, 20, 12, 15, WHEN_ANY },
+    { SP_MOSSHELL, 20, 12, 15, WHEN_ANY }, { SP_WEBBIT, 15, 13, 15, WHEN_NIGHT },
+    { SP_KOIRIN, 2, 15, 15, WHEN_ANY },
+};
+
+static const char *const BROOKMILL_ROWS[] = {
+    "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT", /*  0 */
+    "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT", /*  1 */
+    "TT.................==.................TT", /*  2 */
+    "TT.................==.................TT", /*  3 */
+    "TT.................==.................TT", /*  4 */
+    "TT.................==.................TT", /*  5 */
+    "TT.................==.................TT", /*  6 */
+    "TT..............~~~==~~~~~~~~~........TT", /*  7 */
+    "TT..............~~~==~~~~~~~~~........TT", /*  8 */
+    "TT..............~~~==~~..~~~~~........TT", /*  9 */
+    "TT..............~~~==~~..~~~~~........TT", /* 10 */
+    "TT..............~~~==~~~.~~~~~........TT", /* 11 */
+    "TT...............~~==~~~.~~~~~~.......TT", /* 12 */
+    "TT...............~~==~~~~~~~~~~.......TT", /* 13 */
+    "TT.................==.................TT", /* 14 */
+    "TT.................==.................TT", /* 15 */
+    "TT....................................TT", /* 16 */
+    "========================================", /* 17 */
+    "========================================", /* 18 */
+    "tt....................................tt", /* 19 */
+    "tt......==.....................==.....tt", /* 20 */
+    "tt......==.....................==.....tt", /* 21 */
+    "tt......==.....................==.....tt", /* 22 */
+    "tt......==.....................==.....tt", /* 23 */
+    "tt......==.....................==.....tt", /* 24 */
+    "tt......==.....................==.....tt", /* 25 */
+    "tt......==.....................==.....tt", /* 26 */
+    "tt......==.....................==.....tt", /* 27 */
+    "tt......==.....................==.....tt", /* 28 */
+    "tt......==.....................==.....tt", /* 29 */
+    "tt......==.....................==.....tt", /* 30 */
+    "tt....................................tt", /* 31 */
+    "tt....................................tt", /* 32 */
+    "tt....................................tt", /* 33 */
+    "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT", /* 34 */
+    "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT", /* 35 */
+};
+
+static const char *const BROOKMILL_ELEV[] = {
+    "0000000000000000000000000000000000000000", /*  0 */
+    "0000000000000000000000000000000000000000", /*  1 */
+    "0000000000000001111111111111111000000000", /*  2 */
+    "0000000000000001111111111111111000000000", /*  3 */
+    "0000000000000001111111111111111000000000", /*  4 */
+    "0000000000000001111111111111111000000000", /*  5 */
+    "0000000000000001111111111111111000000000", /*  6 */
+    "0000000000000001111111111111111000000000", /*  7 */
+    "0000000000000001111111111111111000000000", /*  8 */
+    "0000000000000001111111111111111000000000", /*  9 */
+    "0000000000000001111111111111111000000000", /* 10 */
+    "0000000000000001111111111111111000000000", /* 11 */
+    "0000000000000001111111111111111000000000", /* 12 */
+    "0000000000000000000vv0000000000000000000", /* 13 */
+    "0000000000000000000000000000000000000000", /* 14 */
+    "0000000000000000000000000000000000000000", /* 15 */
+    "0000000000000000000000000000000000000000", /* 16 */
+    "0000000000000000000000000000000000000000", /* 17 */
+    "0000000000000000000000000000000000000000", /* 18 */
+    "0000000000000000000000000000000000000000", /* 19 */
+    "0000000000000000000000000000000000000000", /* 20 */
+    "0000000000000000000000000000000000000000", /* 21 */
+    "0000000000000000000000000000000000000000", /* 22 */
+    "0000000000000000000000000000000000000000", /* 23 */
+    "0000000000000000000000000000000000000000", /* 24 */
+    "0000000000000000000000000000000000000000", /* 25 */
+    "0000000000000000000000000000000000000000", /* 26 */
+    "0000000000000000000000000000000000000000", /* 27 */
+    "0000000000000000000000000000000000000000", /* 28 */
+    "0000000000000000000000000000000000000000", /* 29 */
+    "0000000000000000000000000000000000000000", /* 30 */
+    "0000000000000000000000000000000000000000", /* 31 */
+    "0000000000000000000000000000000000000000", /* 32 */
+    "0000000000000000000000000000000000000000", /* 33 */
+    "0000000000000000000000000000000000000000", /* 34 */
+    "0000000000000000000000000000000000000000", /* 35 */
+};
+
+static const Stamp BROOKMILL_STAMPS[] = {
+    STAMP(T, HEAL, 3, 10),         /* door (5,13): Brookmill Hearth */
+    STAMP(T, HOUSE_RED, 29, 10),  /* door (31,13): guild / mill */
+    STAMP(T, HOUSE_BLUE, 4, 23),  /* door (6,26): miller's house */
+    STAMP(T, HOUSE_RED, 28, 23),  /* door (30,26): rest house */
+};
+static const DecorPlace BROOKMILL_DECOR[] = {
+    DP(SIGNPOST, 3, 16), DP(SIGNPOST, 35, 16), DP(WATERWHEEL, 20, 12),
+    DP(WOODPILE, 27, 19), DP(CART, 34, 22), DP(CRATE, 25, 21),
+    DP(LOG, 23, 21), DP(BARREL, 34, 19), DP(BENCH, 12, 20),
+    DP(LILY_PADS, 22, 9), DP(SIGNPOST, 34, 30),
+    /* Tram depot lot (33-37, 29-32): plan 10 can apply a FLAG_TRAM patch here. */
+};
+static const WildSlot WILD_BROOK_POND[] = {
+    { SP_KOIRIN, 5, 18, 18, WHEN_ANY }, { SP_PEBBOTTER, 25, 17, 19, WHEN_ANY },
+    { SP_BUBBLIN, 30, 16, 18, WHEN_ANY },
+};
+
+static const char *const COPPER_MINE_ROWS[] = {
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", /*  0 */
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", /*  1 */
+    "XX.............DD.................XX", /*  2 */
+    "XX.,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,.XX", /*  3 */
+    "XX.,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,.XX", /*  4 */
+    "XX.,,,,,,,,,,,,,,,==,,,,,,,,,,,,,.XX", /*  5 */
+    "XX................==..............XX", /*  6 */
+    "XX................==..............XX", /*  7 */
+    "XX.==============================.XX", /*  8 */
+    "XX.==============================.XX", /*  9 */
+    "XX................==..............XX", /* 10 */
+    "XX...XXXXXXXX.....==....XXXXX.....XX", /* 11 */
+    "XX...XXXXXXXX.....==....XXXXX.....XX", /* 12 */
+    "XX...XXXXXXXX.....==....XXXXX.....XX", /* 13 */
+    "XX................==..............XX", /* 14 */
+    "XX.==============================.XX", /* 15 */
+    "XX.==============================.XX", /* 16 */
+    "XX................==..............XX", /* 17 */
+    "XX................==..............XX", /* 18 */
+    "XX................==..............XX", /* 19 */
+    "XXXXXXXXXXXXX.....==.........XXXXXXX", /* 20 */
+    "XX................==.........X,,,XXX", /* 21 */
+    "XX..,,,,,,,,......==..........,,,XXX", /* 22 */
+    "XX..,,,,,,,,......==.........X,,,XXX", /* 23 */
+    "XX..,,,,,,,,.................X,,,XXX", /* 24 */
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", /* 25 */
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", /* 26 */
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", /* 27 */
+};
+
+static const DecorPlace COPPER_MINE_DECOR[] = {
+    DP(RAILS_H, 10, 8), DP(RAILS_H, 11, 8), DP(RAILS_V, 18, 14),
+    DP(ORE_CART, 23, 8), DP(ORE_PILE, 28, 18), DP(CRATE, 4, 8),
+};
+static const WildSlot WILD_COPPER_MINE[] = {
+    { SP_DIGGET, 25, 15, 18, WHEN_ANY }, { SP_QUARTZLING, 25, 16, 19, WHEN_ANY },
+    { SP_SQUEAKLE, 20, 15, 18, WHEN_ANY }, { SP_MAGNITICK, 18, 16, 19, WHEN_ANY },
+    { SP_STATICKO, 12, 17, 19, WHEN_ANY },
+};
+
+static const char *const BROOKMILL_MILL_ROWS[] = {
+    "WWWWWWWWWWWWW", /*  0 */
+    "wwwwwwwwwwwww", /*  1 */
+    ":::::::::::::", /*  2 */
+    ":::::::::::::", /*  3 */
+    ":::::::::::::", /*  4 */
+    ":::::::::::::", /*  5 */
+    ":::::::::::::", /*  6 */
+    ":::::::::::::", /*  7 */
+    ":::::::::::::", /*  8 */
+    "::::::D::::::", /*  9 */
+};
+
+static const char *const BROOKMILL_HOUSE_ROWS[] = {
+    "WWWWWWWWWWW", /*  0 */
+    "wwwwwwwwwww", /*  1 */
+    ":::::::::::", /*  2 */
+    ":::::::::::", /*  3 */
+    ":::::::::::", /*  4 */
+    ":::::::::::", /*  5 */
+    ":::::::::::", /*  6 */
+    ":::::::::::", /*  7 */
+    ":::::D:::::", /*  8 */
+};
+
+static const char *const BROOKMILL_REST_ROWS[] = {
+    "WWWWWWWWWWW", /*  0 */
+    "wwwwwwwwwww", /*  1 */
+    ":::::::::::", /*  2 */
+    ":::::::::::", /*  3 */
+    ":::::::::::", /*  4 */
+    ":::::::::::", /*  5 */
+    ":::::::::::", /*  6 */
+    ":::::::::::", /*  7 */
+    ":::::D:::::", /*  8 */
+};
+
+/* E5 patches: a sealed side gallery, and post-game thorns on the legend routes.
+ * Applied on map decode before ground and elevation are derived. */
+static const char *const MINE_GALLERY_CLOSED[] = { "X" };
+static const MapPatch MINE_GALLERY_PATCHES[] = {
+    { FLAG_MINE_LIGHT_CACHE, 1, 29, 22, 1, 1, MINE_GALLERY_CLOSED, 0 },
+};
+static const char *const ELDERWOOD_CLOSED[] = { "CC", "cc", "CC" };
+static const MapPatch ELDERWOOD_PATCHES[] = {
+    { FLAG_OSSUREX_ANSWERED, 1, 30, 2, 2, 3, ELDERWOOD_CLOSED, 0 },
+};
+static const char *const SPIRE_CLOSED[] = { "W" };
+static const MapPatch SPIRE_PATCHES[] = {
+    { FLAG_OSSUREX_ANSWERED, 1, 6, 8, 1, 1, SPIRE_CLOSED, 0 },
+};
+
 /* ================================================================ */
 /*  COPPERLINE ROAD                                                 */
 /* ================================================================ */
@@ -37,7 +334,7 @@ static const char *const COPPERLINE_ROWS[] = {
     "pppppppppppp..CCCCCCCCCCCCCCCCCCCCC.,,,,,,pp", /*  5 */
     "PPPPPPPPPPPP..CCCCCCCCCCCCCCCCCCCCC.,,,,,,PP", /*  6 */
     "pppppppppppp..ccccccccccccccccccccc.,,,,,,pp", /*  7 */
-    "PP............ccccccccccccccccccccc.,,,,,,PP", /*  8 */
+    "PP............ccccccccccc.ccccccccc.,,,,,,PP", /*  8 */
     "pp,,,ggggggg,,..dddddddddddddddddd..,,,,,,pp", /*  9 */
     "PP,gggggggggg,..dddddddddddddddddd..,,,,,,PP", /* 10 */
     "ppgggggggggggg..dddddddddddddddddd..,,,,,,pp", /* 11 */
@@ -67,10 +364,14 @@ static const char *const COPPERLINE_ROWS[] = {
     "pppppppppppppppppppp==pppppppppppppppppppppp", /* 35 */
 };
 
+static const Stamp COPPERLINE_STAMPS[] = {
+    STAMP(W, CABIN, 18, 31), /* Accord door 20,34; interior built by plan 07 */
+    STAMP(W, CABIN, 23, 4),  /* mine door 25,7 */
+};
 static const DecorPlace COPPERLINE_DECOR[] = {
     DP(SIGNPOST, 3, 16), DP(SIGNPOST, 23, 33), DP(SIGNPOST, 40, 19),
     /* the old mine: adit, headframe, rails and the ore yard */
-    DP(MINE_MOUTH, 23, 7), DP(HEADFRAME, 29, 9),
+    DP(MINE_MOUTH, 27, 7), DP(HEADFRAME, 29, 9),
     DP(RAILS_V, 24, 9), DP(RAILS_V, 24, 10), DP(RAILS_V, 24, 11), DP(RAILS_H, 24, 12),
     DP(RAILS_H, 25, 12), DP(RAILS_H, 26, 12), DP(RAILS_H, 28, 12), DP(RAILS_H, 29, 12),
     DP(RAILS_H, 30, 12), DP(RAILS_H, 31, 12), DP(ORE_CART, 27, 12),
@@ -84,6 +385,7 @@ static const DecorPlace COPPERLINE_DECOR[] = {
     DP(ROCK, 5, 19), DP(ROCK, 30, 22), DP(BOULDER, 34, 22), DP(STUMP, 12, 16),
     DP(BUSH, 13, 19), DP(BUSH, 41, 16), DP(BUSH, 26, 32), DP(LOG, 14, 32),
     DP(SMALL_FLOWERS, 7, 16), DP(SMALL_FLOWERS, 29, 19), DP(PEBBLES, 25, 16), DP(PEBBLES, 18, 20),
+    DP(RAILS_H, 36, 19), DP(RAILS_H, 37, 19), /* tram buffer for plan 10 */
     DP(PEBBLES, 36, 33), DP(FALLEN_LEAVES, 17, 27), DP(BERRY_BUSH, 3, 32), DP(MUSHROOMS, 34, 33),
 };
 
@@ -94,11 +396,11 @@ static const MapObj COPPERLINE_OBJS[] = {
 
 
 static const WildSlot WILD_COPPERLINE[] = {
-    { SP_STATICKO, 22, 13, 17, WHEN_ANY }, { SP_MAGNITICK, 20, 13, 17, WHEN_ANY },
+    { SP_STATICKO, 22, 14, 17, WHEN_ANY }, { SP_MAGNITICK, 20, 14, 17, WHEN_ANY },
     { SP_RIVETILLO, 12, 14, 18, WHEN_ANY }, { SP_RACCOIN, 12, 13, 16, WHEN_NIGHT },
     { SP_FLYSQUIRL, 14, 13, 17, WHEN_DAY }, { SP_QUILLDRUM, 8, 15, 18, WHEN_ANY },
     { SP_MANDRAGOR, 7, 15, 18, WHEN_ANY }, { SP_TRUFFLOAR, 5, 16, 19, WHEN_DAY },
-    { SP_BEACONFLY, 8, 16, 19, WHEN_NIGHT }, { SP_FULGECKO, 2, 18, 20, WHEN_ANY },
+    { SP_BEACONFLY, 8, 16, 19, WHEN_NIGHT }, { SP_FULGECKO, 2, 18, 19, WHEN_ANY },
 };
 
 /* ================================================================ */
@@ -259,7 +561,7 @@ static const Stamp LUMEN_STAMPS[] = {
 
 static const DecorPlace LUMEN_DECOR[] = {
     DP(SIGNPOST, 23, 2), DP(SIGNPOST, 2, 19), DP(SIGNPOST, 51, 22), DP(SIGNPOST, 17, 19),
-    DP(SIGNPOST, 43, 7),
+    DP(SIGNPOST, 43, 7), DP(MARKET_STALL, 20, 24), DP(MARKET_STALL, 28, 24),
     /* the Crown: the Volt Hall's forecourt, the row houses, the tinker */
     DP(TESLA_COIL, 6, 8), DP(TESLA_COIL, 15, 8), DP(CITY_LAMP, 23, 4), DP(CITY_LAMP, 22, 8),
     DP(FLOWER_POT, 34, 3), DP(FLOWER_POT, 37, 3), DP(CITY_LAMP, 33, 4), DP(PARKED_BIKE, 43, 3),
@@ -297,7 +599,7 @@ static const WildSlot WILD_LUMEN[] = {
     { SP_STATICKO, 28, 14, 18, WHEN_ANY }, { SP_KETTLEKIN, 22, 14, 18, WHEN_DAY },
     { SP_PARASOLE, 18, 15, 18, WHEN_ANY }, { SP_RACCOIN, 14, 15, 18, WHEN_NIGHT },
     { SP_BANDIRACC, 6, 19, 21, WHEN_NIGHT }, { SP_BLINKET, 12, 14, 17, WHEN_NIGHT },
-    { SP_HUMBEE, 12, 14, 17, WHEN_DAY }, { SP_GARGOLITH, 2, 22, 24, WHEN_NIGHT },
+    { SP_HUMBEE, 12, 14, 17, WHEN_DAY }, { SP_GARGOLITH, 2, 20, 22, WHEN_NIGHT },
 };
 
 
@@ -372,9 +674,9 @@ static const MapObj ELDERWOOD_OBJS[] = {
 
 static const WildSlot WILD_ELDERWOOD[] = {
     { SP_TRUFFLOAR, 18, 29, 33, WHEN_ANY }, { SP_GALESQUIRL, 16, 30, 34, WHEN_DAY },
-    { SP_COMBQUEEN, 10, 31, 34, WHEN_DAY }, { SP_MYCOLOSSUS, 12, 31, 35, WHEN_ANY },
-    { SP_DOZLOTH, 14, 29, 32, WHEN_ANY }, { SP_SHROOMLET, 14, 28, 31, WHEN_NIGHT },
-    { SP_BEACONFLY, 12, 30, 33, WHEN_NIGHT }, { SP_WEBBIT, 10, 28, 31, WHEN_NIGHT },
+    { SP_COMBQUEEN, 10, 44, 49, WHEN_DAY }, { SP_MYCOLOSSUS, 12, 45, 50, WHEN_ANY },
+    { SP_DOZLOTH, 14, 44, 48, WHEN_ANY }, { SP_SHROOMLET, 14, 44, 48, WHEN_NIGHT },
+    { SP_BEACONFLY, 12, 45, 50, WHEN_NIGHT }, { SP_WEBBIT, 10, 44, 49, WHEN_NIGHT },
 };
 
 /* Bramblewood's south path to Elderwood Heart narrows to x 31 at row 34 (a

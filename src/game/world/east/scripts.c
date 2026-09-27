@@ -71,6 +71,11 @@ static void scr_tinker(int npc)
         dlg_say("VEX: Spokes from OTTO! Finally. Tell him the dynamo hubs are ready. He'll know.");
         return;
     }
+    if (flag(FLAG_VOLT_CREST) && !flag(FLAG_FEN_RIVETS) && !flag(FLAG_RIVET_BUNDLE)) {
+        flag_set(FLAG_RIVET_BUNDLE);
+        dlg_say("VEX: Volt rivets for Brookmill! Take this bundle to GUILDMASTER HOLT.");
+        return;
+    }
     if (lore_reveal(LSRC_TINKER, 0)) return;
     if (!flag(FLAG_TINKER_GIFT)) {
         flag_set(FLAG_TINKER_GIFT);
@@ -181,4 +186,100 @@ static void scr_clockmaker(int npc)
     (void)npc;
     if (lore_reveal(LSRC_CLOCKMAKER, 0)) return;
     dlg_say("HORA: The stair to the Crown is sealed by that stone. It would take real STRENGTH to shift it.");
+}
+
+/* ---------------- Brookmill and the mine ---------------- */
+static void scr_holt(int npc)
+{
+    (void)npc;
+    if (flag(FLAG_FEN_RIVETS)) {
+        dlg_say("HOLT: Our carpenters have the rivets. The Heron Fen boardwalk can be mended.");
+        return;
+    }
+    if (!flag(FLAG_VOLT_CREST)) {
+        dlg_say("HOLT: We need Lumen rivets for the Heron Fen boardwalk. FARA's Volt crest will get them.");
+        return;
+    }
+    /* One script owns this gate flag. Vex's bundle is optional once the crest is held. */
+    flag_set(FLAG_FEN_RIVETS);
+    dlg_say(flag(FLAG_RIVET_BUNDLE) ?
+        "HOLT: Those are our rivets! The Fen carpenters can finish the boardwalk." :
+        "HOLT: You already hold the Volt crest. I'll order the rivets direct. The boardwalk is ours!");
+}
+
+static void scr_miller(int npc)
+{
+    (void)npc;
+    if (quest_done(QUEST_GRIST_WHEEL)) {
+        dlg_say("ADA: The wheel hums like a happy TIDE kin again.");
+        return;
+    }
+    if (lore_reveal(LSRC_MILLER, 0)) return;
+    if (bag[ITEM_CROP_CORN] >= 3 || bag[ITEM_IRON_ORE] >= 3) {
+        int item = bag[ITEM_CROP_CORN] >= 3 ? ITEM_CROP_CORN : ITEM_IRON_ORE;
+        bag_add(item, -3);
+        quest_set(QUEST_GRIST_WHEEL, 255);
+        give_item(ITEM_HONEY_BUN, 2);
+        dlg_say("ADA: Three bags for a new cog! Take these honey buns for the road.");
+        return;
+    }
+    quest_set(QUEST_GRIST_WHEEL, 1);
+    dlg_say("ADA: Bring me three CORN or three IRON ORE and I'll mend the wheel's cog.");
+}
+
+static void scr_koirin_kid(int npc)
+{
+    (void)npc;
+    if (quest_done(QUEST_KOIRIN_SONG)) { dlg_say("KID: KOIRIN really can climb waterfalls!"); return; }
+    for (int i = 0; i < party_count; i++)
+        if (party[i].species == SP_KOIRIN) {
+            quest_set(QUEST_KOIRIN_SONG, 255);
+            give_item(ITEM_LURE_INCENSE, 1);
+            dlg_say("KID: A KOIRIN! You found it! Here's my lucky lure.");
+            return;
+        }
+    quest_set(QUEST_KOIRIN_SONG, 1);
+    dlg_say("KID: They say KOIRIN climb the mill waterfall. Show me one someday!");
+}
+
+static const u8 BROOK_STOCK[] = {
+    ITEM_LANTERN, ITEM_TONIC, ITEM_BIG_TONIC, ITEM_HONEY_BUN, ITEM_LURE_INCENSE,
+};
+static void scr_brook_shop(int npc)
+{
+    (void)npc;
+    shop_open_stock(BROOK_STOCK, (int)sizeof(BROOK_STOCK));
+}
+
+static void scr_brook_secret(int npc)
+{
+    (void)npc;
+    if (travel_ability_kin(AB_LIGHT) < 0) {
+        dlg_say("Under the toll bridge is a hollow too dark to search. A kin's LIGHT could help.");
+        return;
+    }
+    if (!flag(FLAG_BROOK_LIGHT_CACHE)) {
+        flag_set(FLAG_BROOK_LIGHT_CACHE);
+        give_item(ITEM_GLOW_LANTERN, 3);
+        dlg_say("The hollow holds three glow lanterns and the toll keeper's notes.");
+        lore_story(LORE_BROOK_TOLL);
+        return;
+    }
+    dlg_say("Only heron feathers remain in the hollow.");
+}
+
+static void scr_mine_gallery(int npc)
+{
+    (void)npc;
+    if (travel_ability_kin(AB_LIGHT) < 0) {
+        dlg_say("FOREMAN: The mine is passable in the dark, but that gallery needs a kin's LIGHT.");
+        return;
+    }
+    if (!flag(FLAG_MINE_LIGHT_CACHE)) {
+        flag_set(FLAG_MINE_LIGHT_CACHE);
+        lore_story(LORE_COPPER_RUSH);
+        dlg_say("FOREMAN: The tablet marks a shard inside the newly opened gallery.");
+        return;
+    }
+    dlg_say("FOREMAN: The side gallery's survey marks are legible again.");
 }
