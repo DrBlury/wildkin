@@ -639,6 +639,17 @@ static u16 field_tint(u16 c);
 /* The Ashen March haze and ash-fall (MF_ASH) until OSSUREX is answered:
  * world/grim/scripts.c. */
 static int grim_ash_active(int map);
+/* Matching tilesets can still have different map-dependent palette tints. */
+static int edge_palette_compatible(int source, int dest)
+{
+    if (MAPS[source].tileset != MAPS[dest].tileset) return 0;
+    int storm_source = flag(FLAG_STARTER) && !flag(FLAG_STORM_CALMED) &&
+        (MAPS[source].flags & MF_OUTDOOR) && !(MAPS[source].flags & MF_DEBUG);
+    int storm_dest = flag(FLAG_STARTER) && !flag(FLAG_STORM_CALMED) &&
+        (MAPS[dest].flags & MF_OUTDOOR) && !(MAPS[dest].flags & MF_DEBUG);
+    return !!storm_source == !!storm_dest &&
+           !!grim_ash_active(source) == !!grim_ash_active(dest);
+}
 static u16 grim_ash_tint(u16 c);
 static void grim_draw_ash(void);
 
@@ -1374,7 +1385,7 @@ static int try_edge_link(int dir, int nx, int ny)
     default: x = 0; y = ny + m->link_off[l]; break;
     }
     field_begin_warp(m->link[l], clampi(x, 0, d->w - 1), clampi(y, 0, d->h - 1), dir);
-    if (m->tileset == d->tileset) field_warp_short();
+    if (edge_palette_compatible(cur_map, m->link[l])) field_warp_short();
     return 1;
 }
 
