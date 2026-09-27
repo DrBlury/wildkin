@@ -579,7 +579,10 @@ At Lumen's **Resonance Works**, Engineer Nell shows you four machines:
 - Beds heal your team; Hearth Halls heal and autosave.
 - Two checked save slots; older saves are migrated automatically.
 - **Debug tools** for the curious: tap SELECT+START on the title screen for
-  an asset viewer, a kin viewer and a WARP menu.
+  an asset viewer, a kin viewer, a WARP menu and the ADMIN MODE switch.
+- **ADMIN mode** (off by default): add coins, give yourself any item, add
+  any kin at any level with any four moves, teach any move, heal the team.
+  See *Debugging* below.
 
 ## 🛠 Building from source
 
@@ -710,6 +713,48 @@ docs/EXPANSION.md       the expansion's design and contracts (types, roster, wor
 </details>
 
 ### Debugging
+
+**ADMIN mode** works in the normal release ROM. To switch it on:
+
+1. On the title screen, hold **SELECT** and press **START**. The DEBUG menu
+   opens.
+2. Move to **ADMIN MODE** and press **A**. It shows **ON**. If the cartridge
+   has a save, the switch is written to it at once. If not, it goes into
+   your first save.
+3. Press **B**, then continue or start a game. The START menu now has a red
+   **ADMIN** entry.
+
+Press A on ADMIN MODE again to switch it off. The switch is kept in the
+save's options, so older saves load with ADMIN mode off.
+
+The ADMIN menu has these entries:
+
+| Entry | What it does |
+| --- | --- |
+| ADD 10000 COINS | Adds 10000c to your coins, up to the 9999999c cap, and shows the new total. |
+| GIVE ITEM | Opens a list of every item in every pocket. Pick one, then choose how many (1 to 99, or 1 for key items). |
+| ADD KIN | Pick any species, a level from 1 to 100, lustrous or not, and a nickname (on the name slate). Then set four moves from the whole move list, or clear slots. The kin goes to the Shelf by default, or to the team. If one is full, it goes to the other. |
+| TEACH A MOVE | Pick a team kin and a slot, then put any move in that slot or clear it. |
+| HEAL TEAM | Restores full HP and move uses, and cures status. |
+
+Controls in the lists:
+
+- UP/DOWN moves one entry.
+- L/R moves a page.
+- LEFT/RIGHT jumps to the previous or next group: pocket, type, ten species
+  or first letter.
+- SELECT switches between the natural order and A to Z.
+
+Controls in the ADD KIN form:
+
+- LEFT/RIGHT change a value, and L/R change it by 10.
+- A on KIN or on a move opens its list.
+- A on NAME opens the name slate.
+- SELECT on a move row brings back the kin's natural moves for its level.
+
+A new kin gets rolled potential, temperament, trait and size, and XP for
+its level. Its moves start with full uses. It counts as met and befriended
+in the Almanac.
 
 mGBA has a GDB stub (*Tools → Start GDB server*, port 2345):
 

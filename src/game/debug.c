@@ -10,8 +10,12 @@
  *                 the walking overworld frames on light, grass and dark.
  *   WARP          jump to any map (lands on the walkable cell nearest the
  *                 middle).
+ *   ADMIN MODE    A switches it ON / OFF (opt.admin): while it is on, the
+ *                 START menu has an ADMIN entry (admin.c). With a save on
+ *                 the cartridge the switch is written to it at once, so it
+ *                 stays set; without one it goes into the first save.
  *
- * Nothing here touches the save unless you save from the START menu.
+ * Nothing else here touches the save unless you save from the START menu.
  */
 
 enum { DBG_MENU, DBG_VIEWS, DBG_KIN, DBG_WARP };
@@ -19,10 +23,12 @@ enum { DBG_MENU, DBG_VIEWS, DBG_KIN, DBG_WARP };
 
 static struct {
     int state, cursor, scroll, sp, lustrous, parade, frame;
+    int admin_note;   /* 0 none, 1 saved, 2 not saved (no save yet), 3 the write failed */
 } dbg;
 
-static const char *const DBG_ITEMS[] = { "ASSET VIEWER", "KIN VIEWER", "WARP TO MAP", "BACK" };
-#define DBG_ITEM_COUNT 4
+enum { DBGI_VIEWS, DBGI_KIN, DBGI_WARP, DBGI_ADMIN, DBGI_BACK };
+static const char *const DBG_ITEMS[] = { "ASSET VIEWER", "KIN VIEWER", "WARP TO MAP", "ADMIN MODE", "BACK" };
+#define DBG_ITEM_COUNT 5
 #define DBG_ROWS 8
 
 static int dbg_view_first(void)
@@ -59,7 +65,20 @@ static const char *dbg_warp_label(int i) { return MAPS[i].name; }
 static void dbg_redraw(void)
 {
     switch (dbg.state) {
-    case DBG_MENU: dbg_list_draw("DEBUG", DBG_ITEM_COUNT, dbg_menu_label); break;
+    case DBG_MENU: {
+        dbg_list_draw("DEBUG", DBG_ITEM_COUNT, dbg_menu_label);
+        int y = 30 + DBGI_ADMIN * 14;
+        if (opt.admin) text_draw_col(112, y, "ON", INK_GREEN, INK_GREEN_SH);
+        else text_draw_col(112, y, "OFF", INK_SHADOW, INK_SHADOW);
+        static const char *const NOTE[4] = {
+            "A: ADMIN in the START menu",
+            "Saved to the cartridge.",
+            "Kept for the new game's save.",
+            "Could not write the save!",
+        };
+        text_draw_col(24, 128, NOTE[dbg.admin_note & 3], INK_BLUE, INK_BLUE_SH);
+        break;
+    }
     case DBG_VIEWS: dbg_list_draw("ASSET VIEWER", dbg_view_count(), dbg_view_label); break;
     case DBG_WARP: dbg_list_draw("WARP TO MAP", MAP_COUNT, dbg_warp_label); break;
     default: break;
@@ -69,11 +88,13 @@ static void dbg_redraw(void)
 static void debug_update(void);
 static void debug_draw(void);
 static int save_load(void);
+static int save_write(void);
 
 static void debug_open(void)
 {
     dbg.state = DBG_MENU;
     dbg.cursor = dbg.scroll = 0;
+    dbg.admin_note = 0;
     ext_open(debug_update, debug_draw, 0);
     dbg_redraw();
 }
@@ -205,12 +226,19 @@ static void debug_update(void)
     sfx_play(SFX_CONFIRM);
     if (dbg.state == DBG_MENU) {
         switch (dbg.cursor) {
-        case 0: dbg.state = DBG_VIEWS; break;
-        case 1:
+        case DBGI_VIEWS: dbg.state = DBG_VIEWS; break;
+        case DBGI_KIN:
             dbg.state = DBG_KIN;
             dbg_kin_redraw();
             return;
-        case 2: dbg.state = DBG_WARP; break;
+        case DBGI_WARP: dbg.state = DBG_WARP; break;
+        case DBGI_ADMIN:
+            /* the title loaded the save into memory: writing it back only
+             * changes the switch */
+            opt.admin ^= 1;
+            dbg.admin_note = !title.has_save ? 2 : save_write() ? 1 : 3;
+            dbg_redraw();
+            return;
         default:
             canvas_clear();
             title_open(save_load() != 0);

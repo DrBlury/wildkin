@@ -9,12 +9,15 @@
  * its species name again).
  *
  *   naming_open(NM_TEAM, slot, done) / naming_open(NM_SHELF, index, done)
+ *   naming_open(NM_DRAFT, 0, done) names *nm_draft, a kin not yet owned
+ *   (the ADMIN menu's ADD KIN, admin.c)
  *
  * runs as an ext screen; `done` is called once it closes (nm.accepted says
  * whether a name was set) and restores whatever screen came before.
  */
 
-enum { NM_TEAM, NM_SHELF };
+enum { NM_TEAM, NM_SHELF, NM_DRAFT };
+static Monster *nm_draft;   /* NM_DRAFT's kin */
 
 #define NM_COLS 11
 #define NM_ROWS 5            /* four rows of letters, then SPACE / ERASE / DONE */
@@ -57,6 +60,7 @@ static int nm_wide_width(int key)
 static Monster nm_target(void)
 {
     if (nm.where == NM_SHELF) return storage_get(nm.idx);
+    if (nm.where == NM_DRAFT) return *nm_draft;
     return party[nm.idx];
 }
 
@@ -170,7 +174,9 @@ static int naming_active(void)
 static void nm_close(int accept)
 {
     if (accept) {
-        if (nm.where == NM_SHELF) {
+        if (nm.where == NM_DRAFT) {
+            kin_set_name(nm_draft, nm.buf);
+        } else if (nm.where == NM_SHELF) {
             if (nm.idx >= 0 && nm.idx < storage_count) {
                 Monster m = storage_get(nm.idx);
                 kin_set_name(&m, nm.buf);

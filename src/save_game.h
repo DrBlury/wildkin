@@ -458,6 +458,7 @@ static void save_apply(const SaveData *data)
     opt.hud_clock &= 1;
     opt.battle_speed &= 1;
     opt.bike_auto &= 1;
+    opt.admin &= 1;
     modules_reset();
     mod_load(&gtime, data->time, data->mod_size[0], sizeof(gtime));
     mod_load(&farm, data->farm, data->mod_size[1], sizeof(farm));
