@@ -28,6 +28,7 @@ enum {
 };
 static int game_mode;
 static unsigned frame_count;
+static int intro_field_oam_count;
 
 #define HUD_ENEMY_CX 1
 #define HUD_ENEMY_CY 1
@@ -985,6 +986,15 @@ static void battle_load_scene(void)
 
 static void battle_reset(int kind)
 {
+    /* Preserve the last completed field OAM during the dark wipe: rebuilding
+     * field sprites inside battle_draw overflows the GBA's IWRAM stack. */
+    if (game_mode != MODE_BATTLE) {
+        intro_field_oam_count = 0;
+        while (intro_field_oam_count < 128 &&
+               oam_shadow[intro_field_oam_count * 4] != ATTR0_HIDE)
+            intro_field_oam_count++;
+    }
+
     battle.kind = kind;
     battle.pair = 0;
     pair_choice = 0;
@@ -1719,7 +1729,7 @@ static void battle_draw_battlers(void)
 static void battle_draw(void)
 {
     if (battle.state == BST_INTRO && battle.timer <= INTRO_DARK) {
-        field_draw_sprites();
+        oam_count = intro_field_oam_count;
         return;
     }
     if (battle.ui_dirty) {
