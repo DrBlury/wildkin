@@ -1,0 +1,8 @@
+# Act III West: debug warp to Heron Fen. G1/G2 prerequisites at act start.
+flag FLAG_STORM_CALMED
+flag FLAG_VOLT_CREST
+flag FLAG_FEN_RIVETS
+start MAP_HERON_FEN
+way MAP_HERON_FEN 50 19
+way MAP_HERON_FEN 22 19
+way MAP_HERON_FEN 10 19

@@ -1,0 +1,8 @@
+# Act 6 ROM segment; debug warp, prior-act flags, checked coordinate.
+flag FLAG_STORM_CALMED
+flag FLAG_VOLT_CREST
+flag FLAG_TIDE_CREST
+flag FLAG_CREST_ANVIL
+flag FLAG_RIME_CREST
+start MAP_HOLLOW_DOWNS
+way MAP_HOLLOW_DOWNS 33 20
