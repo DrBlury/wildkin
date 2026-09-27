@@ -10,3 +10,8 @@
     SCR_DREAM_TENDER,   /* Spire Hearth Hall */
     SCR_DREAM_CLERK,    /* Spire Shop */
     SCR_DREAM_MASTER,   /* Hall Master VESPER: DREAM CREST */
+
+    SCR_RAIL_TENDER,
+    SCR_RAIL_COOK,
+    SCR_FAR_GRETA,
+    SCR_PILGRIM_TENDER,

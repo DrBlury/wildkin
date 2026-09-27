@@ -3,3 +3,5 @@
  * (tools/gen_travel_gfx.py SPOTS). */
     { MAP_CINDERMOOR, 19, 19, 204, 88, "CINDERMOOR" },
     { MAP_DREAMSPIRE, 24, 29, 166, 48, "DREAMSPIRE" },
+
+    { MAP_RAILHEAD, 19, 20, 190, 88, "RAILHEAD" },

@@ -732,29 +732,268 @@ static const DecorPlace DREAM_SHOP_DECOR[] = {
 /* ================================================================ */
 
 static const WildSlot WILD_CINDER_ROAD[] = {
-    { SP_SALAMBER, 20, 24, 28 }, { SP_STINGLET, 18, 24, 27 }, { SP_MAGNITICK, 16, 24, 28 },
-    { SP_RIVETILLO, 14, 25, 29 }, { SP_CINDERUB, 10, 24, 27 }, { SP_FULGECKO, 10, 26, 29 },
-    { SP_SCORCHION, 6, 28, 30, WHEN_NIGHT }, { SP_LODEHORN, 4, 28, 30 }, { SP_FOUNDRAKE, 2, 29, 31 },
+    { SP_SALAMBER, 20, 26, 30 }, { SP_STINGLET, 18, 26, 29 }, { SP_MAGNITICK, 16, 26, 30 },
+    { SP_RIVETILLO, 14, 27, 30 }, { SP_CINDERUB, 10, 26, 29 }, { SP_FULGECKO, 10, 28, 30 },
+    { SP_SCORCHION, 6, 30, 30, WHEN_NIGHT }, { SP_LODEHORN, 4, 30, 30 }, { SP_FOUNDRAKE, 2, 30, 30 },
 };
 static const WildSlot WILD_EMBER_TUNNEL[] = {
     { SP_SALAMBER, 18, 27, 31 }, { SP_RIVETILLO, 16, 27, 31 }, { SP_GOLEMIT, 14, 27, 30 },
     { SP_SQUEAKLE, 12, 27, 30 }, { SP_DIGGET, 12, 27, 30 }, { SP_LODEHORN, 8, 29, 32 },
-    { SP_FORTADILLO, 6, 30, 33 }, { SP_MAGMAUL, 4, 30, 33 }, { SP_FOUNDRAKE, 4, 30, 33 },
+    { SP_FORTADILLO, 6, 30, 32 }, { SP_MAGMAUL, 4, 30, 32 }, { SP_FOUNDRAKE, 4, 30, 32 },
 };
 static const WildSlot WILD_MOONVEIL[] = {
-    { SP_DOZLOTH, 20, 30, 33 }, { SP_PUFFOWL, 14, 30, 32 }, { SP_MANDRAGOR, 12, 31, 34 },
-    { SP_RADISHOO, 10, 30, 32, WHEN_DAY }, { SP_LUMOTH, 10, 31, 34, WHEN_NIGHT },
-    { SP_SKYWISP, 8, 30, 33, WHEN_NIGHT }, { SP_TANUKETTLE, 6, 32, 34 },
-    { SP_SOMNISLOTH, 4, 33, 35 }, { SP_QILUMEN, 1, 34, 36, WHEN_NIGHT },
+    { SP_DOZLOTH, 20, 38, 41 }, { SP_PUFFOWL, 14, 38, 40 }, { SP_MANDRAGOR, 12, 39, 42 },
+    { SP_RADISHOO, 10, 38, 40, WHEN_DAY }, { SP_LUMOTH, 10, 39, 42, WHEN_NIGHT },
+    { SP_SKYWISP, 8, 38, 41, WHEN_NIGHT }, { SP_TANUKETTLE, 6, 40, 42 },
+    { SP_SOMNISLOTH, 4, 41, 42 }, { SP_QILUMEN, 1, 42, 42, WHEN_NIGHT },
 };
 static const WildSlot WILD_DREAMSPIRE[] = {
-    { SP_DOZLOTH, 20, 31, 34, WHEN_DAY }, { SP_MANDRAGOR, 14, 32, 34 }, { SP_TANUKETTLE, 10, 32, 35 },
-    { SP_LUMOTH, 16, 32, 35, WHEN_NIGHT }, { SP_SOMNISLOTH, 6, 33, 36 },
-    { SP_HOOTLORD, 4, 34, 36, WHEN_NIGHT }, { SP_SLUMBAKU, 3, 33, 36, WHEN_NIGHT },
-    { SP_QILUMEN, 1, 35, 36, WHEN_NIGHT },
+    { SP_DOZLOTH, 20, 39, 42, WHEN_DAY }, { SP_MANDRAGOR, 14, 40, 42 }, { SP_TANUKETTLE, 10, 40, 43 },
+    { SP_LUMOTH, 16, 40, 43, WHEN_NIGHT }, { SP_SOMNISLOTH, 6, 41, 43 },
+    { SP_HOOTLORD, 4, 42, 43, WHEN_NIGHT }, { SP_SLUMBAKU, 3, 41, 43, WHEN_NIGHT },
+    { SP_QILUMEN, 1, 43, 43, WHEN_NIGHT },
 };
 static const WildSlot WILD_DUST_LIBRARY[] = {
-    { SP_KETTLEKIN, 18, 32, 35 }, { SP_PARASOLE, 16, 32, 35 }, { SP_LUMOTH, 14, 32, 35 },
-    { SP_WEBBIT, 12, 32, 34 }, { SP_SQUEAKLE, 10, 32, 34 }, { SP_WICKLET, 4, 33, 36 },
-    { SP_LAMPJINN, 3, 34, 36 },
+    { SP_KETTLEKIN, 18, 39, 42 }, { SP_PARASOLE, 16, 39, 42 }, { SP_LUMOTH, 14, 39, 42 },
+    { SP_WEBBIT, 12, 39, 41 }, { SP_SQUEAKLE, 10, 39, 41 }, { SP_WICKLET, 4, 40, 43 },
+    { SP_LAMPJINN, 3, 41, 43 },
 };
+
+/* Long-route additions: append-only map IDs; gate overlays arrive with E5. */
+static const char *const CINDER_CROSSING_ROWS[] = {
+    "TCCCCC~~~~CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCT", /*  0 */
+    "tccccc~~~~ccccccccccccccccccccccccccccccccccccccccccccccccct", /*  1 */
+    "T.....~~~~.................................................T", /*  2 */
+    "t.....~~~~.................................................t", /*  3 */
+    "T.....~~~~.................................................T", /*  4 */
+    "t.....~~~~.................................................t", /*  5 */
+    "T.....~~~~...========================================......T", /*  6 */
+    "t.....~~~~.,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,.....t", /*  7 */
+    "T.....~~~~.,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,.....T", /*  8 */
+    "t.....~~~~.,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,.....t", /*  9 */
+    "T.....~~~~.,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,.....T", /* 10 */
+    "t.....~~~~.,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,.....t", /* 11 */
+    "T.....~~~~.................................................T", /* 12 */
+    "t.....~~~~.......:::~~~:::::::::::::::.....................t", /* 13 */
+    "T.....~~~~.......:::~~~:::::::::::::::.....................T", /* 14 */
+    "t.....~~~~.......:::~~~:::::::::::::::.....................t", /* 15 */
+    "T.....~~~~.......:::~~~:::::::::::::::.....................T", /* 16 */
+    "t.....~~~~.................................................t", /* 17 */
+    "T.....~~~~.................................................T", /* 18 */
+    "t.....~~~~...========================================......t", /* 19 */
+    "======~~~~==================================================", /* 20 */
+    "======~~~~==================================================", /* 21 */
+    "T.....~~~~.......[LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL].....T", /* 22 */
+    "t.....~~~~.................................................t", /* 23 */
+    "T.....~~~~.................................................T", /* 24 */
+    "t.....~~~~.,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,.....t", /* 25 */
+    "T.....~~~~.,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,.....T", /* 26 */
+    "t.....~~~~.,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,.....t", /* 27 */
+    "T.....~~~~.,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,.....T", /* 28 */
+    "t.....~~~~.,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,.....t", /* 29 */
+    "T.....~~~~.,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,.....T", /* 30 */
+    "t.....~~~~.................................................t", /* 31 */
+    "T.....~~~~.................................................T", /* 32 */
+    "t.....~~~~.................................................t", /* 33 */
+    "TCCCCC~~~~CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCT", /* 34 */
+    "tccccc~~~~ccccccccccccccccccccccccccccccccccccccccccccccccct", /* 35 */
+};
+
+static const char *const RAILHEAD_ROWS[] = {
+    "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT", /*  0 */
+    "tttttttttttttttttttttttttttttttttttttttt", /*  1 */
+    "T......................................T", /*  2 */
+    "t......................................t", /*  3 */
+    "T......................................T", /*  4 */
+    "t.......rrrrrrrrrrrrrrrrrrrrrrrrrr.....t", /*  5 */
+    "T.......rrrrrrrrrrrrrrrrrrrrrrrrrr.....T", /*  6 */
+    "t.......rrrrrrrrrrrrrrrrrrrrrrCCCCC....t", /*  7 */
+    "T.......rrrrrrrrrrrrrrrrrrrrrrCCxCC....T", /*  8 */
+    "t.............................C...C....t", /*  9 */
+    "T..............#####..........C..CC....T", /* 10 */
+    "t..............#####..........C..CC....t", /* 11 */
+    "T..............#####...................T", /* 12 */
+    "t..............#####...................t", /* 13 */
+    "T..............#####...................T", /* 14 */
+    "t..............#####...................t", /* 15 */
+    "T....#====#====#====#====#====#====#==.T", /* 16 */
+    "t......................................t", /* 17 */
+    "T......................................T", /* 18 */
+    "t......................................t", /* 19 */
+    "========================================", /* 20 */
+    "========================================", /* 21 */
+    "T......................................T", /* 22 */
+    "t......................................t", /* 23 */
+    "T......................................T", /* 24 */
+    "t......................................t", /* 25 */
+    "T......................................T", /* 26 */
+    "t......................................t", /* 27 */
+    "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT", /* 28 */
+    "tttttttttttttttttttttttttttttttttttttttt", /* 29 */
+};
+
+static const char *const MISTFEN_ROWS[] = {
+    "CCCCCCCCCCCCCCCCCCCCCCCC==CCCCCCCCCCCCCCCCCCCCCC", /*  0 */
+    "cc......................==....................cc", /*  1 */
+    "CC......................==....................CC", /*  2 */
+    "cc......................==....................cc", /*  3 */
+    "CC......................==....................CC", /*  4 */
+    "cc......................==....................cc", /*  5 */
+    "CC......................==....................CC", /*  6 */
+    "cc......................==....................cc", /*  7 */
+    "CC.,,,,,,,,,,,..........==....................CC", /*  8 */
+    "cc.,,,,,,,,,,,..........==....................cc", /*  9 */
+    "CC.,,,,,,,,,,,..........==....................CC", /* 10 */
+    "cc.,,,,,,,,,,,..........==....................cc", /* 11 */
+    "CC.,,,,,,,,,,,=====================...........CC", /* 12 */
+    "cc.,,,,,,,,,,,..........==....................cc", /* 13 */
+    "CC.,,,,,,,,,,,..........==........,,,,,,,,,,,.CC", /* 14 */
+    "cc.,,,,,,,,,,,..........==........,,,,,,,,,,,.cc", /* 15 */
+    "CC.,,,,,,,,,,,..........==........,,,,,,,,,,,.CC", /* 16 */
+    "cc.,,,,,,,,,,,.~~~~.....==........,,,,,,,,,,,.cc", /* 17 */
+    "CC.,,,,,,,,,,,.~~~~.....==........,,,,,,,,,,,.CC", /* 18 */
+    "cc.,,,,,,,,,,,.~~~~.....==........,,,,,,,,,,,.cc", /* 19 */
+    "CC.,,,,,,,,,,,.~~~~.....==........,,,,,,,,,,,.CC", /* 20 */
+    "cc.,,,,,,,,,,,.~~~~.....==........,,,,,,,,,,,.cc", /* 21 */
+    "CC.,,,,,,,,,,,.~~~~.....==........,,,,,,,,,,,.CC", /* 22 */
+    "cc.,,,,,,,,,,,.~~~~.....==........,,,,,,,,,,,.cc", /* 23 */
+    "CC.,,,,,,,,,,,.~~~~.....==........,,,,,,,,,,,.CC", /* 24 */
+    "cc.,,,,,,,,,,,..........==........,,,,,,,,,,,.cc", /* 25 */
+    "CC.,,,,,,,,,,,..........==........,,,,,,,,,,,.CC", /* 26 */
+    "cc.,,,,,,,,,,,......#########.....,,,,,,,,,,,.cc", /* 27 */
+    "CC.,,,,,,,,,,,......~~~~==~~~.....,,,,,,,,,,,.CC", /* 28 */
+    "cc.,,,,,,,,,,,..........==....~~~~,,,,,,,,,,,.cc", /* 29 */
+    "CC.,,,,,,,,,,,..........==....~~~~,,,,,,,,,,,.CC", /* 30 */
+    "cc.,,,,,,,,,,,..........==....~~~~,,,,,,,,,,,.cc", /* 31 */
+    "CC.,,,,,,,,,,,================~~~~,,,,,,,,,,,.CC", /* 32 */
+    "cc.,,,,,,,,,,,..........==....~~~~,,,,,,,,,,,.cc", /* 33 */
+    "CC.,,,,,,,,,,,..........==....~~~~,,,,,,,,,,,.CC", /* 34 */
+    "cc.,,,,,,,,,,,..........==....~~~~,,,,,,,,,,,.cc", /* 35 */
+    "CC.,,,,,,,,,,,..........==....~~~~,,,,,,,,,,,.CC", /* 36 */
+    "cc.,,,,,,,,,,,..........==....~~~~,,,,,,,,,,,.cc", /* 37 */
+    "CC.,,,,,,,,,,,..........==....~~~~,,,,,,,,,,,.CC", /* 38 */
+    "cc.,,,,,,,,,,,..........==........,,,,,,,,,,,.cc", /* 39 */
+    "CC.,,,,,,,,,,,..........==........,,,,,,,,,,,.CC", /* 40 */
+    "cc.,,,,,,,,,,,..........==........,,,,,,,,,,,.cc", /* 41 */
+    "CC.,,,,,,,,,,,..........==........,,,,,,,,,,,.CC", /* 42 */
+    "cc.,,,,,,,,,,,..........==........,,,,,,,,,,,.cc", /* 43 */
+    "CC......................==........,,,,,,,,,,,.CC", /* 44 */
+    "cc............====================,,,,,,,,,,,.cc", /* 45 */
+    "CC......................==........,,,,,,,,,,,.CC", /* 46 */
+    "cc......................==....................cc", /* 47 */
+    "CC......................==....................CC", /* 48 */
+    "cc......................==....................cc", /* 49 */
+    "CC......................==....................CC", /* 50 */
+    "cc......................==....................cc", /* 51 */
+    "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC", /* 52 */
+    "cccccccccccccccccccccccccccccccccccccccccccccccc", /* 53 */
+    "CCccccccccccccccccccccccccccccccccccccccccccccCC", /* 54 */
+    "cc......................==....................cc", /* 55 */
+    "CC......................==....................CC", /* 56 */
+    "cc......................==....................cc", /* 57 */
+    "CC......................==....................CC", /* 58 */
+    "CCCCCCCCCCCCCCCCCCCCCCCC==CCCCCCCCCCCCCCCCCCCCCC", /* 59 */
+};
+
+static const char *const RAILHEAD_SHAFT_ROWS[] = {
+    "MMMMMMMMMMMMMMMMMMMM", /*  0 */
+    "M__________________M", /*  1 */
+    "M__________________M", /*  2 */
+    "M_;____;____;____;_M", /*  3 */
+    "M_____;____;____;__M", /*  4 */
+    "M____;____;____;___M", /*  5 */
+    "M___;____;____;____M", /*  6 */
+    "M__;____;____;_____M", /*  7 */
+    "M_;____;____;____;_M", /*  8 */
+    "M_____;____;____;__M", /*  9 */
+    "M____;____;____;___M", /* 10 */
+    "M___;____;____;____M", /* 11 */
+    "M__;____;____;_____M", /* 12 */
+    "M__________________M", /* 13 */
+    "MMMMMMMMMxxMMMMMMMMM", /* 14 */
+};
+
+static const char *const RAILHEAD_BUNK_ROWS[] = {
+    "WWnWWkWWnWW",
+    "wwwwwwwwwww",
+    ":::::::::::",
+    ":::::::::::",
+    ":::::::::::",
+    ":::::::::::",
+    ":::::::::::",
+    ":::::::::::",
+    ":::::D:::::",
+};
+static const char *const RAILHEAD_OFFICE_ROWS[] = {
+    "WWnWWkWWnWW",
+    "wwwwwwwwwww",
+    ":::::::::::",
+    ":::::::::::",
+    ":::::::::::",
+    ":::::::::::",
+    ":::::::::::",
+    ":::::::::::",
+    ":::::D:::::",
+};
+static const char *const PILGRIM_REST_ROWS[] = {
+    "WWnWWkWWnWWWW",
+    "wwwwwwwwwwwww",
+    ":::::::::::::",
+    ":::::::::::::",
+    ":::::::::::::",
+    ":::::::::::::",
+    ":::::::::::::",
+    ":::::::::::::",
+    "::::::D::::::",
+};
+
+static const DecorPlace CINDER_CROSSING_DECOR[] = {
+    DP(SIGNPOST, 3, 18), DP(STEAM_VENT, 19, 12), DP(STEAM_VENT, 34, 17),
+    DP(OBSIDIAN, 38, 10), DP(EMBER_ROCK, 48, 13), DP(CAMPFIRE, 53, 33),
+};
+static const DecorPlace RAILHEAD_DECOR[] = {
+    DP(SIGNPOST, 3, 18), DP(LAVA_ORE_CART, 25, 7), DP(COAL_PILE, 30, 9),
+    DP(CAMPFIRE, 13, 12), DP(WOODPILE, 10, 13),
+};
+static const DecorPlace MISTFEN_DECOR[] = {
+    DP(SIGNPOST, 21, 57), DP(MOON_LANTERN, 21, 55), DP(MOON_LANTERN, 26, 50),
+    DP(MOONSTONE, 25, 27), DP(MOON_LANTERN, 23, 34), DP(PETALS, 29, 18),
+};
+static const MapObj CINDER_CROSSING_OBJS[] = { OBJ(BERRY, 45, 29, 0) };
+static const MapObj RAILHEAD_OBJS[] = { OBJ(BOULDER, 32, 9, 0), OBJ(LADDER, 32, 8, 0),
+    OBJ(LADDER, 8, 12, 0), OBJ(LADDER, 26, 12, 0), OBJ(BERRY, 7, 23, 1) };
+static const MapObj MISTFEN_OBJS[] = { OBJ(BERRY, 40, 29, 2), OBJ(LADDER, 30, 40, 0) };
+static const MapObj RAILHEAD_SHAFT_OBJS[] = { OBJ(LEGEND, 10, 5, SP_FOUNDRAKE) };
+
+/* E5's planned MapPatch rows. When its MapDef ABI lands, attach these to
+ * CINDER_CROSSING and MISTFEN in maps.inc; no shared engine files belong here. */
+#ifdef FAR_HAS_E5_PATCHES
+static const char *const CINDER_BRIDGE_REPAIRED[] = { "====", "====" };
+static const char *const MISTFEN_FOG_CLEARED[] = { "==", "==", "==" };
+static const MapPatch CINDER_CROSSING_PATCHES[] = {
+    { FLAG_PROJECT_CINDER_BRIDGE, 0, 6, 20, 4, 2, CINDER_BRIDGE_REPAIRED, 0 },
+};
+static const MapPatch MISTFEN_PATCHES[] = {
+    { FLAG_LANTERN_CREST, 0, 24, 52, 2, 3, MISTFEN_FOG_CLEARED, 0 },
+};
+#endif
+
+
+static const WildSlot WILD_CROSSING[] = {
+    { SP_SALAMBER, 20, 24, 28 }, { SP_STINGLET, 15, 24, 28 },
+    { SP_FULGECKO, 10, 24, 28 }, { SP_MAGNITICK, 15, 24, 28 },
+    { SP_RAMBLET, 15, 24, 28 }, { SP_CINDERUB, 10, 24, 28, WHEN_DAY },
+    { SP_SCORCHION, 5, 24, 28, WHEN_NIGHT },
+};
+static const WildSlot WILD_CROSSING_WATER[] = {
+    { SP_PEBBOTTER, 52, 25, 29 }, { SP_TORRENTTER, 45, 25, 29 },
+    { SP_KOIRIN, 3, 27, 29 },
+};
+static const WildSlot WILD_MISTFEN[] = {
+    { SP_MANDRAGOR, 15, 37, 41 }, { SP_DOZLOTH, 15, 37, 41, WHEN_DAY },
+    { SP_LUMOTH, 15, 37, 41, WHEN_NIGHT }, { SP_WISPIRE, 10, 37, 41, WHEN_NIGHT },
+    { SP_BOGSHAMBLE, 10, 37, 41 }, { SP_MUDDLE, 15, 37, 41 },
+    { SP_WICKLET, 5, 37, 41, WHEN_NIGHT }, { SP_SOMNISLOTH, 5, 37, 41 },
+};
+
+static const MapObj CINDER_ROAD_ROUTE_OBJS[] = { OBJ(BERRY, 33, 27, 3) };
