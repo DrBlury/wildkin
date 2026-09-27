@@ -17,7 +17,9 @@ screen below was checked in the real ROM with `build/shot`.
 ### START menu (menu.c)
 
 - Entries: ALMANAC, LOREBOOK, KIN, BAG, SHELF, MAP, FIELD, QUESTS, CARD,
-  OPTIONS, SAVE, EXIT.
+  OPTIONS, ADMIN, SAVE, EXIT.
+  - ADMIN (in red) needs ADMIN MODE on (`opt.admin`, from the title's debug
+    menu). See docs/handoff/admin.md.
   - MAP needs the TOWN MAP.
   - KIN and FIELD need a kin.
   - SHELF needs the TWIN CRYSTAL.

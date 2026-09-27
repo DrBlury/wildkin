@@ -1,5 +1,10 @@
 # WILDKIN expansion: handoff
 
+> **ADMIN mode (2026-09-27):** in the title's debug menu (SELECT+START), the
+> ADMIN MODE row adds an ADMIN entry to the START menu. It can add coins, give
+> any item, add any kin with any moveset, teach any move and heal the team.
+> See `docs/handoff/admin.md`.
+
 > **Update (2026-09-27): ground blends and a bigger scene.** Any ground laid on another
 > (sand on grass, mud on ash...) can fade into it instead of changing at a hard 16px edge:
 > call `gf.add_blend(ts, out, inner_terrains, inner_img, outer_img, outer_terrains)` in a tileset
