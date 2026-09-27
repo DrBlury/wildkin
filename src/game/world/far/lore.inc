@@ -137,9 +137,10 @@
     [LORE_MIRROR_HALL] = { LCH_HALLS, LSRC_MIRROR_GUIDE, "THE MIRROR HALL",
         "The MIRROR HALL of Dreamspire trains wardens of DREAM kin. Its Master, VESPER, is said to "
         "know a warden's next move before they do.\n\n"
-        "The Hall is four mirrored rooms and no doors between them. Star-marked teleport pads link "
-        "them in pairs: step on one and you appear on its twin. Some pads lead onward, some lead back "
-        "to the start. Remember which is which.\n\n"
+        "The Hall is six rooms in mirrored pairs and no doors between them. Star-marked teleport pads "
+        "link them: step on one and you appear on its twin. A mirror wall splits every room, with one "
+        "doorway, and a floor switch opens a doorway on one side of the mirror while it shuts its twin "
+        "on the other. Remember which is which.\n\n"
         "Beat Master VESPER for the DREAM CREST. With it, a TELEPORT kin can take you back to the last "
         "Hearth Hall you rested at.",
         "The Hall has no doors inside. Only mirrors.\f"

@@ -30,9 +30,9 @@
     PERSON(MAP_DUSK_HOUSE, 7, 4, GRAN, DOWN, LOOK, SISTER, NO_LORE, "WIDOW MAREN", 0),
     /* LANTERN CRYPT (dark; wardens stand clear of the only routes) */
     PERSON(MAP_LANTERN_CRYPT, 11, 3, HERMIT, DOWN, STILL, MORWEN, NO_LORE, "HALL MASTER MORWEN", 0),
-    WARDEN(MAP_LANTERN_CRYPT, 16, 11, WARDEN_A, RIGHT, 1, TR_LUMA, NO_KIN, "In the dark, the walls lie. Trust your feet, not your eyes."),
-    WARDEN(MAP_LANTERN_CRYPT, 6, 11, WARDEN_B, RIGHT, 1, TR_TOBIN, NO_KIN, "One wall on the way up is only a shadow. Press on it."),
-    WARDEN(MAP_LANTERN_CRYPT, 8, 15, WARDEN_A, LEFT, 1, TR_SABLE, NO_KIN, "The open door in the middle? It's the one that isn't there."),
+    WARDEN(MAP_LANTERN_CRYPT, 20, 8, WARDEN_A, LEFT, 1, TR_LUMA, NO_KIN, "In the dark, the walls lie. Trust your feet, not your eyes."),
+    WARDEN(MAP_LANTERN_CRYPT, 6, 10, WARDEN_B, DOWN, 1, TR_TOBIN, NO_KIN, "One wall on the way up is only a shadow. Press on it."),
+    WARDEN(MAP_LANTERN_CRYPT, 16, 20, WARDEN_A, LEFT, 1, TR_SABLE, NO_KIN, "Light a candle and a door shuts behind you. The stars on the floor know another way."),
     /* THE OSSUARY */
     WARDEN(MAP_OSSUARY_1, 15, 9, WARDEN_A, DOWN, 3, TR_CORVIN, SP_NOCTAVE, "The deeps are down the east stair."),
     WARDEN(MAP_OSSUARY_1, 26, 15, WARDEN_B, LEFT, 3, TR_ELSPETH, NO_KIN, "Leave the lamps as you found them, please."),

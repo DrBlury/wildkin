@@ -4,7 +4,7 @@
     { MAP_DUSKMERE, 17, 12, MAP_DUSK_SHOP, 5, 8 },
     { MAP_DUSKMERE, 6, 34, MAP_APOTHECARY, 5, 8 },
     { MAP_DUSKMERE, 40, 26, MAP_DUSK_HOUSE, 5, 8 },
-    { MAP_DUSKMERE, 34, 7, MAP_LANTERN_CRYPT, 11, 20 },
+    { MAP_DUSKMERE, 34, 7, MAP_LANTERN_CRYPT, 11, 22 },
     /* the Ossuary stairs (doors cut into the walls) */
     { MAP_OSSUARY_1, 4, 1, MAP_DUSKMERE, 35, 19 },
     { MAP_OSSUARY_1, 26, 1, MAP_OSSUARY_2, 26, 2 },

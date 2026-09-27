@@ -418,27 +418,41 @@ static const MapObj GULL_ISLE_OBJS[] = {
 };
 
 static const char *const CURRENT_HALL_ROWS[] = {
-    "HHHHHHHHHHHHHHH", /*  0 */
-    "hhnhhhhhhhhhnhh", /*  1 */
-    "OOO_________OOO", /*  2 */
-    "OOO_________OOO", /*  3 */
-    "OOOOvOOOOO^OOOO", /*  4 */
-    "OOOOvOOOOO^OOOO", /*  5 */
-    "O___vOOOO____OO", /*  6 */
-    "O___>>>>>____OO", /*  7 */
-    "O___OOOOO____OO", /*  8 */
-    "O___OOOOOOOvOOO", /*  9 */
-    "O___OOO>>>>>vOO", /* 10 */
-    "OOv^OOO^OOOOvOO", /* 11 */
-    "OOv^OOO^OOOOvOO", /* 12 */
-    "OOv^OOO^OOOOvOO", /* 13 */
-    "O__^O_____OOvOO", /* 14 */
-    "O__^<_____<<<OO", /* 15 */
-    "O__>>_____OOOOO", /* 16 */
-    "OOOOOOOMOOOOOOO", /* 17 */
+    "HHHHHHHHHHHHHHHHH", /*  0 */
+    "hhnhhhhhhhhhhhnhh", /*  1 */
+    "O_______________O", /*  2: the dais */
+    "O_______________O", /*  3 */
+    "OvOOOOOO^OOOOOOOO", /*  4: the chute home (x 1), the rise to MAREN (x 8) */
+    "OvOOOOOO^OOOOOOOO", /*  5 */
+    "OvOOOOOO^OOOOOOOO", /*  6 */
+    "OvOOO_______OOOOO", /*  7: the north landing */
+    "OvOOO_______OOOOO", /*  8 */
+    "Ov___OvOOO^O___vO", /*  9: west isle, east isle */
+    "Ov___OvOOO^O___vO", /* 10 */
+    "Ov___>vOOO^O___vO", /* 11 */
+    "Ov___O_____<___vO", /* 12: the middle isle */
+    "Ov___O_____O___vO", /* 13 */
+    "OvO^OOOOvOOOOO^vO", /* 14 */
+    "OvO^OOOOvOOOOO^vO", /* 15 */
+    "OvO^OOOOvOOOOO^vO", /* 16 */
+    "OvO^OOOOvOOOOO^vO", /* 17 */
+    "O_______________O", /* 18: the entrance floor */
+    "O_______________O", /* 19 */
+    "O_______________O", /* 20 */
+    "OOOOOOOOMOOOOOOOO", /* 21 */
 };
 static const DecorPlace CURRENT_HALL_DECOR[] = {
-    DP(HALL_COLUMN, 3, 2), DP(HALL_COLUMN, 11, 2), DP(SHELL_LAMP, 5, 2), DP(SHELL_LAMP, 9, 2),
+    DP(HALL_COLUMN, 3, 2), DP(HALL_COLUMN, 13, 2), DP(SHELL_LAMP, 5, 2), DP(SHELL_LAMP, 11, 2),
+};
+/* Two tides of sluice gates (barriers). Switch A (west isle) works the
+ * east rise and the gate before MAREN; switch B (east isle) and B' (middle
+ * isle) work the west crossing, the east crossing and the north rise. */
+static const MapObj CURRENT_HALL_OBJS[] = {
+    OBJ(BARRIER, 14, 17, 0), OBJ(BARRIER, 8, 6, 0x80),                           /* tide A */
+    OBJ(BARRIER, 5, 11, 1), OBJ(BARRIER, 11, 12, 0x81), OBJ(BARRIER, 10, 11, 1),  /* tide B */
+    OBJ(BARRIER, 8, 7, 2),                                                       /* tide C */
+    OBJ(SWITCH, 2, 9, 0), OBJ(SWITCH, 14, 9, 1), OBJ(SWITCH, 8, 13, 1),
+    OBJ(SWITCH, 15, 16, 2),   /* the tide bell in the east chute: every ride down rings it */
 };
 
 static const char *const DROWNED_BELL_ROWS[] = {

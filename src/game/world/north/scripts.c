@@ -62,7 +62,7 @@ static void scr_rime_guide(int npc)
         return;
     }
     if (lore_reveal(LSRC_RIME_GUIDE, 0)) return;
-    dlg_say("Inside, the ice decides where you stop. Look for the rock that will stop you where you want to be.");
+    dlg_say("Inside, the ice decides where you stop. Look for the rock that will stop you where you want to be. No rock? Push the pumice there.");
 }
 
 static void rime_master_end(int result)

@@ -62,8 +62,9 @@
         "harbour and let run back down through stone channels. A TIDE kernel pumps from moving water, "
         "so a tired kin set in a channel wakes up fast.\n\n"
         "Every channel runs one way only. Step into one and it carries you until it spills you onto "
-        "a platform. The Hall's puzzle is simply to choose the right channel: some lead up to the "
-        "Master's dais, and some bring you straight back to the door.\n\n"
+        "a platform. The Hall's puzzle is to choose the right channel and to set the sluice gates: "
+        "each floor switch raises one tide of gates and lowers another, and the bell in the east chute "
+        "rings a third tide every time the water carries you over it.\n\n"
         "Beat HALL MASTER MAREN to earn the TIDE CREST. With it, a strong TIDE kin (level 20 or more) "
         "can carry you across open water: SURF.",
         "Welcome to the CURRENT HALL! Tip one: the water only flows one way.\f"

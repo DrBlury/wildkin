@@ -214,27 +214,45 @@ static const ElevFeat DUSKMERE_FEATS[] = {
 };
 
 static const char *const LANTERN_CRYPT_ROWS[] = {
-    "WWWWWWWWWWWWWWWWWWWWWWW",
-    "wwnwwvwwnwwwwwnwwvwwnww",
-    "#.....................#",
-    "#...I......|......I...#",
-    "#...i......|......i...#",
-    "#..........|..........#",
-    "#..........|..........#",
-    "###%#######_###########",
-    "#...#.....#...#.......#",
-    "#.#.#.###.#.#.#.#####.#",
-    "#.#...#...#.#...#...#.#",
-    "#.####..###.####..#.#.#",
-    "#.....#...%.....#.#...#",
-    "#####.###.#####.#.###.#",
-    "#...#...#.....#.#...#.#",
-    "#.#.###..####.#.###.#.#",
-    "#.#.....#.....#.....#.#",
-    "#.#######.#_##.######.#",
-    "#.........#...........#",
-    "###########.###########",
-    "###########D###########",
+    "WWWWWWWWWWWWWWWWWWWWWWW", /*  0 */
+    "wwnwwvwwnwwwwwnwwvwwnww", /*  1 */
+    "#.....................#", /*  2: the sanctum */
+    "#...I......|......I...#", /*  3 */
+    "#...i......|......i...#", /*  4 */
+    "#..........|..........#", /*  5 */
+    "#..........|..........#", /*  6 */
+    "#######_###%#######_###", /*  7: the way in is a wall that lies */
+    "###...#...#.#...#.....#", /*  8: the west wing / the spine / the east wing */
+    "###.#####.#.#.#.#.#.#.#", /*  9 */
+    "#...#...#...#.#...#...#", /* 10 */
+    "#.###.#.#.#.#.#######.#", /* 11 */
+    "#.#...#.#.#.#...#...#.#", /* 12 */
+    "#.#.###.#.#.###.#.#.#.#", /* 13 */
+    "#.#.#.....#.#...#.#...#", /* 14 */
+    "#.#.#.###.#..####.#####", /* 15 */
+    "#.....#...#.#####.##_.#", /* 16 */
+    "#######.#.#.#.........#", /* 17: the gallery foot, the east walk */
+    "###########.#######.###", /* 18: the spine and the east walk open here */
+    "#.....................#", /* 19: the vestibule */
+    "#.....................#", /* 20 */
+    "#.....................#", /* 21 */
+    "###########D###########", /* 22 */
+};
+/* The LANTERN CRYPT puzzle (docs/handoff/puzzles.md): the spine (x 11) ends
+ * in two sealed gates under the sanctum. Each gate has its candle switch
+ * deep in a wing, and each wing's switch also seals the way you came in:
+ *   switch 3 (west gallery)  opens the east wing's inner door (barrier 3)
+ *   switch 2 (east inner)    opens the west wing's inner door (barrier 2)
+ *   switch 1 (east inner)    lowers gate B, raises the east walk (barrier 1')
+ *   switch 0 (west inner)    lowers gate A, raises the west door (barrier 0')
+ * Star pads lead out of each sealed wing: east walk <-> a niche on the
+ * spine, west gallery foot <-> the vestibule. */
+static const MapObj LANTERN_CRYPT_OBJS[] = {
+    OBJ(BARRIER, 11, 9, 0), OBJ(BARRIER, 10, 10, 0x80),    /* gate A, the west door */
+    OBJ(BARRIER, 11, 8, 1), OBJ(BARRIER, 19, 18, 0x81),    /* gate B, the east walk */
+    OBJ(BARRIER, 8, 14, 2), OBJ(BARRIER, 17, 16, 3),       /* the wings' inner doors */
+    OBJ(SWITCH, 5, 8, 0), OBJ(SWITCH, 21, 8, 1), OBJ(SWITCH, 19, 14, 2), OBJ(SWITCH, 7, 8, 3),
+    OBJ(PAD, 12, 15, 1), OBJ(PAD, 13, 17, 1), OBJ(PAD, 9, 17, 2), OBJ(PAD, 3, 20, 2),
 };
 
 static const char *const OSSUARY_1_ROWS[] = {

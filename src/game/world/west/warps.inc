@@ -1,5 +1,5 @@
 /* world/west/warps.inc -- Doors / cave mouths: { MAP_FROM, x, y, MAP_TO, dx, dy },. Owner: W-WEST. */
-    { MAP_PORT_BRINE, 19, 6, MAP_CURRENT_HALL, 7, 17 },    /* upper town (level 3) */
+    { MAP_PORT_BRINE, 19, 6, MAP_CURRENT_HALL, 8, 21 },    /* upper town (level 3) */
     { MAP_PORT_BRINE, 18, 15, MAP_BRINE_HEARTH, 5, 8 },    /* west terrace (1) */
     { MAP_PORT_BRINE, 31, 16, MAP_BRINE_SHOP, 5, 8 },      /* east terrace (1) */
     { MAP_PORT_BRINE, 37, 15, MAP_BRINE_INN, 6, 8 },       /* east terrace (1) */

@@ -234,9 +234,9 @@ def clip_regions():
              ('frosthollow', 'FROSTHOLLOW', 6, 14), ('skyisle', 'SKY_ISLE', 17, 21),
              ('duskmere', 'DUSKMERE', 12, 13), ('cindermoor', 'CINDERMOOR', 19, 19),
              ('dreamspire', 'DREAMSPIRE', 24, 29), ('willow', 'WILLOW_ACRE', 19, 3),
-             ('volt', 'VOLT_HALL', 7, 15), ('works', 'WORKS', 6, 8), ('current', 'CURRENT_HALL', 7, 16),
-             ('rime', 'RIME_HALL', 7, 18), ('crypt', 'CRYPT', 11, 19), ('anvil', 'ANVIL_HALL', 8, 20),
-             ('mirror', 'MIRROR_HALL', 5, 14), ('bell', 'DROWNED_BELL', 9, 16), ('starfall', 'STARFALL', 11, 18),
+             ('volt', 'VOLT_HALL', 7, 15), ('works', 'WORKS', 6, 8), ('current', 'CURRENT_HALL', 8, 20),
+             ('rime', 'RIME_HALL', 9, 25), ('crypt', 'CRYPT', 11, 21), ('anvil', 'ANVIL_HALL', 8, 20),
+             ('mirror', 'MIRROR_HALL', 2, 20), ('bell', 'DROWNED_BELL', 9, 16), ('starfall', 'STARFALL', 11, 18),
              ('throne', 'BONE_THRONE', 8, 12), ('caldera', 'CALDERA', 9, 15), ('library', 'LIBRARY', 11, 18)]
     for (name, mp, x, y) in shots:
         save = demo_save(name, mp, x, y, calm=True)

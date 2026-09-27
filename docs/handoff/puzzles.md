@@ -64,9 +64,11 @@ bit): picking one up is an event that clears them all, an approximation
 that is only optimistic if a later satchel is what walls you in. Wild kin are ignored. The follower
 is off (it can only swap places with you).
 
-Environment knobs for debugging: `PZ_MAP=<id>` solves one map,
-`PZ_TRACE=1` prints progress, `PZ_CAP=<n>` changes the entry limit. On a
-failure it prints the offending state and the event path that reaches it.
+Environment knobs for debugging: `PZ_MAP=<id or name>` solves one map
+(`PZ_MAP="RIME HALL"`), `PZ_PATH=1` prints the event path to the hardest
+target and to a Hall Master, `PZ_TRACE=1` prints progress, `PZ_CAP=<n>`
+changes the entry limit. On a failure it prints the offending state and the
+event path that reaches it.
 
 ## Per-map results
 
@@ -77,12 +79,12 @@ current ride or a pad jump counts as one).
 | map | abilities | states | hardest target | events | pushes | moves |
 | --- | --- | --- | --- | --- | --- | --- |
 | MAPLE VILLAGE | all | 2 | door to MAPLE SHOP | 0 | 0 | 326 |
-| VOLT HALL | none | 8 | MASTER FARA | 3 | 0 | 55 |
-| CURRENT HALL | none | 2 | MASTER MAREN | 0 | 0 | 15 |
-| RIME HALL | none | 1 | warden (MASTER SIGRUN: 18 moves) | 0 | 0 | 28 |
-| LANTERN CRYPT | none | 2 | warden | 0 | 0 | 75 |
-| ANVIL HALL | none | 197566 | MASTER BRONWEN | 12 | 12 | 149 |
-| MIRROR HALL | none | 1 | MASTER VESPER | 0 | 0 | 35 |
+| VOLT HALL (1) | none | 8 | MASTER FARA | 3 | 0 | 55 |
+| CURRENT HALL (2) | none | 16 | MASTER MAREN | 4 | 0 | 73 |
+| ANVIL HALL (3) | none | 197566 | MASTER BRONWEN | 12 | 12 | 149 |
+| RIME HALL (4) | none | 232 | warden (MASTER SIGRUN: 8 events, 101 moves) | 8 | 8 | 108 |
+| LANTERN CRYPT (5) | none | 32 | HALL MASTER MORWEN | 6 | 0 | 170 |
+| MIRROR HALL (6) | none | 8 | MASTER VESPER | 6 | 0 | 203 |
 | BRAMBLEWOOD | all | 1899 | edge to MAPLE VILLAGE | 0 | 0 | 53 |
 | CLOCKWORK SPIRE | all | 706 | satchel | 1 | 1 | 22 |
 | WHITECROWN PEAK | all | 52 | legend HOARFANG | 11 | 11 | 83 |
@@ -145,7 +147,66 @@ map as it is, and on puzzle maps (boulders, plates, gates, switches,
 barriers, pads, ice, currents) it leaves people, satchels, doors and exits
 to `test_puzzles` and only checks signs and grass over every entrance.
 
+## The Hall redesigns (hall order 1-6, difficulty rising)
+
+The Halls CURRENT, RIME, LANTERN and MIRROR were plain walks (15-75
+moves, no events). They are now real puzzles, all on flat ground, all
+solvable without SURF or STRENGTH, with the wardens (sight 1, so they
+never walk onto a puzzle cell) beside the route and a way home from the
+Master's dais. Numbers are the solver's event-minimal solution from the
+door to the Master.
+
+- **CURRENT HALL** (`world/west/data.h`, 17 x 22, door 8,21): 4 events,
+  73 moves. Isles in a pool joined by one-way channels; three tides of
+  sluice gates (barriers). Switch A (west isle) opens the east rise and
+  shuts the gate before MAREN; switch B (east isle) / B' (middle isle)
+  swap the west and east crossings and open the north rise; a bell
+  switch *inside* the east chute rings tide C (the north landing's gate)
+  every time the water carries you over it. Answer: A, ride the east
+  chute (bell), B', then A again, cross west, rise, rise. The west chute
+  (x 1) takes you from the dais or the west isle back to the door.
+  `test_west` checks the start is shut and the final tides open.
+- **RIME HALL** (`world/north/data.h`, 19 x 27, door 9,26): 8 pushes,
+  101 moves (108 for the dais warden). Two rinks between rock rows: the
+  lower rink is a pure slide maze (about 23 slides, from the gap at 9,23
+  to the gap at 15,15); the upper rink has one pumice boulder (16,7) that
+  must be pushed to 10,5 so that a slide east along row 5 stops under the
+  dais gap (9,4). The rinks were found with a random search that rejected
+  any layout with a soft-lock, then confirmed here. `test_north` checks
+  the Master is out of reach with the pumice at home and reached with it
+  at 10,5.
+- **LANTERN CRYPT** (`world/grim/data.h`, 23 x 23, dark, door 11,22):
+  6 events, 170 moves. The spine (x 11) ends in gates A and B under the
+  false wall (11,7) into the sanctum. Candle switch 3 (west gallery)
+  opens the east wing's inner door; switch 2 (east inner) opens the west
+  wing's inner door; switch 1 (east inner) lowers gate B but raises the
+  east walk behind you; switch 0 (west inner) lowers gate A but raises the
+  west door. Star pads lead out of each sealed wing (east walk <-> a
+  niche on the spine, gallery foot <-> the vestibule). Switch 2 lies on
+  the way to switch 1, so walking back over it shuts the west door again:
+  step on it once more (the solver's answer does exactly that).
+- **MIRROR HALL** (`world/far/data.h`, 21 x 22, door 2,21): 6 events,
+  203 moves. Six rooms in mirrored pairs (L1|R1, L2|R2, L3|R3), each
+  split by a mirror wall with one doorway barrier. Switch k lowers the
+  west room's doorway of row k+1 and raises the east twin's (0x80
+  barriers). Seven pad pairs cross between the halves; the Master stands
+  in R1's east half. Found with an abstract search over pads/switches for
+  the longest event-minimal solution, then placed and confirmed here.
+  `test_far` checks the doorway pairs are mirrored.
+
+`tools/make_demo_save.c` takes a new `beaten` flag (every warden on the
+map already beaten) so a Hall can be replayed in the ROM without bouts.
+
 ## Checked in the ROM
+
+CURRENT HALL (after the redesign): `build/make_demo_save current.sav 32 8 20
+calm beaten`, then the solver's answer as a `build/shot` script with
+`peek`s of the player and `sw_on` after every leg: every stop (west isle,
+switch A, the chute foot, east isle, the bell ride, the middle isle,
+switch B', switch A again, the west crossing, the north landing, the
+dais at 8,3) and every tide state matched the search, and A in front of
+MAREN opens her Master dialogue.
+
 
 `make shot` + `build/shot game.gba script.txt anvil.sav` with a demo save
 in ANVIL HALL (8,21): the solver's chamber-1 solution (west pen: up twice,
@@ -160,6 +221,7 @@ plates and the first gate sinks, exactly as the search predicts.
 - The test maps (TEST HALL etc.) are skipped: the TEST HALL's STRENGTH
   boulder can still be pushed into the gate corridor and shut you in its
   chest room (it is a traversal fixture, not part of the game).
-- CURRENT HALL and MIRROR HALL are short (15 and 35 moves, no events): a
-  designer may want to make them harder; the solver will say if a change
-  breaks them.
+- The LANTERN CRYPT's barriers, pads and satchels are sprites and are not
+  darkened by the light circle (engine behaviour for every dark map): the
+  glowing pads and wisp gates read as deliberate cues, but a designer may
+  want them dimmed.

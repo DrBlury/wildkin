@@ -60,12 +60,12 @@
     PERSON(MAP_DREAM_HEARTH, 5, 2, HEALER, DOWN, STILL, DREAM_TENDER, LSRC_TENDER, "TENDER MAREN", 0),
     PERSON(MAP_DREAM_SHOP, 1, 2, SHOPKEEPER, DOWN, STILL, DREAM_CLERK, NO_LORE, "CLERK", 0),
     /* the mirror hall */
-    PERSON(MAP_MIRROR_HALL, 7, 13, GUIDE, UP, LOOK, TALK, LSRC_MIRROR_GUIDE, "HALL GUIDE",
-           "Step on a star pad and you'll step out of its twin. Some twins lead back here."),
-    WARDEN(MAP_MIRROR_HALL, 16, 12, WARDEN_A, LEFT, 3, TR_MH_NELL, NO_KIN, "Left pad or right pad? I never remember either."),
-    WARDEN(MAP_MIRROR_HALL, 4, 5, WARDEN_B, RIGHT, 3, TR_MH_PERRIN, NO_KIN, "The top pad. Always the top pad."),
-    WARDEN(MAP_MIRROR_HALL, 17, 4, WARDEN_A, LEFT, 2, TR_MH_OPAL, NO_KIN, "VESPER saw you coming. She always does."),
-    PERSON(MAP_MIRROR_HALL, 15, 2, PROFESSOR, DOWN, STILL, DREAM_MASTER, NO_LORE, "MASTER VESPER", 0),
+    PERSON(MAP_MIRROR_HALL, 3, 18, GUIDE, LEFT, LOOK, TALK, LSRC_MIRROR_GUIDE, "HALL GUIDE",
+           "Step on a star pad and you'll step out of its twin. A switch opens one doorway and shuts its mirror."),
+    WARDEN(MAP_MIRROR_HALL, 13, 18, WARDEN_A, LEFT, 1, TR_MH_NELL, NO_KIN, "Left pad or right pad? I never remember either."),
+    WARDEN(MAP_MIRROR_HALL, 7, 3, WARDEN_B, RIGHT, 1, TR_MH_PERRIN, NO_KIN, "The top pad. Always the top pad."),
+    WARDEN(MAP_MIRROR_HALL, 17, 5, WARDEN_A, LEFT, 1, TR_MH_OPAL, NO_KIN, "VESPER saw you coming. She always does."),
+    PERSON(MAP_MIRROR_HALL, 18, 2, PROFESSOR, DOWN, STILL, DREAM_MASTER, NO_LORE, "MASTER VESPER", 0),
     /* the dust library */
     PERSON(MAP_DUST_LIBRARY, 19, 18, PROFESSOR, LEFT, LOOK, TALK, LSRC_LIBRARIAN, "LIBRARIAN",
            "Shh. Take any book you like. Just put it back where it wants to go."),

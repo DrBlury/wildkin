@@ -243,7 +243,7 @@ static void scr_maren(int npc)
         dlg_ask("MAREN: Back for the channels? A rematch, for the joy of it?", YES_NO, 2, maren_begin);
         return;
     }
-    dlg_say("MAREN: You found the right current. Most people ride the loop back to the door three times first.");
+    dlg_say("MAREN: You found the right currents and set the tides. Most people ride the chute back to the door three times first.");
     dlg_say("I'm MAREN, Master of the CURRENT HALL. Six TIDE kin, and every one of them knows how to wait.");
     dlg_ask("Shall we see which way the tide turns?", YES_NO, 2, maren_begin);
 }
