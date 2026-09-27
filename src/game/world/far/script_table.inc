@@ -10,3 +10,8 @@
     [SCR_DREAM_TENDER] = scr_far_tender,
     [SCR_DREAM_CLERK] = scr_dream_clerk,
     [SCR_DREAM_MASTER] = scr_dream_master,
+
+    [SCR_RAIL_TENDER] = scr_rail_tender,
+    [SCR_RAIL_COOK] = scr_rail_cook,
+    [SCR_FAR_GRETA] = scr_far_greta,
+    [SCR_PILGRIM_TENDER] = scr_pilgrim_tender,

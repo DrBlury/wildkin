@@ -231,13 +231,13 @@ int main(void)
     /* edge contracts (docs/EXPANSION.md 9) */
     CHECK(edge_exactly(MAP_CINDER_ROAD, LINK_W, 20, 21) && edge_exactly(MAP_CINDER_ROAD, LINK_E, 20, 21) &&
               edge_exactly(MAP_CINDERMOOR, LINK_W, 20, 21),
-          "CINDER ROAD opens at y 20-21 to LUMEN and to CINDERMOOR");
+          "CINDER ROAD and CINDERMOOR keep the y20-21 road opening");
     CHECK(edge_exactly(MAP_MOONVEIL, LINK_S, 24, 25) && edge_exactly(MAP_MOONVEIL, LINK_N, 24, 25) &&
               edge_exactly(MAP_DREAMSPIRE, LINK_S, 24, 25),
-          "MOONVEIL PATH opens at x 24-25 to LUMEN and to DREAMSPIRE");
-    CHECK(MAPS[MAP_CINDER_ROAD].link[LINK_W] == MAP_LUMEN && MAPS[MAP_MOONVEIL].link[LINK_S] == MAP_LUMEN &&
-              MAPS[MAP_LUMEN].link[LINK_E] == MAP_CINDER_ROAD && MAPS[MAP_LUMEN].link[LINK_N] == MAP_MOONVEIL,
-          "the far region hangs off LUMEN CITY's east and north edges");
+          "MOONVEIL PATH and DREAMSPIRE keep the x24-25 opening");
+    CHECK(MAPS[MAP_CINDER_ROAD].link[LINK_W] == MAP_RAILHEAD && MAPS[MAP_MOONVEIL].link[LINK_S] == MAP_MISTFEN &&
+              MAPS[MAP_CINDER_CROSSING].link[LINK_W] == MAP_LUMEN && MAPS[MAP_MISTFEN].link[LINK_S] == MAP_LUMEN,
+          "new Far route segments attach to Lumen on the Far side only");
 
     /* towns, fly points, hearths */
     int fly_c = 0, fly_d = 0;
@@ -461,12 +461,41 @@ int main(void)
     for (int zi = ZONE_CINDER_ROAD; zi <= ZONE_DUST_LIBRARY; zi++)
         for (int i = 0; i < WILD_ZONES[zi].count; i++) {
             const WildSlot *s = &WILD_ZONES[zi].slots[i];
-            if (s->min_level < 22 || s->max_level > 36 || s->min_level > s->max_level ||
+            if (s->min_level < 26 || s->max_level > (zi < ZONE_MOONVEIL ? 32 : 43) || s->min_level > s->max_level ||
                 SPECIES[s->species].rarity == R_LEGEND || SPECIES[s->species].rarity == R_FUSION)
                 levels_ok = 0;
         }
     CHECK(night_baku, "SLUMBAKU roams DREAMSPIRE at night");
-    CHECK(levels_ok, "far wild kin are levels 22-36 and never legends or fusions");
+    CHECK(levels_ok, "re-levelled far wild kin stay within Act IV/VII bands and exclude legends");
+
+    /* Region-local G3 contract; repair branch needs E5 map patches + saga flag. */
+    CHECK(edge_exactly(MAP_CINDER_CROSSING, LINK_W, 20, 21) &&
+          edge_exactly(MAP_CINDER_CROSSING, LINK_E, 20, 21) &&
+          edge_exactly(MAP_RAILHEAD, LINK_W, 20, 21) &&
+          edge_exactly(MAP_RAILHEAD, LINK_E, 20, 21),
+          "Crossing and Railhead retain both y20-21 edge openings");
+    map_load(MAP_CINDER_CROSSING);
+    int river = 1;
+    for (int y = 2; y < 34; y++)
+        for (int x = 6; x <= 9; x++) river &= !!(cell_attr(x, y) & A_WATER);
+    CHECK(river, "G3 is a continuous four-cell-wide surfable river");
+    flood_ex(2, 20, FLOOD_WALK);
+    CHECK(!seen_cells[20 * map_w + 58], "G3 cannot be crossed on foot before bridge repair");
+    flood_ex(2, 20, FLOOD_SURF);
+    CHECK(!!seen_cells[20 * map_w + 58], "SURF crosses G3 to Railhead");
+    CHECK(edge_exactly(MAP_MISTFEN, LINK_S, 24, 25) &&
+          edge_exactly(MAP_MISTFEN, LINK_N, 24, 25),
+          "Mistfen preserves Lumen and Moonveil x24-25 openings");
+    map_load(MAP_MISTFEN);
+    flood(24, 58);
+    CHECK(!seen_cells[1 * map_w + 24], "G6 fog wall blocks the northern road until E5 patching");
+    CHECK(WILD_ZONES[ZONE_MISTFEN].slots[0].min_level == 37 &&
+          WILD_ZONES[ZONE_CROSSING].slots[0].min_level == 24 &&
+          WILD_ZONES[ZONE_CROSSING_WATER].slots[0].min_level == 25,
+          "new routes use Act IV and Act VII level bands");
+    CHECK((MAPS[MAP_PILGRIM_REST].flags & MF_HEAL) &&
+          (MAPS[MAP_RAILHEAD_BUNK].flags & MF_HEAL),
+          "both new mid-route stops heal the party");
 
     if (failures == 0) {
         printf("all far checks passed\n");

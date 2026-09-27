@@ -267,3 +267,32 @@ static void scr_poet(int npc)
     give_item(ITEM_MOONCAKE, 3);
     give_item(ITEM_LURE_INCENSE, 2);
 }
+
+
+/* Railhead and Pilgrim Rest are safe mid-route stops, including the return trip. */
+static void scr_route_heal(int npc)
+{
+    (void)npc;
+    hearth_rest();
+    dlg_say("The hearth warms your kin. They're ready for the road again.");
+}
+static void scr_rail_tender(int npc) { scr_route_heal(npc); }
+static void scr_pilgrim_tender(int npc) { scr_route_heal(npc); }
+static void scr_rail_cook(int npc)
+{
+    (void)npc;
+    dlg_say("RAIL COOK: CHILI POT takes BRAVE CHILI and a pinch of the crossing's hot salt.");
+    shop_open_stock(CINDER_STOCK, (int)sizeof(CINDER_STOCK));
+}
+static void scr_far_greta(int npc)
+{
+    (void)npc;
+    if (!flag(FLAG_CREST_ANVIL)) {
+        dlg_say("GRETA: The spring flood took the Cinder bridge. SURF will get you here; rebuilding takes an Anvil warden.");
+        return;
+    }
+    /* The project state and offer function belong to plan 10. Until it lands,
+     * Greta gives the player the actionable location without pretending the
+     * bridge has already been rebuilt. */
+    dlg_say("GRETA: You have the ANVIL CREST! Bring ore to our town project board when the bridge works begin.");
+}

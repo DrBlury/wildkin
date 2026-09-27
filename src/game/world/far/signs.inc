@@ -9,3 +9,7 @@
     { MAP_DREAMSPIRE, 22, 39, "DREAMSPIRE, town of towers and long sleeps." },
     { MAP_DREAMSPIRE, 35, 9, "The DUST LIBRARY. Open at all hours. The books are always awake." },
     { MAP_DREAMSPIRE, 20, 8, "MIRROR HALL. Master: VESPER. DREAM kin. Mind which star you step on." },
+
+    { MAP_CINDER_CROSSING, 3, 18, "CINDER BRIDGE — OUT. SURF OR WAIT FOR REPAIR." },
+    { MAP_RAILHEAD, 3, 18, "RAILHEAD. Hearth in the bunk; foreman in the office." },
+    { MAP_MISTFEN, 21, 57, "MISTFEN. The WARD LANTERN parts Moonveil mist." },
