@@ -688,14 +688,14 @@ static const char *const FOOTHILLS_ROWS[] = {
     "P...........=========..................P", /* 48 */
     "p...........=========..................p", /* 49 */
     "P...........=========..................P", /* 50 */
-    "p...........=========..................p", /* 51 */
-    "P...........=========..................P", /* 52 */
-    "p...........=========..................p", /* 53 */
-    "PCCCCCCCCCC==CCCCCCCCCCCCCCCCCCCCCCCCCCC", /* 54 */
+    "p..........CC========..................p", /* 51 */
+    "P..........==C=======..................P", /* 52 */
+    "p..........C=========..................p", /* 53 */
+    "PCCCCCCCCCC===CCCCCCCCCCCCCCCCCCCCCCCCCC", /* 54 */
     "pCCCCCCCCCC==CCCCCCCCCCCCCCCCCCCCCCCCCCC", /* 55 */
-    "PCCCCCCCCCC==...CCCCCCCCCCCCCCCCCCCCCCCC", /* 56 */
-    "pCCCCCCCCCC==...CCCCCCCCCCCCCCCCCCCCCCCC", /* 57 */
-    "PCCCCCCCCCC==...CCCCCCCCCCCCCCCCCCCCCCCC", /* 58 */
+    "PCCCCCCCCCC==C..CCCCCCCCCCCCCCCCCCCCCCCC", /* 56 */
+    "pCCCCCCCCCCC=...CCCCCCCCCCCCCCCCCCCCCCCC", /* 57 */
+    "PCCCCCCCCCCC=...CCCCCCCCCCCCCCCCCCCCCCCC", /* 58 */
     "PCCCCCCCCCC==CCCCCCCCCCCCCCCCCCCCCCCCCCC", /* 59 */
 };
 static const char *const TIMBERLINE_ROWS[] = {

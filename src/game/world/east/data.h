@@ -325,6 +325,12 @@ static const MapPatch SPIRE_PATCHES[] = {
 /*  COPPERLINE ROAD                                                 */
 /* ================================================================ */
 
+/* The quarantine door stays sealed until the Accord recognizes Rime. */
+static const char *const ACCORD_SEAL_ROWS[] = { "P" };
+static const MapPatch COPPERLINE_GATE_PATCHES[] = {
+    { .flag = FLAG_RIME_CREST, .invert = 1, .x = 20, .y = 34, .w = 1, .h = 1,
+      .rows = ACCORD_SEAL_ROWS },
+};
 static const char *const COPPERLINE_ROWS[] = {
     "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP", /*  0 */
     "pppppppppppppppppppppppppppppppppppppppppppp", /*  1 */
@@ -431,6 +437,16 @@ static const WildSlot WILD_COPPERLINE[] = {
  */
 
 
+/* Both hub departures are closed from Lumen only; each destination remains
+ * reachable on its own approach after the matching story crest. */
+static const char *const LUMEN_FLOOD_SEAL[] = { "T", "T" };
+static const char *const LUMEN_FOG_SEAL[] = { "TT" };
+static const MapPatch LUMEN_GATE_PATCHES[] = {
+    { .flag = FLAG_TIDE_CREST, .invert = 1, .x = 55, .y = 20, .w = 1, .h = 2,
+      .rows = LUMEN_FLOOD_SEAL },
+    { .flag = FLAG_LANTERN_CREST, .invert = 1, .x = 24, .y = 0, .w = 2, .h = 1,
+      .rows = LUMEN_FOG_SEAL },
+};
 static const char *const LUMEN_ROWS[] = {
     "TTTTTT##################==#########TTTTTTTTTTTTTTTTTTTTT", /*  0 */
     "ttttttwwwwwwwwwwwwwwwwww==wwwwwwwwwttttttttttttttttttttt", /*  1 */

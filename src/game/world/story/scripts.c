@@ -48,7 +48,10 @@ static int story_hearth_talk(void)
 static void scr_story_road(int npc)
 {
     (void)npc;
-    dlg_say("Nobody leaves the valley while the sky grumbles. Keeper's orders. Answer DRAKORA at the Rise first.");
+    if (cur_map == MAP_LAKE && flag(FLAG_STORM_CALMED))
+        dlg_say("Fen boardwalk's missing planks need Lumen rivets. Return with the VOLT CREST.");
+    else
+        dlg_say("Nobody leaves the valley while the sky grumbles. Keeper's orders. Answer DRAKORA at the Rise first.");
 }
 
 static void scr_story_farewell(int npc)

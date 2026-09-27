@@ -970,15 +970,12 @@ static const MapObj RAILHEAD_OBJS[] = { OBJ(BOULDER, 32, 9, 0), OBJ(LADDER, 32, 
 static const MapObj MISTFEN_OBJS[] = { OBJ(BERRY, 40, 29, 2), OBJ(LADDER, 30, 40, 0) };
 static const MapObj RAILHEAD_SHAFT_OBJS[] = { OBJ(LEGEND, 10, 5, SP_FOUNDRAKE) };
 
-/* E5's planned MapPatch rows. When its MapDef ABI lands, attach these to
- * CINDER_CROSSING and MISTFEN in maps.inc; no shared engine files belong here. */
-#ifdef FAR_HAS_E5_PATCHES
+/* The bridge project restores a walkable deck across the river. */
 static const char *const CINDER_BRIDGE_REPAIRED[] = { "====", "====" };
-static const char *const MISTFEN_FOG_CLEARED[] = { "==", "==", "==" };
 static const MapPatch CINDER_CROSSING_PATCHES[] = {
-    { FLAG_PROJECT_CINDER_BRIDGE, 0, 6, 20, 4, 2, CINDER_BRIDGE_REPAIRED, 0 },
+    { .flag = FLAG_PROJECT_CINDER_BRIDGE, .x = 6, .y = 20, .w = 4, .h = 2,
+      .rows = CINDER_BRIDGE_REPAIRED },
 };
-#endif
 static const char *const MISTFEN_FOG_PASSAGE[] = { "==", "==", "==" };
 static const MapPatch MISTFEN_PATCHES[] = {
     { .flag = FLAG_LANTERN_CREST, .x = 24, .y = 52, .w = 2, .h = 3,

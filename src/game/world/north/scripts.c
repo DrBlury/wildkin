@@ -6,6 +6,20 @@
  * (Registered in script_ids.inc and script_table.inc.)
  */
 
+/* The drop behind the rockslide is a one-way return even if a pushed rock
+ * blocks the narrow south lane. It never provides a route into the north. */
+static void rockfall_return_answer(int choice)
+{
+    if (choice == 0) field_begin_warp(MAP_RISE, 11, 2, DIR_DOWN);
+}
+
+static void scr_rockfall_return(int npc)
+{
+    (void)npc;
+    dlg_ask("The ridge chute drops straight back to the Rise. Return home?",
+            YES_NO, 2, rockfall_return_answer);
+}
+
 /* ---------------- the Frost Hearth Hall ---------------- */
 
 static void frost_heal_answer(int c)

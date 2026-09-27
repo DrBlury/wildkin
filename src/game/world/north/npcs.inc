@@ -63,6 +63,8 @@
     /* Stormstep switchbacks and Timberline */
     PERSON(MAP_FOOTHILLS, 13, 58, GUIDE, LEFT, STILL, TALK, LSRC_STORMSTEP, "ROCKFALL GUIDE",
            "The thunderclap brought the ridge down. Only wardens with the ANVIL CREST can clear the boulders."),
+    PERSON(MAP_FOOTHILLS, 15, 52, GUIDE, LEFT, STILL, ROCKFALL_RETURN, NO_LORE,
+           "RIDGE GUIDE", 0),
     WARDEN(MAP_FOOTHILLS, 12, 47, WARDEN_A, UP, 2, TR_N_HIKER_1, SP_RAMBLET, "The first steps are the hardest."),
     WARDEN(MAP_FOOTHILLS, 9, 38, WARDEN_B, RIGHT, 3, TR_N_HIKER_2, NO_KIN, "Two paths meet at the basalt steps."),
     WARDEN(MAP_FOOTHILLS, 16, 39, GUIDE, UP, 2, TR_N_GUIDE, SP_FLYSQUIRL, "Mind the loose stone."),

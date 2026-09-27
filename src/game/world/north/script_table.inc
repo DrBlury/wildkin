@@ -12,3 +12,4 @@
     [SCR_TIMBER_SAWYER] = scr_timber_sawyer,
     [SCR_LOST_AXE] = scr_lost_axe,
     [SCR_STORM_GNAWLORD] = scr_storm_gnawlord,
+    [SCR_ROCKFALL_RETURN] = scr_rockfall_return,
