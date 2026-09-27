@@ -1,6 +1,22 @@
-# Paired route wardens: real doubles are not yet implemented
+# Paired route wardens: four-active battles
 
-**Status:** Blocked on a four-battler combat/renderer redesign. The current game still starts two *independent 1v1 bouts* when two wardens challenge the player; no route currently satisfies the §8 requirement for an actual double bout. Do not call a combined sequential trainer team, two back-to-back battles, or two trainer sprites alongside one active enemy a double bout. No gameplay files were changed by this handoff.
+**Current status (2026-09-27; replaces the historical blocker below):**
+Four-active combat and its distinct sprites, HP panels, target selection and
+shared victory persistence are implemented in `src/game/battle.c`,
+`battle_ui.c`, `anim.c`, and `script.c`. A real Oak/Ash production-ROM encounter
+was captured in `build/qa/oak-four-actors.png` using
+`python3 tools/tests/real_rom_battle_entry.py`; this capture is an ignored
+build artifact, regenerated from a disposable save. Host tests cover both
+pair initiation and saved outcome plus solo fallback. For aligned,
+compatible horizontal links the field also streams adjacent maps; other
+crossings deliberately fade. This is not evidence of a complete human run:
+remaining Act III playtime and human playtests are documented in
+[playtime.md](playtime.md). The following original handoff records the
+pre-implementation blocker and design constraints for historical context.
+
+## Historical pre-implementation handoff
+
+**Status at handoff:** Blocked on a four-battler combat/renderer redesign. The current game still starts two *independent 1v1 bouts* when two wardens challenge the player; no route currently satisfies the §8 requirement for an actual double bout. Do not call a combined sequential trainer team, two back-to-back battles, or two trainer sprites alongside one active enemy a double bout. No gameplay files were changed by this handoff.
 
 ## Evidence and scope
 

@@ -1,6 +1,23 @@
 # WILDKIN expansion: handoff
 
-> **Long-route checkpoint (2026-09-27; supersedes the interim notes below):**
+> **Current follow-up (2026-09-27; supersedes the long-route gap list below):**
+> Named route wardens now enter actual four-active 2v2 battles when both NPCs
+> and two healthy allied kin are available; a solo bout remains the fallback.
+> The Oak/Ash encounter was captured from the production ROM with four separate
+> kin and HP panels after a stack-overflow fix in the battle-intro wipe.
+> Bramblewood ↔ Brookmill Trail now streams aligned, compatible horizontal
+> borders without a fade. Incompatible palettes/tilesets, offset or elevated
+> borders still use the short safe fade; seamless crossing is not universal.
+> Regional weather and festival effects, direct A-to-examine FIELD NOTES,
+> animated tram/lift/punt scenes, the wagon arrival, and five authentic
+> route/event GIFs are integrated. The event animation is transient and does
+> not change save IDs. ROM-backed Act II currently reaches Lumen in 2,971
+> frames; full act timing, Act III victory, and human Acts II/III playtests are
+> still unverified. The 16–18-hour target must not be inferred from partial
+> scripted segments. See [doubles](handoff/double_bouts.md),
+> [playtime](handoff/playtime.md) and the [route media](../README.md).
+>
+> **Long-route checkpoint (2026-09-27; historical, superseded above):**
 > The engine save layout and v5→v7 migrations, seven-act gated route graph,
 > new hamlets and loop maps, daily events, cross-region projects/quests, Sorrel
 > and Stillwarden route bouts, FIELD NOTES quest page and town-map markers are
