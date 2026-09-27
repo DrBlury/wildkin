@@ -62,13 +62,13 @@
 enum { ANIM_MOVE, ANIM_STAT, ANIM_STATUS, ANIM_SHORT, ANIM_MISS, ANIM_TRAIT, ANIM_REACT, ANIM_LEGEND };
 
 static struct {
-    int active, mode, kind, move, side, t, dur, variant, flags;
+    int active, mode, kind, move, side, target, t, dur, variant, flags;
     int fx, fx2, count, type;
     int last_impact;          /* t of the last impact fired (not re-fired while frozen) */
     int impacted;
     /* per-frame outputs, reset every frame */
-    int mon_dx[2], mon_dy[2];
-    int hide[2];
+    int mon_dx[BATTLE_ACTORS], mon_dy[BATTLE_ACTORS];
+    int hide[BATTLE_ACTORS];
     int tint_side, tint_amount;
     u16 tint_color;
     int bg_amount;            /* 0..16 background tint wanted this frame */
@@ -76,7 +76,7 @@ static struct {
     int wobble;               /* BG0 per-line wobble amplitude (px) */
     int mosaic;               /* 0..15 */
     int afterimage;           /* draw the attacker's afterimages */
-    int scale_x[2], scale_y[2]; /* extra 8.8 scale from the kind (1 = none) */
+    int scale_x[BATTLE_ACTORS], scale_y[BATTLE_ACTORS]; /* extra 8.8 scale from the kind (1 = none) */
     int bright;               /* screen brightness this frame (-16..16) */
 } anim;
 
@@ -85,20 +85,57 @@ static struct {
     int hitstop;
     int shake;                /* amplitude, 1/16 px */
     int shake_v;              /* 1 = mostly vertical */
-    int flash[2];             /* white flash frames */
-    int sx[2], sy[2], vx[2], vy[2];   /* squash & stretch springs (8.8) */
-    int kb[2];                /* knockback, 1/16 px, decays */
+    int flash[BATTLE_ACTORS];             /* white flash frames */
+    int sx[BATTLE_ACTORS], sy[BATTLE_ACTORS], vx[BATTLE_ACTORS], vy[BATTLE_ACTORS];   /* squash & stretch springs (8.8) */
+    int kb[BATTLE_ACTORS];                /* knockback, 1/16 px, decays */
     int zoom;                 /* camera punch-in (8.8 above 256), decays */
     int bright;               /* screen flash frames (brightness +) */
     int bg_amount;            /* eased background tint 0..16 (x16 fixed) */
     u16 bg_color;
-    int trail_x[2][8], trail_y[2][8], trail_n;  /* afterimage history */
+    int trail_x[BATTLE_ACTORS][8], trail_y[BATTLE_ACTORS][8], trail_n;  /* afterimage history */
 } feel;
 
-static int side_cx(int side) { return side == SIDE_ENEMY ? ENEMY_X + 32 : ALLY_X + 32; }
-static int side_cy(int side) { return side == SIDE_ENEMY ? ENEMY_Y + 34 : ALLY_Y + 30; }
+static int side_cx(int side)
+{
+    if (battle.pair) {
+        static const u8 PAIR_CX[BATTLE_ACTORS] = { 35, 195, 89, 142 };
+        return PAIR_CX[side];
+    }
+    return side == SIDE_ENEMY ? ENEMY_X + 32 : ALLY_X + 32;
+}
+static int side_cy(int side)
+{
+    if (battle.pair) {
+        static const u8 PAIR_CY[BATTLE_ACTORS] = { 78, 58, 79, 63 };
+        return PAIR_CY[side];
+    }
+    return side == SIDE_ENEMY ? ENEMY_Y + 34 : ALLY_Y + 30;
+}
 /* ground line under a battler (for dust, cracks, geysers) */
-static int side_gy(int side) { return side == SIDE_ENEMY ? ENEMY_Y + 62 : ALLY_Y + 62; }
+static int side_gy(int side) { return side_cy(side) + ((side & 1) ? 28 : 32); }
+
+/* Reuse the established 3D camera, with independently placed pair actors. */
+static int pair_w3_side_x(int side)
+{
+    static const s8 PAIR_X[BATTLE_ACTORS] = { -37, 27, 17, -48 };
+    return w3_side_x(side & 1) + (battle.pair ? PAIR_X[side] : 0);
+}
+static int pair_w3_side_z(int side) { return w3_side_z(side & 1); }
+static int pair_w3_side_h(int side)
+{
+    static const s8 PAIR_H[BATTLE_ACTORS] = { 0, -22, -1, -27 };
+    return w3_side_h(side & 1) + (battle.pair ? PAIR_H[side] : 0);
+}
+static void pair_w3_path(int from, int to, int k, int arc, int *x, int *y, int *z)
+{
+    w3_path(from & 1, to & 1, k, arc, x, y, z);
+    if (battle.pair) {
+        *x += ((pair_w3_side_x(from) - w3_side_x(from & 1)) * (256 - k) +
+               (pair_w3_side_x(to) - w3_side_x(to & 1)) * k) / 256;
+        *y += ((pair_w3_side_h(from) - w3_side_h(from & 1)) * (256 - k) +
+               (pair_w3_side_h(to) - w3_side_h(to & 1)) * k) / 256;
+    }
+}
 
 /* Triangle-wave sine approximation: returns -64..64 for phase 0..255. */
 static int tri_sin(int phase)
@@ -441,7 +478,7 @@ static void fx3t(int x, int y, int z, int fx, int bank, int msx, int msy, int ro
     if (anim_nodraw) return;
     int px, py, s = w3_proj(x, y, z, &px, &py);
     int sc = w3_spr_scale(s);
-    int back = ref >= 0 && z > w3_side_z(ref) + 3;
+    int back = ref >= 0 && z > pair_w3_side_z(ref) + 3;
     if (sc > 500) sc = 500;                          /* the double-size box holds 2x */
     if (back) a3_back_begin();
     int was = fx_coarse;
@@ -459,7 +496,7 @@ static void fx3(int x, int y, int z, int fx, int bank, int mul, int rot, int ref
 /* Around a battler: (lx, ly, lz) from the spot it stands on. */
 static void fx3_at(int side, int lx, int ly, int lz, int fx, int bank, int mul, int rot)
 {
-    fx3(w3_side_x(side) + lx, ly, w3_side_z(side) + lz, fx, bank, mul, rot, side);
+    fx3(pair_w3_side_x(side) + lx, ly, pair_w3_side_z(side) + lz, fx, bank, mul, rot, side);
 }
 
 /* A 32x32 particle at a world point, facing the camera. */
@@ -468,7 +505,7 @@ static void big3(int x, int y, int z, int fxb, int bank, int mul, int rot, int r
     if (anim_nodraw) return;
     int px, py, s = w3_proj(x, y, z, &px, &py);
     int sc = (w3_spr_scale(s) * mul) >> 8;
-    int back = ref >= 0 && z > w3_side_z(ref) + 3;
+    int back = ref >= 0 && z > pair_w3_side_z(ref) + 3;
     if (back) a3_back_begin();
     big_draw(px, py, fxb, back ? bank_far(bank) : bank, sc, sc, rot, 0, 0);
     if (back) a3_back_end();
@@ -526,7 +563,7 @@ static void shadow3(int x, int z, int size, int h)
  * also turns each particle along the orbit. */
 static void orbit3(int side, int ly, int r, int tilt, int phase, int n, int fx, int fx_b, int mul, int spin)
 {
-    int cx = w3_side_x(side), cz = w3_side_z(side);
+    int cx = pair_w3_side_x(side), cz = pair_w3_side_z(side);
     for (int i = 0; i < n; i++) {
         int a = phase + i * 256 / n;
         int c = a3_cos(a), sn = a3_sin(a);
@@ -556,7 +593,7 @@ static void helix3(int side, int x, int z, int y0, int y1, int r, int taper, int
 static void burst3(int side, int lx, int ly, int lz, int n, int speed, int up, int fx, int bank, int life,
                    int grav, int flags)
 {
-    int x = w3_side_x(side) + lx, z = w3_side_z(side) + lz;
+    int x = pair_w3_side_x(side) + lx, z = pair_w3_side_z(side) + lz;
     for (int i = 0; i < n; i++) {
         int a = i * 256 / n + fx_rand(24);
         int e = fx_rand(128) - 64;                   /* elevation */
@@ -571,10 +608,10 @@ static void burst3(int side, int lx, int ly, int lz, int n, int speed, int up, i
 /* Sparks flying out of a point of impact (screen point on a battler). */
 static void spark_burst(int x, int y, int n, int speed, int fx, int bank)
 {
-    int side = x > 120 ? SIDE_ENEMY : SIDE_ALLY;
-    int s = side == SIDE_ENEMY ? 179 : 256;
+    int side = battle.pair && anim.active ? anim.target : x > 120 ? SIDE_ENEMY : SIDE_ALLY;
+    int s = (side & 1) ? 179 : 256;
     int lx = (x - side_cx(side)) * 256 / s;
-    int ly = w3_side_h(side) - (y - side_cy(side)) * 256 / s;
+    int ly = pair_w3_side_h(side) - (y - side_cy(side)) * 256 / s;
     burst3(side, lx, ly, -6, (n + 1) >> 1, speed, 12, fx, bank, 12, 3, P3_SHRINK);
 }
 
@@ -626,7 +663,7 @@ static void anim_impact_at(int side_hit, int strength, int x, int y)
     if (f & (HITF_CRIT | HITF_WEAK)) {
         feel.bright = f & HITF_CRIT ? 4 : 2;
         part_add(PK_BIG_GROW, x, y, 0, 0, FXB_RING, OBANK_FX_HIT, 12, 0);
-        p3_add(w3_side_x(side_hit), 0, w3_side_z(side_hit), 0, 0, 0, FXB_WAVE, OBANK_FX_HIT, 12, 0, 0,
+        p3_add(pair_w3_side_x(side_hit), 0, pair_w3_side_z(side_hit), 0, 0, 0, FXB_WAVE, OBANK_FX_HIT, 12, 0, 0,
                P3_FLAT | P3_BIG);
     }
     if (s >= 3 && feel.zoom < s * 4) feel.zoom = s * 4;   /* the camera flinches in */
@@ -642,7 +679,7 @@ static int impact_when(int t0, int strength, int x, int y)
 {
     if (anim.t != t0 || anim.last_impact == t0) return 0;
     anim.last_impact = t0;
-    anim_impact_at(!anim.side, strength, x, y);
+    anim_impact_at(anim.target, strength, x, y);
     return 1;
 }
 
@@ -667,7 +704,7 @@ static int move_strength(void)
 
 static void anim_reset_offsets(void)
 {
-    for (int s = 0; s < 2; s++) {
+    for (int s = 0; s < BATTLE_ACTORS; s++) {
         anim.mon_dx[s] = anim.mon_dy[s] = 0;
         anim.hide[s] = 0;
         anim.scale_x[s] = anim.scale_y[s] = 256;
@@ -767,6 +804,7 @@ static void anim_begin(int mode, int side)
     anim.active = 1;
     anim.mode = mode;
     anim.side = side;
+    anim.target = side ^ 1;
     anim.t = 0;
     anim.last_impact = -1;
     anim.impacted = 0;
@@ -776,10 +814,11 @@ static void anim_begin(int mode, int side)
 }
 
 /* flags: the HITF_* bits of the hit (low byte = hit index). */
-static void anim_start(int move, int side, int flags)
+static void anim_start_target(int move, int side, int target, int flags)
 {
     const Move *mv = &MOVES[move];
     anim_begin(ANIM_MOVE, side);
+    anim.target = target;
     battle.impacted = 0;
     anim.move = move;
     anim.kind = mv->anim;
@@ -789,7 +828,7 @@ static void anim_start(int move, int side, int flags)
     anim.count = mv->count ? mv->count : 1;
     anim.variant = flags & 0xFF;
     anim.flags = flags & ~0xFF;
-    anim.tint_side = !side;
+    anim.tint_side = target;
     anim.tint_color = mv->col1;
     build_fx_palette(OBANK_FX_A, mv->col1, mv->col2);
     build_fx_palette(OBANK_FX_B, mv->col2, mv->col1);
@@ -802,7 +841,8 @@ static void anim_start(int move, int side, int flags)
         sfx_play(SFX_MISS);
         return;
     }
-    if (!opt.battle_anims) {
+    /* Rune art uses actor-unaware 0/1 coordinates; keep pair hits attached to the selected kin. */
+    if (!opt.battle_anims || (battle.pair && anim.kind >= AK_RUNE_BOLT)) {
         anim.mode = ANIM_SHORT;
         anim.dur = 18;
         return;
@@ -810,6 +850,12 @@ static void anim_start(int move, int side, int flags)
     anim.dur = anim_duration(anim.kind, anim.count, anim.variant);
     /* the flavour sound once per move (not on every hit of a multi-hit) */
     if (anim.variant == 0) sfx_play(TYPE_SFX[mv->type]);
+}
+
+/* Preserve the direct 1v1 animation test API. */
+MAYBE_UNUSED static void anim_start(int move, int side, int flags)
+{
+    anim_start_target(move, side, side ^ 1, flags);
 }
 
 static void anim_start_stat(int side, int up)
@@ -852,7 +898,8 @@ static void anim_start_trait(int side)
 /* A hit that no animation showed (status damage, recoil, anims off). */
 static void anim_start_react(int side, int flags)
 {
-    anim_begin(ANIM_REACT, !side);
+    anim_begin(ANIM_REACT, side ^ 1);
+    anim.target = side;
     anim.flags = flags & ~0xFF;
     anim.dur = 14;
     build_fx_palette(OBANK_FX_HIT, RGB15(31, 30, 18), RGB15(31, 22, 6));
@@ -915,25 +962,25 @@ static void sweep3(int side, int st, int len, const s8 *p, int fx, int mul, int 
         int lz = p[2] + (((p[5] - p[2]) * k) >> 8);
         if (mir) lx = -lx;
         int m = g ? mul - g * 40 : mul;
-        fx3t(w3_side_x(side) + lx, w3_side_h(side) + ly, w3_side_z(side) + lz, fx, g ? OBANK_FX_B : OBANK_FX_A,
+        fx3t(pair_w3_side_x(side) + lx, pair_w3_side_h(side) + ly, pair_w3_side_z(side) + lz, fx, g ? OBANK_FX_B : OBANK_FX_A,
              mir ? -(m * 5 / 4) : m * 5 / 4, m, mir ? -(rot0 + ((turn * k) >> 8)) : rot0 + ((turn * k) >> 8), -1);
     }
 }
 
 static void anim_move_frame(void)
 {
-    int t = anim.t, side = anim.side, foe = !side;
+    int t = anim.t, side = anim.side, foe = anim.target;
     int sx = side_cx(side), sy = side_cy(side);
     int dx = side_cx(foe), dy = side_cy(foe);
-    int dir = side == SIDE_ALLY ? 1 : -1;
+    int dir = (side & 1) ? -1 : 1;
     int n = anim.count;
     int fx = anim.fx, fx2 = anim.fx2;
     int st = move_strength();
     int big = MOVES[anim.move].power >= 90;
     int tint_amt = TYPE_TINT_AMT[anim.type];
     /* the same two battlers in world space (anim3d.c) */
-    int ax = w3_side_x(side), az = w3_side_z(side), ah = w3_side_h(side);
-    int bx = w3_side_x(foe), bz = w3_side_z(foe), bh = w3_side_h(foe);
+    int ax = pair_w3_side_x(side), az = pair_w3_side_z(side), ah = pair_w3_side_h(side);
+    int bx = pair_w3_side_x(foe), bz = pair_w3_side_z(foe), bh = pair_w3_side_h(foe);
     int ux = bx - ax, uz = bz - az;                   /* attacker -> foe on the ground */
     anim.bg_color = TYPE_TINT[anim.type];
 
@@ -1021,7 +1068,7 @@ static void anim_move_frame(void)
             if (fx == FX_PEBBLE) jx *= 2, jy *= 2;
             if (pt < travel) {
                 int k = pt * 256 / travel, x, y, z;
-                w3_path(side, foe, k, arc, &x, &y, &z);
+                pair_w3_path(side, foe, k, arc, &x, &y, &z);
                 x += (jx * k) >> 8;
                 y -= (jy * k) >> 8;
                 z += ((jz - 8) * k) >> 8;
@@ -1031,7 +1078,7 @@ static void anim_move_frame(void)
                 if (fx == FX_LEAF_A) f = ((pt >> 2) & 1) ? FX_LEAF_B : FX_LEAF_A;
                 int px0, py0, px1, py1, x2, y2, z2;
                 w3_proj(x, y, z, &px0, &py0);
-                w3_path(side, foe, k + 16, arc, &x2, &y2, &z2);
+                pair_w3_path(side, foe, k + 16, arc, &x2, &y2, &z2);
                 w3_proj(x2, y2, z2, &px1, &py1);
                 int head = a3_atan2(py1 - py0, px1 - px0);   /* screen heading */
                 if (fx == FX_ORB) {
@@ -1089,7 +1136,7 @@ static void anim_move_frame(void)
             int pt = t - 8 - e;
             if (pt < 0 || pt >= 16) continue;
             int k = pt * 16, x, y, z;
-            w3_path(side, foe, k, 0, &x, &y, &z);
+            pair_w3_path(side, foe, k, 0, &x, &y, &z);
             int a = e * 40 + pt * 22, r = 3 + (k * 14 >> 8);
             int c = a3_cos(a), s = a3_sin(a);
             x += (c * r >> 8) * px >> 8;
@@ -1135,7 +1182,7 @@ static void anim_move_frame(void)
                 int k = i * 256 / segs;
                 if (k > len) break;
                 int x, y, z, px, py;
-                w3_path(side, foe, k, 0, &x, &y, &z);
+                pair_w3_path(side, foe, k, 0, &x, &y, &z);
                 int s = w3_proj(x, y, z, &px, &py);
                 fx_draw(px, py, fx, (i & 1) ? OBANK_FX_B : OBANK_FX_A, 288, ((s - 64) * 5 >> 2) + pulse, head, 0);
             }
@@ -1143,7 +1190,7 @@ static void anim_move_frame(void)
                 int k = ((t * 12 + i * 64) & 255);
                 if (k > len) continue;
                 int x, y, z, a = t * 20 + i * 64;
-                w3_path(side, foe, k, 0, &x, &y, &z);
+                pair_w3_path(side, foe, k, 0, &x, &y, &z);
                 fx3(x + (a3_cos(a) >> 5), y + (a3_sin(a) >> 5), z - (a3_cos(a) >> 5), FX_SPARKLE, OBANK_FX_HIT, 200,
                     0, -1);
             }
@@ -1270,7 +1317,7 @@ static void anim_move_frame(void)
         if (t < 14) {
             for (int i = 0; i < n; i++) {
                 int k = ease_out(t, 14), x, y, z;
-                w3_path(side, foe, k, 40 + i * 12, &x, &y, &z);
+                pair_w3_path(side, foe, k, 40 + i * 12, &x, &y, &z);
                 fx3(x + (i - n / 2) * 6, y, z, fx_frame(fx, fx2, t + i * 3), (i & 1) ? OBANK_FX_B : OBANK_FX_A, 256, 0,
                     -1);
             }
@@ -1368,7 +1415,7 @@ static void anim_move_frame(void)
             if (pt < 0) continue;
             if (pt < 24) {
                 int x, y, z;
-                w3_path(side, foe, pt * 256 / 24, 30 + i * 10, &x, &y, &z);
+                pair_w3_path(side, foe, pt * 256 / 24, 30 + i * 10, &x, &y, &z);
                 x += a3_sin(pt * 20 + i * 70) >> 5;
                 fx3(x, y, z, fx, (i & 1) ? OBANK_FX_B : OBANK_FX_A, 256, 0, -1);
             } else if (pt < 36) {                     /* they circle the foe's head */
@@ -1426,7 +1473,7 @@ static void anim_move_frame(void)
             int pt = t - 12 - i * 5;
             if (pt < 0 || pt >= 26) continue;
             int k = ease_in(pt, 26), x, y, z;
-            w3_path(foe, side, k, 30, &x, &y, &z);
+            pair_w3_path(foe, side, k, 30, &x, &y, &z);
             int a = pt * 16 + (i & 1) * 128, r = a3_sin(k / 2) >> 4;   /* bulges mid-way */
             x += a3_cos(a) * r >> 8;
             z += a3_cos(a) * r >> 9;
@@ -1519,7 +1566,7 @@ static void anim_move_frame(void)
             int ppx = sx, ppy = sy;
             for (int s = 1; s <= reach; s++) {
                 int x, y, z, px, py;
-                w3_path(side, foe, s * 256 / 10, 20, &x, &y, &z);
+                pair_w3_path(side, foe, s * 256 / 10, 20, &x, &y, &z);
                 y += (a3_sin(s * 30 + i * 128 + wt * 16) * (10 - s)) >> 8;
                 x += (a3_cos(s * 30 + wt * 16) * 6) >> 8;
                 int sc = w3_proj(x, y, z, &px, &py);
@@ -1817,7 +1864,7 @@ static void anim_move_frame(void)
             } else {                        /* SUNFLARE / BRIM BURST: a burst at the foe */
                 if (it < 8) {
                     int x, y, z;
-                    w3_path(side, foe, it * 32, 20, &x, &y, &z);
+                    pair_w3_path(side, foe, it * 32, 20, &x, &y, &z);
                     fx3(x, y, z, FX_BURST, OBANK_FX_A, 256 + it * 16, it * 16, -1);
                 } else if (it < 30) {
                     int g = it - 8;
@@ -1845,7 +1892,7 @@ static void anim_move_frame(void)
         int lf = fx == FX_TRINKET ? FX_TRINKET : FX_WISP;   /* CURSED CURIO: an unlucky trinket */
         int x, y, z;
         if (t < 30) {
-            w3_path(side, foe, t * 256 / 30, 30, &x, &y, &z);
+            pair_w3_path(side, foe, t * 256 / 30, 30, &x, &y, &z);
             y += 12 + (a3_sin(t * 16) >> 5);
         } else {
             int a = (t - 30) * 12 - 64;
@@ -1933,7 +1980,7 @@ static void anim_move_frame(void)
             int pt = t - 4 - i * 3;
             if (pt < 0 || pt >= 26) continue;
             int k = pt * 256 / 22, x, y, z;
-            w3_path(side, foe, k > 256 ? 256 : k, 0, &x, &y, &z);
+            pair_w3_path(side, foe, k > 256 ? 256 : k, 0, &x, &y, &z);
             int a = pt * 20 + i * 32;
             int r = 16 - (pt > 20 ? (pt - 20) * 3 : 0);
             int c = a3_cos(a) * r >> 8;
@@ -1969,7 +2016,7 @@ static void anim_move_frame(void)
             if (pt < 0) continue;
             if (pt < 16) {
                 int x, y, z;
-                w3_path(side, foe, pt * 16, 30, &x, &y, &z);
+                pair_w3_path(side, foe, pt * 16, 30, &x, &y, &z);
                 fx3(x, y, z, fx, OBANK_FX_A, 256, a3_atan2(dy - sy, dx - sx), -1);
             } else if (t < 52 && i == 0) {             /* the threads wind round and round it */
                 int top = 8 + ((t - 20) * 3 < 60 ? (t - 20) * 3 : 60);
@@ -2243,7 +2290,7 @@ static void anim_move_frame(void)
             int pt = t - 12 - i * 5;
             if (pt < 0 || pt >= 20) continue;
             int k = ease_in(pt, 20), x, y, z;
-            w3_path(foe, side, k, 20, &x, &y, &z);
+            pair_w3_path(foe, side, k, 20, &x, &y, &z);
             x += (((i * 23) % 30) - 15) * (256 - k) >> 8;
             z += (((i * 13) % 24) - 12) * (256 - k) >> 8;
             fx3t(x, y, z, fx2, OBANK_FX_B, tumble(pt * 20 + i * 40, 64), 256, pt * 20, -1);
@@ -2321,7 +2368,7 @@ static void anim_move_frame(void)
             int pt = t - 40 - i * 4;
             if (pt < 0 || pt >= 20) continue;
             int x, y, z;
-            w3_path(foe, side, ease_in(pt, 20), 40, &x, &y, &z);
+            pair_w3_path(foe, side, ease_in(pt, 20), 40, &x, &y, &z);
             int a = pt * 20 + i * 51;
             fx3(x + (a3_cos(a) >> 5), y + (a3_sin(a) >> 5), z, FX_SPARKLE, OBANK_FX_B, 256, 0, -1);
         }
@@ -2408,7 +2455,7 @@ static void anim_move_frame(void)
             anim.bg_amount = it < 36 ? 14 : 0;
             if (it < 6) {
                 int x, y, z;
-                w3_path(side, foe, it * 42, 20, &x, &y, &z);
+                pair_w3_path(side, foe, it * 42, 20, &x, &y, &z);
                 fx3(x, y, z, fx, OBANK_FX_A, 384, it * 20, -1);
             } else if (it < 36) {
                 int g = it - 6;
@@ -2502,7 +2549,7 @@ static void anim_move_frame(void)
             int jx = (seed * 11) % 21 - 10, jz = (seed * 7) % 17 - 8, jy = (seed * 5) % 13 - 6;
             if (pt < travel) {
                 int k = pt * 256 / travel, x, y, z;
-                w3_path(side, foe, k, 34 + (seed % 3) * 14, &x, &y, &z);
+                pair_w3_path(side, foe, k, 34 + (seed % 3) * 14, &x, &y, &z);
                 x += (jx * k) >> 8;
                 z += ((jz - 10) * k) >> 8;
                 y += (jy * k) >> 8;
@@ -2535,7 +2582,7 @@ static void anim_move_frame(void)
         int pt = t - t0;
         if (pt >= 0 && pt < travel) {
             int k = pt * 256 / travel, x, y, z;
-            w3_path(side, foe, k, 62, &x, &y, &z);
+            pair_w3_path(side, foe, k, 62, &x, &y, &z);
             int wob = a3_sin(pt * 28) >> 3;
             fx3t(x, y, z, fx, OBANK_FX_A, 300 + wob, 300 - wob, pt * 6, -1);
             if (pt & 1) p3_add(x, y, z, 0, 0, 0, fx2 == FX_SPLAT ? FX_GLOB : fx2, OBANK_FX_B, 6, 0, 0, P3_SHRINK);
@@ -2571,7 +2618,7 @@ static void anim_move_frame(void)
             if (pt < 0 || pt >= travel + 10) continue;
             int jy = (i & 1) ? 6 : -4, jl = (i * 5) % 11 - 5;
             int k = pt * 256 / travel, x, y, z;
-            w3_path(side, foe, k, 0, &x, &y, &z);
+            pair_w3_path(side, foe, k, 0, &x, &y, &z);
             x -= jl * uz / 169;
             z += jl * ux / 169;
             y += jy;
@@ -2600,7 +2647,7 @@ static void anim_move_frame(void)
             int pop = 30 + (i * 5) % 12;
             int x, y, z;
             if (pt < 22) {
-                w3_path(side, foe, ease_out(pt, 22), 20 + (i & 3) * 10, &x, &y, &z);
+                pair_w3_path(side, foe, ease_out(pt, 22), 20 + (i & 3) * 10, &x, &y, &z);
             } else {
                 x = bx, y = bh, z = bz;
             }
@@ -2701,7 +2748,7 @@ static void anim_move_frame(void)
             int side_k = (i & 1) ? -1 : 1;
             if (pt < travel) {
                 int k = pt * 256 / travel, x, y, z;
-                w3_path(side, foe, k, 10, &x, &y, &z);
+                pair_w3_path(side, foe, k, 10, &x, &y, &z);
                 int bow = a3_sin(k / 2) * 44 >> 8;           /* swings out sideways, then in */
                 x -= side_k * bow * uz / 169;
                 z += side_k * bow * ux / 169;
@@ -2710,7 +2757,7 @@ static void anim_move_frame(void)
                 fx3t(x, y, z, fx, OBANK_FX_A, 400, 240 + (a3_sin(pt * 12) >> 3), spin, -1);
                 if (pt > 1) {
                     int x2, y2, z2;
-                    w3_path(side, foe, k - 24 < 0 ? 0 : k - 24, 10, &x2, &y2, &z2);
+                    pair_w3_path(side, foe, k - 24 < 0 ? 0 : k - 24, 10, &x2, &y2, &z2);
                     fx3t(x2 - side_k * bow * uz / 169, y2, z2 + side_k * bow * ux / 169, fx, OBANK_FX_B, 320, 200,
                          spin - 28 * side_k, -1);
                 }
@@ -2769,7 +2816,7 @@ static void anim_move_frame(void)
          * drawn as thin tilted ellipses; then they collapse in a flash */
         int self = MOVES[anim.move].cat == CAT_STATUS && MOVES[anim.move].effect == EF_SELF_STAT;
         int tgt = self ? side : foe;
-        int cx = w3_side_x(tgt), cz = w3_side_z(tgt), ch = w3_side_h(tgt);
+        int cx = pair_w3_side_x(tgt), cz = pair_w3_side_z(tgt), ch = pair_w3_side_h(tgt);
         int r = t < 10 ? 10 + t * 2 : t < 46 ? 30 : 30 - (t - 46) * 2;
         if (r < 0) r = 0;
         int spin = t * 3;
@@ -2808,10 +2855,10 @@ static void anim_move_frame(void)
         anim.bg_amount = t < 60 ? (t < 10 ? t : 11) : 0;
         int x, y, z;
         if (t < 12) {
-            w3_path(side, foe, 0, 0, &x, &y, &z);
+            pair_w3_path(side, foe, 0, 0, &x, &y, &z);
             fx3(x + (ux >> 3), y + 10, z + (uz >> 3), fx, OBANK_FX_A, 96 + t * 16, t * 8, -1);
         } else if (t < 26) {
-            w3_path(side, foe, (t - 12) * 256 / 14, 40, &x, &y, &z);
+            pair_w3_path(side, foe, (t - 12) * 256 / 14, 40, &x, &y, &z);
             fx3(x, y + 10 - (t - 12) * 10 / 14, z, fx, OBANK_FX_A, 288, t * 8, -1);
         } else if (t < 50) {
             int shrink = t < 40 ? 320 : 320 - (t - 40) * 28;
@@ -2929,7 +2976,7 @@ static void anim_move_frame(void)
         int self = MOVES[anim.move].cat == CAT_STATUS;
         int cx, cz, tgt = self ? side : foe;
         if (self || t >= 22) {
-            cx = w3_side_x(tgt), cz = w3_side_z(tgt);
+            cx = pair_w3_side_x(tgt), cz = pair_w3_side_z(tgt);
         } else {
             int k = ease_in(t, 22);
             cx = ax + ((ux * k) >> 8), cz = az + ((uz * k) >> 8);
@@ -3015,7 +3062,7 @@ static void anim_move_frame(void)
 /* A short version for players who turned animations off. */
 static void anim_short_frame(void)
 {
-    int t = anim.t, side = anim.side, foe = !side;
+    int t = anim.t, side = anim.side, foe = anim.target;
     const Move *mv = &MOVES[anim.move];
     if (mv->cat == CAT_STATUS || (anim.flags & HITF_NODMG)) {
         int target = (mv->effect == EF_SELF_STAT || mv->effect == EF_HEAL) ? side : foe;
@@ -3024,14 +3071,14 @@ static void anim_short_frame(void)
         if (t == 2) sfx_play(TYPE_SFX[mv->type]);
         return;
     }
-    anim.mon_dx[side] = (side == SIDE_ALLY ? 1 : -1) * (t < 4 ? t * 2 : t < 8 ? 8 - (t - 4) * 2 : 0);
+    anim.mon_dx[side] = ((side & 1) ? -1 : 1) * (t < 4 ? t * 2 : t < 8 ? 8 - (t - 4) * 2 : 0);
     impact_when(3, move_strength(), side_cx(foe), side_cy(foe));
 }
 
 static void anim_miss_frame(void)
 {
-    int t = anim.t, side = anim.side, foe = !side;
-    int dir = side == SIDE_ALLY ? 1 : -1;
+    int t = anim.t, side = anim.side, foe = anim.target;
+    int dir = (side & 1) ? -1 : 1;
     anim.mon_dx[side] = dir * (t < 8 ? t * 3 : t < 16 ? 24 - (t - 8) * 3 : 0);
     /* the target sidesteps and hops back */
     anim.mon_dx[foe] = dir * (t < 6 ? t * 3 : t < 20 ? 18 : 18 - (t - 20) * 2);
@@ -3086,7 +3133,7 @@ static void anim_trait_frame(void)
 
 static void anim_react_frame(void)
 {
-    int foe = !anim.side;
+    int foe = anim.target;
     if (anim.t == 0 && anim.last_impact != 0) {
         anim.last_impact = 0;
         anim_impact_at(foe, 0, side_cx(foe), side_cy(foe));
@@ -3129,7 +3176,7 @@ static void anim_legend_frame(void)
 
 static void feel_update(void)
 {
-    for (int s = 0; s < 2; s++) {
+    for (int s = 0; s < BATTLE_ACTORS; s++) {
         if (feel.flash[s] > 0) feel.flash[s]--;
         /* squash & stretch spring back toward 256 */
         feel.vx[s] += (256 - feel.sx[s]) / 4;
@@ -3176,7 +3223,7 @@ static void parts_update(int frozen)
         P3 *p = &p3s[i];
         if (!p->life) continue;
         int x = p->x >> 4, y = p->y >> 4, z = p->z >> 4, age = p->max - p->life;
-        int ref = z > (w3_side_z(SIDE_ALLY) + w3_side_z(SIDE_ENEMY)) / 2 ? SIDE_ENEMY : SIDE_ALLY;
+        int ref = z > (pair_w3_side_z(SIDE_ALLY) + pair_w3_side_z(SIDE_ENEMY)) / 2 ? SIDE_ENEMY : SIDE_ALLY;
         int mul = (p->flags & P3_SHRINK) && p->life < 7 ? 64 + p->life * 28 : 256;
         if (p->flags & P3_FLAT) {
             ring3(x, y, z, 4 + age * 3, p->fx, p->bank, p->rot, 1);
@@ -3287,7 +3334,7 @@ static void anim_clear(void)
     anim.active = 0;
     anim_reset_offsets();
     parts_clear();
-    for (int s = 0; s < 2; s++) {
+    for (int s = 0; s < BATTLE_ACTORS; s++) {
         feel.flash[s] = 0;
         feel.sx[s] = feel.sy[s] = 256;
         feel.vx[s] = feel.vy[s] = 0;
