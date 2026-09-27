@@ -208,3 +208,69 @@ static void scr_alder_gran(int npc)
     }
     dlg_say("On the longest night, HOARFANG howls on the Crown, and the snow listens. So my granny said.");
 }
+
+/* Timberline's lodging and the axe carried into the mountain cave. */
+static void timber_rest_answer(int choice)
+{
+    if (choice == 0) {
+        hearth_rest();
+        travel.last_hearth = (u8)cur_map;
+        dlg_say("The fire and cocoa warmed your whole team.");
+        if (opt.autosave && save_write()) dlg_say("(Your progress was saved.)");
+    } else if (choice == 1) lore_reveal(LSRC_TIMBER_ASTRID, 0);
+}
+
+static void scr_timber_tender(int npc)
+{
+    (void)npc;
+    dlg_ask("ASTRID: Welcome to the lodge. Cocoa and a warm meal?", HEARTH_MENU, 3, timber_rest_answer);
+}
+
+static void scr_timber_sawyer(int npc)
+{
+    (void)npc;
+    dlg_say("The flume carries logs downhill, but there is no TIMBER stock for wardens yet.");
+    dlg_say("The town projects will open our lumber orders soon.");
+}
+
+static void scr_lost_axe(int npc)
+{
+    (void)npc;
+    int q = quest_get(QUEST_LOST_AXE);
+    if (!q) {
+        dlg_say("A GNAWLORD carried my axe to the cave off Stormstep's scree. Can you find it?");
+        quest_set(QUEST_LOST_AXE, 1);
+    } else if (q == 1 && flag(FLAG_TIMBER_AXE)) {
+        quest_set(QUEST_LOST_AXE, 255);
+        give_item(ITEM_HEAVY_LANTERN, 3);
+        dlg_say("My axe! Here, take three HEAVY LANTERNS for the dark road ahead.");
+    } else if (q == 1) dlg_say("The cave mouth is east of the Stormstep trail. Follow the scree.");
+    else dlg_say("Thanks again. The sawmill can work now.");
+}
+
+static void timber_gnawlord_end(int result)
+{
+    if (result == BR_WIN || result == BR_CAUGHT) {
+        flag_set(FLAG_TIMBER_AXE);
+        dlg_say("The GNAWLORD dropped the logger's axe. Bring it back to Timberline.");
+    } else dlg_say("The GNAWLORD still guards the axe. Come back after resting.");
+}
+
+static void scr_storm_gnawlord(int npc)
+{
+    (void)npc;
+    if (flag(FLAG_TIMBER_AXE)) {
+        dlg_say("The GNAWLORD has gone deeper into the cave.");
+        return;
+    }
+    if (party_first_healthy() < 0) {
+        dlg_say("Rest your kin before challenging the GNAWLORD.");
+        return;
+    }
+    Monster m = monster_make(SP_GNAWLORD, 32);
+    m.met_map = MAP_STORM_CAVE;
+    set_battle_scene(SC_CAVE);
+    battle_end_hook = timber_gnawlord_end;
+    battle_start_wild(m);
+    battle.no_run = 1;
+}

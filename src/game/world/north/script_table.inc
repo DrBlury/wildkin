@@ -8,3 +8,7 @@
     [SCR_GROTTO_SCHOLAR] = scr_grotto_scholar,
     [SCR_SPRING_KEEPER] = scr_spring_keeper,
     [SCR_ALDER_GRAN] = scr_alder_gran,
+    [SCR_TIMBER_TENDER] = scr_timber_tender,
+    [SCR_TIMBER_SAWYER] = scr_timber_sawyer,
+    [SCR_LOST_AXE] = scr_lost_axe,
+    [SCR_STORM_GNAWLORD] = scr_storm_gnawlord,
