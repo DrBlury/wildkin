@@ -9,6 +9,14 @@ enum { PROJ_COPPERLINE_TRAM, PROJ_CINDER_BRIDGE, PROJ_TIMBERLINE_LIFT,
 static void saga_project_offer(int proj);
 static int saga_project_state(int proj);
 static void saga_note(int id, int solved);
+static int saga_note_bit(int id, int offset);
+static int saga_note_ready(int ability);
+static int saga_note_map(int id);
+static int saga_note_x(int id);
+static int saga_note_y(int id);
+static int saga_note_ability(int id);
+static void saga_notes_sync(void);
+enum { SAGA_LIGHT, SAGA_SURF, SAGA_STRENGTH, SAGA_FLY, SAGA_WARD, SAGA_TELEPORT };
 enum {
 #define SAGA_NOTE(ID, MAP, X, Y, ABILITY, SOLVED) NOTE_##ID,
 #include "notes.inc"

@@ -1734,6 +1734,17 @@ static void wm_update(void)
 }
 
 static int quest_marker_map(int q);
+/* A recorded, unfinished note becomes a small map marker only after the
+ * required crest is owned. Several notes may share a town-map spot. */
+static int wm_note_marker(int spot)
+{
+    if (spot < 0 || spot >= WM_COUNT) return 0;
+    for (int i = 0; i < NOTE_COUNT; i++)
+        if (saga_note_bit(i, 0) && !saga_note_bit(i, 3) &&
+            saga_note_ready(saga_note_ability(i)) && map_spot(saga_note_map(i)) == spot)
+            return 1;
+    return 0;
+}
 static void wm_draw(void)
 {
     static u8 seen[WM_COUNT];
@@ -1749,6 +1760,7 @@ static void wm_draw(void)
         spr_push(fly_map_x(wm.pt[wm.cur]) - 8, fly_map_y(wm.pt[wm.cur]) - 8, OT_TX(TX_CURSOR0 + ((wm.t >> 4) & 1)), SQ16, OBANK_TFX, 0, 0);
     }
     for (int q = 1; q < QUEST_COUNT; q++) {
+        if (q == QUEST_FIELD_NOTES) continue; /* the page has its own spot markers */
         int map = quest_marker_map(q);
         int spot = map >= 0 && map < MAP_COUNT ? map_spot(map) : -1;
         if (spot >= 0 && spot < WM_COUNT)
@@ -1762,12 +1774,16 @@ static void wm_draw(void)
         else if (seen[s] || kind == 0) tile = TF_MARK_DIM;
         else continue;
         spr_push(WM_SPOTS[s][0] - 4, WM_SPOTS[s][1] - 4, OT_TF(tile), SQ8, OBANK_TFX, 1, 0);
+        if (wm_note_marker(s))
+            spr_push(WM_SPOTS[s][0] + 2, WM_SPOTS[s][1] - 10,
+                     OT_TF(TF_MARK_SKY), SQ8, OBANK_TFX, 0, 0);
     }
 }
 
 /* The town map (fly = 1: pick a destination). */
 static void worldmap_open(int fly)
 {
+    saga_notes_sync();
     dialog_clear();
     canvas_clear();
     travel_dark_off();
