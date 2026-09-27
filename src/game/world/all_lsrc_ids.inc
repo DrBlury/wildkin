@@ -13,4 +13,5 @@
 #include "ui/lsrc_ids.inc"
 #include "story/lsrc_ids.inc"
 #include "links/lsrc_ids.inc"
+#include "events/lsrc_ids.inc"
 #include "debug/lsrc_ids.inc"

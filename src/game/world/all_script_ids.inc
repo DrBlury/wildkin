@@ -13,4 +13,5 @@
 #include "ui/script_ids.inc"
 #include "story/script_ids.inc"
 #include "links/script_ids.inc"
+#include "events/script_ids.inc"
 #include "debug/script_ids.inc"

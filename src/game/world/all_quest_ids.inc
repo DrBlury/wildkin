@@ -13,4 +13,5 @@
 #include "ui/quest_ids.inc"
 #include "story/quest_ids.inc"
 #include "links/quest_ids.inc"
+#include "events/quest_ids.inc"
 #include "debug/quest_ids.inc"

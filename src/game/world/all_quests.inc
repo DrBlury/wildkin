@@ -13,4 +13,5 @@
 #include "ui/quests.inc"
 #include "story/quests.inc"
 #include "links/quests.inc"
+#include "events/quests.inc"
 #include "debug/quests.inc"

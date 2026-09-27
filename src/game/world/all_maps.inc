@@ -13,4 +13,5 @@
 #include "ui/maps.inc"
 #include "story/maps.inc"
 #include "links/maps.inc"
+#include "events/maps.inc"
 #include "debug/maps.inc"

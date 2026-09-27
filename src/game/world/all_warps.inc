@@ -13,4 +13,5 @@
 #include "ui/warps.inc"
 #include "story/warps.inc"
 #include "links/warps.inc"
+#include "events/warps.inc"
 #include "debug/warps.inc"

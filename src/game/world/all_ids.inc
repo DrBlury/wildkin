@@ -13,4 +13,5 @@
 #include "ui/ids.inc"
 #include "story/ids.inc"
 #include "links/ids.inc"
+#include "events/ids.inc"
 #include "debug/ids.inc"

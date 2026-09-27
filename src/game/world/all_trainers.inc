@@ -13,4 +13,5 @@
 #include "ui/trainers.inc"
 #include "story/trainers.inc"
 #include "links/trainers.inc"
+#include "events/trainers.inc"
 #include "debug/trainers.inc"

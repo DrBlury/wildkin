@@ -13,4 +13,5 @@
 #include "ui/satchels.inc"
 #include "story/satchels.inc"
 #include "links/satchels.inc"
+#include "events/satchels.inc"
 #include "debug/satchels.inc"

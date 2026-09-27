@@ -1,0 +1,1 @@
+/* Events own no trainers entries. */

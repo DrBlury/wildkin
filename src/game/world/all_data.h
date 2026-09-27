@@ -13,4 +13,5 @@
 #include "ui/data.h"
 #include "story/data.h"
 #include "links/data.h"
+#include "events/data.h"
 #include "debug/data.h"

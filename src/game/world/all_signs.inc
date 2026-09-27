@@ -13,4 +13,5 @@
 #include "ui/signs.inc"
 #include "story/signs.inc"
 #include "links/signs.inc"
+#include "events/signs.inc"
 #include "debug/signs.inc"

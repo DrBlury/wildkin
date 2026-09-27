@@ -13,4 +13,5 @@
 #include "ui/lore.inc"
 #include "story/lore.inc"
 #include "links/lore.inc"
+#include "events/lore.inc"
 #include "debug/lore.inc"

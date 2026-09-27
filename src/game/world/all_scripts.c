@@ -13,4 +13,5 @@
 #include "ui/scripts.c"
 #include "story/scripts.c"
 #include "links/scripts.c"
+#include "events/scripts.c"
 #include "debug/scripts.c"

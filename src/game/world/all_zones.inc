@@ -13,4 +13,5 @@
 #include "ui/zones.inc"
 #include "story/zones.inc"
 #include "links/zones.inc"
+#include "events/zones.inc"
 #include "debug/zones.inc"
