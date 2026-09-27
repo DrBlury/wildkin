@@ -22,6 +22,8 @@ enum { KEY_A = 1u, KEY_RIGHT = 1u << 4,
        KEY_LEFT = 1u << 5, KEY_UP = 1u << 6, KEY_DOWN = 1u << 7 };
 static int rd8(unsigned a) { return core->busRead8(core, a); }
 static unsigned long frames;
+static int title_from_mode = -1, title_from_map = -1, title_from_x = -1, title_from_y = -1;
+static int saw_battle, last_battle_state = -1, last_battle_result = -1, last_battle_pair = -1;
 #define FRAMES_PER_MINUTE (59.7275 * 60.0)
 static void quiet(struct mLogger *l, int c, enum mLogLevel level, const char *fmt, va_list v)
 { (void)l; (void)c; (void)level; (void)fmt; (void)v; }
@@ -35,7 +37,31 @@ static int x(void) { return (short)rd16(player_addr); }
 static int y(void) { return (short)rd16(player_addr + 2); }
 static int mode(void) { return rd32(mode_addr); }
 static void frame(unsigned keys, int timed) {
-    core->setKeys(core, keys); core->runFrame(core); if (timed) frames++;
+    int before = timed ? mode() : -1;
+    int before_map = timed ? map() : -1, before_x = timed ? x() : -1, before_y = timed ? y() : -1;
+    if (timed && before == 8) {
+        saw_battle = 1;
+        last_battle_state = battle_state();
+        last_battle_result = rd32(battle_addr + layout.result);
+        last_battle_pair = rd32(battle_addr + layout.pair);
+    }
+    core->setKeys(core, keys); core->runFrame(core);
+    if (timed) {
+        frames++;
+        int after = mode();
+        if (after == 8) {
+            saw_battle = 1;
+            last_battle_state = battle_state();
+            last_battle_result = rd32(battle_addr + layout.result);
+            last_battle_pair = rd32(battle_addr + layout.pair);
+        }
+        if (before != 10 && after == 10 && title_from_mode < 0) {
+            title_from_mode = before;
+            title_from_map = before_map;
+            title_from_x = before_x;
+            title_from_y = before_y;
+        }
+    }
 }
 static void press(unsigned keys) {
     frame(keys, 1);
@@ -46,9 +72,11 @@ static void tap(unsigned keys) {
     for (int i = 0; i < 8; i++) frame(0, 0);
 }
 static void fail(int line, const char *message) {
-    fprintf(stderr, "BLOCKED line=%d reason=%s map=%d x=%d y=%d mode=%d dialog=%d phase=%d battle_state=%d wild_wins=%d wild_runs=%d wardens=%d dialogs=%d frames=%lu minutes=%.3f\n",
+    fprintf(stderr, "BLOCKED line=%d reason=%s map=%d x=%d y=%d mode=%d dialog=%d phase=%d battle_state=%d wild_wins=%d wild_runs=%d wardens=%d dialogs=%d frames=%lu minutes=%.3f title_from_mode=%d title_from_map=%d title_from_x=%d title_from_y=%d saw_battle=%d last_battle_state=%d last_battle_result=%d last_battle_pair=%d\n",
             line, message, map(), x(), y(), mode(), rd32(dialog_addr), rd32(phase_addr), mode() == 8 ? battle_state() : -1,
-            wild_wins, wild_runs, wardens, dialogs, frames, frames / FRAMES_PER_MINUTE);
+            wild_wins, wild_runs, wardens, dialogs, frames, frames / FRAMES_PER_MINUTE,
+            title_from_mode, title_from_map, title_from_x, title_from_y, saw_battle,
+            last_battle_state, last_battle_result, last_battle_pair);
     core->deinit(core); exit(2);
 }
 /* The ROM move table is read-only. Rank usable attacking moves by expected raw
@@ -115,10 +143,12 @@ static void drive_dialog(int line) {
 }
 static void step(int line, unsigned direction, int *last_kind) {
     int previous_mode = mode();
+    if (previous_mode == 10) fail(line, "returned to title during timed route; possible ROM reset");
     if (previous_mode == 8) drive_battle(line, last_kind);
     else if (previous_mode == 0 && rd32(dialog_addr)) drive_dialog(line);
     else if (previous_mode == 0) frame(direction, 1);
     else fail(line, "unhandled mode; manual recovery/healing required");
+    if (mode() == 10) fail(line, "returned to title during timed route; possible ROM reset");
     if (previous_mode == 8 && mode() != 8) {
         int result = rd32(battle_addr + layout.result);
         if (result == 2) fail(line, "party lost; no unmeasured recovery");

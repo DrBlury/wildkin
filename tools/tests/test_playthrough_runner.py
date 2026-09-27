@@ -54,6 +54,27 @@ class PlaythroughRunnerTest(unittest.TestCase):
         self.assertIn('EDGE line=11 map=', result.stdout)
         self.assertNotIn('ACT_COMPLETE', result.stdout)
 
+    def test_act3_reset_is_reported_without_counting_a_warden(self):
+        if not (ROOT / 'game.elf').exists():
+            self.skipTest('build local ROM first with make')
+        result = subprocess.run(['python3', str(ROOT / 'tools/playthrough/run.py'),
+                                 str(ROOT / 'tools/playthrough/act3.route')],
+                                capture_output=True, text=True)
+        if result.returncode == 0:
+            # A repaired ROM must still satisfy the independent acceptance test.
+            self.assertIn('BOUT_END kind=warden result=1', result.stdout)
+            self.assertIn('CHECKPOINTS_COMPLETE', result.stdout)
+            return
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertRegex(result.stdout, r'WAY line=6 map=44 x=22 y=19 frames=\d+')
+        self.assertIn('reason=returned to title during timed route; possible ROM reset', result.stderr)
+        self.assertIn('mode=10', result.stderr)
+        self.assertIn('title_from_mode=0', result.stderr)
+        self.assertIn('saw_battle=0', result.stderr)
+        self.assertIn('wardens=0', result.stderr)
+        self.assertNotIn('BOUT_END kind=warden result=1', result.stdout)
+        self.assertNotIn('CHECKPOINTS_COMPLETE', result.stdout)
+
     def test_brookmill_shore_and_hearth_door_are_observed(self):
         if not (ROOT / 'game.elf').exists():
             self.skipTest('build local ROM first with make')
