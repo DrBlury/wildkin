@@ -13,6 +13,7 @@
 
 enum { PCTX_FIELD, PCTX_BATTLE_SWITCH, PCTX_BATTLE_FORCED, PCTX_ITEM_FIELD, PCTX_ITEM_BATTLE };
 enum { BAGCTX_FIELD, BAGCTX_BATTLE };
+#define BST_TARGET (BST_END + 1)
 
 static void party_screen_open(int ctx, int item);
 static void bag_screen_open(int ctx);
@@ -73,14 +74,38 @@ static int line_buf;
 static u16 saved_light_bank[16];
 
 /* afterimage history of each battler (screen positions) */
-static s16 trail_x[2][8], trail_y[2][8];
+static s16 trail_x[BATTLE_ACTORS][8], trail_y[BATTLE_ACTORS][8];
+/* OBJ 858..1023 is outside the rune, portrait, monster and FX uploads. */
+#define OT_PAIR_FOE 864
+#define OT_PAIR_ALLY 928
+#define OBANK_PAIR_FOE 0
+#define OBANK_PAIR_ALLY 1
+static BattlePairAction pair_choices[2];
+static int pair_choice;
+static int pair_target;
+static int pair_actor(void) { return pair_choice * 2; }
+
+static void pair_next_choice(void)
+{
+    if (!pair_choice) {
+        pair_choice = 1;
+        battle.state = BST_ACTION;
+        battle.ui_dirty = 1;
+    } else if (battle_take_double_turn(pair_choices)) {
+        pair_choice = 0;
+    } else {
+        sfx_play(SFX_ERROR);
+        battle.state = BST_ACTION;
+        battle.ui_dirty = 1;
+    }
+}
 static int trail_head;
 
 /* ---------------- HUD ---------------- */
 
 static int hud_cx(int side) { return side == SIDE_ENEMY ? HUD_ENEMY_CX : HUD_ALLY_CX; }
 static int hud_cy(int side) { return side == SIDE_ENEMY ? HUD_ENEMY_CY : HUD_ALLY_CY; }
-static int hud_bank(int side) { return side == SIDE_ENEMY ? BANK_HUD_ENEMY : BANK_HUD_ALLY; }
+static int hud_bank(int side) { return side & 1 ? BANK_HUD_ENEMY : BANK_HUD_ALLY; }
 
 static void hud_load_palettes(void)
 {
@@ -115,6 +140,22 @@ static void hud_bar_colors(int side)
 
 static void hud_draw_bar(int side)
 {
+    if (battle.pair) {
+        int x = (side >= 2 ? 120 : 0) + 6;
+        int y = (side & 1) ? 27 : 103;
+        int max = battle.disp[side].max_hp, hp = battle.disp[side].hp;
+        int fill = max > 0 ? clampi(hp * 58 / max, 0, 58) : 0;
+        canvas_fill(x, y, 58, 4, 15);
+        if (fill) canvas_fill(x, y, fill, 4, hp * 4 > max ? 8 : hp * 2 > max ? 10 : 12);
+        char buf[20];
+        buf[0] = 0;
+        str_put_int(buf, hp);
+        str_put(buf, "/");
+        str_put_int(buf, max);
+        canvas_fill(x + 60, y - 3, 54, 9, 1);
+        small_text_draw(x + 60, y - 3, buf);
+        return;
+    }
     int px = hud_cx(side) * 8, py = hud_cy(side) * 8;
     int x = px + (side == SIDE_ENEMY ? HUD_ENEMY_BAR_X : HUD_ALLY_BAR_X);
     int y = py + (side == SIDE_ENEMY ? HUD_ENEMY_BAR_Y : HUD_ALLY_BAR_Y);
@@ -155,6 +196,23 @@ static int hud_shown(int side)
 
 static void hud_draw(int side)
 {
+    if (battle.pair) {
+        int cx = side >= 2 ? 15 : 0;
+        int cy = (side & 1) ? 0 : 11;
+        int rows = (side & 1) ? 4 : 3;
+        canvas_clear_cells(cx, cy, 15, rows);
+        canvas_set_banks(cx, cy, 15, rows, hud_bank(side));
+        if (!battle.disp[side].visible) return;
+        canvas_window(cx, cy, 15, rows, WIN_BATTLE);
+        char level[12];
+        str_copy(level, "Lv");
+        str_put_int(level, battle.disp[side].level);
+        text_draw_fit(cx * 8 + 5, cy * 8 + 3, battle.disp[side].name, 83);
+        small_text_draw(cx * 8 + 91, cy * 8 + 5, level);
+        if (battle.disp[side].status) draw_status_badge(cx + 12, cy + 2, battle.disp[side].status);
+        hud_draw_bar(side);
+        return;
+    }
     int cx = hud_cx(side), cy = hud_cy(side);
     int th = side == SIDE_ENEMY ? 4 : 5;
     canvas_clear_cells(cx, cy, 13, th);
@@ -206,6 +264,14 @@ static void disp_sync(int side)
 static void battle_load_mon_gfx(int side)
 {
     Monster *m = side_mon(side);
+    if (side >= 2) {
+        int tile = side == SIDE_ENEMY_2 ? OT_PAIR_FOE : OT_PAIR_ALLY;
+        int bank = side == SIDE_ENEMY_2 ? OBANK_PAIR_FOE : OBANK_PAIR_ALLY;
+        copy32(VRAM_OBJ_TILES + tile * 8,
+               side == SIDE_ENEMY_2 ? mon_front_gfx[m->species] : mon_back_gfx[m->species], 64 * 8);
+        load_mon_pal(bank, m->species, (m->flags & MF_LUSTROUS) != 0);
+        return;
+    }
     if (side == SIDE_ALLY) load_monster_gfx_ex(1, m->species, 1, (m->flags & MF_LUSTROUS) != 0);
     else load_monster_gfx_ex(0, m->species, 0, (m->flags & MF_LUSTROUS) != 0);
 }
@@ -223,6 +289,7 @@ static const char *const ACTION_LABELS[4] = { "MOVES", "PACK", "KIN", "FLEE" };
 /* Row 13 on the right: the move-effect tab, or the top of the command page. */
 static void clear_tab(void)
 {
+    if (battle.pair) return; /* row 13 belongs to the second ally HUD */
     canvas_clear_cells(CMD_CX, 13, CANVAS_COLS - CMD_CX, 1);
 }
 
@@ -231,12 +298,13 @@ static void draw_action_box(void)
     char buf[48];
     clear_tab();
     canvas_window(0, 14, CMD_CX, 6, WIN_BATTLE);
-    str_copy(buf, kin_name(side_mon(SIDE_ALLY)));
-    str_put(buf, " awaits\nyour call.");
+    str_copy(buf, kin_name(side_mon(battle.pair ? pair_choice * 2 : SIDE_ALLY)));
+    str_put(buf, battle.pair ? " chooses\na move." : " awaits\nyour call.");
     text_draw_col(16, 120, buf, INK_DARK, INK_SHADOW);
-    canvas_window(CMD_CX, CMD_CY, CANVAS_COLS - CMD_CX, 20 - CMD_CY, WIN_MENU);
+    int command_row = battle.pair ? 14 : CMD_CY;
+    canvas_window(CMD_CX, command_row, CANVAS_COLS - CMD_CX, 20 - command_row, WIN_MENU);
     for (int i = 0; i < 4; i++) {
-        int x = CMD_CX * 8 + 16, y = CMD_Y0 + i * CMD_PITCH;
+        int x = CMD_CX * 8 + 16, y = battle.pair ? 114 + i * 10 : CMD_Y0 + i * CMD_PITCH;
         if (i == battle.cursor) {
             canvas_glow(CMD_CX * 8 + 3, y, (CANVAS_COLS - CMD_CX) * 8 - 6, CMD_PITCH);
             text_draw(x - 9, y, "{");
@@ -260,6 +328,7 @@ static void draw_action_box(void)
 /* Which effectiveness tab a move shows against the current foe (-1 none). */
 static int move_tab(int move)
 {
+    if (battle.pair) return -1; /* the chosen foe is selected on the following screen */
     const Move *mv = &MOVES[move];
     int eff = type_effectiveness(mv->type, side_mon(SIDE_ENEMY)->species);
     if (mv->cat == CAT_STATUS) {
@@ -275,7 +344,7 @@ static int move_tab(int move)
 
 static void draw_move_box(void)
 {
-    Monster *m = side_mon(SIDE_ALLY);
+    Monster *m = side_mon(battle.pair ? pair_choice * 2 : SIDE_ALLY);
     canvas_window(0, 14, 22, 6, WIN_STD);
     canvas_window(22, 14, 8, 6, WIN_STD);
     for (int i = 0; i < MAX_MOVES; i++) {
@@ -305,6 +374,11 @@ static void battle_redraw_ui(void)
 {
     if (battle.state == BST_ACTION) draw_action_box();
     else if (battle.state == BST_MOVES) draw_move_box();
+    else if (battle.pair && battle.state == BST_TARGET) {
+        canvas_window(0, 14, CANVAS_COLS, 6, WIN_BATTLE);
+        text_draw(12, 120, "Choose a foe: LEFT / RIGHT");
+        text_draw(12, 136, pair_target == SIDE_ENEMY ? "{ First warden" : "{ Second warden");
+    }
 }
 
 /* ---------------- lantern throw ---------------- */
@@ -474,7 +548,7 @@ static int disp_foe_idx;   /* the warden kin the screen shows (set as it is sent
 
 static void team_row_draw(void)
 {
-    if (battle.kind != BK_TRAINER || battle.team_count < 1) return;
+    if (battle.pair || battle.kind != BK_TRAINER || battle.team_count < 1) return;
     if (!battle.disp[SIDE_ENEMY].visible && battle.state != BST_EVENTS) return;
     int x0 = HUD_ENEMY_CX * 8 + 6, y = HUD_ENEMY_CY * 8 + 33;
     for (int i = 0; i < battle.team_count; i++) {
@@ -506,7 +580,8 @@ static void xp_level_up(int slot, int remaining)
     str_put(msg, " reached Lv. ");
     str_put_int(msg, m->level);
     str_put(msg, "!");
-    if (slot == battle.ally) bev_insert_next(EV_SYNC, SIDE_ALLY, 0, 0, off++);
+    if (slot == battle.ally || (battle.pair && slot == battle.ally2))
+        bev_insert_next(EV_SYNC, slot == battle.ally ? SIDE_ALLY : SIDE_ALLY_2, 0, 0, off++);
     bev_insert_next(EV_SFX, 0, SFX_LEVEL_UP, 0, off++);
     BEvent *t = bev_insert_next(EV_TEXT, 0, MSGM_WAIT, 0, off++);
     str_copy(t->text, msg);
@@ -558,7 +633,7 @@ static int bev_run(BEvent *e)
             catch_name_begin(e);
             break;
         case EV_ANIM:
-            anim_start(e->a, side, e->b);
+            anim_start_target(e->a, side, e->target, e->b);
             break;
         case EV_HIT:
             if (battle.impacted == side + 1) {   /* the animation already landed it */
@@ -595,9 +670,11 @@ static int bev_run(BEvent *e)
         }
         case EV_SEND_OUT:
             if (side == SIDE_ALLY) battle.ally = e->a;
+            else if (side == SIDE_ALLY_2) battle.ally2 = e->a;
+            else if (side == SIDE_ENEMY_2) battle.team_idx2 = e->a;
             else battle.team_idx = disp_foe_idx = e->a;
             battle_load_mon_gfx(side);
-            if (side == SIDE_ENEMY) dex_seen[battle.team[e->a].species] = 1;
+            if (side & 1) dex_seen[side_mon(side)->species] = 1;
             disp_sync(side);
             battle.disp[side].visible = 1;
             battle.disp[side].fade = 0;
@@ -663,7 +740,7 @@ static int bev_run(BEvent *e)
             break;
         }
         case EV_XP:
-            if (e->a != battle.ally) {
+            if (e->a != battle.ally && (!battle.pair || e->a != battle.ally2)) {
                 /* the rest of the team levels instantly */
                 Monster *m = &party[e->a];
                 u32 target = m->xp + (u32)e->b;
@@ -705,12 +782,12 @@ static int bev_run(BEvent *e)
         int v = battle.disp[side].hp_from + (e->a - battle.disp[side].hp_from) * k / 256;
         if (v != *hp) {
             *hp = v;
-            battle.hud_dirty |= 4 << side;
+            battle.hud_dirty |= 16 << side;
         }
         if (battle.disp[side].hp_t >= battle.disp[side].hp_dur) {
             *hp = e->a;
             if (e->a > battle.disp[side].trail) battle.disp[side].trail = e->a;
-            battle.hud_dirty |= 4 << side;
+            battle.hud_dirty |= 16 << side;
             return 1;
         }
         return 0;
@@ -731,10 +808,10 @@ static int bev_run(BEvent *e)
     case EV_SEND_OUT: {
         if (e->b) return t >= 24;                       /* wild: already there */
         /* the lantern arcs in, opens with a burst of light, the kin pops out */
-        int from_x = side == SIDE_ALLY ? -8 : 248, from_y = side == SIDE_ALLY ? 120 : 20;
+        int from_x = !(side & 1) ? -8 : 248, from_y = !(side & 1) ? 120 : 20;
         /* thrown by a keeper/the player on screen: from the raised hand */
         static int hand_x, hand_y, from_hand;
-        if (t == 1) from_hand = portrait_hand(side, &hand_x, &hand_y);
+        if (t == 1) from_hand = side < 2 && portrait_hand(side, &hand_x, &hand_y);
         if (from_hand) {
             from_x = hand_x;
             from_y = hand_y;
@@ -815,14 +892,14 @@ static int bev_run(BEvent *e)
             int used = (int)(next - m->xp);
             m->xp = next;
             battle.disp_xp = m->xp;
-            battle.hud_dirty |= 1 << SIDE_ALLY;
+            battle.hud_dirty |= 1 << (battle.pair && e->a == battle.ally2 ? SIDE_ALLY_2 : SIDE_ALLY);
             xp_level_up(e->a, e->b - used);
             return 1;
         }
         m->xp += (u32)give;
         e->b = (s16)(e->b - give);
         battle.disp_xp = m->xp;
-        battle.hud_dirty |= 1 << SIDE_ALLY;
+        battle.hud_dirty |= 1 << (battle.pair && e->a == battle.ally2 ? SIDE_ALLY_2 : SIDE_ALLY);
         return e->b <= 0;
     }
     default:
@@ -909,6 +986,14 @@ static void battle_load_scene(void)
 static void battle_reset(int kind)
 {
     battle.kind = kind;
+    battle.pair = 0;
+    pair_choice = 0;
+    pair_choices[0] = pair_choices[1] = (BattlePairAction){ ACT_MOVE, -1, SIDE_ENEMY, 0 };
+    battle.ally2 = 0;
+    battle.team_count2 = battle.team_idx2 = 0;
+    battle.prize2 = 0;
+    battle.foe_title2[0] = 0;
+    battle.lose_line2 = 0;
     battle.ev_count = 0;
     battle.ev_started = 0;
     battle.result = BR_NONE;
@@ -919,7 +1004,7 @@ static void battle_reset(int kind)
     battle.team_idx = 0;
     battle.turn = 0;
     battle.lantern_visible = 0;
-    battle.hud_dirty = 3;
+    battle.hud_dirty = 15;
     battle.ui_dirty = 0;
     battle.impacted = 0;
     battle.scene = clampi(battle_next_scene, 0, BSCENE_COUNT - 1);
@@ -932,7 +1017,7 @@ static void battle_reset(int kind)
     disp_foe_idx = 0;
     battle_leveled = 0;
     for (int i = 0; i < 6; i++) battle.move_cursor_of[i] = 0;
-    for (int s = 0; s < 2; s++) {
+    for (int s = 0; s < BATTLE_ACTORS; s++) {
         battle.flinch[s] = 0;
         for (int i = 0; i < STAT_COUNT; i++) battle.stages[s][i] = 0;
         battle.disp[s].visible = 0;
@@ -959,6 +1044,31 @@ static void battle_reset(int kind)
 static void battle_queue_intro(void)
 {
     char msg[BEV_TEXT];
+    if (battle.pair) {
+        bsay_wait("Two wardens challenge your pair!");
+        for (int i = 0; i < 2; i++) {
+            int actor = SIDE_ENEMY + 2 * i;
+            bev_push(EV_SEND_OUT, actor, 0, 0);
+            str_copy(msg, i ? battle.foe_title2 : battle.foe_title);
+            str_put(msg, " sent out ");
+            str_put(msg, kin_name(side_mon(actor)));
+            str_put(msg, "!");
+            bsay(msg);
+        }
+        for (int i = 0; i < 2; i++) {
+            int actor = SIDE_ALLY + 2 * i;
+            bev_push(EV_SEND_OUT, actor, i ? battle.ally2 : battle.ally, 0);
+            str_copy(msg, "Out you come, ");
+            str_put(msg, kin_name(side_mon(actor)));
+            str_put(msg, "!");
+            bsay(msg);
+        }
+        for (int actor = 0; actor < BATTLE_ACTORS; actor++) {
+            battle.target = actor & 1 ? SIDE_ALLY : SIDE_ENEMY;
+            entry_traits(actor);
+        }
+        return;
+    }
     if (battle.kind == BK_WILD && battle.legend) {
         bev_push(EV_SEND_OUT, SIDE_ENEMY, 0, 1);
         bev_push(EV_LEGEND, SIDE_ENEMY, 0, 0);
@@ -1045,6 +1155,20 @@ static void battle_start_trainer_team(const TrainerTeam *t)
                    clampi(t->scene, 0, BSCENE_COUNT - 1);
     keeper_choose(t, battle.master);
     battle_cue(battle.master ? BCUE_START_MASTER : BCUE_START_WARDEN);
+}
+
+/* A pair starts only with two healthy allied kin; the solo path remains intact. */
+MAYBE_UNUSED static void battle_start_trainer_pair(const TrainerTeam *first, const TrainerTeam *second)
+{
+    battle_reset(BK_TRAINER);
+    if (!battle_pair_setup(first, second)) {
+        battle_start_trainer_team(first);
+        return;
+    }
+    battle.scene = first->scene == BSCENE_AREA ? clampi(battle_next_scene, 0, BSCENE_COUNT - 1) :
+                   clampi(first->scene, 0, BSCENE_COUNT - 1);
+    keeper_choose(first, 0);
+    battle_cue(BCUE_START_WARDEN);
 }
 
 /* A Hall Master: the warden bout with TT_MASTER set. */
@@ -1143,6 +1267,22 @@ static void battle_exit(void)
 
 static void battle_action_input(void)
 {
+    if (battle.pair) {
+        int actor = pair_actor();
+        if (!side_mon(actor)->hp) {
+            pair_choices[pair_choice] = (BattlePairAction){ ACT_MOVE, -1, SIDE_ENEMY };
+            pair_next_choice();
+            return;
+        }
+        int any_pp = 0;
+        for (int k = 0; k < MAX_MOVES; k++)
+            if (side_mon(actor)->moves[k] != MOVE_NONE && side_mon(actor)->pp[k]) any_pp = 1;
+        if (!any_pp && battle.cursor == 0 && key_hit(KEY_A)) {
+            pair_choices[pair_choice] = (BattlePairAction){ ACT_MOVE, -1, SIDE_ENEMY };
+            pair_next_choice();
+            return;
+        }
+    }
     int old = battle.cursor;
     /* one command per row: UP/DOWN walk the list and wrap around */
     if (key_hit(KEY_UP)) battle.cursor = (battle.cursor + 3) & 3;
@@ -1150,6 +1290,10 @@ static void battle_action_input(void)
     if (old != battle.cursor) {
         battle.ui_dirty = 1;
         sfx_play(SFX_CURSOR);
+    }
+    if (key_hit(KEY_L) && battle.pair) {
+        sfx_play(SFX_ERROR);
+        return;
     }
     if (key_hit(KEY_L)) {                     /* quick-throw the best lantern */
         int item = battle_best_lantern();
@@ -1171,8 +1315,9 @@ static void battle_action_input(void)
     sfx_play(SFX_CONFIRM);
     switch (battle.cursor) {
     case 0: {
-        Monster *m = side_mon(SIDE_ALLY);
-        int c = battle.move_cursor_of[battle.ally] & 3;
+        int actor = battle.pair ? pair_choice * 2 : SIDE_ALLY;
+        Monster *m = side_mon(actor);
+        int c = battle.move_cursor_of[battle.pair && pair_choice ? battle.ally2 : battle.ally] & 3;
         battle.move_cursor = m->moves[c] != MOVE_NONE ? c : 0;
         battle.state = BST_MOVES;
         battle.ui_dirty = 1;
@@ -1187,14 +1332,19 @@ static void battle_action_input(void)
         party_screen_open(PCTX_BATTLE_SWITCH, 0);
         break;
     case 3:
-        battle_try_run();
+        if (battle.pair) {
+            sfx_play(SFX_ERROR);
+            bsay_wait("You cannot flee a warden pair.");
+            battle.return_state = BST_ACTION;
+            battle_play();
+        } else battle_try_run();
         break;
     }
 }
 
 static void battle_moves_input(void)
 {
-    Monster *m = side_mon(SIDE_ALLY);
+    Monster *m = side_mon(battle.pair ? pair_choice * 2 : SIDE_ALLY);
     int old = battle.move_cursor, c = battle.move_cursor;
     if (key_hit(KEY_LEFT) && (c & 1)) c--;
     if (key_hit(KEY_RIGHT) && !(c & 1)) c++;
@@ -1212,15 +1362,26 @@ static void battle_moves_input(void)
         return;
     }
     if (key_hit(KEY_A)) {
+        if (battle.pair && !m->pp[battle.move_cursor]) { sfx_play(SFX_ERROR); return; }
         sfx_play(SFX_CONFIRM);
         clear_tab();
-        battle_player_move(battle.move_cursor);
+        if (battle.pair) {
+            battle.move_cursor_of[pair_choice ? battle.ally2 : battle.ally] = (u8)battle.move_cursor;
+            pair_choices[pair_choice] = (BattlePairAction){ ACT_MOVE, battle.move_cursor, SIDE_ENEMY };
+            pair_target = (battle_pair_live() & (1u << SIDE_ENEMY)) ? SIDE_ENEMY : SIDE_ENEMY_2;
+            battle.state = BST_TARGET;
+            battle.ui_dirty = 1;
+        } else battle_player_move(battle.move_cursor);
     }
 }
 
 /* Menus may have borrowed the kin sprite slots (e.g. a summary). */
 static void battle_reload_gfx(void)
 {
+    if (battle.pair) {
+        battle_load_mon_gfx(SIDE_ENEMY_2);
+        battle_load_mon_gfx(SIDE_ALLY_2);
+    }
     battle_load_mon_gfx(SIDE_ENEMY);
     battle_load_mon_gfx(SIDE_ALLY);
     copy32(VRAM_OBJ_TILES + OT_FX_BIG * 8, fx_big_gfx, FXB_COUNT * 16 * 8);
@@ -1238,7 +1399,20 @@ static void battle_party_result(int slot, int forced)
     game_mode = MODE_BATTLE;
     canvas_clear();
     battle_reload_gfx();
-    battle.hud_dirty = 3;
+    battle.hud_dirty = battle.pair ? 15 : 3;
+    if (battle.pair) {
+        if (slot < 0) { battle.state = BST_ACTION; battle.ui_dirty = 1; return; }
+        if (slot == battle.ally || slot == battle.ally2 || party[slot].hp == 0 ||
+            (pair_choice && pair_choices[0].kind == ACT_SWITCH && pair_choices[0].slot == slot)) {
+            sfx_play(SFX_ERROR);
+            battle.state = BST_ACTION;
+            battle.ui_dirty = 1;
+            return;
+        }
+        pair_choices[pair_choice] = (BattlePairAction){ ACT_SWITCH, slot, SIDE_ENEMY };
+        pair_next_choice();
+        return;
+    }
     if (slot < 0 || slot == battle.ally || party[slot].hp == 0) {
         battle.state = forced ? BST_FORCED : BST_ACTION;
         battle.ui_dirty = 1;
@@ -1255,10 +1429,24 @@ static void battle_item_result(int item, int target)
     game_mode = MODE_BATTLE;
     canvas_clear();
     battle_reload_gfx();
-    battle.hud_dirty = 3;
+    battle.hud_dirty = battle.pair ? 15 : 3;
     battle.state = BST_ACTION;
     battle.ui_dirty = 1;
     if (item < 0) return;
+    if (battle.pair) {
+        if (ITEMS[item].kind == IK_XSTAT) target = pair_choice ? battle.ally2 : battle.ally;
+        if (!battle_pair_item_usable(item, target) ||
+            (pair_choice && pair_choices[0].kind == ACT_ITEM && pair_choices[0].slot == item && bag[item] < 2)) {
+            sfx_play(SFX_ERROR);
+            bsay_wait("That item cannot be used for this choice.");
+            battle.return_state = BST_ACTION;
+            battle_play();
+            return;
+        }
+        pair_choices[pair_choice] = (BattlePairAction){ ACT_ITEM, item, SIDE_ENEMY, target };
+        pair_next_choice();
+        return;
+    }
     if (!battle_use_item(item, target)) {
         bsay_wait("It won't have any effect.");
         battle.return_state = BST_ACTION;
@@ -1340,6 +1528,17 @@ static void battle_update(void)
         break;
     case BST_MOVES:
         battle_moves_input();
+        break;
+    case BST_TARGET:
+        if (key_hit(KEY_LEFT) && (battle_pair_live() & (1u << SIDE_ENEMY)))
+            pair_target = SIDE_ENEMY, battle.ui_dirty = 1;
+        if (key_hit(KEY_RIGHT) && (battle_pair_live() & (1u << SIDE_ENEMY_2)))
+            pair_target = SIDE_ENEMY_2, battle.ui_dirty = 1;
+        if (key_hit(KEY_B)) battle.state = BST_MOVES, battle.ui_dirty = 1;
+        if (key_hit(KEY_A)) {
+            pair_choices[pair_choice].target = pair_target;
+            pair_next_choice();
+        }
         break;
     case BST_END:
         battle.timer++;
@@ -1439,8 +1638,10 @@ static void battle_draw_lines(void)
 /* Palettes of both kin: base (lustre) -> move tint -> white flash. */
 static void battle_draw_palettes(void)
 {
-    for (int side = 0; side < 2; side++) {
-        u16 *dst = obj_palette + (side == SIDE_ENEMY ? OBANK_MON_A : OBANK_MON_B) * 16;
+    for (int side = 0; side < (battle.pair ? BATTLE_ACTORS : 2); side++) {
+        int bank = side == SIDE_ENEMY ? OBANK_MON_A : side == SIDE_ALLY ? OBANK_MON_B :
+                   side == SIDE_ENEMY_2 ? OBANK_PAIR_FOE : OBANK_PAIR_ALLY;
+        u16 *dst = obj_palette + bank * 16;
         int tint = anim.active && anim.tint_side == side ? anim.tint_amount : 0;
         int flash = clampi(feel.flash[side] * 3, 0, 16);
         const u16 *src = battle.disp[side].pal;
@@ -1460,14 +1661,17 @@ static void battle_draw_palettes(void)
 static void battle_draw_battlers(void)
 {
     trail_head = (trail_head + 1) & 7;
-    for (int side = 0; side < 2; side++) {
+    for (int side = 0; side < (battle.pair ? BATTLE_ACTORS : 2); side++) {
         if (battle.disp[side].pop > 0 && ++battle.disp[side].pop > POP_LEN) battle.disp[side].pop = 0;
         if (!battle.disp[side].visible || battle.disp[side].inlantern || anim.hide[side]) continue;
-        int base_x = side == SIDE_ENEMY ? ENEMY_X : ALLY_X, base_y = side == SIDE_ENEMY ? ENEMY_Y : ALLY_Y;
+        int base_x = side_cx(side) - 32;
+        int base_y = side_cy(side) - (side & 1 ? 34 : 30);
+        if (battle.pair && !(side & 1)) base_y -= 29;
         int x = base_x + battle.disp[side].slide + anim.mon_dx[side] + feel.kb[side] / 16 + shake_x;
         int y = base_y + battle.disp[side].drop + anim.mon_dy[side] + shake_y;
         int sx = feel.sx[side] * anim.scale_x[side] / 256;
         int sy = feel.sy[side] * anim.scale_y[side] / 256;
+        if (battle.pair) sx = sx * 184 / 256, sy = sy * 184 / 256;
         /* idle breathing */
         if (battle.disp[side].fade == 0) sy = sy * (256 + soft_sin((int)frame_count * 3 + side * 90) / 16) / 256;
         if (battle.disp[side].pop > 0) {
@@ -1489,16 +1693,18 @@ static void battle_draw_battlers(void)
             sx = sx * (256 - f * 5) / 256;
             sy = sy * (256 - f * 7) / 256;
         }
-        a3_cam_battler(side, &x, &y, &sx, &sy);
+        a3_cam_battler(side & 1, &x, &y, &sx, &sy);
         if (absi(sx) < 4 || sy < 4) continue;   /* (a negative x scale: turned round) */
         /* keep the feet planted: scale about the bottom of the sprite */
-        int anchor = side == SIDE_ENEMY ? 26 : 32;
+        int anchor = (side & 1) ? 26 : 32;
         y += anchor * (256 - sy) / 256;
         int aff = oam_affine_scale_rot(sx, sy, 0);
         int flags = battle.disp[side].fade ? ATTR0_BLEND : 0;
         if (anim.mosaic) flags |= SPR_MOSAIC;
-        int tile = side == SIDE_ENEMY ? OT_MON_A : OT_MON_B;
-        int bank = side == SIDE_ENEMY ? OBANK_MON_A : OBANK_MON_B;
+        int tile = side == SIDE_ENEMY ? OT_MON_A : side == SIDE_ALLY ? OT_MON_B :
+                   side == SIDE_ENEMY_2 ? OT_PAIR_FOE : OT_PAIR_ALLY;
+        int bank = side == SIDE_ENEMY ? OBANK_MON_A : side == SIDE_ALLY ? OBANK_MON_B :
+                   side == SIDE_ENEMY_2 ? OBANK_PAIR_FOE : OBANK_PAIR_ALLY;
         trail_x[side][trail_head] = (s16)x;
         trail_y[side][trail_head] = (s16)y;
         spr_push_affine(x, y, tile, SQ64, bank, 1, flags, aff, 1);
@@ -1521,7 +1727,7 @@ static void battle_draw(void)
         battle.ui_dirty = 0;
     }
     /* HUD: full redraws when needed, bar-only while HP moves */
-    for (int side = 0; side < 2; side++) {
+    for (int side = 0; side < (battle.pair ? BATTLE_ACTORS : 2); side++) {
         int *tr = &battle.disp[side].trail, hp = battle.disp[side].hp;
         if (*tr > hp) {
             if (battle.disp[side].trail_hold > 0) {
@@ -1529,16 +1735,16 @@ static void battle_draw(void)
             } else {
                 *tr -= (*tr - hp) / 5 + 1;
                 if (*tr < hp) *tr = hp;
-                battle.hud_dirty |= 4 << side;
+                battle.hud_dirty |= 16 << side;
             }
         } else if (*tr < hp) {
             *tr = hp;
         }
         if (battle.disp[side].jolt > 0) battle.disp[side].jolt--;
     }
-    for (int side = 0; side < 2; side++) {
+    for (int side = 0; side < (battle.pair ? BATTLE_ACTORS : 2); side++) {
         if (battle.hud_dirty & (1 << side)) hud_draw(side);
-        else if ((battle.hud_dirty & (4 << side)) && hud_shown(side)) hud_draw_bar(side);
+        else if ((battle.hud_dirty & (16 << side)) && hud_shown(side)) hud_draw_bar(side);
     }
     battle.hud_dirty = 0;
 
@@ -1550,6 +1756,8 @@ static void battle_draw(void)
     }
 
     team_row_draw();
+    if (battle.pair && battle.state == BST_TARGET)
+        spr_push(side_cx(pair_target) - 4, side_cy(pair_target) - 27, OT_LANTERN_MINI, SQ8, OBANK_CAPSULE, 0, 0);
     banner_draw();
     a3_defer_back = 1;              /* particles behind the battlers go out after them */
     if (opt.battle_speed) {         /* fast bouts: a hidden step, then the shown one */
