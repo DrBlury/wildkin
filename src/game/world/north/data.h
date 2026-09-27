@@ -350,33 +350,45 @@ static const MapObj SKY_ISLE_OBJS[] = {
 };
 
 
-/* RIME HALL (15 x 20) */
+/* RIME HALL (19 x 27): two rinks of ice. The lower one is a plain slide
+ * maze; the upper one needs its pumice boulder pushed into place as a
+ * stopper (test_puzzles prints the solution length). */
 static const char *const RIME_HALL_ROWS[] = {
-    "WWWWWWWWWWWWWWW", /*  0 */
-    "wwwwwwwwwwwwwww", /*  1 */
-    "FFFFFFFFFFFFFFF", /*  2 */
-    "FFFFFFFFFFFFFFF", /*  3 */
-    "oooooooooooooio", /*  4 */
-    "ioiiiiiiiiiiiii", /*  5 */
-    "iiiiiiiiiioiiii", /*  6 */
-    "iiiiiiiiiiiiiii", /*  7 */
-    "iiiFFiiiiiiiiii", /*  8 */
-    "iiiiiiiiiiiiiio", /*  9 */
-    "iiiiiiiiioiiiii", /* 10 */
-    "iiiiiioiiiiiiii", /* 11 */
-    "oiiiiiiiiiiiiii", /* 12 */
-    "iiiiiiiiiiiFFii", /* 13 */
-    "iiiiiiiiiiiiiii", /* 14 */
-    "iiiiiiioiiiiiii", /* 15: the rock beside the way out */
-    "ooooooioooooooo", /* 16 */
-    "FFFFFFFFFFFFFFF", /* 17 */
-    "FFFFFFFFFFFFFFF", /* 18 */
-    "FFFFFFFDFFFFFFF", /* 19 */
+    "WWWWWWWWWWWWWWWWWWW", /*  0 */
+    "wwwwwwwwwwwwwwwwwww", /*  1 */
+    "FFFFFFFFFFFFFFFFFFF", /*  2 */
+    "FFFFFFFFFFFFFFFFFFF", /*  3: the dais */
+    "oooooooooFooooooooo", /*  4: the one way up */
+    "ooiiiiiiiiiiiiiiioo", /*  5: the upper rink: the pumice sits at 16,7 */
+    "oiiiiiiiiiiooiiiiio", /*  6 */
+    "oiiiiiiiiiiiiiiiiio", /*  7 */
+    "oiiiiiioiiiiioioiio", /*  8 */
+    "oiiiiiiiiiiiioiiiio", /*  9 */
+    "oiiiiiioiiioiiiiiio", /* 10 */
+    "oiiiiiiiiiiiiioiiio", /* 11 */
+    "ooFoooooooooooooFoo", /* 12: two ways down */
+    "FFFFFFFFFFFFFFFFFFF", /* 13: the landing */
+    "FFFFFFFFFFFFFFFFFFF", /* 14 */
+    "oooooooooooooooFooo", /* 15: the one way on */
+    "oioiiiiiiioioiiiioo", /* 16: the lower rink */
+    "oiiiooiiiiiiiiiiiio", /* 17 */
+    "oiiiiioiiiiiiiiiiio", /* 18 */
+    "oiiiiiiiiiiiiiiioio", /* 19 */
+    "oiiiiiiiiiioiiiiiio", /* 20 */
+    "oiiiiiiiiiiiiiiiiio", /* 21 */
+    "oiiiioiiiioiioiiiio", /* 22 */
+    "oooooooooFooooooooo", /* 23: the way in */
+    "FFFFFFFFFFFFFFFFFFF", /* 24: the entrance floor */
+    "FFFFFFFFFFFFFFFFFFF", /* 25 */
+    "FFFFFFFFFDFFFFFFFFF", /* 26 */
 };
 static const DecorPlace RIME_HALL_DECOR[] = {
-    DP(FROST_BANNER, 3, 0), DP(FROST_BANNER, 11, 0), DP(RIME_PILLAR, 1, 2), DP(RIME_PILLAR, 5, 2),
-    DP(RIME_PILLAR, 9, 2), DP(ICE_STATUE, 0, 17), DP(ICE_STATUE, 14, 17), DP(RIME_PILLAR, 3, 18),
-    DP(RIME_PILLAR, 11, 18),
+    DP(FROST_BANNER, 4, 0), DP(FROST_BANNER, 14, 0), DP(RIME_PILLAR, 1, 2), DP(RIME_PILLAR, 6, 2),
+    DP(RIME_PILLAR, 12, 2), DP(RIME_PILLAR, 17, 2), DP(ICE_STATUE, 0, 24), DP(ICE_STATUE, 18, 24),
+    DP(RIME_PILLAR, 4, 25), DP(RIME_PILLAR, 14, 25),
+};
+static const MapObj RIME_HALL_OBJS[] = {
+    OBJ(BOULDER, 16, 7, 1),   /* pumice */
 };
 
 /* HOT SPRING (13 x 10) */

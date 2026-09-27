@@ -61,14 +61,15 @@
 
     [LORE_RIME_HALL] = { LCH_HALLS, LSRC_RIME_GUIDE, "THE RIME HALL",
         "The Rime Hall of Frosthollow is the Hall of FROST kin. Its floor is a sheet of "
-        "polished ice scattered with frozen boulders. Once you push off, you slide until "
+        "polished ice scattered with frozen boulders, and one loose block of pumice light enough to push. "
+        "Once you push off, you slide until "
         "something stops you: a rock, a wall, a warden, or dry stone.\n\n"
         "Why is ice so slippery? The surface of ice is never quite solid. Even far below "
         "freezing, the top few layers of molecules are loose and wobbly, almost liquid, "
         "and a sliding boot also warms the ice by friction. A thin wet film forms and "
         "your feet ride on it.\n\n"
         "The trick of the Hall is to plan backwards: find where you want to stop, then "
-        "find the rock that will stop you there.\n\n"
+        "find the rock that will stop you there. If there is none, make one.\n\n"
         "REAL SCIENCE: the premelted surface layer of ice.",
         "The Hall is simple. You slide until you hit something.\f"
         "The hard part is choosing what you hit. Here is why the ice works that way." },

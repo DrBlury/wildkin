@@ -564,34 +564,51 @@ static const DecorPlace DREAMSPIRE_DECOR[] = {
 
 static const char *const MIRROR_HALL_ROWS[] = {
     "MMMMMMMMMMMMMMMMMMMMM", /*  0 */
-    "MmmmmmmmmmMmmmmmmmmmM", /*  1 */
-    "M+++++++*+M+++++++++M", /*  2 */
-    "M+*+++++++M+++++++++M", /*  3 */
-    "M+++++++++M+++++++++M", /*  4 */
-    "M+++++++++M+++++++++M", /*  5 */
-    "M+++++++*+M+*+++++*+M", /*  6 */
+    "MmmmmMmmmmMmmmmMmmmmM", /*  1 */
+    "M++++M+++*M++++M++++M", /*  2: the moon rooms: L1 | R1 (MASTER VESPER) */
+    "M++++M++++M++++M++++M", /*  3 */
+    "M*++++++++M+++++++++M", /*  4 */
+    "M++++M++++M++++M++++M", /*  5 */
+    "M++++M+++*M*+++M++++M", /*  6 */
     "MMMMMMMMMMMMMMMMMMMMM", /*  7 */
-    "MmmmmmmmmmMmmmmmmmmmM", /*  8 */
-    "M+++++++++M+++++++++M", /*  9 */
-    "M+*+++++*+M+++++++*+M", /* 10 */
+    "MmmmmMmmmmMmmmmMmmmmM", /*  8 */
+    "M++++M+++*M*+++M++++M", /*  9: L2 | R2 */
+    "M++++M++++M++++M++++M", /* 10 */
     "M+++++++++M+++++++++M", /* 11 */
-    "M+++++++++M+++++++++M", /* 12 */
-    "M+++++++++M+++++++++M", /* 13 */
-    "M+*+++++++M+*+++++++M", /* 14 */
-    "M++++X++++M+++++++++M", /* 15 */
+    "M++++M++++M++++M++++M", /* 12 */
+    "M*+++M++++M++++M+++*M", /* 13 */
+    "MMMMMMMMMMMMMMMMMMMMM", /* 14 */
+    "MmmmmMmmmmMmmmmMmmmmM", /* 15 */
+    "M*++*M+++*M*+++M++++M", /* 16: L3 (the door) | R3 */
+    "M++++M++++M++++M++++M", /* 17 */
+    "M+++++++++M+++++++++M", /* 18 */
+    "M++++M++++M++++M++++M", /* 19 */
+    "M++++M+++*M*+++M++++M", /* 20 */
+    "MMXMMMMMMMMMMMMMMMMMM", /* 21: the hall mat */
 };
 static const DecorPlace MIRROR_HALL_DECOR[] = {
     DP(STANDING_MIRROR, 3, 0), DP(STANDING_MIRROR, 7, 0), DP(STANDING_MIRROR, 13, 0),
     DP(STANDING_MIRROR, 17, 0), DP(STANDING_MIRROR, 4, 7), DP(STANDING_MIRROR, 16, 7),
-    DP(MOONSTONE, 1, 9), DP(MOONSTONE, 19, 15), DP(MOONSTONE, 1, 2), DP(MOONSTONE, 19, 2),
-    DP(MOON_LANTERN, 10, 7), DP(PETALS, 15, 4),
+    DP(MOONSTONE, 1, 9), DP(MOONSTONE, 19, 20), DP(MOONSTONE, 4, 2), DP(MOONSTONE, 19, 2),
+    DP(MOON_LANTERN, 10, 7), DP(PETALS, 7, 4),
 };
-/* Teleport pads pair by arg: A (bottom-left, the door) -1-> B -2-> C -4->
- * D (the Master). C's pad 3 drops you back in A; D's pad 5 is the way home. */
+/* Six moon rooms in mirrored pairs, each split in two by a mirror wall with
+ * one doorway. Switch k works the doorways of row k+1 as a mirror: it opens
+ * the west room's doorway and closes the east room's (barrier 0x80 = starts
+ * lowered). Star pads pair by arg across the rooms (test_puzzles prints the
+ * solution; docs/handoff/puzzles.md). */
 static const MapObj MIRROR_HALL_OBJS[] = {
-    OBJ(PAD, 8, 10, 1), OBJ(PAD, 12, 14, 1), OBJ(PAD, 18, 10, 2), OBJ(PAD, 2, 3, 2),
-    OBJ(PAD, 8, 6, 3), OBJ(PAD, 2, 14, 3), OBJ(PAD, 8, 2, 4), OBJ(PAD, 12, 6, 4),
-    OBJ(PAD, 18, 6, 5), OBJ(PAD, 2, 10, 5),
+    OBJ(BARRIER, 5, 4, 0), OBJ(BARRIER, 15, 4, 0x80),
+    OBJ(BARRIER, 5, 11, 1), OBJ(BARRIER, 15, 11, 0x81),
+    OBJ(BARRIER, 5, 18, 2), OBJ(BARRIER, 15, 18, 0x82),
+    OBJ(SWITCH, 8, 17, 0), OBJ(SWITCH, 17, 9, 0), OBJ(SWITCH, 18, 19, 1), OBJ(SWITCH, 2, 6, 2),
+    OBJ(PAD, 11, 6, 1), OBJ(PAD, 9, 2, 1),
+    OBJ(PAD, 9, 20, 2), OBJ(PAD, 19, 13, 2),
+    OBJ(PAD, 9, 16, 3), OBJ(PAD, 11, 9, 3),
+    OBJ(PAD, 11, 16, 4), OBJ(PAD, 9, 6, 4),
+    OBJ(PAD, 11, 20, 5), OBJ(PAD, 1, 13, 5),
+    OBJ(PAD, 1, 16, 6), OBJ(PAD, 9, 9, 6),
+    OBJ(PAD, 4, 16, 7), OBJ(PAD, 1, 4, 7),
 };
 
 /* ================================================================ */

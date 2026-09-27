@@ -606,11 +606,11 @@ Each Hall has a Master and 3-5 wardens. Beat the Master for a crest.
 | town | Hall | type | puzzle | crest |
 | --- | --- | --- | --- | --- |
 | LUMEN CITY | VOLT HALL | SPARK | Floor switches toggle crackling barriers; find the sequence. | VOLT (LIGHT) |
-| PORT BRINE | CURRENT HALL | TIDE | Water currents push you; choose which current to ride. | TIDE (SURF) |
+| PORT BRINE | CURRENT HALL | TIDE | Water currents push you; choose which current to ride and set the sluice gates (switches, and a bell switch the east chute rings). | TIDE (SURF) |
 | CINDERMOOR | ANVIL HALL | METAL/BLAZE | Push boulders onto plates to open the gates. | ANVIL (STRENGTH) |
-| FROSTHOLLOW | RIME HALL | FROST | Slide across ice until you hit a rock. | RIME (FLY) |
-| DUSKMERE | LANTERN CRYPT | HOLLOW | A dark maze; only a small light circle, with hidden walls. | LANTERN (opens the OSSUARY) |
-| DREAMSPIRE | MIRROR HALL | DREAM | Teleport pads that swap between mirrored rooms. | DREAM (TELEPORT) |
+| FROSTHOLLOW | RIME HALL | FROST | Slide across ice until you hit a rock: a slide maze, then a rink where you push the pumice boulder into place as your stopper. | RIME (FLY) |
+| DUSKMERE | LANTERN CRYPT | HOLLOW | A dark maze; only a small light circle, with hidden walls. Candle switches in the wings open the sanctum gates but seal the way back; star pads lead out. | LANTERN (opens the OSSUARY) |
+| DREAMSPIRE | MIRROR HALL | DREAM | Teleport pads that swap between mirrored rooms; each switch opens a doorway on one side of the mirror and shuts its twin. | DREAM (TELEPORT) |
 
 ---
 

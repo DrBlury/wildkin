@@ -115,7 +115,10 @@ static void test_crypt(void)
 
     int m = find_npc(MAP_LANTERN_CRYPT, "HALL MASTER MORWEN");
     map_load(MAP_LANTERN_CRYPT);
-    flood(11, 20);
+    CHECK(cell_attr(11, 22) & A_EXIT, "the LANTERN CRYPT door lands on its exit mat (11,22)");
+    flood(11, 22);
+    CHECK(m >= 0 && !reached_beside(NPCS[m].x, NPCS[m].y), "MORWEN's gates are shut until their switches are found");
+    flood_ex(11, 22, FLOOD_SOLVED);   /* gates open, pads followed (test_puzzles plays the real thing) */
     CHECK(m >= 0 && reached_beside(NPCS[m].x, NPCS[m].y), "MORWEN can be reached through the maze");
 
     /* without walking through a false wall, the sanctum stays out of reach */
@@ -123,7 +126,7 @@ static void test_crypt(void)
     memcpy(saved, seen_cells, sizeof(saved));
     for (int i = 0; i < map_w * map_h; i++)
         if (map_cells[i] == MT_CR_FAKE_BLOCK) map_cells[i] = MT_CR_BLOCK;
-    flood(11, 20);
+    flood_ex(11, 22, FLOOD_SOLVED);
     CHECK(!reached_beside(NPCS[m].x, NPCS[m].y), "only a false wall leads to the sanctum");
 }
 

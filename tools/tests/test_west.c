@@ -178,17 +178,36 @@ int main(void)
             if (cur_dir(x, y) >= 0) cur++;
     CHECK(cur >= 20, "the Hall has a current network");
     int master = npc_by_script(MAP_CURRENT_HALL, SCR_MAREN);
-    hall_flood(7, 17);
+    int w = -1;
+    for (int i = 0; i < WARP_COUNT; i++)
+        if (WARPS[i].dest == MAP_CURRENT_HALL) w = i;
+    CHECK(w >= 0 && (cell_attr(WARPS[w].dx, WARPS[w].dy) & A_EXIT), "the Port Brine door lands on the Hall's mat");
+    int dx = w >= 0 ? WARPS[w].dx : 8, dy = w >= 0 ? WARPS[w].dy : 21;
+    hall_flood(dx, dy);
     int solved = 0;
     for (int d = 0; d < 4; d++) {
         int x = NPCS[master].x + DIR_DX[d], y = NPCS[master].y + DIR_DY[d];
         if (x >= 0 && y >= 0 && hall_seen[y * map_w + x]) solved = 1;
     }
-    CHECK(solved, "riding the currents from the door reaches MASTER MAREN");
-    int nx, ny;
-    CHECK(hall_step(7, 14, DIR_UP, &nx, &ny) && nx == 9 && ny == 15, "the middle channel loops back to the start");
+    CHECK(!solved, "with every sluice as it starts, no current reaches MASTER MAREN");
+    /* the tides the solver's answer ends with (test_puzzles): A back down, B and C raised */
+    sw_on[0] = 0;
+    sw_on[1] = sw_on[2] = 1;
+    for (int i = 0; i < tobj_count; i++)
+        if (tobj[i].kind == OBJ_BARRIER) tobj[i].state = (u8)barrier_up(&tobj[i]);
+    hall_flood(dx, dy);
+    for (int d = 0; d < 4; d++) {
+        int x = NPCS[master].x + DIR_DX[d], y = NPCS[master].y + DIR_DY[d];
+        if (x >= 0 && y >= 0 && hall_seen[y * map_w + x]) solved = 1;
+    }
+    CHECK(solved, "with tide A down and tides B and C up, the currents carry you to MASTER MAREN");
+    map_load(MAP_CURRENT_HALL);
+    int bell = 0;
+    for (int i = 0; i < tobj_count; i++)
+        if (tobj[i].kind == OBJ_SWITCH && cur_dir(tobj[i].x, tobj[i].y) >= 0) bell++;
+    CHECK(bell == 1, "one switch (the tide bell) sits in a current: every ride over it rings it");
     int dais_direct = 0, way_back = 0;
-    for (int x = 3; x <= 11; x++) {
+    for (int x = 0; x < map_w; x++) {
         if (!(cell_attr(x, 4) & A_SOLID) && cur_dir(x, 4) != DIR_UP && cur_dir(x, 4) != DIR_DOWN) dais_direct = 1;
         if (cur_dir(x, 4) == DIR_DOWN) way_back = 1;
     }

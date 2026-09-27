@@ -149,10 +149,27 @@ static void test_rime_hall(void)
     for (int y = 0; y < map_h; y++)
         for (int x = 0; x < map_w; x++) ice += (cell_attr(x, y) & A_ICE) != 0;
     CHECK(ice > 100, "the Rime Hall floor is a sheet of ice");
-    slide_flood(WARPS[w].dx, WARPS[w].dy);
     int master = npc_on(MAP_RIME_HALL, SCR_RIME_MASTER);
+    int pumice = -1, rocks = 0;
+    for (int i = 0; i < tobj_count; i++)
+        if (tobj[i].kind == OBJ_BOULDER) {
+            pumice = i;
+            rocks++;
+        }
+    CHECK(rocks == 1 && tobj[pumice].arg == 1, "the Rime Hall has one pumice boulder (no STRENGTH in a Hall)");
+    slide_flood(WARPS[w].dx, WARPS[w].dy);
+    CHECK(master >= 0 && !slide_beside(NPCS[master].x, NPCS[master].y),
+          "with the pumice where it starts, MASTER SIGRUN can't be reached");
+    /* the solver's answer (test_puzzles): push the pumice to 10,5, then slide
+     * east along row 5 from the west wall and stop under the dais gap */
+    int bx = tobj[pumice].x, by = tobj[pumice].y;
+    tobj[pumice].x = 10;
+    tobj[pumice].y = 5;
+    grid_cell(bx, by);
+    grid_cell(10, 5);
+    slide_flood(WARPS[w].dx, WARPS[w].dy);
     CHECK(master >= 0 && slide_beside(NPCS[master].x, NPCS[master].y),
-          "sliding by the rules, the Master can be reached from the door");
+          "with the pumice pushed to 10,5, sliding by the rules reaches the Master");
     int wardens = 0, all = 1;
     for (int i = 0; i < NPC_COUNT; i++) {
         if (NPCS[i].map != MAP_RIME_HALL || NPCS[i].trainer == NO_TRAINER) continue;
@@ -160,16 +177,17 @@ static void test_rime_hall(void)
         if (!slide_beside(NPCS[i].x, NPCS[i].y)) all = 0;
     }
     CHECK(wardens >= 3 && wardens <= 5 && all, "the Hall's 3-5 wardens can all be reached on the ice");
-    /* no straight shot: from the entrance floor, one slide north never reaches the platform */
+    map_load(MAP_RIME_HALL);
+    /* no straight shot: from any floor below the dais, one slide north never reaches it */
     int straight = 0;
-    for (int x = 0; x < map_w; x++) {
-        int y = 17;
-        if (!cell_walkable(x, y - 1)) continue;
-        y--;
-        while ((cell_attr(x, y) & A_ICE) && cell_walkable(x, y - 1)) y--;
-        if (y <= 3) straight = 1;
-    }
-    CHECK(!straight, "the ice can't be crossed in one slide");
+    for (int y0 = 5; y0 < map_h; y0++)
+        for (int x = 0; x < map_w; x++) {
+            if ((cell_attr(x, y0) & A_ICE) || !cell_walkable(x, y0) || !cell_walkable(x, y0 - 1)) continue;
+            int y = y0 - 1;
+            while ((cell_attr(x, y) & A_ICE) && cell_walkable(x, y - 1)) y--;
+            if ((cell_attr(x, y0 - 1) & A_ICE) && y <= 4) straight = 1;
+        }
+    CHECK(!straight, "the ice can't be crossed to the dais in one slide");
 }
 
 static void test_caves(void)
@@ -313,7 +331,7 @@ static void test_scripts(void)
     CHECK(quest_done(QUEST_STAR_CHART) && bag[ITEM_ASTRAL_SHARD] == astral + 1, "THE STAR CHART pays an ASTRAL SHARD");
     /* the Hall Master */
     party_heal_all();
-    field_enter_map(MAP_RIME_HALL, 7, 3, DIR_UP);
+    field_enter_map(MAP_RIME_HALL, 9, 3, DIR_UP);
     settle();
     dialog_clear();
     tap(KEY_A);

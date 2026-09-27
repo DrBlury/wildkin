@@ -35,11 +35,11 @@
     PERSON(MAP_BRINE_HOUSE, 8, 5, KID_B, LEFT, WANDER, TALK, NO_LORE, "GRANDSON",
            "Grandpa says the Moon pulls the sea. I pulled the cat. That did not go well."),
     /* the CURRENT HALL */
-    PERSON(MAP_CURRENT_HALL, 5, 14, VILLAGER, DOWN, LOOK, HALL_GUIDE, LSRC_HALL_GUIDE, "HALL GUIDE", 0),
-    WARDEN(MAP_CURRENT_HALL, 3, 6, WARDEN_A, DOWN, 3, TR_HALL_RILL, NO_KIN, "Ride on. The water knows the way. Mostly."),
-    WARDEN(MAP_CURRENT_HALL, 12, 6, WARDEN_B, LEFT, 3, TR_HALL_EDDY, NO_KIN, "Up is MAREN. Down is the door. Choose well."),
-    WARDEN(MAP_CURRENT_HALL, 1, 15, WARDEN_A, RIGHT, 1, TR_HALL_WAVE, NO_KIN, "This nook is quiet. Good for thinking."),
-    PERSON(MAP_CURRENT_HALL, 7, 2, GUIDE, DOWN, STILL, MAREN, NO_LORE, "MASTER MAREN", 0),
+    PERSON(MAP_CURRENT_HALL, 5, 19, VILLAGER, DOWN, LOOK, HALL_GUIDE, LSRC_HALL_GUIDE, "HALL GUIDE", 0),
+    WARDEN(MAP_CURRENT_HALL, 4, 10, WARDEN_A, LEFT, 1, TR_HALL_RILL, NO_KIN, "Ride on. The water knows the way. Mostly."),
+    WARDEN(MAP_CURRENT_HALL, 12, 10, WARDEN_B, DOWN, 1, TR_HALL_EDDY, NO_KIN, "Up is MAREN. Down is the door. Choose well."),
+    WARDEN(MAP_CURRENT_HALL, 5, 7, WARDEN_A, RIGHT, 1, TR_HALL_WAVE, NO_KIN, "This nook is quiet. Good for thinking."),
+    PERSON(MAP_CURRENT_HALL, 8, 2, GUIDE, DOWN, STILL, MAREN, NO_LORE, "MASTER MAREN", 0),
     /* the SEA ROUTE */
     WARDEN(MAP_SEA_ROUTE, 8, 11, WARDEN_A, RIGHT, 3, TR_WEST_SKIM, NO_KIN, "Next time I'm bringing a boat."),
     WARDEN(MAP_SEA_ROUTE, 29, 20, WARDEN_B, LEFT, 4, TR_WEST_MARISOL, SP_TORRENTTER, "The tide's coming in. My sandbar's going out."),

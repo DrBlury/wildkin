@@ -35,11 +35,11 @@
            "Ahhh. Forty winters I've soaked here. Every one of them was worth it."),
     PERSON(MAP_HOT_SPRING, 6, 7, HEALER, UP, LOOK, SPRING_KEEPER, NO_LORE, "SPRING KEEPER", 0),
     /* ---- the Rime Hall ---- */
-    WARDEN(MAP_RIME_HALL, 10, 17, WARDEN_A, LEFT, 4, TR_N_ASTA, SP_TUXFLAKE, "Plan every slide!"),
-    WARDEN(MAP_RIME_HALL, 3, 8, WARDEN_B, RIGHT, 3, TR_N_KJELL, NO_KIN, "My island. My rules. You won anyway."),
-    WARDEN(MAP_RIME_HALL, 12, 13, WARDEN_A, LEFT, 3, TR_N_FRIDA, NO_KIN, "Few reach this island. Fewer leave it gracefully."),
-    WARDEN(MAP_RIME_HALL, 13, 2, WARDEN_B, DOWN, 1, TR_N_TORVALD, NO_KIN, "The Master is waiting."),
-    PERSON(MAP_RIME_HALL, 7, 2, ELDER, DOWN, STILL, RIME_MASTER, NO_LORE, "MASTER SIGRUN", 0),
+    WARDEN(MAP_RIME_HALL, 12, 24, WARDEN_A, LEFT, 1, TR_N_ASTA, SP_TUXFLAKE, "Plan every slide!"),
+    WARDEN(MAP_RIME_HALL, 0, 14, WARDEN_B, RIGHT, 1, TR_N_KJELL, NO_KIN, "My island. My rules. You won anyway."),
+    WARDEN(MAP_RIME_HALL, 18, 13, WARDEN_A, LEFT, 1, TR_N_FRIDA, NO_KIN, "Few reach this island. Fewer leave it gracefully."),
+    WARDEN(MAP_RIME_HALL, 15, 3, WARDEN_B, LEFT, 1, TR_N_TORVALD, NO_KIN, "The Master is waiting."),
+    PERSON(MAP_RIME_HALL, 9, 2, ELDER, DOWN, STILL, RIME_MASTER, NO_LORE, "MASTER SIGRUN", 0),
     /* ---- Whitecrown Peak ---- */
     WARDEN(MAP_WHITECROWN, 14, 32, WARDEN_A, UP, 2, TR_N_ASKEL, SP_CRAGHORN, "Catch your breath. Then climb."),
     WARDEN(MAP_WHITECROWN, 22, 20, WARDEN_B, DOWN, 1, TR_N_RUNA, NO_KIN, "Listen for the wolf. You'll know it when you hear it."),

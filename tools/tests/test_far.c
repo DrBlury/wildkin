@@ -278,7 +278,8 @@ int main(void)
 
     /* the Mirror Hall: its rooms are joined by pads only */
     map_load(MAP_MIRROR_HALL);
-    flood_ex(5, 15, FLOOD_SOLVED);   /* pads followed */
+    CHECK(cell_attr(2, 21) & A_EXIT, "the MIRROR HALL door lands on its hall mat (2,21)");
+    flood_ex(2, 21, FLOOD_SOLVED);   /* pads followed */
     int m_ves = npc_index(MAP_MIRROR_HALL, SCR_DREAM_MASTER);
     CHECK(m_ves >= 0 && reached_beside(NPCS[m_ves].x, NPCS[m_ves].y), "the MIRROR HALL's pads lead to VESPER");
     {
@@ -286,9 +287,9 @@ int main(void)
         memset(seen_cells, 0, sizeof(seen_cells));
         static int qx[64 * 64], qy[64 * 64];
         int h = 0, t = 0;
-        qx[t] = 5;
-        qy[t++] = 15;
-        seen_cells[15 * map_w + 5] = 1;
+        qx[t] = 2;
+        qy[t++] = 21;
+        seen_cells[21 * map_w + 2] = 1;
         while (h < t) {
             int x = qx[h], y = qy[h++];
             for (int d = 0; d < 4; d++) {
@@ -312,6 +313,23 @@ int main(void)
         if (o->kind == OBJ_PAD && twins != 2) pads_paired = 0;
     }
     CHECK(pads_paired, "every Mirror Hall pad has exactly one twin");
+    {
+        /* the mirror: each west room's doorway barrier has an east twin of the
+         * same group that starts the other way (one switch opens one, shuts the other) */
+        int mirrored = 0, doorways = 0;
+        for (int i = 0; i < MAPS[MAP_MIRROR_HALL].obj_count; i++) {
+            const MapObj *o = &MAPS[MAP_MIRROR_HALL].objs[i];
+            if (o->kind != OBJ_BARRIER || o->x >= 10) continue;
+            doorways++;
+            for (int j = 0; j < MAPS[MAP_MIRROR_HALL].obj_count; j++) {
+                const MapObj *t = &MAPS[MAP_MIRROR_HALL].objs[j];
+                if (t->kind == OBJ_BARRIER && t->y == o->y && t->x == o->x + 10 && (t->arg & 15) == (o->arg & 15) &&
+                    (t->arg & 0x80) != (o->arg & 0x80))
+                    mirrored++;
+            }
+        }
+        CHECK(doorways == 3 && mirrored == 3, "the MIRROR HALL's three doorway pairs are mirrored barriers");
+    }
 
     /* legends in their lairs */
     int lairs = 0;

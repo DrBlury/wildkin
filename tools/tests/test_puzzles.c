@@ -1078,6 +1078,12 @@ static void solve(int m, int ability, int need_targets, Tally *tal, int report)
             solution_len(t, &e, &p, &mv);
             printf("\n  %-18s      %s: %d events, %d pushes, %d moves", "", tgt[t].name, e, p, mv);
         }
+    if (getenv("PZ_PATH"))   /* the event path to the Master (or the hardest target) */
+        for (int t = 0; t < ntgt; t++)
+            if (t == best || (tgt[t].kind == T_NPC && tgt[t].node != NIL && !strncmp(tgt[t].name, "MASTER", 6))) {
+                printf("\n    path to %s:\n", tgt[t].name);
+                print_path(tgt[t].node);
+            }
     printf("%s\n", bad ? "  SOFT-LOCK" : "");
 }
 
@@ -1109,7 +1115,8 @@ int main(void)
     for (int m = 0; m < MAP_COUNT; m++) {
         if (MAPS[m].flags & MF_DEBUG) continue;
         if (!strncmp(MAPS[m].name, "TEST ", 5)) continue;   /* traversal fixtures (test_travel.c), not the game */
-        if (getenv("PZ_MAP") && atoi(getenv("PZ_MAP")) != m) continue;
+        const char *only = getenv("PZ_MAP");   /* a map id or name */
+        if (only && (only[0] >= '0' && only[0] <= '9' ? atoi(only) != m : strcmp(only, MAPS[m].name) != 0)) continue;
         int designed = is_hall(m) ? 0 : ABL_ALL;
         solve(m, designed, 1, &tal, 1);
         /* soft-locks with the other ability set too */
