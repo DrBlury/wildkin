@@ -25,7 +25,22 @@ int main(void)
     Monster b = monster_make(SP_PUFFLEECE, 14);
     give_monster(&a);
     give_monster(&b);
+    oam_shadow[0] = 32;
+    oam_shadow[4] = 48;
+    oam_shadow[8] = ATTR0_HIDE;
     battle_start_trainer_pair(&first, &second);
+    CHECK(intro_field_oam_count == 2, "battle snapshots the two completed field sprites");
+    oam_begin();
+    battle_update();
+    battle_draw();
+    CHECK(battle.timer == 1 && oam_count == 2 && oam_shadow[0] == 32 &&
+          oam_shadow[4] == 48, "first intro frame reuses field OAM without redrawing field sprites");
+    oam_end();
+    oam_begin();
+    battle_update();
+    battle_draw();
+    CHECK(battle.timer == 2 && oam_count == 2,
+          "dark wipe retains the field sprites on later frames");
     CHECK(battle.pair && battle.ally != battle.ally2, "pair has independent healthy ally slots");
     battle_queue_intro();
     int sent[4], sent_count = 0;
@@ -91,5 +106,16 @@ int main(void)
           "second ally can queue an item for its own party slot");
     CHECK(bag[ITEM_TONIC] == 1 && party[battle.ally2].hp > battle.disp[SIDE_ALLY_2].hp - 8,
           "queued pair item resolves without spending the other ally's item");
+
+    fresh_game();
+    give_monster(&a);
+    oam_shadow[0] = 72;
+    oam_shadow[4] = ATTR0_HIDE;
+    battle_start_trainer_team(&first);
+    oam_begin();
+    battle_update();
+    battle_draw();
+    CHECK(!battle.pair && battle.timer == 1 && oam_count == 1 && oam_shadow[0] == 72,
+          "solo warden also enters via the stack-safe dark wipe");
     return failures ? 1 : 0;
 }
