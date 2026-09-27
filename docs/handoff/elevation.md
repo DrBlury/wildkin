@@ -65,6 +65,58 @@ every map through the game renderer.
 - Makefile: `main.o` now depends on `src/game/world/**` (map edits
   rebuilt nothing before).
 
+## Puzzles on heights, saved secrets, TEST HALL (2026-09-27)
+
+- **Level-aware puzzles** (travel.c, farm.c; docs/ELEVATION.md 3.1 and 7):
+  every map object has a level (`TObj.level`). Boulders keep theirs: no
+  stairs, no pushing off a cliff edge, never into a face, mouth or hidden
+  passage; **pushed south off a ledge a boulder drops** to the ground below
+  (lands past the ledge, like a hopping player: chosen over "ledges are
+  walls" because it is a new, readable puzzle move and the same rule as the
+  player's hop). Over and under bridges and tunnel tops by the pusher's
+  level (deck boulders are pushed from the deck; walkers on the other level
+  pass by). Plates/switches/gates/barriers answer on their own level; ice
+  and currents stop at height changes and don't act on someone on a deck;
+  teleport pads put you on the partner's level. Farm: `plot_lv`,
+  sprinklers per terrace, workers keep to their terrace, tools and the
+  cursor only reach plots on your level. Surfing isn't switched on by
+  standing on a deck over water. OBJ priority of object sprites follows
+  their level.
+- **TEST HEIGHTS terrace puzzle**: a pumice boulder in a chute of bushes on
+  the east plateau (24,12) → off the ledge (24,14) → west onto the plate
+  (22,15) → the gate (27,13) at the foot of the new knoll stairs (27,12)
+  sinks → chest on the knoll (27,10). (25,14) is now a face (the old ledge
+  test uses x 26.) The map's gate and chest are the last persistent
+  objects in map order (nothing after TEST HEIGHTS has any: tested), so no
+  saved puzzle bit moved.
+- **Hidden passages are found for good**: `TravelState.secrets[8]` (bit per
+  EF_HIDDEN in map order, 12 used of 64), appended to the travel module
+  blob (41 → 49 bytes); save still version 5, an older save's 41-byte blob
+  loads with nothing found (tested, plus a round trip). Found passages show
+  a worn gap (path under the crowns; the whole cell down a N-S passage) or,
+  in a cliff face, an open cave mouth; the "!" plays once ever.
+- **TEST HALL soft-lock fixed** (`world/travel/data.h`): the boulders sit in
+  dead-end slots (x 3 and x 6, walls around them) so they can only be
+  pushed deeper in and never reach the gate corridor or the mat; the
+  current row starts at x 5 (test_travel follows).
+- **Solver** (`tools/tests/test_puzzles.c`): boulder level in the state
+  (y | level << 6), positions (level, cell), a validated fast path on height
+  maps (plain ground, same level) — elevated maps went from "simulate every
+  step" to fast, the whole run is ~10 s including the TEST maps; TEST maps
+  are no longer skipped (one without an entrance starts at the WARP menu's
+  spot, `dbg_find_spot`, which is then its way out); chests, legends and
+  ferries need a real step to be used (like people), matching
+  `field_try_interact`. `PZ_MAP` takes a map name too.
+- **Tests**: `tools/tests/test_elev_puzzles.c` (boulders on cliffs,
+  stairs, decks, tunnel tops, ledge drops; the terrace puzzle played
+  through; ice, currents, pads, switches and plates with height layers
+  poked into TEST ICE / TEST HALL; farm sprinklers, tools and workers on a
+  poked terrace; secrets found, reloaded, saved, older save, changed look,
+  cliff-face mouth; lint of objects and plots).
+- ROM check (`make shot`, demo saves on map 82): the drop, the plate and
+  the gate; the passage before/after and after reloading an in-game save
+  (docs/images/elevation_terrace_*.png, elevation_secret_*.png).
+
 ## Screenshots
 
 - `docs/images/elevation_front.png`, `elevation_under.png`,
@@ -83,12 +135,19 @@ every map through the game renderer.
 - Tile room: coast 478 and grim 497 of 500 tiles after the art (test_west's
   coast cap raised to 490). Drop a tileset's ROLES entry if it never uses
   heights and needs the room.
-- Puzzle tiles (ice, currents, boulders, pads) and farm plots don't know
-  levels: keep them on flat ground.
-- A hidden passage is "found" only for the visit (a rustle and a "!"), not
-  saved; there is no changed look after finding it.
+- Puzzles on heights are done (below); farm plots only exist on WILLOW
+  ACRE, which has no height layer yet: `plot_lv` follows it once it gets
+  one (the lint checks plots stand on plain ground of their terrace).
 - Decks are one level above their ground (no double-height bridges);
   bridges have no support pillars; no tall grass under decks (a rustle
   would still play for someone walking over it).
 - Wandering people may take stairs inside their two-cell range; wild kin
   wander only grass on their own level (a chasing one may take stairs).
+- Puzzles: boulders can't be lifted back up a ledge (by design: reload the
+  map); objects other than boulders can't be authored on a deck; the
+  boulder drop has no hop arc (it slides two cells down). The found-gap
+  look uses the tileset's path quadrants (none on a tileset without paths:
+  the trunks' lower half just disappears).
+- Adding a hidden passage (or a gate/chest/legend) to a map shifts the
+  saved bits of every later map: append new ones to maps late in the
+  order, or accept that found secrets of later maps reset.

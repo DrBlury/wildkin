@@ -39,6 +39,8 @@ typedef struct {
     u8 lure_lo, lure_hi;/* LURE INCENSE steps left */
     u8 mount;           /* species that carries you while surfing */
     u8 pad[2];
+    u8 secrets[8];      /* hidden passages found (elev.c), bit per EF_HIDDEN in map order;
+                           added at the end, so older saves load with none found */
 } TravelState;
 
 enum { CREST_VOLT, CREST_TIDE, CREST_ANVIL, CREST_RIME, CREST_LANTERN, CREST_DREAM, CREST_COUNT };
@@ -138,6 +140,7 @@ typedef struct {
     u8 anim;
     s8 ox, oy;          /* boulder slide offset (pixels) */
     u8 bit;             /* persistent bit (travel.puzzle) or 0xFF */
+    u8 level;           /* elevation it stands on (elev.c): the ground, or a deck */
 } TObj;
 
 static TObj tobj[TOBJ_MAX];
@@ -182,24 +185,55 @@ MAYBE_UNUSED static int travel_pbit_total(void) { return pbit_base(MAP_COUNT); }
 static int pbit_get(int b) { return b < 128 && bit_get(travel.puzzle, b); }
 static void pbit_set(int b) { if (b < 128) bit_set(travel.puzzle, b); }
 
+/* Hidden passages found (elev.c numbers them across the world). */
+static int travel_secret_get(int b) { return b >= 0 && b < SECRET_MAX && bit_get(travel.secrets, b); }
+static void travel_secret_set(int b) { if (b >= 0 && b < SECRET_MAX) bit_set(travel.secrets, b); }
+
 static int obj_in_map(int x, int y) { return x >= 0 && y >= 0 && x < map_w && y < map_h; }
 
+/* Levels (elev.c): every object stands on a level, the ground of its cell
+ * or (a boulder pushed along a bridge) the deck above it. The cell grid
+ * and cell_attr() describe the ground level; an object up on a deck only
+ * matters to actors on the deck (obj_at_lv, travel_top_solid). */
+static int obj_on_floor(const TObj *o) { return !map_elevated || o->level == elev_floor(o->x, o->y); }
+
+/* The object on the ground of a cell (a boulder over a plate), or -1. */
 static int obj_index_at(int x, int y)
 {
     return obj_in_map(x, y) ? (int)obj_grid[y * map_w + x] - 1 : -1;
 }
 
-/* Recompute which object a cell shows (a boulder sits on top of a plate). */
+/* The object at a cell on `level` (a boulder over a plate), or -1. */
+static int obj_at_lv(int x, int y, int level)
+{
+    if (!obj_in_map(x, y)) return -1;
+    if (!map_elevated || level == elev_floor(x, y)) return obj_index_at(x, y);
+    int best = -1;
+    for (int i = 0; i < tobj_count; i++)
+        if (tobj[i].x == x && tobj[i].y == y && tobj[i].level == level && (best < 0 || tobj[i].kind == OBJ_BOULDER))
+            best = i;
+    return best;
+}
+
+/* Recompute which ground object a cell shows (a boulder sits on top of a plate). */
 static void grid_cell(int x, int y)
 {
     if (!obj_in_map(x, y)) return;
     int best = -1;
     for (int i = 0; i < tobj_count; i++)
-        if (tobj[i].x == x && tobj[i].y == y && (best < 0 || tobj[i].kind == OBJ_BOULDER)) best = i;
+        if (tobj[i].x == x && tobj[i].y == y && obj_on_floor(&tobj[i]) && (best < 0 || tobj[i].kind == OBJ_BOULDER))
+            best = i;
     obj_grid[y * map_w + x] = (u8)(best + 1);
 }
 
-static int boulder_at(int x, int y)
+static int boulder_at_lv(int x, int y, int level)
+{
+    for (int i = 0; i < tobj_count; i++)
+        if (tobj[i].kind == OBJ_BOULDER && tobj[i].x == x && tobj[i].y == y && tobj[i].level == level) return i;
+    return -1;
+}
+
+MAYBE_UNUSED static int boulder_at(int x, int y)
 {
     for (int i = 0; i < tobj_count; i++)
         if (tobj[i].kind == OBJ_BOULDER && tobj[i].x == x && tobj[i].y == y) return i;
@@ -214,7 +248,7 @@ static void plates_update(int animate)
 {
     for (int i = 0; i < tobj_count; i++)
         if (tobj[i].kind == OBJ_PLATE) {
-            int down = boulder_at(tobj[i].x, tobj[i].y) >= 0;
+            int down = boulder_at_lv(tobj[i].x, tobj[i].y, tobj[i].level) >= 0;   /* only on its level */
             if (animate && down && !tobj[i].state) sfx_play(SFX_CONFIRM);
             tobj[i].state = (u8)down;
         }
@@ -261,6 +295,7 @@ static void legends_build(void)
         const TObj *o = &tobj[i];
         if (o->kind != OBJ_LEGEND || o->arg >= SP_COUNT) continue;
         kin_place(&legend_kin[legend_count], o->arg, 0, o->x, o->y, DIR_DOWN);
+        legend_kin[legend_count].a.level = o->level;
         legend_obj[legend_count++] = (u8)i;
     }
 }
@@ -287,6 +322,7 @@ static void travel_map_loaded(int map)
         o->anim = 0;
         o->ox = o->oy = 0;
         o->bit = 0xFF;
+        o->level = (u8)elev_level_at(s->x, s->y, -1, -1);   /* the ground, or a deck over water */
         if (obj_persists(s->kind)) {
             o->bit = (u8)(bit < 128 ? bit : 0xFF);
             bit++;
@@ -318,12 +354,22 @@ static int obj_attr(const TObj *o)
     }
 }
 
-/* Extra attributes from map objects (a boulder is solid, an open gate isn't). */
+/* Extra attributes from map objects on the ground (a boulder is solid, an
+ * open gate isn't). */
 static int travel_attr(int x, int y, int a)
 {
     if (!obj_in_map(x, y)) return a;
     int i = obj_grid[y * map_w + x];
     return i ? a | obj_attr(&tobj[i - 1]) : a;
+}
+
+/* A solid object up on a deck at (x, y) on `level` (field.c
+ * cell_walkable_lv: steps onto a deck ignore the ground below). */
+static int travel_top_solid(int x, int y, int level)
+{
+    if (!map_elevated || !obj_in_map(x, y) || level == elev_floor(x, y)) return 0;
+    int i = obj_at_lv(x, y, level);
+    return i >= 0 && (obj_attr(&tobj[i]) & A_SOLID);
 }
 
 /* The same, with every puzzle solved: gates and barriers open, boulders
@@ -344,7 +390,8 @@ MAYBE_UNUSED static int travel_attr_solved(int x, int y, int a)
     return a | obj_attr(o);
 }
 
-/* The pad a pad at (x, y) sends you to: (px, py), or 0 when none. */
+/* The pad a pad at (x, y) sends you to: (px, py), or 0 when none. Its
+ * index + 1 is returned, so the caller can read the partner's level. */
 static int travel_pad_partner(int x, int y, int *px, int *py)
 {
     int i = obj_index_at(x, y);
@@ -357,7 +404,7 @@ static int travel_pad_partner(int x, int y, int *px, int *py)
         if (k != i && tobj[k].kind == OBJ_PAD && tobj[k].arg == tobj[i].arg) {
             *px = tobj[k].x;
             *py = tobj[k].y;
-            return 1;
+            return k + 1;
         }
     return 0;
 }
@@ -423,36 +470,81 @@ static void set_splash(int x, int y)
 
 static int can_push(const TObj *o) { return o->arg == 1 || tv.strength_on; }
 
+/* Can a boulder come to rest at (x, y) on `level`? top: up on a deck (the
+ * ground below doesn't matter, only what stands on the deck). */
+static int boulder_room(int x, int y, int level, int top)
+{
+    if (!obj_in_map(x, y)) return 0;
+    if (top) {
+        for (int i = 0; i < tobj_count; i++)   /* a boulder never rests on another object on a deck */
+            if (tobj[i].x == x && tobj[i].y == y && tobj[i].level == level) return 0;
+    } else {
+        if (cell_attr(x, y) & (A_SOLID | A_LEDGE | A_WATER | A_DOOR | A_EXIT)) return 0;   /* never onto an exit mat */
+        /* nor onto stairs, nor into a secret gap (it wouldn't fit, and the trees would hide it) */
+        if (map_elevated && (EV_KIND(elev_at(x, y)) != EK_GROUND || EV_COVER(elev_at(x, y)) == EC_HIDDEN)) return 0;
+        int j = obj_index_at(x, y);
+        if (j >= 0 && tobj[j].kind != OBJ_PLATE && !(tobj[j].kind == OBJ_GATE && tobj[j].state == 2)) return 0;
+        if (item_ball_at(x, y) >= 0) return 0;
+    }
+    if (map_elevated) {
+        if (npc_at_lv(x, y, level) >= 0) return 0;
+        int k = npc_kin_at(x, y);
+        if (k >= 0 && npc_kin[k].a.level == level) return 0;
+        if (wild_at_lv(x, y, level) >= 0) return 0;
+        if (follower_active() && follower.a.x == x && follower.a.y == y && follower.a.level == level) return 0;
+    } else {
+        if (npc_at(x, y) >= 0 || npc_kin_at(x, y) >= 0 || wild_at(x, y) >= 0) return 0;
+        if (follower_active() && follower.a.x == x && follower.a.y == y) return 0;
+    }
+    return 1;
+}
+
+/* Push boulder i one cell in `dir`. Boulders keep their level (elev.c):
+ * they can't climb or go down stairs, can't be pushed off a cliff edge
+ * (the rim stops them) and go over or under a bridge on the level they are
+ * on. Pushed south off a ledge, a boulder drops to the ground below, like
+ * a hopping player: it lands on the cell past the ledge. */
 static int boulder_push(int i, int dir)
 {
     TObj *o = &tobj[i];
     if (!can_push(o) || o->ox || o->oy) return 0;
-    int bx = o->x + DIR_DX[dir], by = o->y + DIR_DY[dir];
+    int bx = o->x + DIR_DX[dir], by = o->y + DIR_DY[dir], lv = o->level, top = 0, drop = 0;
     if (!obj_in_map(bx, by)) return 0;
-    if (cell_attr(bx, by) & (A_SOLID | A_LEDGE | A_WATER | A_DOOR | A_EXIT)) return 0;   /* never onto an exit mat */
-    int j = obj_index_at(bx, by);
-    if (j >= 0 && tobj[j].kind != OBJ_PLATE && !(tobj[j].kind == OBJ_GATE && tobj[j].state == 2)) return 0;
-    if (npc_at(bx, by) >= 0 || npc_kin_at(bx, by) >= 0 || wild_at(bx, by) >= 0 || item_ball_at(bx, by) >= 0)
-        return 0;
-    if (follower_active() && follower.a.x == bx && follower.a.y == by) return 0;
+    if (map_elevated) {
+        u16 e = elev_at(bx, by);
+        if (dir == DIR_DOWN && EV_KIND(e) == EK_LEDGE && lv > EV_LO(e) && obj_on_floor(o)) {
+            /* off the ledge: onto the ground below it */
+            lv = EV_LO(e);
+            by++;
+            drop = 1;
+            if (!obj_in_map(bx, by) || elev_floor(bx, by) != lv) return 0;
+        } else {
+            int nl, ek = elev_enter(o->x, o->y, o->level, dir, &nl);
+            if (ek == ELEV_BLOCK || nl != o->level) return 0;
+            top = ek == ELEV_TOP;
+        }
+    }
+    if (!boulder_room(bx, by, lv, top)) return 0;
     int ox = o->x, oy = o->y;
     o->x = (u8)bx;
     o->y = (u8)by;
+    o->level = (u8)lv;
     o->ox = (s8)(-DIR_DX[dir] * 16);
-    o->oy = (s8)(-DIR_DY[dir] * 16);
+    o->oy = (s8)(-DIR_DY[dir] * (drop ? 32 : 16));
     grid_cell(ox, oy);
     grid_cell(bx, by);
-    sfx_play(SFX_ROCK);
+    sfx_play(drop ? SFX_LEDGE : SFX_ROCK);
     tv.push_t = 16;
     plates_update(1);
     return 1;
 }
 
-/* player_try_move() asks first: -1 = not ours, 0 = blocked, 1 = moving. */
-static int travel_player_move(int dir, int nx, int ny)
+/* player_try_move() asks first: -1 = not ours, 0 = blocked, 1 = moving.
+ * nl: the level the step goes onto (elev.c), top: onto a deck. */
+static int travel_player_move(int dir, int nx, int ny, int nl, int top)
 {
     if (!obj_in_map(nx, ny)) return -1;
-    if (travel.surfing) {
+    if (travel.surfing && !top) {
         int ox = player.x, oy = player.y;
         if (travel_surf_cell(nx, ny)) {
             actor_start_move(&player, dir);
@@ -474,7 +566,7 @@ static int travel_player_move(int dir, int nx, int ny)
         travel_bump();
         return 0;
     }
-    int i = obj_index_at(nx, ny);
+    int i = obj_at_lv(nx, ny, nl);
     if (i >= 0 && tobj[i].kind == OBJ_BOULDER) {
         if (!boulder_push(i, dir)) {
             travel_bump();
@@ -486,6 +578,19 @@ static int travel_player_move(int dir, int nx, int ny)
         return 1;
     }
     return -1;
+}
+
+/* Can an ice slide or a current carry the player one cell in `d`? Never
+ * across a height change (elev.c): the slide stops at a cliff, a ledge,
+ * stairs or a deck end, and the player keeps their level. */
+static int forced_can_enter(int d)
+{
+    int nx = player.x + DIR_DX[d], ny = player.y + DIR_DY[d];
+    if (!map_elevated) return player_can_enter(nx, ny);
+    int nl, ek = elev_enter(player.x, player.y, player.level, d, &nl);
+    if (ek != ELEV_FLOOR || nl != player.level || !obj_in_map(nx, ny)) return 0;
+    if (EV_KIND(elev_at(nx, ny)) != EK_GROUND || elev_floor(nx, ny) != player.level) return 0;
+    return travel.surfing ? travel_surf_cell(nx, ny) : cell_walkable_lv(nx, ny, nl, 0);
 }
 
 static void forced_move(int d)
@@ -510,8 +615,9 @@ static void switch_press(const TObj *s)
 
 static int pad_teleport(int x, int y)
 {
-    int px, py;
-    if (!travel_pad_partner(x, y, &px, &py)) return 0;
+    int px, py, k = travel_pad_partner(x, y, &px, &py);
+    if (!k) return 0;
+    player.level = tobj[k - 1].level;   /* the partner's level: pads may join terraces */
     tv.flash_t = 20;
     tv.flash_x = (u8)x;
     tv.flash_y = (u8)y;
@@ -545,16 +651,18 @@ static int travel_player_arrived(void)
     tv.hop1 = 0;
     lure_tick();
     int x = player.x, y = player.y;
-    int i = obj_index_at(x, y);
+    /* switches and pads answer only on their own level; ice and currents
+     * are the ground's, so not for someone on a deck above them */
+    int i = obj_at_lv(x, y, player.level);
     if (i >= 0 && tobj[i].kind == OBJ_SWITCH) switch_press(&tobj[i]);
     if (i >= 0 && tobj[i].kind == OBJ_PAD && pad_teleport(x, y)) {
         tv.slide = 0;
         return 1;
     }
-    int a = cell_attr(x, y), d = -1;
+    int a = !map_elevated || player.level == elev_floor(x, y) ? cell_attr(x, y) : 0, d = -1;
     if (a & A_CURRENT) d = ((a & A_DIR_HI) ? 2 : 0) | ((a & A_DIR_LO) ? 1 : 0);
     else if ((a & A_ICE) && !travel.surfing) d = player.facing;
-    if (d >= 0 && player_can_enter(x + DIR_DX[d], y + DIR_DY[d])) {
+    if (d >= 0 && forced_can_enter(d)) {
         forced_move(d);
         return 1;
     }
@@ -1113,7 +1221,8 @@ static int travel_update(void)
     if (tv.flash_t) tv.flash_t--;
     if (tv.splash_t) tv.splash_t--;
     if (!player.moving) {
-        int w = (cell_attr(player.x, player.y) & A_WATER) != 0;
+        int w = (cell_attr(player.x, player.y) & A_WATER) != 0 &&
+                (!map_elevated || player.level == elev_floor(player.x, player.y));   /* not up on a deck */
         if (w != travel.surfing) {
             travel.surfing = (u8)w;
             if (w) {
@@ -1218,8 +1327,17 @@ static int travel_push_sprites(FieldSprite *list, int n, int max)
         default: break;
         }
         if (tile < 0) continue;
-        int sort = o->y * 16 - 1;
-        list[n++] = (FieldSprite){ sort, wx, 4, tile, OBANK_TRAVEL, 0, top - sort, shape };
+        int sort = o->y * 16 - 1, prio = 2;
+        if (map_elevated) {   /* up on a deck: over it; under one: hidden by it (elev.c) */
+            Actor a = { 0 };
+            a.x = o->x;
+            a.y = o->y;
+            a.ox = o->ox;
+            a.oy = o->oy;
+            a.level = o->level;
+            prio = elev_obj_prio(&a);
+        }
+        list[n++] = (FieldSprite){ sort, wx, 4, tile, OBANK_TRAVEL, 0, top - sort, shape, prio };
     }
     return n;
 }
@@ -1304,7 +1422,9 @@ static void ferry_answer(int c)
 static int obj_interact(int x, int y)
 {
     char msg[MSG_TEXT_MAX];
-    int i = obj_index_at(x, y);
+    int nl = player.level;
+    if (map_elevated) elev_enter(player.x, player.y, player.level, player.facing, &nl);
+    int i = obj_at_lv(x, y, nl);   /* what stands on the level you face (a deck or the ground) */
     if (i < 0) {
         if (travel.surfing || !travel_surf_cell(x, y)) return 0;
         if (travel_ability_kin(AB_SURF) >= 0) surf_ask();

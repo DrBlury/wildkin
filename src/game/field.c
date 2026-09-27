@@ -383,8 +383,8 @@ static int same_kind(int v, int x, int y)
 {
     if (x < 0 || y < 0 || x >= map_w || y >= map_h) return 1;
     int n = map_cells[y * map_w + x];
-    /* paths run right up to doorsteps */
-    return n == v || (v == CELL_PATH && is_door_cell(n));
+    /* paths run right up to doorsteps, and into found hidden passages (elev.c) */
+    return n == v || (v == CELL_PATH && (is_door_cell(n) || elev_found(x, y)));
 }
 
 /* 8x8 autotile quadrants for a path/water cell. */
@@ -801,10 +801,13 @@ static int wild_at_lv(int x, int y, int level)
     return w >= 0 && wild[w].k.a.level == level ? w : -1;
 }
 
+static int travel_top_solid(int x, int y, int level);
+
 static int cell_walkable_lv(int x, int y, int level, int top)
 {
     if (x < 0 || y < 0 || x >= map_w || y >= map_h) return 0;
     if (!top && (cell_attr(x, y) & (A_SOLID | A_LEDGE))) return 0;
+    if (top && travel_top_solid(x, y, level)) return 0;   /* a boulder up on the deck */
     if (npc_at_lv(x, y, level) >= 0) return 0;
     int k = npc_kin_at(x, y);
     if (k >= 0 && npc_kin[k].a.level == level) return 0;
@@ -1239,7 +1242,7 @@ static int try_edge_link(int dir, int nx, int ny)
     return 1;
 }
 
-static int travel_player_move(int dir, int nx, int ny);
+static int travel_player_move(int dir, int nx, int ny, int nl, int top);
 static int travel_player_arrived(void);
 static int travel_speed(int base);
 static int travel_update(void);
@@ -1283,9 +1286,9 @@ static int player_try_move(int dir)
         wild_touch(w);
         return 1;
     }
-    /* surfing, boulders (travel.c) */
-    if (ek == ELEV_FLOOR) {
-        int t = travel_player_move(dir, nx, ny);
+    /* surfing, boulders (travel.c): on the ground, or up on a deck */
+    if (ek != ELEV_BLOCK) {
+        int t = travel_player_move(dir, nx, ny, nl, ek == ELEV_TOP);
         if (t > 0) player.level = (u8)nl;
         if (t >= 0) return t;
     }
@@ -1327,15 +1330,17 @@ static int player_try_move(int dir)
 }
 
 /* The player walked into a hidden passage for the first time: a rustle
- * and a "!" (the passage stays found while you are on the map). */
+ * and a "!", and the passage is found for good (saved; it shows a worn gap
+ * from now on, elev.c). */
 static void elev_player_arrived(void)
 {
     if (!map_elevated) return;
     if (player.level != elev_level_at(player.x, player.y, player.level, player.facing))
         player.level = (u8)elev_level_at(player.x, player.y, -1, player.facing);
-    u16 *e = &map_elev[player.y * map_w + player.x];
-    if (EV_COVER(*e) != EC_HIDDEN || (*e & EV_FOUND)) return;
-    *e |= EV_FOUND;
+    const ElevFeat *f = elev_secret_find(player.x, player.y);
+    if (!f) return;
+    for (int y = f->y - 1; y <= f->y + f->h; y++)   /* its look, and the paths beside it */
+        for (int x = f->x - 1; x <= f->x + f->w; x++) field_redraw_cell(x, y);
     sfx_play(SFX_RUSTLE);
     field_emote(-1, EMOTE_EXCLAIM, 30);
 }

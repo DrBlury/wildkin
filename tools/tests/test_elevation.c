@@ -162,7 +162,7 @@ int main(void)
           "the mesa stairs climb from 1 to 2");
     CHECK(EV_KIND(elev_at(12, 6)) == EK_STAIRS + DIR_LEFT && EV_KIND(elev_at(18, 4)) == EK_STAIRS + DIR_DOWN,
           "side stairs and stairs down the north side decode");
-    CHECK(EV_KIND(elev_at(25, 14)) == EK_LEDGE && (cell_attr(25, 14) & A_LEDGE) && !(cell_attr(25, 14) & A_SOLID),
+    CHECK(EV_KIND(elev_at(26, 14)) == EK_LEDGE && (cell_attr(26, 14) & A_LEDGE) && !(cell_attr(26, 14) & A_SOLID),
           "a '_' under a rise is a ledge");
     CHECK(EV_COVER(elev_at(4, 14)) == EC_MOUTH && !(cell_attr(4, 14) & A_SOLID),
           "the face under a tunnel is its open mouth");
@@ -186,7 +186,7 @@ int main(void)
     CHECK(elev_enter(6, 15, 0, DIR_LEFT, &nl) == ELEV_FLOOR && elev_enter(5, 15, 0, DIR_RIGHT, &nl) == ELEV_FLOOR &&
               elev_enter(5, 14, 0, DIR_RIGHT, &nl) == ELEV_BLOCK && elev_enter(7, 13, 1, DIR_LEFT, &nl) == ELEV_FLOOR,
           "stairs are entered only from their ends");
-    CHECK(elev_enter(25, 15, 0, DIR_UP, &nl) == ELEV_BLOCK, "a ledge can't be climbed");
+    CHECK(elev_enter(26, 15, 0, DIR_UP, &nl) == ELEV_BLOCK, "a ledge can't be climbed");
 
     /* ---------------- stairs, walking ---------------- */
     opt.follower = 1;
@@ -274,13 +274,13 @@ int main(void)
           "a wandering kid stays up on the mesa");
 
     /* ---------------- ledges ---------------- */
-    enter(MAP_EV_TEST, 25, 12, DIR_DOWN);
+    enter(MAP_EV_TEST, 26, 12, DIR_DOWN);
     CHECK(player.level == 1, "near the ledges on the plateau");
     go(DIR_DOWN);
     go(DIR_DOWN);
-    CHECK(at(25, 15, 0), "hop off the ledge down to the ground (level 0)");
+    CHECK(at(26, 15, 0), "hop off the ledge down to the ground (level 0)");
     go(DIR_UP);
-    CHECK(at(25, 15, 0), "and the ledge can't be climbed");
+    CHECK(at(26, 15, 0), "and the ledge can't be climbed");
 
     /* ---------------- tunnel ---------------- */
     enter(MAP_EV_TEST, 4, 16, DIR_UP);
@@ -399,9 +399,9 @@ int main(void)
     CHECK(reached_lv(4, 8, 0) && reached_lv(4, 8, 1), "and the tunnel both inside and over it");
     CHECK(reached_lv(22, 5, 2) && !reached_lv(22, 5, 0) && !reached_lv(22, 5, 1), "the mesa only at its height");
     CHECK(reached_lv(26, 19, 0), "the nook through the hidden passage");
-    CHECK(!reached(8, 14) && !reached(25, 14), "never onto a face or a ledge");
+    CHECK(!reached(8, 14) && !reached(26, 14), "never onto a face or a ledge");
     flood_ex_lv(22, 16, 0, FLOOD_WALK);
-    CHECK(reached_lv(25, 12, 1), "up from the ledges' foot by the stairs");
+    CHECK(reached_lv(26, 12, 1), "up from the ledges' foot by the stairs");
 
     lint_maps();
 

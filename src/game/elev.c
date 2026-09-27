@@ -18,7 +18,11 @@
  *                     top is walkable, drawn over anyone below); the cliff
  *                     face just south of the tunnel becomes its mouth
  *   EF_HIDDEN         a secret passage: whatever the cells show (trees, a
- *                     cliff), they are walkable and drawn over the walker
+ *                     cliff), they are walkable and drawn over the walker;
+ *                     once the player has walked in, it is "found" for good
+ *                     (a bit in the save, travel.secrets) and shows it: a
+ *                     worn gap at the foot of the trees, an open cave mouth
+ *                     in a cliff
  *
  * Cliff faces are derived: a cell lower than the top surface right above it
  * is a face (solid), one row per level of drop, so authors only paint
@@ -53,6 +57,9 @@ EWRAM_BSS static u16 map_elev[MAP_MAX_W * MAP_MAX_H];
 static u8 map_elevated;   /* the current map has an elevation layer */
 
 static int cell_attr_raw(int x, int y);
+static int travel_secret_get(int b);    /* travel.c: found hidden passages (saved) */
+static void travel_secret_set(int b);
+#define SECRET_MAX 64                   /* bits in TravelState.secrets */
 
 static u16 elev_at(int x, int y)
 {
@@ -98,6 +105,29 @@ static int elev_floor_of(const MapDef *m, int x, int y, int depth)
     int lx = x - DIR_DX[d], ly = y - DIR_DY[d];   /* the low side */
     if (elev_char(m, lx, ly) == c) return elev_floor_of(m, lx, ly, depth + 1) + 1;
     return elev_floor_of(m, lx, ly, depth + 1);
+}
+
+/* Hidden passages are numbered across the world (map order, then feature
+ * order): the bit of a map's first one. */
+static int elev_secret_base(int map)
+{
+    int n = 0;
+    for (int i = 0; i < map && i < MAP_COUNT; i++)
+        for (int k = 0; k < MAPS[i].feat_count; k++) n += MAPS[i].feats[k].kind == EF_HIDDEN;
+    return n;
+}
+
+/* Every hidden passage in the world (must stay <= SECRET_MAX: tested). */
+MAYBE_UNUSED static int elev_secret_total(void) { return elev_secret_base(MAP_COUNT); }
+
+/* Mark a hidden feature's cells found (or not). */
+static void elev_mark_found(const ElevFeat *f, int found)
+{
+    for (int y = f->y; y < f->y + f->h && y < map_h; y++)
+        for (int x = f->x; x < f->x + f->w && x < map_w; x++) {
+            u16 *e = &map_elev[y * map_w + x];
+            *e = (u16)(found ? *e | EV_FOUND : *e & ~EV_FOUND);
+        }
 }
 
 static void elev_decode(const MapDef *m)
@@ -151,6 +181,41 @@ static void elev_decode(const MapDef *m)
             above_hi = hi;
         }
     }
+    /* hidden passages found on an earlier visit (the save remembers them) */
+    int b = elev_secret_base((int)(m - MAPS));
+    for (int i = 0; i < m->feat_count; i++)
+        if (m->feats[i].kind == EF_HIDDEN) elev_mark_found(&m->feats[i], travel_secret_get(b++));
+}
+
+/* The player walked into hidden cell (x, y): the passage it belongs to is
+ * found for good. Returns its feature (to redraw), or 0 when it already
+ * was found or there is none. */
+static const ElevFeat *elev_secret_find(int x, int y)
+{
+    if (!map_elevated) return 0;
+    u16 e = elev_at(x, y);
+    if (EV_COVER(e) != EC_HIDDEN || (e & EV_FOUND)) return 0;
+    const MapDef *m = &MAPS[cur_map];
+    int b = elev_secret_base(cur_map);
+    for (int i = 0; i < m->feat_count; i++) {
+        const ElevFeat *f = &m->feats[i];
+        if (f->kind != EF_HIDDEN) continue;
+        if (x >= f->x && y >= f->y && x < f->x + f->w && y < f->y + f->h) {
+            travel_secret_set(b);
+            elev_mark_found(f, 1);
+            return f;
+        }
+        b++;
+    }
+    return 0;
+}
+
+/* A found hidden cell. */
+static int elev_found(int x, int y)
+{
+    if (x < 0 || y < 0 || x >= map_w || y >= map_h) return 0;
+    u16 e = elev_at(x, y);
+    return EV_COVER(e) == EC_HIDDEN && (e & EV_FOUND);
 }
 
 /* ---------------- rules ---------------- */
@@ -319,6 +384,13 @@ static void elev_render_base(int mx, int my, u16 mid[4])
     }
 }
 
+/* Path-like for a found passage's worn gap: a path or another found cell. */
+static int elev_pathy(int x, int y)
+{
+    if (x < 0 || y < 0 || x >= map_w || y >= map_h) return 0;
+    return map_cells[y * map_w + x] == CELL_PATH || elev_found(x, y);
+}
+
 /* Decks, tunnel tops and hidden passages (BG3), after decor. */
 static void elev_render_cover(int mx, int my, u16 bottom[4], u16 mid[4], u16 top[4])
 {
@@ -340,6 +412,15 @@ static void elev_render_cover(int mx, int my, u16 bottom[4], u16 mid[4], u16 top
         if (g >= CELL_PATH || (t->mflags[g] & MTF_OVERLAY)) g = t->ground;
         for (int c = 0; c < 4; c++) top[c] = t->meta_bottom[g][c];
     } else if (cov == EC_HIDDEN) {
+        int found = (e & EV_FOUND) != 0;
+        if (found && EV_KIND(e) == EK_FACE) {
+            /* a crack in a cliff, found: an open cave mouth now */
+            for (int c = 0; c < 4; c++) {
+                mid[c] = ea->mouth[c];
+                top[c] = 0;
+            }
+            return;
+        }
         int has_top = top[0] | top[1] | top[2] | top[3];
         int has_mid = mid[0] | mid[1] | mid[2] | mid[3];
         for (int c = 0; c < 4; c++) {
@@ -348,6 +429,20 @@ static void elev_render_cover(int mx, int my, u16 bottom[4], u16 mid[4], u16 top
                 mid[c] = 0;
             } else if (!has_top) {
                 top[c] = bottom[c];
+            }
+        }
+        if (found) {
+            /* found: a worn gap at the foot of the trees (or rocks), a
+             * trodden path joining any path beside it; a passage running
+             * north-south opens all the way down */
+            int open_up = elev_found(mx, my - 1);
+            for (int c = 0; c < 4; c++) {
+                if (c < 2 && !open_up) continue;
+                int sx = (c & 1) ? 1 : -1, sy = (c >> 1) ? 1 : -1;
+                int vs = elev_pathy(mx, my + sy), hs = elev_pathy(mx + sx, my);
+                int v = vs && hs ? (elev_pathy(mx + sx, my + sy) ? 0 : 1) : vs ? 2 : hs ? 3 : 4;
+                if (t->path_q) bottom[c] = t->path_q[c][v];
+                mid[c] = top[c] = 0;
             }
         }
     }

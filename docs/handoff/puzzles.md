@@ -7,8 +7,9 @@ barrier open and ignored boulders).
 
 ## What it searches
 
-For every map except the debug viewer maps (`MF_DEBUG`) and the traversal
-fixtures `TEST SHORE/ICE/HALL/DARK` (dev maps driven by `test_travel.c`):
+For every map except the debug viewer maps (`MF_DEBUG`), the TEST maps
+included (one without a door or edge in starts at the debug WARP spot,
+which then counts as its way out):
 
 - **State**: the player's cell and elevation level (elev.c), every boulder (boulders with the same `arg`
   are interchangeable, so their positions are sorted), the 16 switch groups,
@@ -157,9 +158,11 @@ plates and the first gate sinks, exactly as the search predicts.
 - Satchels are one "all taken" bit; per-satchel bits would be exact but
   multiply the states.
 - Wandering people are searched on their home cell.
-- The test maps (TEST HALL etc.) are skipped: the TEST HALL's STRENGTH
-  boulder can still be pushed into the gate corridor and shut you in its
-  chest room (it is a traversal fixture, not part of the game).
+- The TEST maps are searched too now (docs/handoff/elevation.md): the TEST
+  HALL boulders sit in dead-end slots (no more jams), a TEST map without an
+  entrance starts and "exits" at the debug WARP spot, positions and
+  boulders carry their elevation level, and chests / legends / ferries
+  need a real step (not across a cliff).
 - CURRENT HALL and MIRROR HALL are short (15 and 35 moves, no events): a
   designer may want to make them harder; the solver will say if a change
   breaks them.

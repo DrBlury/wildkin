@@ -63,12 +63,12 @@ static const char *const TT_HALL_ROWS[] = {
     "H_______H__________H",
     "HHHH_HHHHHHHHH_HHHHH",
     "H__________________H",
-    "H__________________H",
-    "H__________________H",
-    "H__________________H",
-    "H__________________H",
-    "H__________________H",
-    "H___>>>>___________H",
+    "H_H_HH_H___________H",   /* the boulders sit in dead-end slots (x 3, x 6): */
+    "H_H_HH_H___________H",   /* they can only be pushed down, deeper in, so   */
+    "H_H_HH_H___________H",   /* they never jam the gate corridor or the mat   */
+    "H_H_HH_H___________H",
+    "H_H_HHHH___________H",
+    "H__H_>>>>__________H",
     "H__________________H",
     "HHHHHHHHHMHHHHHHHHHH",
 };
