@@ -1,7 +1,7 @@
-# Act II East: debug warp to Brookmill Trail; G1 prerequisite at act start.
+# Act II East: checked four-kin save enters Brookmill Trail; G1 prerequisite at act start.
+flag FLAG_STORM_CALMED
 # Shore x34,y19 bypasses the raised bridge; Sorrel occupies (58,18).
 # Juno at (36,19) is faced from north; return west around her occupied tile.
-flag FLAG_STORM_CALMED
 start MAP_BROOKMILL_TRAIL
 way MAP_BROOKMILL_TRAIL 34 18
 way MAP_BROOKMILL_TRAIL 34 19
@@ -48,4 +48,6 @@ way MAP_VOLT_HALL 13 9
 way MAP_VOLT_HALL 13 6
 way MAP_VOLT_HALL 7 6
 way MAP_VOLT_HALL 7 3
-# Fara (7,2) is not challenged: current debug warp party has only one Lv20 kin.
+# Fara (7,2): only attempt with the explicit four-kin act-start fixture.
+party_min 4
+master MAP_VOLT_HALL 7 3 north FLAG_VOLT_CREST

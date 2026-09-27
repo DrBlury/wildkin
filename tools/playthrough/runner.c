@@ -11,6 +11,9 @@ static struct mCore *core;
 static unsigned map_addr, player_addr, mode_addr, flags_addr, dialog_addr;
 static unsigned phase_addr, battle_addr, party_addr, moves_addr, warp_addr, switch_addr, party_count_addr;
 static int wild_wins, wild_runs, wardens, dialogs, wild_limit = 6;
+static int master_choice, master_bouts, master_team_count, master_max_foe;
+static int forced_cursor = -1;
+static int loss_snapshot_taken;
 /* Filled only after run.py verifies unique ELF structures and all members. */
 static struct {
     unsigned kind, team, team2, team_idx, ally, pair, no_run;
@@ -36,10 +39,16 @@ static int map(void) { return rd32(map_addr); }
 static int x(void) { return (short)rd16(player_addr); }
 static int y(void) { return (short)rd16(player_addr + 2); }
 static int mode(void) { return rd32(mode_addr); }
+static void party_snapshot(const char *label);
 static void frame(unsigned keys, int timed) {
     int before = timed ? mode() : -1;
     int before_map = timed ? map() : -1, before_x = timed ? x() : -1, before_y = timed ? y() : -1;
     if (timed && before == 8) {
+        if (master_choice == 2 && !loss_snapshot_taken &&
+            rd32(battle_addr + layout.result) == 2 && before_map == 19) {
+            party_snapshot("master_loss_in_battle_before_heal");
+            loss_snapshot_taken = 1;
+        }
         saw_battle = 1;
         last_battle_state = battle_state();
         last_battle_result = rd32(battle_addr + layout.result);
@@ -50,6 +59,11 @@ static void frame(unsigned keys, int timed) {
         frames++;
         int after = mode();
         if (after == 8) {
+            if (master_choice == 2 && !loss_snapshot_taken &&
+                rd32(battle_addr + layout.result) == 2 && map() == 19) {
+                party_snapshot("master_loss_in_battle_before_heal");
+                loss_snapshot_taken = 1;
+            }
             saw_battle = 1;
             last_battle_state = battle_state();
             last_battle_result = rd32(battle_addr + layout.result);
@@ -74,7 +88,20 @@ static void tap(unsigned keys) {
     frame(keys, 0); frame(keys, 0);
     for (int i = 0; i < 8; i++) frame(0, 0);
 }
+static void party_snapshot(const char *label) {
+    printf("PARTY_STATE %s frames=%lu", label, frames);
+    int count = rd32(party_count_addr);
+    for (int i = 0; i < count && i < 6; i++) {
+        unsigned mon = party_addr + (unsigned)i * layout.monster_size;
+        printf(" slot%d=species:%d,lv:%d,hp:%d,pp:%d/%d/%d/%d", i,
+               rd8(mon), rd8(mon + 1), rd16(mon + layout.hp),
+               rd8(mon + layout.pp), rd8(mon + layout.pp + 1),
+               rd8(mon + layout.pp + 2), rd8(mon + layout.pp + 3));
+    }
+    putchar('\n');
+}
 static void fail(int line, const char *message) {
+    if (core && party_addr && layout.monster_size) party_snapshot("blocked_after_game_recovery_possible");
     fprintf(stderr, "BLOCKED line=%d reason=%s map=%d x=%d y=%d mode=%d dialog=%d phase=%d battle_state=%d wild_wins=%d wild_runs=%d wardens=%d dialogs=%d frames=%lu minutes=%.3f title_from_mode=%d title_from_map=%d title_from_x=%d title_from_y=%d saw_battle=%d last_battle_state=%d last_battle_result=%d last_battle_pair=%d\n",
             line, message, map(), x(), y(), mode(), rd32(dialog_addr), rd32(phase_addr), mode() == 8 ? battle_state() : -1,
             wild_wins, wild_runs, wardens, dialogs, frames, frames / FRAMES_PER_MINUTE,
@@ -102,9 +129,19 @@ static int best_move(void) {
 }
 static void drive_battle(int line, int *last_kind) {
     int kind = battle_kind(), state = battle_state();
+    if (master_choice == 2 && rd32(battle_addr + layout.team_idx) > master_max_foe)
+        master_max_foe = rd32(battle_addr + layout.team_idx);
     if (kind != 0 && kind != 1) fail(line, "unknown battle kind");
     if (rd32(battle_addr + layout.pair)) fail(line, "paired bout needs explicit actor/target policy");
     if (*last_kind < 0) {
+        if (master_choice == 2) {
+            /* team_count immediately precedes team_idx in the verified ROM layout. */
+            master_team_count = rd32(battle_addr + layout.team_idx - 4);
+            if (master_team_count != 6)
+                fail(line, "Master ROM team is not six");
+            party_snapshot("master_open");
+            printf("MASTER_TEAM opponents=%d trainer_kind=%d frames=%lu\n", master_team_count, kind, frames);
+        }
         *last_kind = kind;
         printf("BOUT kind=%s map=%d x=%d y=%d wild_wins=%d\n",
                kind ? "warden" : "wild", map(), x(), y(), wild_wins);
@@ -140,23 +177,70 @@ static void drive_battle(int line, int *last_kind) {
     } else fail(line, "battle needs manual party/item/learn choice");
 }
 static void drive_dialog(int line) {
-    if (rd32(phase_addr) == 2) fail(line, "dialog choice needs explicit route policy");
+    if (rd32(phase_addr) == 2) {
+        if (master_choice != 1 || map() != 19 || x() != 7 || y() != 3)
+            fail(line, "dialog choice needs explicit route policy");
+        master_choice = 0;
+        press(KEY_A); /* YES is the first option; never select by default. */
+        printf("MASTER_CHOICE yes frames=%lu\n", frames);
+        return;
+    }
     press(KEY_A);
     dialogs++;
+}
+static void forced_switch(int line) {
+    if (master_choice != 2 || battle_state() != 6 || rd32(battle_addr + layout.pair))
+        fail(line, "unhandled party screen (not Master forced switch)");
+    if (forced_cursor < 0) {
+        forced_cursor = rd32(battle_addr + layout.ally);
+        party_snapshot("forced_switch");
+    }
+    int count = rd32(party_count_addr), target = -1;
+    for (int i = 0; i < count && i < 6; i++) {
+        unsigned mon = party_addr + (unsigned)i * layout.monster_size;
+        if (i != rd32(battle_addr + layout.ally) && rd16(mon + layout.hp) > 0) {
+            target = i; break;
+        }
+    }
+    if (target < 0) fail(line, "no healthy kin for forced switch");
+    if (forced_cursor != target) {
+        press(KEY_DOWN);
+        forced_cursor = (forced_cursor + 1) % count;
+    } else {
+        press(KEY_A);
+        if (mode() != 8) fail(line, "forced switch did not return to battle");
+        printf("FORCED_SWITCH slot=%d frames=%lu\n", target, frames);
+        forced_cursor = -1;
+    }
 }
 static void step(int line, unsigned direction, int *last_kind) {
     int previous_mode = mode();
     if (previous_mode == 10) fail(line, "returned to title during timed route; possible ROM reset");
     if (previous_mode == 8) drive_battle(line, last_kind);
+    else if (previous_mode == 2) forced_switch(line);
     else if (previous_mode == 0 && rd32(dialog_addr)) drive_dialog(line);
     else if (previous_mode == 0) frame(direction, 1);
     else fail(line, "unhandled mode; manual recovery/healing required");
     if (mode() == 10) fail(line, "returned to title during timed route; possible ROM reset");
+    if (previous_mode == 8 && mode() == 2 && battle_state() == 6 && master_choice == 2)
+        return; /* a knocked-out kin opened the game party screen, not a bout result */
     if (previous_mode == 8 && mode() != 8) {
         int result = rd32(battle_addr + layout.result);
-        if (result == 2) fail(line, "party lost; no unmeasured recovery");
+        if (result == 2) {
+            if (master_choice == 2 && !loss_snapshot_taken)
+                fail(line, "Master loss snapshot missed before ROM heal");
+            fprintf(stderr, "MASTER_LOSS team_index=%d/%d frames=%lu\n",
+                    master_max_foe, master_team_count, frames);
+            fail(line, "party lost; no unmeasured recovery");
+        }
         if (*last_kind == 1) {
             if (result != 1) fail(line, "warden did not end in victory");
+            if (master_choice == 2) {
+                if (master_team_count != 6 || master_max_foe != 5)
+                    fail(line, "Master did not traverse six ROM opponents");
+                master_bouts++;
+                party_snapshot("master_win");
+            }
             wardens++;
         } else if (result == 1) wild_wins++;
         else if (result == 3) wild_runs++;
@@ -167,7 +251,8 @@ static void step(int line, unsigned direction, int *last_kind) {
     }
 }
 int main(int argc, char **argv) {
-    if (argc != 38) { fprintf(stderr, "usage: runner rom route 12 addresses 23 ELF layout values\n"); return 1; }
+    setvbuf(stdout, NULL, _IONBF, 0);
+    if (argc != 39) { fprintf(stderr, "usage: runner rom route 12 addresses 23 ELF layout values save-or-dash\n"); return 1; }
     map_addr = strtoul(argv[3], 0, 16); player_addr = strtoul(argv[4], 0, 16);
     mode_addr = strtoul(argv[5], 0, 16); flags_addr = strtoul(argv[6], 0, 16); dialog_addr = strtoul(argv[7], 0, 16);
     phase_addr = strtoul(argv[8], 0, 16); battle_addr = strtoul(argv[9], 0, 16);
@@ -197,8 +282,15 @@ int main(int argc, char **argv) {
     mCoreInitConfig(core, NULL);
     core->setVideoBuffer(core, pixels, 256);
     if (!mCoreLoadFile(core, argv[1])) { fprintf(stderr, "ROM load failed: %s\n", argv[1]); return 1; }
-    /* Deliberately start with blank ephemeral SRAM; never read or write a user save. */
+    /* Only the explicit disposable fixture is read, before any route command. */
     static unsigned char sram[32768]; memset(sram, 0xff, sizeof(sram));
+    int saved = strcmp(argv[38], "-") != 0;
+    if (saved) {
+        FILE *input = fopen(argv[38], "rb");
+        if (!input || fread(sram, 1, sizeof(sram), input) != sizeof(sram) ||
+            fgetc(input) != EOF) { fprintf(stderr, "act-start SRAM read failed\n"); return 1; }
+        if (fclose(input)) { fprintf(stderr, "act-start SRAM close failed\n"); return 1; }
+    }
     core->loadSave(core, VFileMemChunk(sram, sizeof(sram))); core->reset(core);
     for (int i = 0; i < 180; i++) frame(0, 0);
     FILE *file = fopen(argv[2], "r");
@@ -208,6 +300,16 @@ int main(int argc, char **argv) {
         line++;
         if (sscanf(buf, "%31s", op) != 1 || op[0] == '#') continue;
         if (!strcmp(op, "start") && sscanf(buf, "%*s %d", &a) == 1 && !started) {
+            if (saved) {
+                tap(KEY_A); /* title menu */
+                tap(KEY_A); /* CONTINUE, selected first */
+                for (int i = 0; i < 300 && mode() != 0; i++) frame(0, 0);
+                if (map() != a || mode() != 0 || rd32(party_count_addr) != 4)
+                    fail(line, "act-start CONTINUE did not load requested party/map");
+                started = 1;
+                printf("START_SAVE map=%d x=%d y=%d party=%d\n", map(), x(), y(), rd32(party_count_addr));
+                continue;
+            }
             tap((1u << 2) | (1u << 3)); /* SELECT + START: title debug menu */
             for (int i = 0; i < 3; i++) tap(1u << 7); /* WARP TO MAP */
             tap(1u); /* open warp list */
@@ -221,6 +323,11 @@ int main(int argc, char **argv) {
             printf("START map=%d x=%d y=%d\n", map(), x(), y());
         } else if (!strcmp(op, "flag") && sscanf(buf, "%*s %d", &a) == 1 && a >= 0 && a < 512) {
             unsigned addr = flags_addr + (unsigned)a / 8;
+            if (saved) {
+                if (!(rd8(addr) & (1u << (a % 8)))) fail(line, "act-start prerequisite flag missing from save");
+                printf("FLAG id=%d loaded=1\n", a);
+                continue;
+            }
             core->busWrite8(core, addr, core->busRead8(core, addr) | (1u << (a % 8)));
             if (!(core->busRead8(core, addr) & (1u << (a % 8)))) fail(line, "flag write did not persist");
             printf("FLAG id=%d set=1\n", a);
@@ -266,7 +373,32 @@ int main(int argc, char **argv) {
             printf("SWITCH line=%d group=%d state=%d frames=%lu\n", line, b, c, frames);
         } else if (!strcmp(op, "party_min") && sscanf(buf, "%*s %d", &a) == 1 && started && a >= 1 && a <= 6) {
             if (rd32(party_count_addr) < a) fail(line, "insufficient in-game party for Master");
+            party_snapshot("party_gate");
             printf("PARTY count=%d minimum=%d\n", rd32(party_count_addr), a);
+        } else if (!strcmp(op, "master") && sscanf(buf, "%*s %d %d %d %d %d", &a, &b, &c, &line_direction, &dest) == 5 && started) {
+            if (!saved || map() != a || x() != b || y() != c || mode() != 0 ||
+                rd32(dialog_addr) || rd32(warp_addr) || wardens < 2 ||
+                rd8(flags_addr + dest / 8) & (1u << (dest % 8)))
+                fail(line, "Master starting state or crest prerequisite mismatch");
+            int before = wardens, last_kind = -1, saw_choice = 0;
+            press(1u << line_direction);
+            if (map() != a || x() != b || y() != c) fail(line, "Master facing step moved player");
+            for (int i = 0; i < 16; i++) step(line, 0, &last_kind);
+            master_choice = 1;
+            press(KEY_A);
+
+            for (int i = 0; i < 20000 && wardens == before; i++) {
+                if (rd32(phase_addr) == 2) saw_choice = 1;
+                step(line, 0, &last_kind);
+                if (saw_choice && master_choice == 0) master_choice = 2;
+            }
+            if (!saw_choice || master_choice != 2 || master_bouts != 1 || wardens != before + 1 ||
+                map() != a || !(rd8(flags_addr + dest / 8) & (1u << (dest % 8))))
+                fail(line, "Master six-opponent win and crest not observed");
+            for (int i = 0; i < 1000 && rd32(dialog_addr); i++) step(line, 0, &last_kind);
+            if (rd32(dialog_addr)) fail(line, "Master reward dialog did not settle");
+            printf("MASTER line=%d map=%d x=%d y=%d crest=%d frames=%lu\n", line, map(), x(), y(), dest, frames);
+            master_choice = 0;
         } else if (!strcmp(op, "warden") && sscanf(buf, "%*s %d %d %d %d", &a, &b, &c, &line_direction) == 4 && started) {
             if (map() != a || x() != b || y() != c || mode() != 0)
                 fail(line, "warden interaction starting checkpoint mismatch");

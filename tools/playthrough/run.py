@@ -82,6 +82,7 @@ def layout_args(layout):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('route', type=Path)
+    parser.add_argument('--act-start-save', type=Path, help='disposable SRAM fixture; read once before reset')
     args = parser.parse_args()
     maps, flags = ids('all_ids.inc', 'MAP_'), ids('all_flag_ids.inc', 'FLAG_')
     if not (ROOT / "game.gba").is_file() or not (ROOT / "game.elf").is_file():
@@ -91,9 +92,9 @@ def main():
         parts = line.split('#', 1)[0].split()
         if not parts:
             continue
-        if parts[0] not in ('start', 'flag', 'way', 'edge', 'door', 'warden', 'wild_limit', 'switch', 'party_min'):
+        if parts[0] not in ('start', 'flag', 'way', 'edge', 'door', 'warden', 'wild_limit', 'switch', 'party_min', 'master'):
             parser.error(f'line {number}: invalid command {parts[0]}')
-        expected = {'start': 2, 'flag': 2, 'way': 4, 'edge': 4, 'door': 6, 'warden': 5, 'wild_limit': 2, 'switch': 4, 'party_min': 2}[parts[0]]
+        expected = {'start': 2, 'flag': 2, 'way': 4, 'edge': 4, 'door': 6, 'warden': 5, 'wild_limit': 2, 'switch': 4, 'party_min': 2, 'master': 6}[parts[0]]
         if len(parts) != expected:
             parser.error(f'line {number}: expected {expected - 1} arguments')
         table = flags if parts[0] == 'flag' else maps if parts[0] not in ('wild_limit', 'party_min') else None
@@ -122,6 +123,18 @@ def main():
                 parser.error(f'line {number}: door needs adjacent position, direction and destination map ID')
             parts[4] = str({'north': 6, 'south': 7, 'west': 5, 'east': 4}[parts[4]])
             parts[5] = str(maps[parts[5]])
+        if parts[0] == 'master' and (parts[1] != str(maps['MAP_VOLT_HALL']) or
+                                      parts[5] != 'FLAG_VOLT_CREST' or parts[2:5] != ['7', '3', 'north']):
+            parser.error(f'line {number}: master needs Hall (7,3), north, FLAG_VOLT_CREST')
+        if parts[0] == 'master':
+            try:
+                x, y = map(int, parts[2:4])
+            except ValueError:
+                parser.error(f'line {number}: master coordinates must be integers')
+            if not (0 <= x < 64 and 0 <= y < 64):
+                parser.error(f'line {number}: master coordinates outside bounds')
+            parts[4] = str({'north': 6, 'south': 7, 'west': 5, 'east': 4}[parts[4]])
+            parts[5] = str(flags[parts[5]])
         if parts[0] == 'warden':
             try:
                 x, y = map(int, parts[2:4])
@@ -138,6 +151,8 @@ def main():
         if parts[0] == 'wild_limit' and parts[1] not in ('3', '6'):
             parser.error(f'line {number}: wild_limit must be 3 (hamlet) or 6 (route)')
         converted.append(' '.join(parts))
+    if any(line.startswith('master ') for line in converted) and args.act_start_save is None:
+        parser.error('master requires --act-start-save (no single-kin debug warp)')
     if sum(line.startswith('start ') for line in converted) != 1:
         parser.error('route must contain exactly one start')
     start_index = next(i for i, line in enumerate(converted) if line.startswith('start '))
@@ -156,7 +171,11 @@ def main():
     subprocess.run(['cc', '-std=c11', '-O2', '-Wall', '-Wextra', '-I' + prefix + '/include',
                     '-o', str(binary), str(ROOT / 'tools/playthrough/runner.c'),
                     '-L' + prefix + '/lib', '-lmgba'], check=True)
-    return subprocess.run([str(binary), str(ROOT / 'game.gba'), str(route), *symbols(), *layout_args(layout)]).returncode
+    save = args.act_start_save
+    if save is not None and (not save.is_file() or save.stat().st_size != 32768):
+        parser.error('act-start save must be an existing 32768-byte disposable SRAM file')
+    return subprocess.run([str(binary), str(ROOT / 'game.gba'), str(route), *symbols(),
+                           *layout_args(layout), str(save.resolve()) if save else '-']).returncode
 
 if __name__ == '__main__':
     sys.exit(main())
