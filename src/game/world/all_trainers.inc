@@ -11,4 +11,5 @@
 #include "travel/trainers.inc"
 #include "elev/trainers.inc"
 #include "ui/trainers.inc"
+#include "links/trainers.inc"
 #include "debug/trainers.inc"

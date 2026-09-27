@@ -11,4 +11,5 @@
 #include "travel/script_table.inc"
 #include "elev/script_table.inc"
 #include "ui/script_table.inc"
+#include "links/script_table.inc"
 #include "debug/script_table.inc"

@@ -11,4 +11,5 @@
 #include "travel/flag_ids.inc"
 #include "elev/flag_ids.inc"
 #include "ui/flag_ids.inc"
+#include "links/flag_ids.inc"
 #include "debug/flag_ids.inc"

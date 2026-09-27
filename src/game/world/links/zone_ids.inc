@@ -1,0 +1,2 @@
+/* world/links/zone_ids.inc -- Plan 08 loop routes. */
+    ZONE_GLASS_DUNES, ZONE_ASH_FLATS, ZONE_STAR_CAIRN, ZONE_AURORA_SNOW, ZONE_FJORD_ISLES, ZONE_FJORD_SURF,
