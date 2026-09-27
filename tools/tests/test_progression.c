@@ -178,8 +178,13 @@ static void check_gate_cells(void)
     CHECK(flood_open(43, 17, FLOOD_WALK) && flood_open(43, 18, FLOOD_WALK),
           "G1 releases the east road after the calm");
     map_load(MAP_LAKE);
+    CHECK(!flood_open(0, 31, FLOOD_WALK) && !flood_open(0, 32, FLOOD_WALK),
+          "G2 fen wardens keep the western road sealed after G1");
+    flag_set(FLAG_VOLT_CREST);
+    map_load(MAP_LAKE);
     CHECK(flood_open(0, 31, FLOOD_WALK) && flood_open(0, 32, FLOOD_WALK),
-          "G1 releases the west road after the calm");
+          "G2 releases the Lake border after VOLT");
+    flag_clear(FLAG_VOLT_CREST);
     flag_clear(FLAG_STORM_CALMED);
 
     map_load(MAP_HERON_FEN);
@@ -214,6 +219,53 @@ static void check_gate_cells(void)
     map_load(MAP_MISTFEN);
     CHECK(flood_open(24, 52, FLOOD_WALK), "G6 Ward Lantern parts the fog");
     flag_clear(FLAG_LANTERN_CREST);
+
+    map_load(MAP_RISE);
+    CHECK(!flood_open(11, 0, FLOOD_WALK) && !flood_open(12, 0, FLOOD_WALK),
+          "G4 also seals the Rise border before Anvil");
+    flag_set(FLAG_CREST_ANVIL);
+    map_load(MAP_RISE);
+    CHECK(flood_open(11, 0, FLOOD_WALK) && flood_open(12, 0, FLOOD_WALK),
+          "G4 Rise border reopens after Anvil");
+    flag_clear(FLAG_CREST_ANVIL);
+
+    map_load(MAP_COPPERLINE);
+    CHECK(!(cell_attr(20, 34) & A_DOOR), "G5 seals the Copperline checkpoint door");
+    flag_set(FLAG_RIME_CREST);
+    map_load(MAP_COPPERLINE);
+    CHECK(cell_attr(20, 34) & A_DOOR, "G5 reopens the door after Rime");
+    flag_clear(FLAG_RIME_CREST);
+
+    map_load(MAP_LUMEN);
+    CHECK(!flood_open(55, 20, FLOOD_WALK) && !flood_open(24, 0, FLOOD_WALK),
+          "G3 and G6 seal their Lumen departures");
+    flag_set(FLAG_TIDE_CREST);
+    flag_set(FLAG_LANTERN_CREST);
+    map_load(MAP_LUMEN);
+    CHECK(flood_open(55, 20, FLOOD_WALK) && flood_open(24, 0, FLOOD_WALK),
+          "G3 and G6 reopen their Lumen departures after their crests");
+    flag_clear(FLAG_TIDE_CREST);
+    flag_clear(FLAG_LANTERN_CREST);
+
+    map_load(MAP_FOOTHILLS);
+    int east_rock = -1, guide = -1;
+    for (int i = 0; i < tobj_count; i++)
+        if (tobj[i].kind == OBJ_BOULDER && tobj[i].x == 12 && tobj[i].y == 56) east_rock = i;
+    for (int i = 0; i < NPC_COUNT; i++)
+        if (NPCS[i].map == MAP_FOOTHILLS && NPCS[i].script == SCR_ROCKFALL_RETURN &&
+            NPCS[i].x == 15 && NPCS[i].y == 52) guide = i;
+    CHECK(east_rock >= 0 && guide >= 0, "G4 has a north-side one-way return guide");
+    if (east_rock >= 0 && guide >= 0) {
+        tobj[east_rock].y = 59; /* adverse south push blocks the narrow return lane */
+        grid_cell(12, 56);
+        grid_cell(12, 59);
+        flood_ex(14, 53, FLOOD_WALK);
+        CHECK(at(15, 53), "G4 return guide remains reachable behind a south-pushed rock");
+        rockfall_return_answer(0);
+        CHECK(warp.active && warp.dest == MAP_RISE && warp.x == 11 && warp.y == 2,
+              "G4 one-way ridge chute returns directly to the Rise");
+        warp.active = 0;
+    }
 }
 
 static void check_levels(void)

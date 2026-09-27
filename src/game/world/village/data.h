@@ -162,6 +162,12 @@ static const char *const MEADOW_ROWS[] = {
     "ttttttttttttttttttt==ttttttttttttttttttt", /* 43 */
 };
 
+/* The fallen ridge seals the Rise entrance until the Anvil crest grants STRENGTH. */
+static const char *const RISE_ROCKSLIDE_ROWS[] = { "PP", "pp" };
+static const MapPatch RISE_GATE_PATCHES[] = {
+    { .flag = FLAG_CREST_ANVIL, .invert = 1, .x = 11, .y = 0, .w = 2, .h = 2,
+      .rows = RISE_ROCKSLIDE_ROWS },
+};
 static const char *const RISE_ROWS[] = {
     "PPPPPPPPPPP==PPPPPPPPPPP", /*  0 */
     "ppppppppppp==ppppppppppp", /*  1 */
