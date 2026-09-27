@@ -11,4 +11,5 @@
 #include "travel/zones.inc"
 #include "elev/zones.inc"
 #include "ui/zones.inc"
+#include "saga/zones.inc"
 #include "debug/zones.inc"

@@ -11,4 +11,5 @@
 #include "travel/script_ids.inc"
 #include "elev/script_ids.inc"
 #include "ui/script_ids.inc"
+#include "saga/script_ids.inc"
 #include "debug/script_ids.inc"

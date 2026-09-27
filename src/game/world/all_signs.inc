@@ -11,4 +11,5 @@
 #include "travel/signs.inc"
 #include "elev/signs.inc"
 #include "ui/signs.inc"
+#include "saga/signs.inc"
 #include "debug/signs.inc"

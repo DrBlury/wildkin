@@ -11,4 +11,5 @@
 #include "travel/scripts.c"
 #include "elev/scripts.c"
 #include "ui/scripts.c"
+#include "saga/scripts.c"
 #include "debug/scripts.c"

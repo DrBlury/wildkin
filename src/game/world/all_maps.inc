@@ -11,4 +11,5 @@
 #include "travel/maps.inc"
 #include "elev/maps.inc"
 #include "ui/maps.inc"
+#include "saga/maps.inc"
 #include "debug/maps.inc"

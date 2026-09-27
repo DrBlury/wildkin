@@ -11,4 +11,5 @@
 #include "travel/npcs.inc"
 #include "elev/npcs.inc"
 #include "ui/npcs.inc"
+#include "saga/npcs.inc"
 #include "debug/npcs.inc"

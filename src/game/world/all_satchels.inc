@@ -11,4 +11,5 @@
 #include "travel/satchels.inc"
 #include "elev/satchels.inc"
 #include "ui/satchels.inc"
+#include "saga/satchels.inc"
 #include "debug/satchels.inc"
