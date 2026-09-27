@@ -335,6 +335,8 @@ static TrainerTeam team_from(const TrainerDef *t, int scene)
     tt.prize = t->prize;
     tt.scene = (u8)scene;
     tt.lose_line = t->lose;
+    keeper_trainer_look((int)(t - TRAINERS), &tt.look, &tt.vary);   /* as they look on the map */
+    tt.look++;
     return tt;
 }
 

@@ -1454,8 +1454,9 @@ def make_sprites(model):
     # front
     ex = measure(model, model.front_yaw, model.front_pitch)
     wu, hu = ex[2] - ex[0], ex[3] - ex[1]
-    s = min(model.height / hu, min(model.max_w, 59.0) / wu)
     bottom = 60.0 - model.float_lift
+    # never taller than the frame: a hovering kin shrinks rather than clip
+    s = min(model.height / hu, min(model.max_w, 59.0) / wu, (bottom - 2.0) / hu)
     ox = 32.0 - s * (ex[0] + ex[2]) / 2.0
     oy = bottom - s * ex[3]
     Rf = render(model, model.front_yaw, model.front_pitch, s, ox, oy, 64, 64)
@@ -1496,9 +1497,15 @@ OW_SIDE_YAW = {'STORMHAWK': -62.0, 'SKYWISP': -58.0, 'LUMOTH': -58.0,
                'PUFFOWL': -72.0}
 OW_PITCH = {'down': 24.0, 'up': 28.0, 'left': 18.0}
 # kin that hover above the ground in the overworld (px of lift)
-OW_FLOAT = {'BUBBLIN': 3, 'STORMHAWK': 4, 'HOOTLORD': 3, 'SKYWISP': 4,
+OW_FLOAT = {'NOSFERBAT': 2, 'BUBBLIN': 3, 'STORMHAWK': 4, 'HOOTLORD': 3, 'SKYWISP': 4,
             'LUMOTH': 4, 'WISPIRE': 4, 'DRAKORA': 3}
 LEG_WORDS = ('leg', 'foot', 'hip', 'shin', 'thigh')
+# long side-on kin (horses, big cats, drakes) are a thin column head-on, so
+# their down/up frames turn to a 3/4 view. OW_TURN[name] sets the angle (0 =
+# never turn); otherwise a kin turns by OW_AUTO_TURN when its head-on view is
+# narrow and its profile is much wider.
+OW_TURN = {'HOPSHI': 0.0}
+OW_AUTO_TURN = -50.0
 
 
 def part_side(name):
@@ -1605,8 +1612,30 @@ def walk_variant(model, unit):
     return variant(model, offs, scale=(1.07, 0.9, 1.07))
 
 
+# Overworld size by rank (docs: the player is 24 px tall and 14 px wide, and a
+# kin must still fit through a one-tile corridor behind them). Tier from
+# tools/kin: (min height, max height, max width) in px, outline included.
+# Within its range a kin's height follows its battle height (m.height).
+OW_SIZE = {'first': (16, 19, 20), 'middle': (18, 22, 22), 'final': (20, 24, 24),
+           'single': (20, 24, 24), 'rare': (21, 25, 24), 'fusion': (23, 26, 24),
+           'legend': (26, 29, 26)}
+OW_TIER = {}                # name -> (tier, rarity), filled by _roster()
+
+
+def ow_size(model):
+    tier, rarity = OW_TIER.get(model.name, ('final', 'U'))
+    lo, hi, wmax = OW_SIZE[tier]
+    if rarity == 'R' and tier != 'rare':          # rare lines sit one step up
+        lo, hi = lo + 1, hi + 1
+    if OW_FLOAT.get(model.name, 0) > 0:           # flyers pass over things: wings may spread
+        hi, wmax = hi + 1, min(30, wmax + 4)
+    # battle heights run ~26 (tiny) .. ~62 (huge); map that onto lo..hi
+    t = max(0.0, min(1.0, (model.height - 28) / 30.0))
+    return int(round(lo + (hi - lo) * t)), wmax
+
+
 def ow_target_height(model):
-    return max(14, min(30, int(round(15 + (model.height - 30) * 0.5))))
+    return ow_size(model)[0]
 
 
 def make_overworld(model, pal_info):
@@ -1619,11 +1648,25 @@ def make_overworld(model, pal_info):
     yaws = dict(OW_YAW)
     yaws['left'] = OW_SIDE_YAW.get(model.name, yaws['left'])
     exts = {v: measure(model, yaws[v], OW_PITCH[v]) for v in yaws}
+    turn = OW_TURN.get(model.name)
+    if turn is None:
+        d, l = exts['down'], exts['left']
+        dw, dh, lw = d[2] - d[0], d[3] - d[1], l[2] - l[0]
+        turn = OW_AUTO_TURN if dw < 0.6 * dh and lw > 1.5 * dw else 0.0
+    if turn:
+        yaws['down'], yaws['up'] = turn, 180.0 + turn
+        for v in ('down', 'up'):
+            exts[v] = measure(model, yaws[v], OW_PITCH[v])
     ex = exts['down']
     # target counts the 1px outline on top and bottom
-    s = (ow_target_height(model) - 2) / (ex[3] - ex[1])
+    target_h, max_w = ow_size(model)
+    # the height target holds in every direction (the walk bob adds 1 px)
+    s = (target_h - 3) / max(e[3] - e[1] for e in exts.values())
     for v, e in exts.items():
-        s = min(s, 28.0 / (e[2] - e[0]), (bottom - 3.0) / (e[3] - e[1]))
+        # width only matters across a corridor (down/up); walking sideways a
+        # kin may be long, up to the frame
+        w = max_w if v != 'left' else 30
+        s = min(s, (w - 2.0) / (e[2] - e[0]), (bottom - 3.0) / (e[3] - e[1]))
     unit = 1.0 / s                      # model units per pixel
     walk = model if floating else walk_variant(model, unit)
     frames = []
@@ -4046,7 +4089,9 @@ def _roster():
     import kin
     out = []
     g = sys.modules[__name__]
-    for spec in kin.load():
+    specs = kin.load()
+    for spec in specs:
+        OW_TIER[spec.name] = (kin.tier(spec, specs), spec.rarity)
         if isinstance(spec.model, str):
             out.append((spec.name, globals()[spec.model]))
         elif callable(spec.model):

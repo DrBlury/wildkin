@@ -24,7 +24,7 @@
 > west, north, grim and far regions). `make art && make && make test` is
 > green (14 suites) with zero warnings. Each area's current done/left list
 > is in `docs/handoff/<area>.md`; sections 2-7 below describe the earlier
-> state. Still open: kin art (many kin use placeholders), the README and
+> state. Still open: the README and
 > media, the music hooks, cross-region balance and story pacing, and the
 > small per-area leftovers (e.g. the Clockwork Spire's town-map spot, the
 > brewer/smith rooms, per-region berry patches, the Lorebook PLACES limit).
@@ -147,7 +147,10 @@ To see a branch's work: `git log expansion..worktree-agent-<id>` and
 - **Items** live in `src/game/items/<owner>.inc` (ITEM_DEF). Save files store
   bag entries by a hash of the item name, so ids may move but renames lose
   the item.
-- **Kin** live in `tools/kin/<batch>.py` (KinSpec). Regenerate with
+- **Kin** live in `tools/kin/<batch>.py` (KinSpec); every kin has real art. Check sprites with
+  `python3 tools/check_kin_clip.py [ids]` (nothing may touch a frame edge). Overworld size
+  follows rank (gen_monsters OW_SIZE: first ~15 px tall up to legends ~26-29, the player is 24);
+  down/up widths are capped so a kin fits a one-tile corridor, flyers get extra wing room. Regenerate with
   `python3 tools/gen_species.py && python3 tools/gen_monsters.py`.
 - **Tilesets** live in `tools/tilesets/ts_<name>.py`, **decor** in
   `tools/decor_<owner>.py`, and **icons** in `tools/icons/icons_<owner>.py`.
@@ -193,11 +196,11 @@ before work started.
 
 | area | status | done | left |
 | --- | --- | --- | --- |
-| kin 32-66 | green | 20 kin finished (32-51: data + art) | 52-66: data final, art missing (art briefs in the note) |
-| kin 67-100 | not run | real data for all 34; first-pass models for the 8 HOLLOW kin (84-91) | 26 kin need art (notes per kin). **Keep** M_ANVIL_DROP / M_LODE_BEAM in these learnsets or the "every move learnable" test fails |
-| rare 101-120 + legends 121-129 | green | all 9 legends: data + art | art polish: SCRIPTORA, CALDERON, NOCTHALE, SKYLORN (plans in the note). The 20 rares are still placeholders (designs planned) |
-| fusion 130-151 | green | 130-137 finished | 138-151: data final, art missing (briefs in the note) |
-| fusion 152-173 | green | data final for all 22; art done for 152-159 | 160-163: art drawn, one review pass only. 164-173: art missing (`_todo` stubs) |
+| kin 32-66 | green | all 35: data + art (art_normal_a.py) | polished in a second pass (SCORCHION/STINGLET redesigned) |
+| kin 67-100 | green | all 34: data + art (art_normal_b.py 67-75 + 84-91, art_normal_b2.py 76-83, art_normal_b3.py 92-100) | **Keep** M_ANVIL_DROP / M_LODE_BEAM in these learnsets. second pass: LODEHORN, SCYTHLING, COMBQUEEN, UMBRAKAT, RIVETILLO redesigned |
+| rare 101-120 + legends 121-129 | green | all 20 rares: real data + art (rare.py/rare_b.py/rare_c.py + art_rare*.py); legends polished (SCRIPTORA rebuilt, CALDERON reared) | second pass: HOARDMAW, GARGOLITH redesigned; SCRIPTORA, CALDERON rebuilt |
+| fusion 130-151 | green | all 22: data + art (138-144 in art_fusion_a.py, 145-151 in art_fusion_a2.py) | second pass: MANTICLAW, RIDDLEON, NOSFERBAT, STARWEAVER redesigned |
+| fusion 152-173 | green | all 22: data + art; 160/162 fixed | second pass: TESLAROSE, SNOWBRUTE redesigned. Long side-on kin turn to 3/4 in overworld up/down (gen_monsters OW_TURN / OW_AUTO_TURN) |
 
 ### Systems
 

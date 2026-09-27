@@ -16,6 +16,7 @@
  *   game/grass.c      tall grass: front blades over actors, rustles, wind
  *   game/battle.c     turn rules that queue presentation events
  *   game/anim.c       move animations
+ *   game/keeper.c     bout portraits: keepers and the player, the intro sequence
  *   game/battle_ui.c  event playback, HUD, battle menus, transitions
  *   game/menu.c       START menu, team, summary, bag, shop, PC
  *   game/dex.c        monster catalogue with scrolling detail pages
@@ -43,6 +44,7 @@
 #include "gfx_craft.h"
 #include "gfx_fusion.h"
 #include "gfx_rune.h"
+#include "gfx_keepers.h"
 #include "game/data.h"
 #include "game/lore.h"
 #include "game/monster.c"
@@ -57,6 +59,7 @@
 #include "game/anim3d.c"
 #include "game/anim.c"
 #include "game/anim_rune.c"
+#include "game/keeper.c"
 #include "game/battle_ui.c"
 #include "game/menu.c"
 #include "game/dex.c"

@@ -101,7 +101,12 @@ typedef struct {
     u8 scene;
     const char *lose_line;
     u8 flags;             /* TT_* */
+    u8 look;              /* bout portrait: 1 + KP_* (0: by the scene) */
+    u8 vary;              /* its colour variation (0: by the name) */
 } TrainerTeam;
+
+/* Bout-portrait actions (keeper.c), EV_PORTRAIT a. */
+enum { PA_NONE, PA_ENTER, PA_IDLE, PA_FLAIR, PA_THROW, PA_LEAVE, PA_RETURN };
 
 enum {
     EV_TEXT,      /* a: MSGM_* mode */
@@ -126,6 +131,7 @@ enum {
     EV_LEGEND,    /* a legend rears up: roar, shockwaves, heavy shake */
     EV_CUE,       /* a: BCUE_* for the music module */
     EV_NAME,      /* a befriended kin may get a name: a = 0 team / 1 Shelf, b = its slot */
+    EV_PORTRAIT,  /* side's portrait: a = PA_*, b = the frame PA_RETURN settles in */
 };
 
 /* EV_ANIM b flags (low byte = hit index). */
@@ -1096,6 +1102,7 @@ static void queue_enemy_fainted(void)
     }
     if (battle.kind == BK_TRAINER) {
         char msg[BEV_TEXT];
+        bev_push(EV_PORTRAIT, SIDE_ENEMY, PA_RETURN, KF_LOSE);   /* the keeper walks back in, sheepish */
         if (battle.master) {                 /* the Hall Master's finale */
             bev_push(EV_SFX, 0, SFX_VICTORY, 0);
             bev_push(EV_CUE, 0, BCUE_MASTER_WIN, 0);
@@ -1117,6 +1124,7 @@ static void queue_enemy_fainted(void)
 static void queue_ally_fainted(void)
 {
     if (party_first_healthy() < 0) {
+        if (battle.kind == BK_TRAINER) bev_push(EV_PORTRAIT, SIDE_ENEMY, PA_RETURN, KF_FLAIR);
         bsay_wait("You have no more kin that can go on!");
         bsay_wait("You hurried back to the HEARTH HALL...");
         battle_finish(BR_LOSE);

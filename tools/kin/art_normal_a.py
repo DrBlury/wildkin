@@ -1500,4 +1500,1152 @@ def beaconfly(g):
     return m
 
 
+# ==========================================================================
+# 52 STATICKO -- leopard gecko with crackling static toe pads
+# ==========================================================================
+def gecko_foot(g, m, ft, s, fwd, part, ln=2.0, mat='skin', pad='spark'):
+    """Four splayed toes ending in round (glowing) pads."""
+    for k in range(4):
+        a = (-25 + 32 * k) * DEG
+        d = norm((s * math.sin(a), -0.08, math.cos(a) * fwd))
+        tip = add(ft, mul(d, ln))
+        m.tube([ft, tip], [0.55, 0.4], mat, part)
+        m.sph(add(tip, mul(d, 0.3)), 0.72, pad, part)
+
+
+def staticko(g):
+    m = g.Model('STATICKO')
+    m.outline = (58, 34, 14)
+    m.mat('skin', ['#94601a', '#d49a2c', '#f4c858', '#fff0a4'])
+    m.mat('spot', ['#3c2616', '#5e3c20'])
+    m.mat('belly', ['#e0cc9c', '#fff6dc'])
+    m.mat('spark', ['#2c96e0', '#8ae4ff', '#f0ffff'], emissive=0.65)
+    m.eye_dark = (40, 24, 12)
+    m.white = (255, 252, 236)
+    m.height = 24
+    m.front_yaw = -34
+    # fat leopard-gecko tail curling round to its left
+    tail = [(0, 4.2, -4.6), (0.6, 3.6, -8.6), (3.6, 3.4, -11.6),
+            (7.6, 3.8, -11.4), (9.6, 5.4, -8.4)]
+    m.tube(tail, [3.0, 3.3, 2.8, 1.8, 0.6], 'skin', 'tail')
+    # long low body, cream belly
+    bc, br = (0, 4.6, 0.0), (4.2, 3.2, 6.4)
+    m.ell(bc, br, 'skin', 'body')
+    m.paint((0, 2.2, 0.5), (3.4, 1.3, 5.4), 'belly', ['body'])
+    # splayed legs, elbows up, sticky glowing pads
+    for s in (-1, 1):
+        for zz, nm, fwd in ((3.6, 'F', 1), (-3.6, 'B', 0.6)):
+            sh = (s * 3.0, 4.4, zz)
+            el = (s * 6.0, 4.8, zz + 0.6 * fwd)
+            ft = (s * 7.0, 1.0, zz + 1.6 * fwd)
+            m.tube([sh, el, ft], [1.6, 1.3, 1.0], 'skin', 'leg%s%d' % (nm, s))
+            gecko_foot(g, m, ft, s, 1 if nm == 'F' else -0.3, 'leg%s%d' % (nm, s))
+    # big round head and blunt snout
+    m.tube([(0, 5.2, 4.6), (0, 6.8, 7.0)], [2.8, 2.9], 'skin', 'body')
+    hc, hr = (0, 8.4, 8.6), (4.8, 3.9, 4.4)
+    m.ell(hc, hr, 'skin', 'head')
+    sc, sr = (0, 7.4, 11.4), (3.6, 2.6, 2.4)
+    m.ell(sc, sr, 'skin', 'head')
+    m.paint((0, 5.6, 10.8), (3.2, 1.0, 2.6), 'belly', ['head'])
+    # leopard spots over back, head and tail
+    rnd = g.Rand(52)
+    for d in fib_dirs(40, 52, 0.5, g):
+        if d[1] < 0.15 or rnd.f() < 0.35:
+            continue
+        m.paint(g.on(bc, br, d)[0], 0.75 + rnd.f() * 0.25, 'spot', ['body'])
+    for d in ((0.5, 0.8, -0.3), (-0.5, 0.8, -0.3), (0.0, 1.0, -0.6),
+              (0.8, 0.5, 0.2), (-0.8, 0.5, 0.2)):
+        m.paint(g.on(hc, hr, norm(d))[0], 0.9, 'spot', ['head'])
+    # dark bands round the tail
+    for t in (0.2, 0.42, 0.62):
+        i = min(3, int(t * 4))
+        q = lerp(tail[i], tail[i + 1], t * 4 - i)
+        dn = norm(sub(tail[i + 1], tail[i]))
+        m.paint(q, (3.6, 3.6, 0.6), 'spot', ['tail'],
+                rot=(math.atan2(dn[0], dn[2]) / DEG, 0, 0))
+    # a crackle of static off the front pads
+    for s in (-1, 1):
+        b = (s * 8.6, 1.4, 7.6)
+        g.zigzag(m, [b, add(b, (s * 1.2, 1.4, 0.4)), add(b, (s * 0.4, 2.4, 0.6)),
+                     add(b, (s * 1.6, 3.8, 0.8))], [0.4, 0.35, 0.35, 0.12],
+                 'spark', 'zap%d' % s, flat=0.6)
+    # huge gecko eyes and a wide grin
+    # (swung toward the camera and up onto the head so both eyes show)
+    g.eye_pair(m, hc, hr, 36, 20, 4.0, 4.6, iris=('skin', 0), center=(0, 8, 14),
+               turn=12)
+    # overworld: a 3/4 turn so the long body and banded tail show
+    g.OW_TURN[m.name] = -30.0
+    p, n = g.on(sc, sr, (0.1, -0.35, 1))
+    m.mouth(p, n, 'smile', w=4.2)
+    return m
+
+
+# ==========================================================================
+# 53 FULGECKO -- upright running lizard with a crackling bolt frill
+# ==========================================================================
+def fulgecko(g):
+    m = g.Model('FULGECKO')
+    m.outline = (52, 28, 12)
+    m.mat('skin', ['#a06a18', '#dca434', '#fcd86a'])
+    m.mat('spot', ['#3a2410'])
+    m.mat('belly', ['#fff2d0'])
+    m.mat('frill', ['#2e4e98', '#5a8ad8'])
+    m.mat('spark', ['#ffd840', '#fffac8'], emissive=0.55)
+    m.mat('pad', ['#4ac0f4', '#e0ffff'], emissive=0.65)
+    m.mat('mouth', ['#c04a44'])
+    m.eye_dark = (36, 20, 10)
+    m.white = (255, 252, 236)
+    m.height = 58
+    m.max_w = 62
+    m.front_yaw = -30
+    # long whip tail streaming out behind for balance
+    tail = [(0, 16.0, -5.0), (0.6, 13.0, -11.0), (2.0, 10.0, -17.0),
+            (4.4, 8.4, -22.0), (7.0, 8.6, -25.0)]
+    m.tube(tail, [3.4, 2.8, 2.0, 1.2, 0.3], 'skin', 'tail')
+    for k in range(5):
+        t = 0.1 + k * 0.17
+        i = min(3, int(t * 4))
+        q = lerp(tail[i], tail[i + 1], t * 4 - i)
+        m.paint(add(q, (0, 2.0 - t, 0)), (2.6, 0.9, 1.0), 'spot', ['tail'])
+    # running legs: long thighs, digitigrade shins, splayed glowing toes
+    for s, (kz, fz) in ((1, (5.0, 4.0)), (-1, (0.0, -4.0))):
+        hip = (s * 3.6, 17.0, -1.0)
+        kn = (s * 5.2, 11.0, kz)
+        an = (s * 5.0, 4.2, fz - 2.4)
+        ft = (s * 5.2, 1.0, fz)
+        m.ell(hip, (3.2, 4.4, 4.0), 'skin', 'leg%d' % s)
+        m.tube([hip, kn, an, ft], [2.8, 2.0, 1.4, 1.1], 'skin', 'leg%d' % s)
+        gecko_foot(g, m, ft, s, 1, 'leg%d' % s, ln=2.6, pad='pad')
+    # lean torso pitched forward, pale throat and belly
+    tc = (0, 23.0, 2.2)
+    m.ell(tc, (5.2, 8.4, 5.0), 'skin', 'body', rot=(0, 38, 0))
+    m.paint((0, 21.6, 6.4), (3.4, 6.4, 2.0), 'belly', ['body'], rot=(0, 38, 0))
+    for d in ((0.6, 0.3, -0.7), (-0.6, 0.1, -0.7), (0.8, -0.3, -0.3),
+              (-0.8, -0.2, -0.4), (0.2, 0.7, -0.6)):
+        m.paint(g.on(tc, (5.2, 8.4, 5.0), norm(d), rot=(0, 38, 0))[0], 1.3,
+                'spot', ['body'])
+    # short arms flung back as it sprints
+    for s in (-1, 1):
+        sh = (s * 4.4, 27.0, 5.0)
+        el = (s * 7.0, 23.0, 3.0 + s * 2.0)
+        hd = (s * 7.4, 20.0, 6.0 + s * 2.0)
+        m.tube([sh, el, hd], [1.6, 1.3, 1.1], 'skin', 'arm%d' % s)
+        for k in range(3):
+            d = norm((s * (0.3 * k - 0.2), -0.6, 1.0))
+            m.tube([hd, add(hd, mul(d, 1.8))], [0.5, 0.35], 'skin', 'arm%d' % s)
+            m.sph(add(hd, mul(d, 2.0)), 0.6, 'pad', 'arm%d' % s)
+    # the neck frill: a wide blue fan behind the head, ribbed with bolt spines
+    fc = (0, 32.0, 4.0)
+    rimpts = []
+    for k in range(17):
+        a = (-125 + 250.0 * k / 16) * DEG
+        rr = 12.5 + 1.8 * (k % 2)
+        rimpts.append(add(fc, (math.sin(a) * rr, math.cos(a) * rr * 0.85,
+                               -3.0 - 0.8 * (k % 2))))
+    m.poly([add(fc, (0, -6.0, -1.0))] + rimpts, 'frill', 'frill', puff=0.3)
+    for k in range(1, 16, 2):
+        a = (-125 + 250.0 * k / 16) * DEG
+        d = (math.sin(a), math.cos(a) * 0.85, -0.16)
+        b = add(fc, mul(d, 4.0))
+        mid = add(fc, mul(d, 9.0))
+        tip = add(fc, mul(d, 17.0))
+        side = (math.cos(a) * 1.4, -math.sin(a) * 1.4, 0)
+        g.zigzag(m, [b, add(mid, side), add(mid, mul(side, -0.7)), tip],
+                 [0.9, 0.8, 0.75, 0.15], 'spark', 'frill', flat=0.8,
+                 up=(0, 0, 1))
+        # the same spine seen from behind
+        bk = (0, 0, -2.2)
+        g.zigzag(m, [add(b, (0, 0, -3.0)), add(add(mid, side), bk),
+                     add(add(mid, mul(side, -0.7)), bk), add(tip, (0, 0, -1.4))],
+                 [0.8, 0.7, 0.65, 0.15], 'spark', 'frill', flat=0.8,
+                 up=(0, 0, 1))
+    # head thrust forward, jaws open in a hiss
+    hc, hr = (0, 34.0, 9.4), (5.0, 4.2, 5.0)
+    m.ell(hc, hr, 'skin', 'head')
+    m.ell((0, 34.4, 13.6), (3.6, 2.2, 3.2), 'skin', 'head')
+    m.ell((0, 30.8, 12.6), (3.2, 1.3, 3.0), 'skin', 'jaw', rot=(0, -18, 0))
+    m.ell((0, 32.2, 12.8), (2.8, 1.2, 2.6), 'mouth', 'jaw')
+    for d in ((0.5, 0.8, -0.3), (-0.5, 0.8, -0.3), (0.0, 1.0, -0.5)):
+        m.paint(g.on(hc, hr, norm(d))[0], 1.0, 'spot', ['head'])
+    g.eye_pair(m, hc, hr, 42, 24, 3.6, 3.8, style='iris', iris=('spark', 1),
+               slant=0.6, center=(0, 34, 16))
+    return m
+
+
+# ==========================================================================
+# 54 FLURRABBIT -- chubby snowshoe hare with frosted ear tips
+# ==========================================================================
+def flurrabbit(g):
+    m = g.Model('FLURRABBIT')
+    m.outline = (40, 50, 78)
+    m.mat('fur', ['#8494b4', '#c4d0e4', '#eaf1fb', '#ffffff'])
+    m.mat('ice', ['#2e7cc4', '#6cc0f0', '#c4ecff'])
+    m.mat('pink', ['#c0707e', '#f4a8b4'])
+    m.eye_dark = (26, 30, 54)
+    m.white = (255, 255, 255)
+    m.height = 36
+    m.front_yaw = -28
+    # snowball tail
+    g.seedball(m, (0, 7.0, -7.6), 2.6, 'fur', 'tail', n=26, fil=0.36,
+               tip=0.5, seed=54)
+    # big snowshoe hind feet, fuzzy haunches
+    for s in (-1, 1):
+        m.ell((s * 4.2, 5.0, -2.2), (3.2, 3.8, 4.2), 'fur', 'hip%d' % s)
+        m.ell((s * 4.4, 1.3, 1.4), (2.2, 1.3, 4.6), 'fur', 'foot%d' % s)
+        m.paint((s * 4.4, 0.6, 1.6), (1.8, 0.8, 3.6), 'ice', ['foot%d' % s])
+        m.ell((s * 2.2, 2.2, 4.4), (1.3, 1.6, 1.5), 'fur', 'legF%d' % s)
+    # chubby round body
+    m.ell((0, 7.4, -0.6), (6.0, 6.4, 6.4), 'fur', 'body')
+    # round head with a little muzzle
+    hc, hr = (0, 13.6, 3.2), (5.0, 4.6, 4.6)
+    m.ell(hc, hr, 'fur', 'head')
+    mc, mr = (0, 12.2, 7.0), (2.4, 1.8, 1.5)
+    m.ell(mc, mr, 'fur', 'head')
+    # tall ears laid back, frosted blue at the tips
+    for s in (-1, 1):
+        pts = [(s * 2.0, 16.8, 2.0), (s * 3.2, 21.0, 0.6), (s * 4.0, 24.2, -1.4),
+               (s * 4.2, 25.8, -2.8)]
+        m.tube(pts, [1.8, 2.1, 1.7, 0.5], 'fur', 'ear%d' % s, flat=0.45,
+               up=(s * 0.6, 0.1, 1), mats=[(0, 'fur'), (0.62, 'ice')])
+        m.paint((s * 3.2, 20.6, 1.4), (0.9, 2.6, 0.9), 'pink', ['ear%d' % s],
+                rot=(s * 10, -20, 0))
+    # frosty cheek tufts
+    for s in (-1, 1):
+        m.tube([(s * 4.0, 12.0, 4.0), (s * 6.4, 11.2, 3.8), (s * 7.6, 10.4, 3.0)],
+               [1.6, 1.0, 0.2], 'fur', 'head', flat=0.5, up=(0, 0, 1))
+    g.eye_pair(m, hc, hr, 34, 12, 3.2, 3.8, iris=('ice', 0), center=(0, 13, 10))
+    m.dot(g.on(mc, mr, (0, 0.5, 1))[0], (0, 0.2, 1), w=1.6, h=1.0, minw=2,
+          color=('pink', 0))
+    p, n = g.on(mc, mr, (0, -0.35, 1))
+    m.mouth(p, n, 'w', w=2.6)
+    return m
+
+
+# ==========================================================================
+# 55 MOONHARE -- moon rabbit with a mochi mallet
+# ==========================================================================
+def moonhare(g):
+    m = g.Model('MOONHARE')
+    m.outline = (40, 32, 70)
+    m.mat('fur', ['#7a6ca0', '#b0a6d6', '#e2def6', '#ffffff'])
+    m.mat('night', ['#24245e', '#3c3e8e'])
+    m.mat('gold', ['#a86a10', '#e8a828', '#ffe070'])
+    m.mat('wood', ['#5e3a1e', '#96643a', '#c89a62'])
+    m.mat('pink', ['#e890a8'])
+    m.eye_dark = (30, 24, 56)
+    m.white = (255, 255, 255)
+    m.height = 58
+    m.max_w = 60
+    m.front_yaw = -26
+    # long hind feet
+    for s in (-1, 1):
+        m.ell((s * 4.2, 6.4, -1.8), (3.4, 5.4, 4.8), 'fur', 'leg%d' % s)
+        m.ell((s * 4.6, 1.5, 2.6), (2.3, 1.5, 5.2), 'fur', 'leg%d' % s)
+    g.seedball(m, (0, 10.0, -6.8), 2.6, 'fur', 'tail', n=24, fil=0.32,
+               tip=0.5, seed=55)
+    # upright body with a pale belly
+    m.ell((0, 16.0, 0.0), (6.0, 8.6, 5.2), 'fur', 'body')
+    # the mochi mallet over its shoulder: long handle, fat barrel head
+    h0, h1 = (3.0, 13.0, 7.4), (11.4, 38.0, 1.0)
+    m.tube([h0, h1], [1.0, 1.0], 'wood', 'mallet')
+    ax = norm((1.0, -0.34, 0.1))
+    mh = add(h1, mul(norm(sub(h1, h0)), 2.0))
+    m.ell_axes(mh, (mul(ax, 5.2), mul(norm(sub(h1, h0)), 3.4),
+                    (0, 0, 3.4)), 'wood', 'mallet')
+    for t in (-4.0, 4.0):
+        m.paint(add(mh, mul(ax, t)), (1.0, 3.8, 3.8), 'night', ['mallet'],
+                rot=(0, 0, -19))
+    # both paws gripping the handle
+    for s, hp in ((1, (5.6, 20.4, 6.0)), (-1, (4.0, 16.0, 7.0))):
+        sh = (s * 5.2, 21.6, 1.0)
+        el = (s * 5.4 + 1.4, 16.4, 3.0)
+        m.tube([sh, el, hp], [1.8, 1.5, 1.4], 'fur', 'arm%d' % s)
+        m.sph(hp, 1.8, 'fur', 'arm%d' % s)
+    # head
+    hc, hr = (0, 29.0, 1.8), (5.8, 5.4, 5.2)
+    m.ell(hc, hr, 'fur', 'head')
+    mc, mr = (0, 27.4, 5.8), (2.6, 2.0, 1.6)
+    m.ell(mc, mr, 'fur', 'head')
+    # golden crescent on the brow (a disc with a bite taken out)
+    # (a night-blue rim under the gold so it reads on the white fur)
+    # (a raised gold crescent set on the forehead, horns up, so it gets
+    # its own outline and reads even at 1x)
+    cp, cn = g.on(hc, hr, norm((0.06, 0.72, 0.69)))
+    cp = add(cp, mul(cn, 0.3))
+    cup = [add(cp, (math.cos(a * DEG) * 3.0, 1.4 + math.sin(a * DEG) * 1.9, 0.0))
+           for a in (200, 230, 270, 310, 340)]
+    m.tube(cup, [0.6, 1.1, 1.35, 1.1, 0.6], 'gold', 'crest', flat=0.7,
+           up=cn)
+    # tall night-sky ears speckled with stars
+    for s in (-1, 1):
+        pts = [(s * 2.2, 32.4, 0.6), (s * 3.2, 38.0, -0.4), (s * 4.0, 44.0, -1.6),
+               (s * 4.2, 48.0, -2.8)]
+        m.tube(pts, [1.9, 2.4, 2.0, 0.6], 'fur', 'ear%d' % s, flat=0.45,
+               up=(s * 0.5, 0, 1))
+        m.paint((s * 3.4, 39.6, 0.4), (1.3, 5.6, 1.2), 'night', ['ear%d' % s],
+                rot=(s * 8, 0, 0))
+        for k, (dy, dx) in enumerate(((-3.6, 0.2), (-0.8, -0.4), (1.8, 0.3),
+                                      (4.0, -0.2))):
+            m.paint((s * 3.4 + dx, 39.6 + dy, 0.8), 0.95, 'gold',
+                    ['ear%d' % s])
+    g.eye_pair(m, hc, hr, 34, 10, 3.8, 4.6, iris=("night", 1), slant=0.0,
+               center=(0, 28, 10))
+    m.dot(g.on(mc, mr, (0, 0.5, 1))[0], (0, 0.2, 1), w=1.6, h=1.0, minw=2,
+          color=('pink', 0))
+    p, n = g.on(mc, mr, (0, -0.35, 1))
+    m.mouth(p, n, 'w', w=2.8)
+    return m
+
+
+# ==========================================================================
+# 56 TUXFLAKE -- downy penguin chick wrapped in a puff of snow
+# ==========================================================================
+def tuxflake(g):
+    m = g.Model('TUXFLAKE')
+    m.outline = (34, 40, 60)
+    m.mat('snow', ['#94a8c8', '#cddcf0', '#f2f7ff', '#ffffff'])
+    m.mat('down', ['#5e6472', '#8c929e', '#bcc0ca'])
+    m.mat('cap', ['#1c2030', '#343a4c'])
+    m.mat('feet', ['#c85e18', '#ff9c3a'])
+    m.eye_dark = (22, 24, 36)
+    m.white = (255, 255, 255)
+    m.height = 28
+    m.front_yaw = -26
+    # orange feet poking out under the puff
+    for s in (-1, 1):
+        m.ell((s * 2.8, 1.0, 3.6), (1.8, 1.0, 2.6), 'feet', 'foot%d' % s)
+    # the grey downy chick inside
+    m.ell((0, 8.6, 0.6), (6.0, 7.0, 5.6), 'down', 'body')
+    # the snow puff clinging round it, open at the front
+    g.seedball(m, (0, 8.4, -1.0), (7.6, 7.2, 7.0), 'snow', 'puff', n=80,
+               fil=0.24, tip=0.62, seed=56, skip_below=-0.8,
+               skip_dir=((0, 0.2, 1), 0.55))
+    # stubby grey flippers held out of the snow
+    for s in (-1, 1):
+        m.tube([(s * 6.0, 9.4, 2.0), (s * 8.4, 7.4, 3.0), (s * 9.4, 5.6, 3.6)],
+               [1.6, 1.2, 0.6], 'down', 'arm%d' % s, flat=0.45,
+               up=(s * 1, 0.2, 0.1))
+    # head: black cap, white face mask, tiny beak
+    hc, hr = (0, 15.0, 2.4), (5.0, 4.6, 4.6)
+    m.ell(hc, hr, 'down', 'head')
+    m.paint(add(hc, (0, 3.6, -1.2)), (5.6, 2.8, 5.6), 'cap', ['head'])
+    for s in (-1, 1):
+        m.paint(g.on(hc, hr, norm((s * 0.5, 0.05, 0.85)))[0], (2.4, 2.6, 2.0),
+                'snow', ['head'])
+    m.paint(g.on(hc, hr, (0, -0.4, 1))[0], (2.4, 1.6, 1.8), 'snow', ['head'])
+    bp = g.on(hc, hr, (0, 0.0, 1))[0]
+    m.tube([bp, add(bp, (0, -0.4, 1.8))], [0.9, 0.3], 'cap', 'head')
+    # snowflakes caught in the puff
+    for d in ((0.6, 0.7, 0.3), (-0.7, 0.5, 0.2), (0.3, 0.95, -0.2)):
+        m.sparkle(g.on((0, 8.4, -1.0), (9.0, 8.6, 8.4), norm(d))[0], (0, 0, 1),
+                  size=1, color=('snow', 0))
+    g.eye_pair(m, hc, hr, 30, 8, 3.0, 3.6, iris=('cap', 1), center=(0, 14, 9))
+    for s in (-1, 1):
+        m.dot(g.on(hc, hr, (s * 0.6, -0.35, 0.72))[0], (s * 0.6, 0, 0.8),
+              w=1.3, h=0.8, color=('feet', 1), minw=2)
+    return m
+
+
+# ==========================================================================
+# 57 EMPERICE -- emperor penguin crowned with rime crystals
+# ==========================================================================
+def emperice(g):
+    m = g.Model('EMPERICE')
+    m.outline = (18, 20, 34)
+    m.mat('coat', ['#161a28', '#2a3044', '#465070'])
+    m.mat('belly', ['#b8c4d6', '#e4ecf6', '#ffffff'])
+    m.mat('gold', ['#d88a14', '#ffc840', '#fff0a0'])
+    m.mat('ice', ['#3a8ad0', '#86d0f8', '#e0f8ff'], spec=0.4)
+    m.eye_dark = (14, 16, 26)
+    m.white = (255, 255, 255)
+    m.height = 60
+    m.max_w = 60
+    m.front_yaw = -24
+    # black feet
+    for s in (-1, 1):
+        m.ell((s * 3.6, 1.2, 4.0), (2.6, 1.2, 3.6), 'coat', 'foot%d' % s)
+    # tall body, white front, stubby tail
+    bc, br = (0, 19.0, 0.0), (8.6, 17.0, 7.6)
+    m.ell(bc, br, 'coat', 'body')
+    m.paint((0, 17.0, 4.6), (7.0, 15.6, 4.4), 'belly', ['body'])
+    m.tube([(0, 5.0, -6.0), (0, 2.4, -9.0)], [2.4, 1.0], 'coat', 'tail')
+    # flippers held out a little, like a cape
+    for s in (-1, 1):
+        m.tube([(s * 7.4, 30.0, 0.0), (s * 10.4, 22.0, 0.8), (s * 11.6, 13.0, 1.4)],
+               [2.6, 2.4, 0.8], 'coat', 'arm%d' % s, flat=0.4,
+               up=(s * 1, 0, 0.25))
+    # neck and head
+    m.ell((0, 34.0, 0.8), (6.2, 5.0, 5.8), 'coat', 'body')
+    hc, hr = (0, 40.0, 1.6), (5.6, 5.4, 5.6)
+    m.ell(hc, hr, 'coat', 'head')
+    # the gold ear patches flowing down into a pale bib
+    for s in (-1, 1):
+        m.paint(g.on(hc, hr, norm((s * 0.95, -0.35, -0.1)))[0], (2.0, 3.4, 2.4),
+                'gold', ['head'], rot=(0, 0, s * 18))
+        m.paint((s * 4.6, 34.2, 3.4), (2.2, 2.4, 2.2), 'gold', ['body'])
+    m.paint((0, 32.0, 5.8), (4.8, 3.0, 2.0), 'gold', ['body'])
+    # long curved beak with a gold stripe
+    b0 = g.on(hc, hr, (0, -0.1, 1))[0]
+    m.tube([b0, add(b0, (0, -0.8, 3.2)), add(b0, (0, -2.2, 5.8))],
+           [1.5, 1.0, 0.3], 'coat', 'beak')
+    for s in (-1, 1):
+        m.paint(add(b0, (s * 0.9, -0.5, 1.6)), (0.6, 0.6, 1.8), 'gold', ['beak'])
+    # crown of rime: ice crystals fanned round the top of the head
+    for k in range(5):
+        a = (-64 + 32.0 * k) * DEG
+        d = norm((math.sin(a) * 1.1, 1.0, 0.15))
+        bb = g.on(hc, hr, norm((math.sin(a) * 0.75, 0.8, 0.05)))[0]
+        ln = (10.0 if k == 2 else 7.6 if k in (1, 3) else 5.6)
+        m.crystal(sub(bb, mul(d, 1.2)), add(bb, mul(d, ln)), 1.5, 'ice',
+                  'crown', sides=4, tip_frac=0.5)
+    m.ell(add(hc, (0, 4.2, 0)), (4.2, 1.4, 4.0), 'ice', 'crown')
+    # frost rime along the flipper edges
+    for s in (-1, 1):
+        for k, t in enumerate((0.35, 0.65)):
+            q = lerp((s * 10.4, 22.0, 0.8), (s * 11.6, 13.0, 1.4), t)
+            m.crystal(q, add(q, (s * 2.6, -1.4, 0.2)), 0.7, 'ice', 'arm%d' % s,
+                      sides=4)
+    # bright ice-blue eyes (flat colour, so they still read on the black
+    # head when the overworld shrinks them to 2 px)
+    g.eye_pair(m, hc, hr, 30, 10, 4.2, 4.6, style='glow', iris=('ice', 2),
+               pupil=('coat', 0), slant=0.35, center=(0, 40, 8), turn=4,
+               minw=2, minh=2)
+    return m
+
+
+# ==========================================================================
+# 58 YAKLING -- shaggy yak calf with a frosty fringe
+# ==========================================================================
+def shag(m, c, r, part, n, mat, mats, y_min, ln, seed, g, rad=1.3, keep=None):
+    """Hanging locks of hair round the lower rim of an ellipsoid."""
+    rnd = g.Rand(seed)
+    for d in fib_dirs(n, seed, 0.4, g):
+        if d[1] > 0.35 or d[1] < y_min:
+            continue
+        if keep is not None and not keep(d):
+            continue
+        p, nn = g.on(c, r, d)
+        b = sub(p, mul(nn, 0.8))
+        l = ln * (0.8 + 0.4 * rnd.f())
+        out = add(p, mul(nn, 0.8))
+        m.tube([b, out, add(out, (nn[0] * 0.4, -l, nn[2] * 0.4))],
+               [rad, rad * 0.9, rad * 0.35], mat, part, mats=mats)
+
+
+def yakling(g):
+    m = g.Model('YAKLING')
+    m.outline = (22, 28, 44)
+    m.mat('fur', ['#2c3852', '#475878', '#6e82a4'])
+    m.mat('frost', ['#bcdcf0', '#ffffff'])
+    m.mat('muzzle', ['#7c8ca4', '#b4c0d2'])
+    m.mat('horn', ['#c8baa0', '#fff2d6'])
+    m.mat('hoof', ['#161c2a'])
+    m.mat('pink', ['#e89aa8'])
+    m.eye_dark = (16, 20, 34)
+    m.white = (255, 255, 255)
+    m.height = 30
+    m.front_yaw = -30
+    # short sturdy legs
+    for s in (-1, 1):
+        for zz, nm in ((4.0, 'F'), (-4.6, 'B')):
+            m.tube([(s * 3.6, 6.0, zz), (s * 3.7, 2.2, zz + 0.2)], [1.7, 1.5],
+                   'fur', 'leg%s%d' % (nm, s))
+            m.ell((s * 3.7, 1.0, zz + 0.4), (1.6, 1.0, 1.8), 'hoof',
+                  'leg%s%d' % (nm, s))
+    # round woolly body with a shaggy skirt tipped in frost
+    bc, br = (0, 9.4, -0.6), (6.2, 5.4, 7.6)
+    m.ell(bc, br, 'fur', 'body')
+    shag(m, bc, br, 'body', 70, 'fur', [(0, 'fur'), (0.72, 'frost')], -0.5,
+         3.2, 58, g, rad=1.3, keep=lambda d: d[2] < 0.75)
+    # tufted tail
+    m.tube([(0, 11.0, -8.0), (0, 9.0, -9.6), (0, 6.6, -9.8)], [0.8, 0.9, 1.2],
+           'fur', 'tail', mats=[(0, 'fur'), (0.7, 'frost')])
+    # big head with a pale muzzle
+    hc, hr = (0, 12.4, 6.6), (4.8, 4.4, 4.2)
+    m.ell(hc, hr, 'fur', 'head')
+    mc, mr = (0, 10.2, 9.8), (3.2, 2.5, 2.0)
+    m.ell(mc, mr, 'muzzle', 'head')
+    for s in (-1, 1):
+        m.dot(g.on(mc, mr, (s * 0.4, 0.1, 1))[0], (0, 0, 1), w=0.9, h=1.1,
+              color=('hoof', 0), minw=1, minh=1)
+        # floppy ears and little horn nubs
+        m.tube([(s * 4.2, 13.6, 5.8), (s * 6.6, 13.0, 5.4), (s * 7.6, 12.0, 5.0)],
+               [1.4, 1.2, 0.4], 'fur', 'ear%d' % s, flat=0.45, up=(0, 1, 0.2))
+        m.tube([(s * 2.6, 15.6, 5.6), (s * 3.6, 17.2, 5.6), (s * 3.8, 18.2, 6.2)],
+               [1.1, 0.9, 0.5], 'horn', 'horn%d' % s)
+    # the frosty fringe hanging down over its eyes
+    for k in range(9):
+        x = -3.6 + k * 0.9
+        b = (x, 16.0, 7.0 - abs(x) * 0.3)
+        ln = 4.2 + 0.8 * math.cos(k * 1.7)
+        m.tube([b, add(b, (x * 0.12, -ln * 0.5, 2.2)),
+                add(b, (x * 0.18, -ln, 2.2))], [1.2, 1.0, 0.4], 'fur',
+               'fringe', mats=[(0, 'fur'), (0.6, 'frost')])
+    g.eye_pair(m, hc, hr, 32, 2, 2.6, 2.6, iris=('fur', 0), center=(0, 12, 12),
+               lid=1)
+    p, n = g.on(mc, mr, (0, -0.45, 1))
+    m.mouth(p, n, 'smile', w=2.2)
+    m.dot(add(p, (0, -0.8, 0.2)), n, w=1.2, h=0.8, color=('pink', 0))
+    return m
+
+
+# ==========================================================================
+# 59 GLACIYAK -- massive glacier yak with ice-crystal horns
+# ==========================================================================
+def glaciyak(g):
+    m = g.Model('GLACIYAK')
+    m.outline = (16, 22, 38)
+    m.mat('fur', ['#222c44', '#3a4a6a', '#5e7294'])
+    m.mat('frost', ['#a8cce4', '#e6f6ff'])
+    m.mat('ice', ['#3480c8', '#80ccf6', '#e4faff'], spec=0.4)
+    m.mat('muzzle', ['#6c7c96', '#a4b2c8'])
+    m.mat('hoof', ['#10141e'])
+    m.eye_dark = (12, 16, 28)
+    m.white = (255, 255, 255)
+    m.height = 58
+    m.max_w = 62
+    m.front_yaw = -30
+    # pillar legs, mostly hidden in the coat
+    for s in (-1, 1):
+        for zz, nm in ((9.0, 'F'), (-10.0, 'B')):
+            m.tube([(s * 6.4, 12.0, zz), (s * 6.6, 3.0, zz + 0.4)], [3.4, 3.0],
+                   'fur', 'leg%s%d' % (nm, s))
+            m.ell((s * 6.6, 1.6, zz + 0.8), (3.0, 1.6, 3.2), 'hoof',
+                  'leg%s%d' % (nm, s))
+    # huge body with a shoulder hump
+    bc, br = (0, 20.0, -1.0), (10.4, 9.4, 15.0)
+    m.ell(bc, br, 'fur', 'body')
+    hmc, hmr = (0, 27.0, 6.0), (9.4, 8.0, 8.4)
+    m.ell(hmc, hmr, 'fur', 'body')
+    # the long shaggy skirt, frosted at the ends, with icicles in it
+    shag(m, bc, br, 'skirt', 120, 'fur', [(0, 'fur'), (0.75, 'frost')], -0.45,
+         8.4, 59, g, rad=2.0, keep=lambda d: d[2] < 0.8)
+    shag(m, hmc, hmr, 'skirt', 50, 'fur', [(0, 'fur'), (0.75, 'frost')], -0.2,
+         7.0, 60, g, rad=1.9, keep=lambda d: d[2] > 0.2)
+    rnd = g.Rand(591)
+    for k in range(9):
+        a = (-80 + 160.0 * k / 8) * DEG
+        s = 1 if k % 2 else -1
+        q = (math.sin(a) * 10.6 * s, 12.0 + rnd.f() * 2.0, math.cos(a) * 11.0 - 2)
+        m.crystal(q, add(q, (0, -4.0 - rnd.f() * 2.0, 0)), 0.9, 'ice',
+                  'icicle', sides=4, tip_frac=0.8)
+    # frost rime settled along the spine
+    m.paint((0, 34.0, 5.0), (7.0, 2.2, 7.0), 'frost', ['body'])
+    m.paint((0, 29.4, -6.0), (6.0, 1.6, 9.0), 'frost', ['body'])
+    # tail
+    m.tube([(0, 23.0, -15.6), (0, 17.0, -17.4), (0, 11.0, -17.0)],
+           [1.4, 1.6, 2.2], 'fur', 'tail', mats=[(0, 'fur'), (0.7, 'frost')])
+    # low heavy head
+    hc, hr = (0, 21.0, 15.0), (6.4, 6.0, 5.6)
+    m.ell(hc, hr, 'fur', 'head')
+    mc, mr = (0, 17.4, 19.2), (4.2, 3.4, 2.8)
+    m.ell(mc, mr, 'muzzle', 'head')
+    for s in (-1, 1):
+        m.dot(g.on(mc, mr, (s * 0.4, 0.1, 1))[0], (0, 0, 1), w=1.0, h=1.2,
+              color=('hoof', 0), minw=1, minh=1)
+    # beard with icicles
+    for k in range(5):
+        x = -3.0 + k * 1.5
+        b = (x, 15.0, 17.6)
+        m.tube([b, add(b, (0, -3.0, 0.2)), add(b, (0, -6.0 + abs(x) * 0.5, -0.2))],
+               [1.5, 1.2, 0.4], 'fur', 'beard', mats=[(0, 'fur'), (0.65, 'frost')])
+    for x in (-1.5, 1.5):
+        m.crystal((x, 12.0, 17.4), (x, 7.4, 17.4), 0.7, 'ice', 'beard', sides=4,
+                  tip_frac=0.8)
+    # fringe
+    for k in range(9):
+        x = -4.4 + k * 1.1
+        b = (x, 26.0, 15.4 - abs(x) * 0.3)
+        ln = 5.4 + 1.0 * math.cos(k * 1.7)
+        m.tube([b, add(b, (x * 0.1, -ln * 0.5, 2.6)), add(b, (x * 0.15, -ln, 2.8))],
+               [1.4, 1.2, 0.5], 'fur', 'fringe', mats=[(0, 'fur'), (0.6, 'frost')])
+    # great curved ice horns sweeping out, forward and up, spiked with crystals
+    for s in (-1, 1):
+        pts = [(s * 4.4, 25.0, 13.6), (s * 10.0, 26.0, 13.0), (s * 14.4, 29.0, 14.0),
+               (s * 15.6, 34.0, 16.0), (s * 14.0, 37.6, 18.0)]
+        m.tube(pts, [2.2, 2.0, 1.7, 1.2, 0.3], 'ice', 'horn%d' % s)
+        for t, d in ((1, (s * 0.2, 1, -0.4)), (2, (s * 1, 0.4, -0.4)), (3, (s * 1, 0.2, 0.2))):
+            m.crystal(pts[t], add(pts[t], mul(norm(d), 3.6)), 0.8, 'ice',
+                      'horn%d' % s, sides=4)
+    g.eye_pair(m, hc, hr, 36, 4, 2.8, 2.6, style='iris', iris=('ice', 1),
+               slant=0.5, center=(0, 21, 20))
+    p, n = g.on(mc, mr, (0, -0.5, 1))
+    m.mouth(p, n, 'line', w=3.0)
+    return m
+
+
+# ==========================================================================
+# 60 RAMBLET -- cinnamon lamb charging head-first
+# ==========================================================================
+def curls(g, m, c, r, part, n, mat, rad, seed, keep=None, rot=None):
+    """Tight wool curls: little balls studded over an ellipsoid."""
+    rnd = g.Rand(seed)
+    for d in fib_dirs(n, seed, 0.5, g):
+        if keep is not None and not keep(d):
+            continue
+        p, nn = g.on(c, r, d, rot)
+        m.sph(add(p, mul(nn, -rad * 0.3)), rad * (0.8 + 0.4 * rnd.f()), mat, part)
+
+
+def ramblet(g):
+    m = g.Model('RAMBLET')
+    m.outline = (54, 26, 14)
+    m.mat('wool', ['#7a3a18', '#b2622e', '#dc9454', '#f6c488'])
+    m.mat('face', ['#5a3828', '#8e6446', '#bc9270'])
+    m.mat('cream', ['#f2dcb8'])
+    m.mat('horn', ['#f0e0bc'])
+    m.mat('dust', ['#c8bc9c'])
+    m.mat('tuft', ['#e2a868', '#ffe0ae'])
+    m.eye_dark = (30, 18, 14)
+    m.white = (255, 250, 240)
+    m.height = 29
+    m.front_yaw = -36
+    # legs: front pair braced forward, hind pair kicking off
+    for s in (-1, 1):
+        m.tube([(s * 3.2, 7.0, 4.6), (s * 3.4, 3.6, 7.4), (s * 3.5, 1.2, 8.6)],
+               [1.4, 1.1, 1.0], 'face', 'legF%d' % s)
+        m.ell((s * 3.5, 0.9, 9.0), (1.2, 0.9, 1.4), 'face', 'legF%d' % s)
+        m.tube([(s * 3.4, 8.0, -4.6), (s * 3.6, 4.2, -7.4), (s * 3.6, 1.2, -9.6)],
+               [1.5, 1.1, 1.0], 'face', 'legB%d' % s)
+        m.ell((s * 3.6, 0.9, -10.0), (1.2, 0.9, 1.4), 'face', 'legB%d' % s)
+    # kicked-up dust behind the hind hooves
+    for k, (q, r) in enumerate((((2.0, 1.8, -12.8), 1.6), ((-1.6, 2.2, -13.4), 1.4),
+                                ((0.4, 3.6, -14.6), 1.1))):
+        m.sph(q, r, 'dust', 'dust')
+    # the cinnamon fleece: a curly body pitched forward
+    bc, br = (0, 9.6, -1.2), (5.8, 5.0, 7.0)
+    m.ell(bc, br, 'wool', 'body', rot=(0, 10, 0))
+    curls(g, m, bc, br, 'body', 46, 'wool', 1.8, 60, rot=(0, 10, 0),
+          keep=lambda d: d[1] > -0.55)
+    m.tube([(0, 12.0, -7.6), (0, 11.0, -9.4)], [1.3, 1.0], 'wool', 'tail')
+    # head lowered for the charge
+    m.tube([(0, 10.0, 6.0), (0, 8.8, 9.0)], [3.0, 3.0], 'wool', 'body')
+    hc, hr = (0, 8.4, 11.2), (5.0, 4.8, 4.4)
+    m.ell(hc, hr, 'face', 'head')
+    mc, mr = (0, 6.2, 14.4), (2.8, 2.2, 2.2)
+    m.ell(mc, mr, 'face', 'head')
+    m.paint(add(mc, (0, -0.4, 1.0)), (2.4, 1.6, 1.4), 'cream', ['head'])
+    for s in (-1, 1):
+        m.tube([(s * 4.2, 9.8, 10.0), (s * 6.6, 8.8, 9.2), (s * 7.6, 7.6, 8.8)],
+               [1.3, 1.1, 0.4], 'face', 'ear%d' % s, flat=0.45, up=(0, 1, 0.2))
+        # budding horns under the tuft
+        m.tube([(s * 3.0, 12.2, 10.0), (s * 4.6, 13.0, 9.8), (s * 5.4, 12.2, 11.2)],
+               [1.0, 0.9, 0.5], 'horn', 'horn%d' % s)
+    # the woolly helmet: a dense cap of curls over the brow, jutting forward
+    tc, tr = (0, 12.8, 10.6), (3.2, 1.9, 2.8)
+    m.ell(tc, tr, 'tuft', 'tuft', rot=(0, 30, 0))
+    curls(g, m, tc, tr, 'tuft', 22, 'tuft', 1.3, 61, rot=(0, 30, 0),
+          keep=lambda d: d[1] > -0.3)
+    g.eye_pair(m, hc, hr, 32, 4, 4.2, 4.4, style='iris', iris=('tuft', 0),
+               slant=0.6, center=(0, 8, 16), turn=8)
+    p, n = g.on(mc, mr, (0, -0.2, 1))
+    m.mouth(p, n, 'line', w=2.0, color=('face', 0))
+    return m
+
+
+# ==========================================================================
+# 61 CRAGHORN -- bighorn ram with curled stone horns
+# ==========================================================================
+def stone_curl(g, m, base, out, up, size, part, turns=1.05, r0=2.6, r1=0.9,
+               n=11, seed=0):
+    """A ram's horn built from chunky rock segments along a spiral."""
+    out = norm(out)
+    up = norm(sub(up, mul(out, dot(up, out))))
+    side = norm(cross(out, up))
+    for i in range(n + 1):
+        t = i / float(n)
+        a = t * turns * 2 * math.pi
+        rad = size * (1.0 - 0.6 * t)
+        q = add(base, add(mul(out, math.sin(a) * rad),
+                          mul(up, (1 - math.cos(a)) * rad)))
+        q = add(q, mul(side, t * size * 0.35))
+        rr = r0 + (r1 - r0) * t
+        m.rock(q, (rr * 1.15, rr, rr * 1.15), 'stone', part, seed=seed + i,
+               n=12, jitter=0.18)
+
+
+def craghorn(g):
+    m = g.Model('CRAGHORN')
+    m.outline = (34, 24, 18)
+    m.mat('fur', ['#46301e', '#74523a', '#a07c58'])
+    m.mat('cream', ['#c8b89a', '#f2e6cc'])
+    m.mat('stone', ['#4c4844', '#7a7468', '#a8a292', '#d0cabc'])
+    m.mat('hoof', ['#1e1814', '#3a302a'])
+    m.eye_dark = (28, 18, 14)
+    m.white = (255, 250, 236)
+    m.height = 56
+    m.max_w = 62
+    m.front_yaw = -32
+    # strong legs, planted wide
+    for s in (-1, 1):
+        for zz, nm in ((8.0, 'F'), (-9.0, 'B')):
+            m.tube([(s * 5.0, 15.0, zz), (s * 5.4, 7.0, zz + 0.6),
+                    (s * 5.6, 2.2, zz + 0.4)], [2.8, 1.8, 1.6], 'fur',
+                   'leg%s%d' % (nm, s))
+            m.ell((s * 5.6, 1.2, zz + 0.8), (1.9, 1.2, 2.2), 'hoof',
+                  'leg%s%d' % (nm, s))
+    # deep barrel chest, pale rump and belly
+    bc, br = (0, 19.0, -1.0), (8.0, 7.6, 12.4)
+    m.ell(bc, br, 'fur', 'body')
+    m.ell((0, 22.0, 7.0), (8.4, 8.4, 7.0), 'fur', 'body')
+    m.paint((0, 13.0, -1.0), (6.4, 3.0, 11.0), 'cream', ['body'])
+    m.paint((0, 20.0, -12.6), (5.6, 5.6, 2.4), 'cream', ['body'])
+    m.tube([(0, 23.0, -12.8), (0, 21.0, -14.4)], [1.6, 1.2], 'fur', 'tail')
+    # stone plates grown into the shoulders
+    for s in (-1, 1):
+        m.rock((s * 6.8, 26.0, 6.0), (2.6, 2.0, 3.0), 'stone', 'plate%d' % s,
+               seed=61 + s, rot=(0, 0, s * 30))
+    m.rock((0, 30.0, 4.0), (3.0, 2.0, 3.2), 'stone', 'plate0', seed=64)
+    # neck and head, slightly lowered: ready to clash
+    m.tube([(0, 25.0, 9.0), (0, 27.0, 13.0)], [5.2, 4.4], 'fur', 'body')
+    hc, hr = (0, 28.0, 15.4), (4.8, 4.8, 5.2)
+    m.ell(hc, hr, 'fur', 'head')
+    mc, mr = (0, 25.0, 19.6), (3.0, 2.8, 2.6)
+    m.ell(mc, mr, 'cream', 'head')
+    for s in (-1, 1):
+        m.dot(g.on(mc, mr, (s * 0.4, 0.3, 1))[0], (0, 0.2, 1), w=0.9, h=1.1,
+              color=('hoof', 0), minw=1, minh=1)
+        m.tube([(s * 4.2, 29.0, 13.8), (s * 6.8, 28.0, 12.6), (s * 7.8, 27.0, 12.0)],
+               [1.4, 1.2, 0.4], 'fur', 'ear%d' % s, flat=0.45, up=(0, 1, 0.2))
+        # the great curled stone horns
+        stone_curl(g, m, (s * 3.4, 32.0, 14.4), (s * 0.35, 0.5, -1.0),
+                   (s * 0.6, -1.0, 0.0), 6.4, 'horn%d' % s, seed=610 + 20 * (s + 1))
+    g.eye_pair(m, hc, hr, 42, 10, 3.0, 2.8, style='iris', iris=('stone', 3),
+               slant=0.8, center=(0, 27, 21), turn=4)
+    p, n = g.on(mc, mr, (0, -0.5, 1))
+    m.mouth(p, n, 'line', w=2.4)
+    return m
+
+
+# ==========================================================================
+# 62 STINGLET -- little purple scorpion with a sour lime drop
+# ==========================================================================
+def length3(a):
+    return math.sqrt(dot(a, a))
+
+
+def arc_pts(c, rad, a0, a1, n, x=0.0):
+    """Points on a vertical circle (Y/Z plane) round c, angles in degrees
+    measured from -Z (behind) toward +Y (up) and on to +Z."""
+    out = []
+    for i in range(n):
+        a = (a0 + (a1 - a0) * i / float(n - 1)) * DEG
+        out.append((x, c[1] + math.sin(a) * rad, c[2] - math.cos(a) * rad))
+    return out
+
+
+def pincer(m, c, s, size, d, mat, part, edge=None):
+    """A raised crab-style claw centred on c, pointing along d: a fat palm and
+    two curved fingers that open sideways (so the gap shows from the front).
+    `edge` paints the inner (cutting) edge of both fingers."""
+    d = norm(d)
+    side = norm(sub((s, 0, 0), mul(d, s * d[0])))
+    th = cross(d, side)
+    m.ell_axes(c, (mul(side, 1.05 * size), mul(d, 1.35 * size),
+                   mul(th, 0.9 * size)), mat, part)
+    for sg, rr in ((1, 0.55), (-1, 0.45)):
+        b = add(c, add(mul(d, 0.9 * size), mul(side, 0.52 * size * sg)))
+        mid = add(b, add(mul(d, 1.0 * size), mul(side, 0.5 * size * sg)))
+        tip = add(b, add(mul(d, 1.9 * size), mul(side, -0.1 * size * sg)))
+        m.tube([b, mid, tip], [rr * size, rr * 0.75 * size, 0.14 * size],
+               mat, part)
+        if edge:
+            m.paint(add(mid, mul(side, -0.4 * size * sg)),
+                    (0.5 * size, 0.9 * size, 0.5 * size), edge, [part])
+    return side
+
+
+def arched_tail(m, base, top, tip, n, r0, r1, mat, part, seam=None, every=3):
+    """A beaded tail from base up through top and down to tip (a smooth
+    Catmull curve), one part per bead so the joints get outlined.  Every
+    `every`-th bead is a thin glowing seam when `seam` is given."""
+    ctrl = [base, lerp(base, top, 0.55), top, lerp(top, tip, 0.6), tip]
+    # sample a Catmull-Rom curve by hand (the gen_monsters one is internal)
+    dense = []
+    P = [ctrl[0]] + ctrl + [ctrl[-1]]
+    for i in range(1, len(P) - 2):
+        for k in range(12):
+            t = k / 12.0
+            t2, t3 = t * t, t * t * t
+            dense.append(tuple(0.5 * (2 * P[i][j] + (-P[i - 1][j] + P[i + 1][j]) * t
+                                      + (2 * P[i - 1][j] - 5 * P[i][j] + 4 * P[i + 1][j]
+                                         - P[i + 2][j]) * t2
+                                      + (-P[i - 1][j] + 3 * P[i][j] - 3 * P[i + 1][j]
+                                         + P[i + 2][j]) * t3) for j in range(3)))
+    dense.append(ctrl[-1])
+    cum = [0.0]
+    for i in range(1, len(dense)):
+        cum.append(cum[-1] + length3(sub(dense[i], dense[i - 1])))
+    out = []
+    for k in range(n):
+        want = cum[-1] * k / (n - 1)
+        j = min(len(dense) - 2, max(0, next((i for i, c in enumerate(cum)
+                                             if c >= want), len(cum) - 1) - 1))
+        f = (want - cum[j]) / max(1e-6, cum[j + 1] - cum[j])
+        q = lerp(dense[j], dense[j + 1], min(1.0, f))
+        dn = norm(sub(dense[j + 1], dense[j]))
+        r = r0 + (r1 - r0) * k / (n - 1.0)
+        if seam and k % every == every - 1 and k < n - 1:
+            up = norm(cross(dn, (1, 0, 0)))
+            m.ell_axes(q, ((r * 0.96, 0, 0), mul(dn, 0.5), mul(up, r * 0.96)),
+                       seam, '%s%d' % (part, k))
+        else:
+            up = norm(cross(dn, (1, 0, 0)))
+            m.ell_axes(q, ((r, 0, 0), mul(dn, r * 1.05), mul(up, r * 0.98)),
+                       mat, '%s%d' % (part, k))
+        out.append((q, dn, r))
+    return out
+
+
+def stinglet(g):
+    m = g.Model('STINGLET')
+    m.outline = (36, 16, 50)
+    m.mat('shell', ['#43206a', '#6c3c9c', '#9c6cd0', '#ceb0f4'])
+    m.mat('belly', ['#b494dc', '#e2d4f8'])
+    m.mat('lime', ['#5aa018', '#b4ec3a', '#f2ffbc'], emissive=0.5)
+    m.eye_dark = (30, 12, 40)
+    m.white = (255, 255, 255)
+    m.height = 38
+    m.front_yaw = -22
+    # four pairs of little legs
+    for s in (-1, 1):
+        for k in range(4):
+            z = 1.6 - k * 1.8
+            b = (s * 3.0, 3.4, z)
+            m.tube([b, (s * 5.4, 4.2, z - k * 0.3), (s * 6.6, 0.8, z - k * 0.5)],
+                   [0.75, 0.6, 0.4], 'shell', 'leg%d' % s)
+    # plump segmented body, pale underside
+    for k in range(4):
+        c = (0, 4.4, 1.2 - k * 2.2)
+        m.ell(c, (4.0 - k * 0.35, 2.6, 1.9), 'shell', 'body%d' % k)
+        m.paint(add(c, (0, -1.4, 0)), (3.2 - k * 0.3, 1.2, 1.6), 'belly',
+                ['body%d' % k])
+    # tail: beads arching up over the back, the sting hanging above the head
+    tl = arched_tail(m, (0, 5.0, -6.0), (2.2, 14.8, -7.4), (0.8, 17.8, -1.8), 9,
+                     1.6, 1.15, 'shell', 'tail')
+    q, dn, r = tl[-1]
+    sb = add(q, (0, -0.2, 1.2))
+    m.ell(sb, (1.9, 1.8, 2.1), 'shell', 'tailS')
+    tip = add(sb, (0, -3.0, 1.6))
+    m.tube([add(sb, (0, -0.6, 1.2)), add(sb, (0, -2.0, 2.0)), tip],
+           [1.0, 0.6, 0.2], 'shell', 'tailS')
+    m.sph(add(tip, (0, -0.9, 0.1)), 1.35, 'lime', 'tailS')
+    # big round head with a pale face
+    hc, hr = (0, 6.0, 4.4), (4.4, 3.8, 3.5)
+    m.ell(hc, hr, 'shell', 'head')
+    m.paint(add(hc, (0, -1.2, 2.2)), (3.0, 1.6, 1.6), 'belly', ['head'])
+    # chunky pincers raised either side of the face, opening upward
+    for s in (-1, 1):
+        sh = (s * 3.6, 5.0, 5.6)
+        el = (s * 7.8, 5.0, 6.2)
+        cl = (s * 8.6, 8.8, 7.0)
+        m.tube([sh, el, add(cl, (0, -1.6, 0))], [1.0, 1.1, 1.2], 'shell',
+               'arm%d' % s)
+        pincer(m, cl, s, 1.8, (s * 0.2, 0.9, 0.35), 'shell', 'arm%d' % s)
+    g.eye_pair(m, hc, hr, 30, 20, 3.6, 4.0, iris=('lime', 0), center=(0, 5, 10),
+               turn=2)
+    p, n = g.on(hc, hr, (0, -0.25, 1))
+    m.mouth(p, n, 'smile', w=2.4)
+    # overworld: a 3/4 turn so the arched tail and pincers both show
+    g.OW_TURN[m.name] = -40.0
+    return m
+
+
+# ==========================================================================
+# 63 SCORCHION -- dark scorpion with ember seams and a burning sting
+# ==========================================================================
+def scorchion(g):
+    m = g.Model('SCORCHION')
+    m.outline = (26, 10, 8)
+    m.mat('shell', ['#2e1a1c', '#52302e', '#7c4c40', '#aa7462'])
+    m.mat('socket', ['#180a0a'])
+    m.mat('ember', ['#d8400c', '#ff9424', '#ffe070'], emissive=0.75)
+    m.mat('flame', ['#e04a10', '#ff9a2a'], emissive=0.8)
+    m.mat('core', ['#fff4b0'], emissive=0.9)
+    m.eye_dark = (20, 8, 6)
+    m.white = (255, 244, 220)
+    m.height = 56
+    m.max_w = 62
+    m.front_yaw = -22
+    # four pairs of jointed legs, knees glowing
+    for s in (-1, 1):
+        for k in range(4):
+            z = 3.0 - k * 3.2
+            b = (s * 4.6, 5.6, z)
+            kn = (s * 9.0, 7.6, z + 0.4 - k * 0.6)
+            ft = (s * 11.0, 0.9, z - k * 0.9)
+            m.tube([b, kn, ft], [1.3, 1.1, 0.6], 'shell', 'leg%d' % s)
+            m.sph(kn, 0.95, 'ember', 'leg%d' % s)
+    # armoured body: overlapping plates with glowing seams between them
+    for k in range(5):
+        c = (0, 6.4 + k * 0.2, 2.4 - k * 3.0)
+        m.ell(c, (6.2 - k * 0.45, 3.2, 2.4), 'shell', 'body')
+        m.ell(add(c, (0, 0.1, -1.5)), (5.6 - k * 0.45, 2.8, 0.9), 'ember', 'body')
+    # tail: heavy plates arching up and over, a seam glowing every third
+    tl = arched_tail(m, (0, 7.4, -11.4), (2.6, 23.0, -12.8), (0.4, 29.0, -3.6),
+                     12, 2.9, 1.9, 'shell', 'tail', seam='ember', every=3)
+    q, dn, r = tl[-1]
+    # swollen stinger bulb glowing through its shell, the sting a flame
+    sb = add(q, (0, -0.2, 1.8))
+    m.ell(sb, (2.6, 2.4, 2.8), 'shell', 'tailS')
+    m.paint(add(sb, (0, -0.8, 1.2)), (1.8, 1.4, 1.8), 'ember', ['tailS'])
+    tip = add(sb, (0, -3.4, 2.4))
+    m.tube([add(sb, (0, -1.0, 1.6)), add(sb, (0, -2.4, 2.6)), tip],
+           [1.3, 0.8, 0.25], 'shell', 'tailS')
+    g.flame(m, add(sb, (0, 1.6, 0.2)), 11.0, 3.4, 'sting',
+            mats=('flame', 'ember', 'core'), up=(0, 1, 0.15), tongues=2,
+            seed=63)
+    # broad head shield with a raised brow ridge
+    hc, hr = (0, 9.0, 6.8), (6.6, 5.0, 4.8)
+    m.ell(hc, hr, 'shell', 'head')
+    for s in (-1, 1):
+        m.tube([add(hc, (s * 0.8, 3.8, 2.4)), add(hc, (s * 4.2, 3.2, 2.6)),
+                add(hc, (s * 6.0, 1.8, 1.6))], [1.0, 0.9, 0.5], 'shell', 'head')
+    # heavy pincers raised either side of the face, ember-lit cutting edges
+    for s in (-1, 1):
+        sh = (s * 5.4, 7.2, 7.6)
+        el = (s * 12.0, 7.4, 8.4)
+        cl = (s * 12.8, 14.4, 9.6)
+        m.tube([sh, el, add(cl, (0, -2.6, 0))], [1.9, 2.0, 2.2], 'shell',
+               'arm%d' % s)
+        m.sph(el, 1.1, 'ember', 'arm%d' % s)
+        pincer(m, cl, s, 2.8, (s * 0.2, 0.9, 0.35), 'shell', 'arm%d' % s,
+               edge='ember')
+    # burning eyes set in dark sockets under the brow
+    for s in (-1, 1):
+        a = (s * 34 + 4) * DEG
+        d = (math.sin(a) * math.cos(14 * DEG), math.sin(14 * DEG),
+             math.cos(a) * math.cos(14 * DEG))
+        p, n = g.on(hc, hr, d)
+        m.paint(add(p, (0, 0.2, 0)), (3.0, 2.5, 2.2), 'socket', ['head'])
+        m.eye(p, n, 4.0, 3.4, style='glow', iris=('ember', 2), slant=0.7,
+              glint=True, center=(0, 8, 14), minw=2, minh=2)
+    # glowing mandible seam
+    p, n = g.on(hc, hr, (0, -0.35, 1))
+    m.mouth(p, n, 'line', w=4.0, color=('ember', 1))
+    # overworld: a 3/4 turn so the tail arch and both claws show
+    g.OW_TURN[m.name] = -35.0
+    return m
+
+
+# ==========================================================================
+# 64 DIGGET -- velvet mole carrying a tiny lantern
+# ==========================================================================
+def hand_lantern(m, c, sc, part, glow='glow', metal='brass'):
+    """A little glass-and-brass lantern with a carry loop, centred on c."""
+    m.ell(c, (1.3 * sc, 1.6 * sc, 1.3 * sc), glow, part)
+    m.ell(add(c, (0, 1.7 * sc, 0)), (1.6 * sc, 0.6 * sc, 1.6 * sc), metal, part)
+    m.ell(add(c, (0, -1.7 * sc, 0)), (1.5 * sc, 0.5 * sc, 1.5 * sc), metal, part)
+    for a in (45, 135, 225, 315):
+        d = (math.sin(a * DEG) * 1.3 * sc, 0, math.cos(a * DEG) * 1.3 * sc)
+        m.tube([add(c, add(d, (0, -1.5 * sc, 0))), add(c, add(d, (0, 1.5 * sc, 0)))],
+               [0.3 * sc, 0.3 * sc], metal, part)
+    top = add(c, (0, 2.2 * sc, 0))
+    m.tube([add(top, (-0.9 * sc, 0, 0)), add(top, (-0.7 * sc, 1.1 * sc, 0)),
+            add(top, (0.7 * sc, 1.1 * sc, 0)), add(top, (0.9 * sc, 0, 0))],
+           0.28 * sc, metal, part)
+    return add(top, (0, 1.2 * sc, 0))
+
+
+def spade_paw(m, c, s, part, mat, size=1.0, nrm=(0, 0.2, 1)):
+    """A broad flat digging paw with five stubby claws."""
+    n = norm(nrm)
+    side = norm(cross((0, 1, 0), n)) if abs(n[1]) < 0.9 else (1, 0, 0)
+    up = norm(cross(n, side))
+    m.ell_axes(c, (mul(side, 2.2 * size), mul(up, 2.0 * size), mul(n, 0.9 * size)),
+               mat, part)
+    for k in range(5):
+        u = (k - 2) * 0.85 * size
+        b = add(c, add(mul(side, u), mul(up, 1.4 * size)))
+        tip = add(b, add(mul(up, 1.3 * size), mul(n, 0.3 * size)))
+        m.tube([b, tip], [0.45 * size, 0.2 * size], mat, part)
+
+
+def digget(g):
+    m = g.Model('DIGGET')
+    m.outline = (26, 20, 32)
+    m.mat('fur', ['#262230', '#403a4c', '#645c72', '#8a8298'])
+    m.mat('pink', ['#c46a80', '#f2a0b2'])
+    m.mat('glow', ['#ffb830', '#fff2a0'], emissive=0.8)
+    m.mat('brass', ['#8a5a1c', '#d8a040'])
+    m.mat('dirt', ['#6a4a30'])
+    m.eye_dark = (20, 16, 26)
+    m.white = (255, 250, 240)
+    m.height = 26
+    m.front_yaw = -30
+    # little dirt mound it popped out of
+    m.ell((0, 0.8, -1.0), (8.4, 1.8, 7.6), 'dirt', 'dirt')
+    for q, r in (((-6.4, 1.8, 2.4), 1.4), ((5.8, 1.6, -4.0), 1.2), ((-3.0, 2.0, -6.0), 1.3)):
+        m.sph(q, r, 'dirt', 'dirt')
+    # plump velvet body, stubby tail
+    bc, br = (0, 7.4, -0.6), (6.4, 5.8, 6.6)
+    m.ell(bc, br, 'fur', 'body')
+    m.tube([(0, 5.0, -6.8), (0, 4.4, -8.6)], [0.8, 0.5], 'pink', 'tail')
+    for s in (-1, 1):
+        m.ell((s * 3.6, 1.8, 2.4), (1.8, 1.0, 2.2), 'pink', 'foot%d' % s)
+    # head tapering into a long pink nose
+    hc, hr = (0, 9.8, 4.2), (4.6, 4.2, 4.2)
+    m.ell(hc, hr, 'fur', 'head')
+    m.tube([(0, 9.2, 6.8), (0, 8.6, 9.2), (0, 8.2, 10.6)], [2.6, 1.8, 1.2],
+           'fur', 'head')
+    m.ell((0, 8.2, 11.2), (1.5, 1.2, 1.0), 'pink', 'head')
+    # the big pink spade paws: one planted, one raising the lantern
+    spade_paw(m, (-5.6, 5.0, 5.2), -1, 'arm-1', 'pink', 1.0, nrm=(-0.4, 0.1, 1))
+    m.tube([(-4.6, 7.0, 2.6), (-5.4, 5.8, 4.2)], [1.8, 1.6], 'fur', 'arm-1')
+    m.tube([(4.8, 8.2, 2.2), (7.0, 9.8, 4.0), (7.6, 12.6, 5.0)], [1.8, 1.6, 1.4],
+           'fur', 'arm1')
+    spade_paw(m, (7.8, 13.4, 5.2), 1, 'arm1', 'pink', 0.8, nrm=(0.3, -0.2, 1))
+    # tiny lantern dangling from the raised paw
+    m.tube([(7.8, 15.0, 5.4), (8.8, 17.4, 5.6)], [0.3, 0.3], 'brass', 'lamp')
+    hand_lantern(m, (9.4, 12.2, 6.2), 1.1, 'lamp')
+    m.tube([(8.6, 15.2, 6.2), (8.8, 17.4, 5.6)], [0.28, 0.28], 'brass', 'lamp')
+    # squinty little eyes, whiskers of a smile
+    g.eye_pair(m, hc, hr, 30, 10, 2.4, 2.4, style='sleepy', center=(0, 9, 11))
+    p, n = g.on(hc, hr, (0, -0.5, 0.9))
+    m.mouth(p, n, 'smile', w=2.2)
+    for s in (-1, 1):
+        m.dot(g.on(hc, hr, (s * 0.62, -0.2, 0.75))[0], (s * 0.6, 0, 0.8),
+              w=1.3, h=0.8, color=('pink', 1), minw=2)
+    return m
+
+
+# ==========================================================================
+# 65 SEXTONE -- gravekeeper mole with a spade and a ghost-lamp
+# ==========================================================================
+def sextone(g):
+    m = g.Model('SEXTONE')
+    m.outline = (20, 16, 26)
+    m.mat('fur', ['#1e1a26', '#3a3446', '#645c74'])
+    m.mat('pink', ['#b0607a', '#e894aa'])
+    m.mat('glow', ['#2ed88c', '#b4ffd8'], emissive=0.85)
+    m.mat('iron', ['#4a5058', '#8c96a0'], spec=0.4)
+    m.mat('wood', ['#7a5434'])
+    m.mat('cloth', ['#3a2c3a', '#5c4658'])
+    m.eye_dark = (10, 8, 14)
+    m.white = (240, 255, 248)
+    m.height = 58
+    m.max_w = 62
+    m.front_yaw = -24
+    # the spade planted in the ground on its right, taller than its head
+    sp0, sp1 = (-10.0, 4.0, 5.0), (-9.4, 42.0, 3.4)
+    m.box((-10.0, 5.0, 5.0), (3.2, 4.4, 0.5), 'iron', 'spade', rot=(0, 0, 0))
+    m.tube([sp0, sp1], [0.9, 0.9], 'wood', 'spade')
+    m.tube([add(sp1, (-2.0, 0, 0)), add(sp1, (2.0, 0, 0))], [0.8, 0.8], 'wood', 'spade')
+    # short legs, broad pink feet
+    for s in (-1, 1):
+        m.ell((s * 4.2, 4.4, 0.0), (3.2, 4.2, 3.6), 'fur', 'leg%d' % s)
+        m.ell((s * 4.6, 1.3, 3.0), (2.6, 1.3, 3.6), 'pink', 'leg%d' % s)
+    # pear-shaped upright body
+    bc, br = (0, 17.0, -0.4), (8.0, 11.0, 7.0)
+    m.ell(bc, br, 'fur', 'body')
+    # a ragged gravedigger's shawl over the shoulders
+    rnd = g.Rand(65)
+    for k in range(13):
+        a = (-150 + 300.0 * k / 12) * DEG
+        b = (math.sin(a) * 6.6, 27.6, math.cos(a) * 5.6 - 0.4)
+        ln = 7.0 + rnd.f() * 3.0
+        d = norm((math.sin(a) * 0.35, -1.0, math.cos(a) * 0.35))
+        m.tube([b, add(b, mul(d, ln * 0.5)), add(b, mul(d, ln))],
+               [2.6, 2.2, 0.6], 'cloth', 'shawl', flat=0.45,
+               up=(math.sin(a), 0, math.cos(a)))
+    m.ell((0, 28.0, -0.2), (7.4, 3.0, 6.4), 'cloth', 'shawl')
+    # right arm gripping the spade handle
+    m.tube([(-6.8, 26.0, 0.6), (-10.0, 22.0, 2.6), (-9.8, 26.0, 4.4)],
+           [2.4, 2.0, 1.8], 'fur', 'arm-1')
+    spade_paw(m, (-9.4, 27.4, 4.8), -1, 'arm-1', 'pink', 1.1, nrm=(-0.3, 0, 1))
+    # left arm holding the ghost-lamp out toward us
+    m.tube([(6.8, 26.0, 0.6), (10.2, 22.0, 3.4), (11.4, 20.0, 7.0)],
+           [2.4, 2.0, 1.8], 'fur', 'arm1')
+    spade_paw(m, (11.6, 20.6, 8.0), 1, 'arm1', 'pink', 1.1, nrm=(0.2, -0.3, 1))
+    hand_lantern(m, (11.8, 14.0, 8.4), 1.7, 'lamp', glow='glow', metal='iron')
+    m.tube([(11.8, 18.0, 8.4), (11.8, 21.6, 8.2)], [0.4, 0.4], 'iron', 'lamp')
+    # head with a long pink nose and a pale grave-glow in its eyes
+    hc, hr = (0, 33.0, 1.6), (5.8, 5.4, 5.4)
+    m.ell(hc, hr, 'fur', 'head')
+    m.tube([(0, 32.2, 5.0), (0, 31.2, 8.4), (0, 30.6, 10.4)], [3.4, 2.4, 1.5],
+           'fur', 'head')
+    m.ell((0, 30.6, 11.0), (1.9, 1.5, 1.2), 'pink', 'head')
+    # a battered wide-brimmed hat
+    m.ell((0, 37.4, 0.8), (8.6, 0.8, 8.0), 'cloth', 'hat', rot=(0, -8, 6))
+    m.ell((0, 39.6, 0.4), (4.8, 3.2, 4.6), 'cloth', 'hat', rot=(0, -8, 6))
+    m.paint((0, 38.6, 0.5), (5.0, 0.8, 4.8), 'wood', ['hat'], rot=(0, -8, 6))
+    for s in (-1, 1):
+        p, n = g.on(hc, hr, norm((s * 0.5 + 0.06, 0.12, 0.85)))
+        m.paint(p, (1.8, 1.4, 1.4), 'fur', ['head'])
+        m.eye(p, n, 2.6, 2.0, style='glow', iris=('glow', 1), slant=0.4,
+              glint=False, center=(0, 33, 10))
+    p, n = g.on(hc, hr, (0, -0.55, 0.85))
+    m.mouth(p, n, 'line', w=2.4)
+    # wisps drifting from the lamp
+    for q, r in (((13.6, 18.4, 9.6), 0.8), ((14.8, 21.4, 9.2), 0.6)):
+        m.sph(q, r, 'glow', 'wisp')
+    return m
+
+
+# ==========================================================================
+# 66 QUARTZLING -- pale grub growing amethyst points on its back
+# ==========================================================================
+def quartzling(g):
+    m = g.Model('QUARTZLING')
+    m.outline = (44, 30, 50)
+    m.mat('grub', ['#a0907e', '#d4c6b4', '#f4ece0', '#fffaf2'])
+    m.mat('quartz', ['#4e2482', '#8a50c8', '#c496f0', '#f0e0ff'], spec=0.5)
+    m.mat('dark', ['#4a3a34'])
+    m.mat('pink', ['#e8a0a8'])
+    m.eye_dark = (34, 22, 30)
+    m.white = (255, 255, 255)
+    m.height = 30
+    m.front_yaw = -28
+    # plump segments in a gentle curl, biggest in the middle
+    # (straight, with the front two segments reared up so the face sits
+    # high and reads head-on)
+    segs = []
+    for k in range(6):
+        t = k / 5.0
+        z = 6.0 - k * 3.2
+        r = 3.2 + 1.0 * math.sin(math.pi * (0.2 + 0.7 * t)) - t * 0.9
+        lift = (2.6, 1.0, 0.0, 0.0, 0.0, 0.0)[k]
+        segs.append(((0.0, r * 0.95 + lift, z + (0.0, 0.6, 0, 0, 0, 0)[k]), r))
+    for k, (c, r) in enumerate(segs):
+        m.ell(c, (r, r * 0.95, r * 0.72), 'grub', 'body')
+        # stubby legs under the front segments
+        if 1 < k < 5:
+            for s in (-1, 1):
+                m.ell(add(c, (s * r * 0.8, -r * 0.7, 0.3)), (0.8, 0.9, 0.8),
+                      'grub', 'leg%d' % s)
+    # amethyst points along the back, bigger toward the rear
+    rnd = g.Rand(66)
+    for k, (c, r) in enumerate(segs[1:]):
+        n = 1 if k in (0, 4) else 2
+        for j in range(n):
+            sx = 0 if n == 1 else (j * 2 - 1)
+            d = norm((sx * 0.55, 1.0, -0.2))
+            b = add(c, (sx * r * 0.4, r * 0.7, 0))
+            ln = (3.8 + k * 0.9 - (1.4 if k == 4 else 0)) * (0.9 + 0.2 * rnd.f())
+            m.crystal(sub(b, mul(d, 0.8)), add(b, mul(d, ln)), 1.0 + k * 0.1,
+                      'quartz', 'crys%d' % k, sides=6, tip_frac=0.4,
+                      twist=rnd.f() * 60)
+    # round head with tiny mandibles
+    hc, hr = (0.0, 8.4, 8.6), (4.0, 3.7, 3.3)
+    m.ell(hc, hr, 'grub', 'head')
+    for s in (-1, 1):
+        b = add(hc, (s * 1.4, -1.6, 2.2))
+        m.tube([b, add(b, (s * 0.6, -0.4, 1.2)), add(b, (-s * 0.2, -0.6, 1.8))],
+               [0.5, 0.4, 0.15], 'dark', 'head')
+        # little antennae
+        a0 = add(hc, (s * 1.4, 2.6, 1.2))
+        m.tube([a0, add(a0, (s * 1.0, 1.6, 0.8)), add(a0, (s * 2.0, 2.2, 0.6))],
+               [0.35, 0.3, 0.25], 'dark', 'head')
+    g.eye_pair(m, hc, hr, 36, 12, 2.4, 2.8, iris=('quartz', 1), center=(0, 8, 14),
+               turn=12)
+    # overworld: a slight turn so the crystal-backed body shows behind
+    g.OW_TURN[m.name] = -25.0
+    p, n = g.on(hc, hr, (0.1, -0.25, 1))
+    m.mouth(p, n, 'smile', w=1.8)
+    for s in (-1, 1):
+        m.dot(g.on(hc, hr, (s * 0.62, -0.2, 0.75))[0], (s * 0.6, 0, 0.8),
+              w=1.2, h=0.8, color=('pink', 0), minw=2)
+    return m
+
+
 # ---- end of batch ----

@@ -110,7 +110,7 @@ def calderon(g):
     _use(g)
     m = Model('CALDERON')
     m.outline = (24, 12, 20)
-    m.mat('skin', ['#1c1620', '#342834', '#564250'])
+    m.mat('skin', ['#201822', '#3c2e3c', '#665262'])
     m.mat('iron', ['#2e3440', '#56606e', '#8a96a4', '#c8d2dc'], spec=0.45)
     m.mat('fire', ['#c4301a', '#ff7a1c'], emissive=0.6)
     m.mat('magma', ['#ffa02a', '#ffe070', '#fff8d4'], emissive=0.9)
@@ -118,92 +118,115 @@ def calderon(g):
     m.white = (255, 248, 212)
     m.height = 58
     m.max_w = 62
-    m.front_yaw = -34
+    m.front_yaw = -54
     m.back_scale = 1.1
-    # heavy body, chest reared up on planted fore legs
-    body = [(0, 27.0, 10.0), (0, 23.0, 4.0), (0, 18.5, -2.5), (0, 15.5, -9.0)]
-    m.tube(body, [7.0, 8.6, 8.8, 7.6], 'skin', 'body')
-    tail = [(0.5, 14.5, -13.0), (3.5, 12.0, -18.5), (9.5, 10.5, -21.5), (16.0, 10.5, -20.0),
-            (20.5, 12.5, -15.5), (22.5, 16.5, -10.5)]
-    m.tube(tail, [6.4, 5.2, 4.2, 3.4, 2.6, 1.8], 'skin', 'tail')
-    flame(m, (22.8, 17.5, -9.8), 12, 4.2, 'tail', mats=('fire', 'magma', 'magma'),
-          up=(0.1, 1, 0.35), seed=121)
+    # body: a long, low salamander, shoulders a little higher than the hips
+    body = [(0, 12.0, -13.0), (0, 14.5, -5.0), (0, 16.5, 3.0), (0.4, 17.5, 10.0)]
+    brad = [6.4, 7.4, 7.8, 6.8]
+    m.tube(body, brad, 'skin', 'body')
+    # tail sweeping out behind and curling up, flame at the tip
+    tail = [(0, 11.0, -16.0), (1.5, 9.0, -22.0), (4.5, 11.0, -27.5), (7.5, 17.0, -29.5),
+            (8.5, 24.0, -27.0), (7.0, 29.5, -22.5)]
+    m.tube(tail, [5.6, 4.6, 3.8, 3.0, 2.3, 1.6], 'skin', 'tail')
+    flame(m, (6.8, 30.5, -22.0), 13, 4.4, 'tail', mats=('fire', 'magma', 'magma'),
+          up=(-0.1, 1, 0.3), seed=121)
     # molten blotches: a fire salamander's spots, glowing from inside
     for s in (-1, 1):
-        for (x, y, z, r) in ((7.8, 21.0, 4.0, 2.8), (8.2, 17.0, -4.5, 2.6),
-                             (6.6, 25.5, 10.0, 2.0), (6.8, 13.5, -10.5, 2.0)):
-            m.paint((s * x, y, z), (r * 0.8, r * 0.7, r * 1.2), 'fire', ['body'])
-            m.paint((s * (x + 0.8), y, z), (r * 0.4, r * 0.35, r * 0.6), 'magma', ['body'])
-    for (q, r) in (((5.6, 13.8, -17.5), 1.9), ((12.4, 13.0, -20.6), 1.6),
-                   ((19.0, 14.6, -16.0), 1.3)):
-        m.paint(q, (r, r * 0.8, r * 1.2), 'fire', ['tail'])
+        for (x, y, z, r) in ((6.8, 16.0, 1.0, 2.8), (6.6, 13.5, -7.5, 2.6),
+                             (5.6, 19.5, 7.0, 2.0), (5.4, 12.0, -13.5, 2.0),
+                             (4.2, 21.0, -2.0, 1.6)):
+            m.paint((s * x, y, z), (r * 1.2, r * 0.9, r * 1.1), 'fire', ['body'])
+            m.paint((s * (x + 0.8), y + 0.3, z), (r * 0.7, r * 0.45, r * 0.6), 'magma', ['body'])
+    for s in (-1, 1):
+        for (q, r) in (((s * 14.6, 14.0, 11.0), 3.0), ((s * 15.0, 13.0, -10.5), 3.0),
+                       ((s * 10.0, 14.5, 10.0), 2.4), ((s * 13.6, 7.0, 12.0), 1.8)):
+            pt = 'legF%d' % s if q[2] > 0 else 'legB%d' % s
+            m.paint(q, (r, r, r), 'fire', [pt])
+            m.paint(add(q, (0, 0.2, 0.7)), r * 0.5, 'magma', [pt])
+    for (q, r) in (((3.0, 11.5, -23.0), 1.9), ((6.6, 14.0, -30.0), 1.7),
+                   ((9.0, 22.0, -28.6), 1.4)):
+        m.paint(q, (r, r * 1.1, r * 1.1), 'fire', ['tail'])
     # ingot plates standing up the spine like a forge's fins
-    fins = [((0, 33.2, 8.5), 3.0, 2.2), ((0, 31.6, 3.2), 3.9, 2.6), ((0, 28.8, -2.2), 4.0, 2.6),
-            ((0, 25.0, -7.4), 3.4, 2.4), ((0.6, 20.8, -12.6), 2.8, 2.0),
-            ((4.0, 17.4, -18.0), 2.2, 1.7), ((10.0, 15.0, -21.2), 1.7, 1.4),
-            ((16.2, 14.2, -19.6), 1.3, 1.1)]
-    for k, (c, h, w) in enumerate(fins):
+    fins = [((0, 23.5, 8.0), 3.4, 2.4, 25), ((0, 23.4, 3.0), 4.2, 2.7, 20),
+            ((0, 22.4, -2.0), 4.4, 2.8, 14), ((0, 21.2, -7.0), 3.8, 2.5, 8),
+            ((0, 19.2, -12.0), 3.2, 2.2, 0), ((0.6, 16.2, -17.5), 2.6, 2.0, -6),
+            ((2.2, 14.0, -24.0), 2.1, 1.7, -24), ((5.6, 17.5, -31.5), 1.7, 1.4, -60),
+            ((9.6, 24.5, -29.5), 1.4, 1.2, -90)]
+    for k, (c, h, w, tilt) in enumerate(fins):
         part = 'body' if k < 5 else 'tail'
-        yaw = 0 if k < 5 else (35 + 30 * (k - 5))
-        m.box(add(c, (0, h * 0.5, 0)), (0.9, h, w), 'iron', part, rot=(yaw, 0, 0),
+        yaw = 0 if k < 6 else (10 + 15 * (k - 6))
+        m.box(add(c, (0, h * 0.5, 0)), (0.9, h, w), 'iron', part, rot=(yaw, tilt, 0),
               bevel=0.5)
-        m.paint(add(c, (0, -0.6, 0)), (1.6, 1.0, w), 'magma', [part], rot=(yaw, 0, 0))
+        m.paint(add(c, (0, -0.6, 0)), (1.6, 1.0, w), 'magma', [part], rot=(yaw, tilt, 0))
     # smokestack vents on the shoulders, venting the forge
     for s in (-1, 1):
-        b = (s * 5.0, 29.5, 6.5)
-        t = (s * 6.6, 35.5, 5.0)
+        b = (s * 5.0, 20.5, 4.0)
+        t = (s * 7.2, 28.5, 1.5)
         m.tube([b, t], [2.2, 1.8], 'iron', 'vent%d' % s)
         m.ell(t, (2.2, 0.9, 2.2), 'iron', 'vent%d' % s)
         m.ell(add(t, (0, 0.5, 0)), (1.4, 0.6, 1.4), 'magma', 'vent%d' % s)
-        flame(m, add(t, (0, 0.6, 0)), 12 if s > 0 else 10, 3.0, 'vent%d' % s,
-              mats=('fire', 'magma', 'magma'), up=(s * 0.12, 1, -0.2), seed=40 + s,
+        flame(m, add(t, (0, 0.6, 0)), 10 if s > 0 else 8, 2.8, 'vent%d' % s,
+              mats=('fire', 'magma', 'magma'), up=(s * 0.12, 1, -0.3), seed=40 + s,
               tongues=2)
-    # legs: splayed like a salamander, iron spurs and claws
+    # legs in a low sprawl, elbows and knees jutting out, iron claws
     for s in (-1, 1):
-        sh = (s * 7.2, 23.0, 8.5)
-        el = (s * 13.2, 17.5, 10.5)
-        wr = (s * 13.4, 4.8, 13.0)
-        m.sph(sh, 4.4, 'skin', 'legF%d' % s)
-        m.tube([sh, el, wr], [4.2, 3.6, 3.1], 'skin', 'legF%d' % s)
-        m.ell((s * 13.6, 2.2, 14.6), (3.9, 2.2, 4.6), 'skin', 'legF%d' % s)
-        m.crystal(add(el, (s * 1.0, 0.5, -2.0)), add(el, (s * 3.0, 3.5, -6.5)), 1.4, 'iron',
-                  'legF%d' % s, sides=4, tip_frac=0.7)
+        part = 'legF%d' % s
+        sh, el, wr, ft = ((s * 6.0, 15.0, 9.0), (s * 15.0, 14.5, 11.0),
+                          (s * 13.0, 3.8, 13.0), (s * 13.4, 1.9, 14.8))
+        m.sph(sh, 4.6, 'skin', part)
+        m.tube([sh, el, wr], [3.6, 3.0, 2.6], 'skin', part)
+        m.ell(ft, (3.8, 1.9, 4.2), 'skin', part)
+        m.crystal(add(el, (s * 0.8, 0.5, -1.4)), add(el, (s * 3.4, 3.4, -5.0)), 1.3, 'iron',
+                  part, sides=4, tip_frac=0.7)
         for t in (-1, 0, 1):
-            m.crystal((s * 13.6 + t * 2.0, 1.6, 17.4), (s * 13.6 + t * 2.6, 0.5, 20.6),
-                      0.95, 'iron', 'legF%d' % s, sides=4, tip_frac=0.8)
-        hp = (s * 7.2, 15.5, -9.5)
-        kn = (s * 13.2, 13.2, -7.4)
-        an = (s * 13.4, 3.6, -8.6)
-        m.sph(hp, 4.8, 'skin', 'legB%d' % s)
-        m.tube([hp, kn, an], [4.6, 3.8, 3.1], 'skin', 'legB%d' % s)
-        m.ell((s * 13.6, 2.0, -6.8), (3.7, 2.0, 4.4), 'skin', 'legB%d' % s)
-        m.crystal(add(kn, (s * 1.0, 0.8, -1.0)), add(kn, (s * 3.2, 4.0, -5.0)), 1.3, 'iron',
-                  'legB%d' % s, sides=4, tip_frac=0.7)
+            m.crystal((ft[0] + t * 1.9, 1.5, 16.2), (ft[0] + t * 2.5, 0.5, 19.2),
+                      0.9, 'iron', part, sides=4, tip_frac=0.8)
+        part = 'legB%d' % s
+        hp, kn, an, ft = ((s * 6.0, 12.0, -9.0), (s * 15.0, 13.5, -10.5),
+                          (s * 14.6, 3.6, -7.5), (s * 15.0, 1.8, -5.8))
+        m.sph(hp, 4.6, 'skin', part)
+        m.tube([hp, kn, an], [3.8, 3.1, 2.7], 'skin', part)
+        m.ell(ft, (3.7, 1.9, 4.2), 'skin', part)
+        m.crystal(add(kn, (s * 0.6, 1.0, -1.0)), add(kn, (s * 2.2, 5.0, -4.5)), 1.3, 'iron',
+                  part, sides=4, tip_frac=0.7)
         for t in (-1, 0, 1):
-            m.crystal((s * 13.6 + t * 1.9, 1.5, -4.0), (s * 13.6 + t * 2.4, 0.5, -1.0),
-                      0.9, 'iron', 'legB%d' % s, sides=4, tip_frac=0.8)
-    # broad flat head thrown back, jaw open on a molten maw
-    m.tube([(0, 29.0, 10.5), (0, 32.0, 14.0)], [6.4, 6.0], 'skin', 'head')
-    head_c, head_r = (0, 35.2, 18.5), (7.6, 4.0, 9.0)
-    m.ell(head_c, head_r, 'skin', 'head', rot=(0, -14, 0))
-    m.ell((0, 30.0, 18.2), (6.6, 2.3, 8.0), 'skin', 'jaw', rot=(0, 12, 0))
-    m.ell((0, 32.2, 19.6), (5.6, 2.2, 6.6), 'magma', 'maw')
+            m.crystal((ft[0] + t * 1.9, 1.5, -3.4), (ft[0] + t * 2.5, 0.5, -0.4),
+                      0.9, 'iron', part, sides=4, tip_frac=0.8)
+    # neck lifting a long, flat salamander head, the snout low and forward
+    R, U, F = frame((0.1, 0.12, 0.97), (0, 1, 0))
+    hc = (1.0, 28.0, 20.5)
+
+    def H(x, y, z):
+        return local(hc, (R, U, F), x, y, z)
+    m.tube([(0.4, 18.0, 8.0), (0.8, 24.0, 12.5), H(0, -0.4, -4.0)], [6.6, 5.4, 4.8], 'skin',
+           'head')
+    m.ell_axes(H(0, 0.4, 0), (mul(R, 5.8), mul(U, 3.2), mul(F, 7.0)), 'skin', 'head')
+    m.ell_axes(H(0, -0.2, 7.5), (mul(R, 4.8), mul(U, 2.3), mul(F, 6.6)), 'skin', 'head')
+    m.ell_axes(H(0, -2.0, 4.8), (mul(R, 5.2), mul(U, 1.7), mul(F, 8.8)), 'skin', 'jaw')
+    # a long ember seam along the lips, like a crack in a crucible
+    for k in range(10):
+        t = k / 9.0
+        for s in (-1, 1):
+            q = H(s * (5.0 - 1.6 * t * t), -1.2, -1.0 + 13.0 * t)
+            m.paint(q, (1.3, 0.75, 1.5), 'fire', ['head', 'jaw'])
     for s in (-1, 1):
-        for k in range(3):
-            q = (s * (2.2 + k * 1.7), 33.6 + k * 0.1, 25.4 - k * 1.9)
-            m.crystal(q, add(q, (0, -2.0, 0.2)), 0.55, 'iron', 'head', sides=4,
-                      tip_frac=0.8)
-        # bulging eye mounds and swept iron horns
-        m.ell((s * 4.4, 38.6, 16.4), (2.6, 2.1, 2.6), 'skin', 'head')
-        m.crystal((s * 5.4, 38.4, 13.0), (s * 9.0, 42.0, 6.0), 1.5, 'iron', 'head',
-                  sides=4, tip_frac=0.7)
-    m.crystal((0, 38.2, 13.0), (0, 44.8, 6.5), 1.9, 'iron', 'head', sides=4, tip_frac=0.7)
+        m.dot(H(s * 1.5, 1.0, 13.6), norm(add(F, mul(U, 0.6))), w=0.9, h=0.8)
+        # eye turrets set high and forward on the skull
+        m.ell_axes(H(s * 3.6, 3.0, 3.4), (mul(R, 2.6), mul(U, 2.6), mul(F, 2.8)), 'skin',
+                   'head')
+    # an iron crest ridge from the brow down the neck
+    for k, (z, h) in enumerate(((-0.5, 2.4), (-4.0, 3.2), (-7.8, 3.6))):
+        c = H(0, 3.0 - k * 0.3, z)
+        m.box(add(c, mul(U, h * 0.4)), (0.8, h, 1.8), 'iron', 'head', rot=(7, 20, 0),
+              bevel=0.4)
+        m.paint(c, (1.5, 0.9, 1.7), 'magma', ['head'])
     for s in (-1, 1):
-        m.eye((s * 4.4, 39.2, 18.0), (s * 0.5, 0.5, 0.8), 3.2, 2.8, style='glow',
-              iris=('magma', 1), slant=0.9, center=(0, 36, 30), glint=False,
-              pupil='outline')
-        p, n = on(head_c, head_r, (s * 0.2, 0.35, 1), rot=(0, -14, 0))
-        m.dot(p, n, w=1.2, h=1.0, color='outline', minw=1)
+        q = H(s * 4.3, 3.9, 5.6)
+        n = norm(add(mul(R, s * 0.6), add(mul(U, 0.3), F)))
+        m.dot(q, n, w=6.2, h=5.4, color='outline', minw=4, minh=4, shape='oval')
+        m.eye(q, n, 5.0, 4.8, style='glow', iris=('magma', 1), slant=0.3, glint=True,
+              pupil='outline', center=H(0, 4, 20), minw=3, minh=3)
+    g.OW_TURN[m.name] = -40.0
     return m
 
 
@@ -267,18 +290,20 @@ def nocthale(g):
     m.paint(p, (2.8, 2.2, 2.8), 'groove', ['body'])
     m.paint(add(p, mul(n, 0.5)), (1.5, 1.2, 1.5), 'star', ['body'])
     # long humpback flippers spread like wings
-    fl = {1: [(9.0, 29.0, 6.0), (19.0, 26.5, 9.0), (29.0, 21.0, 8.5)],
+    fl = {1: [(8.5, 28.5, 6.5), (16.0, 22.0, 10.5), (21.0, 13.0, 13.0)],
           -1: [(-9.0, 33.0, 2.0), (-18.0, 41.0, -3.0), (-25.0, 48.5, -9.0)]}
     for s in (-1, 1):
         root, mid, tip = fl[s]
-        m.tube([root, mid, tip], None, 'hide', 'fin%d' % s, flat=0.3, up=(0, 0.35, 1),
-               rfn=lambda t: 4.8 * math.sin(math.pi * min(1, 0.15 + t * 0.88)) ** 0.55 + 0.2)
-        for k in range(1, 6):
-            t = k / 6.0
+        m.tube([root, mid, tip], None, 'belly', 'fin%d' % s, flat=0.3, up=(0, 0.35, 1),
+               rfn=lambda t: 4.8 * math.sin(math.pi * min(1, 0.15 + t * 0.88)) ** 0.55 + 0.2,
+               mats=[(0, 'belly'), (0.76, 'groove')])
+        # knobbly humpback leading edge, starlit
+        for k in range(1, 5):
+            t = k / 5.0
             q = lerp(root, mid, t * 2) if t < 0.5 else lerp(mid, tip, (t - 0.5) * 2)
-            lead = (0, 3.2, 0) if s > 0 else (1.5, 1.5, 2.5)
-            m.paint(add(q, lead), (2.4, 1.4, 2.4), 'belly', ['fin%d' % s])
-        m.paint(tip, 1.6, 'groove', ['fin%d' % s])
+            lead = (0, 3.0, 0) if s > 0 else (1.4, 1.4, 2.4)
+            m.paint(add(q, lead), (1.0, 0.9, 1.0), 'hide', ['fin%d' % s])
+        m.paint(tip, 2.8, 'star', ['fin%d' % s])
     # flukes: a crescent with glowing points
     tb = spine[-1]
     for s in (-1, 1):
@@ -305,17 +330,22 @@ def hoarfang(g):
     m.outline = (22, 22, 52)
     m.mat('fur', ['#5a6aa0', '#9cb0dc', '#d6e4f8', '#ffffff'], th=[0.2, 0.46, 0.78])
     m.mat('dusk', ['#1c1636', '#382c62', '#5e4c92'])
-    m.mat('ice', ['#3e9ee6', '#a4e6ff', '#effeff'], emissive=0.35)
+    m.mat('ice', ['#2270c8', '#4cb4f4', '#bdefff'], emissive=0.3)
     m.eye_dark = (22, 22, 52)
     m.white = (255, 255, 255)
     m.height = 58
     m.max_w = 62
-    m.front_yaw = -30
+    m.front_yaw = -50
     # body: deep chest, strong haunches
     m.ell((0, 25.0, 6.0), (8.4, 9.4, 8.6), 'fur', 'body')
     m.ell((0, 23.0, -7.0), (7.2, 7.8, 10.0), 'fur', 'body', rot=(0, 6, 0))
-    # the shadow that runs over its back
-    m.paint((0, 30.5, -4.0), (6.4, 3.6, 12.0), 'dusk', ['body'])
+    # the dusk saddle: a night-sky mantle over the back and down the flanks,
+    # pricked with frost stars
+    m.paint((0, 33.5, -5.0), (12.0, 10.0, 12.5), 'dusk', ['body', 'legB-1', 'legB1'])
+    m.paint((0, 31.0, -15.0), (9.0, 6.0, 4.0), 'dusk', ['legB-1', 'legB1', 'body'])
+    for (x, y, z) in ((5.6, 29.5, -2.0), (7.4, 26.5, -7.5), (3.4, 31.2, -10.0), (6.2, 27.0, 3.0),
+                      (-5.6, 29.5, -2.0), (-7.4, 26.5, -7.5), (0.0, 31.0, -4.0)):
+        m.paint((x, y, z), 0.8, 'ice', ['body', 'legB-1', 'legB1'])
     for s in (-1, 1):
         top = (s * 4.8, 20.0, 8.5)
         m.tube([top, (s * 5.1, 11.0, 9.4), (s * 5.2, 3.4, 10.0)], [3.6, 2.8, 2.6], 'fur',
@@ -331,10 +361,10 @@ def hoarfang(g):
            mats=[(0, 'fur'), (0.72, 'dusk')])
     # crown of ice shards fanning up behind the head
     for k, (x, y, z, dx, dz, ln, r) in enumerate((
-            (0.0, 35.0, 3.0, 0.0, -0.25, 17, 2.2), (4.0, 34.5, 2.5, 0.42, -0.2, 14, 1.9),
-            (-4.0, 34.5, 2.5, -0.42, -0.2, 14, 1.9), (7.0, 33.0, 1.5, 0.9, -0.1, 11, 1.6),
-            (-7.0, 33.0, 1.5, -0.9, -0.1, 11, 1.6), (2.4, 33.0, -2.0, 0.2, -0.55, 10, 1.5),
-            (-2.4, 33.0, -2.0, -0.2, -0.55, 10, 1.5), (0.0, 31.5, -7.0, 0.0, -0.8, 8, 1.3))):
+            (0.0, 42.5, 10.5, 0.0, -0.3, 17, 2.3), (3.0, 42.0, 10.0, 0.45, -0.3, 13, 1.9),
+            (-3.0, 42.0, 10.0, -0.45, -0.3, 13, 1.9), (0.0, 39.5, 7.0, 0.0, -0.75, 13, 2.0),
+            (5.4, 38.5, 8.0, 0.9, -0.4, 10, 1.6), (-5.4, 38.5, 8.0, -0.9, -0.4, 10, 1.6),
+            (2.2, 36.5, 4.5, 0.3, -1.1, 9, 1.4), (-2.2, 36.5, 4.5, -0.3, -1.1, 9, 1.4))):
         b = (x, y, z)
         d = norm((dx, 1.0, dz))
         m.crystal(add(b, mul(d, -2.0)), add(b, mul(d, ln)), r, 'ice', 'crown', sides=4,
@@ -350,22 +380,26 @@ def hoarfang(g):
     m.tube([(0, 30.0, 8.0), (0, 35.5, 11.0)], [5.6, 5.0], 'fur', 'body')
     head_c, head_r = (0, 40.0, 13.0), (6.2, 5.6, 6.4)
     m.ell(head_c, head_r, 'fur', 'head')
-    m.tube([(0, 38.8, 17.0), (0, 37.8, 21.5), (0, 37.2, 24.0)], [3.6, 2.7, 2.2], 'fur',
+    # long wolf muzzle, dark nose, ice fangs
+    m.tube([(0, 39.0, 16.5), (0, 38.0, 22.0), (0, 37.3, 27.0)], [3.8, 2.8, 2.1], 'fur',
            'head')
-    m.tube([(0, 35.8, 17.0), (0, 35.6, 22.0)], [2.4, 1.8], 'fur', 'head')
-    m.ell((0, 38.8, 24.6), (1.6, 1.2, 1.1), 'dusk', 'head')
+    m.tube([(0, 35.8, 17.0), (0, 35.4, 22.5), (0, 35.3, 25.0)], [2.5, 1.9, 1.5], 'fur', 'head')
+    m.ell((0, 38.2, 28.4), (1.7, 1.3, 1.2), 'dusk', 'head')
     m.paint((0, 43.5, 15.0), (3.0, 1.4, 4.0), 'dusk', ['head'])
     for s in (-1, 1):
-        m.crystal((s * 1.4, 36.9, 21.6), (s * 1.5, 34.2, 22.0), 0.6, 'ice', 'head',
+        m.crystal((s * 1.4, 36.6, 24.4), (s * 1.5, 33.9, 24.8), 0.6, 'ice', 'head',
                   sides=4, tip_frac=0.8)
+        # dark bandit mask round the glowing eyes, swept back to the ears
+        m.paint((s * 3.5, 40.9, 17.2), (2.9, 2.6, 3.0), 'dusk', ['head'], rot=(s * 20, 0, s * -12))
+        m.paint((s * 4.8, 42.2, 13.5), (1.8, 1.5, 3.0), 'dusk', ['head'])
         m.tube([(s * 3.4, 44.0, 11.5), (s * 5.0, 49.5, 10.0), (s * 6.0, 54.5, 8.8)],
                [3.0, 2.0, 0.2], 'fur', 'ear%d' % s, flat=0.45, up=(0, 0.1, 1))
         m.paint((s * 4.6, 48.0, 11.0), (1.2, 2.6, 1.0), 'dusk', ['ear%d' % s])
         m.tube([(s * 5.0, 38.0, 11.0), (s * 7.8, 36.0, 9.5), (s * 9.2, 34.0, 8.0)],
                [2.4, 1.6, 0.2], 'fur', 'head', flat=0.5, up=(0, 0, 1))
-    eye_pair(m, head_c, head_r, 32, 16, 4.0, 3.0, style='glow', iris=('ice', 1), slant=1.0,
-             center=(0, 38, 23), turn=4, pupil='outline')
-    m.mouth((0, 36.9, 21.0), (0, -0.1, 1), 'line', w=3.0)
+    eye_pair(m, head_c, head_r, 32, 16, 4.4, 3.4, style='glow', iris=('ice', 1), slant=0.8,
+             center=(0, 38, 27), turn=4, pupil='outline', minw=2, minh=2)
+    m.mouth((0, 36.4, 24.0), (0, -0.1, 1), 'line', w=3.0)
     return m
 
 
@@ -493,7 +527,7 @@ def ossurex(g):
 def selenoth(g):
     _use(g)
     hover(g, 'SELENOTH', 4)
-    side_yaw(g, 'SELENOTH', -56.0)
+    side_yaw(g, 'SELENOTH', -38.0)
     m = Model('SELENOTH')
     m.outline = (28, 22, 62)
     m.mat('wing', ['#6c68ac', '#a4a2da', '#d8d8f4', '#fbfbff'], th=[0.2, 0.46, 0.76])
@@ -511,30 +545,31 @@ def selenoth(g):
 
         def W(u, v, uv=uv):
             return add(root, add(mul(uv, u), (0, v, 0)))
-        # falcate forewing sweeping up and out
-        fore = [(0.5, 2.0), (6.0, 9.5), (13.0, 16.5), (21.0, 22.0), (28.0, 25.5), (33.0, 26.0),
-                (32.5, 22.0), (29.0, 15.5), (22.5, 8.5), (13.0, 2.5), (5.0, -0.5), (1.0, -1.0)]
-        m.poly([W(u, v) for u, v in fore], 'wing', 'wingF%d' % s, puff=0.35)
+        # broad, flat forewing with a falcate tip
+        lead = [(0.5, 2.5), (8.0, 10.5), (17.0, 16.0), (26.0, 19.5), (33.0, 21.0), (36.5, 20.0)]
+        fore = lead + [(36.0, 15.5), (32.0, 8.5), (25.0, 2.0), (16.0, -2.0), (7.0, -2.5),
+                       (1.0, -1.5)]
+        m.poly([W(u, v) for u, v in fore], 'wing', 'wingF%d' % s, puff=0.3)
         # hindwing trailing a long ribbon tail
         hind = [(1.0, -1.5), (8.0, -2.5), (15.0, -5.0), (18.5, -9.5), (17.5, -14.5),
                 (15.0, -19.0), (14.5, -26.0), (16.5, -32.5), (20.0, -37.5), (16.0, -36.5),
                 (12.0, -30.5), (10.0, -23.0), (8.0, -15.5), (4.0, -9.0), (1.0, -4.0)]
         m.poly([W(u, v) for u, v in hind], 'wing', 'wingH%d' % s, puff=0.35)
-        # night-blue costal edge, crescent-moon eyespots, dark tail tips
-        for k in range(6):
-            t = k / 5.0
-            m.paint(W(3.0 + t * 27.0, 7.0 + t * 18.5), (2.6, 2.0, 2.4), 'night',
-                    ['wingF%d' % s])
-        c = W(20.0, 12.5)
-        m.paint(c, 4.4, 'gold', ['wingF%d' % s])
-        m.paint(add(c, add(mul(uv, 1.6), (0, 0.6, 0))), (3.7, 3.8, 3.7), 'wing',
+        # continuous night-blue leading edge, crescent-moon eyespots, dark tail tips
+        pts = catmull([(u, v, 0.0) for u, v in lead], 8)
+        for q, _ in pts[::2]:
+            m.paint(W(q[0] + 0.3, q[1] - 0.9), (2.1, 2.1, 2.1), 'night', ['wingF%d' % s])
+        m.paint(W(35.0, 18.0), (2.6, 3.0, 2.6), 'night', ['wingF%d' % s])
+        c = W(20.0, 8.5)
+        m.paint(c, 6.4, 'gold', ['wingF%d' % s])
+        m.paint(add(c, add(mul(uv, 3.0), (0, 2.2, 0))), (4.8, 4.8, 4.8), 'wing',
                 ['wingF%d' % s])
-        c2 = W(11.5, -10.5)
-        m.paint(c2, 3.2, 'gold', ['wingH%d' % s])
-        m.paint(add(c2, add(mul(uv, 1.2), (0, 0.4, 0))), (2.7, 2.8, 2.7), 'wing',
+        c2 = W(11.0, -11.0)
+        m.paint(c2, 4.6, 'gold', ['wingH%d' % s])
+        m.paint(add(c2, add(mul(uv, 2.2), (0, 1.6, 0))), (3.4, 3.4, 3.4), 'wing',
                 ['wingH%d' % s])
         m.paint(W(17.5, -34.5), (2.4, 3.2, 2.4), 'night', ['wingH%d' % s])
-        for (u, v) in ((27.0, 20.0), (25.0, 14.0), (9.0, -21.0), (13.0, 4.5), (15.0, -27.0)):
+        for (u, v) in ((10.0, -22.0),):
             m.sparkle(W(u, v), (s * 0.3, 0.1, 1), size=1, color=('gold', 1))
     # body: fuzzy thorax with a gold crescent, banded abdomen
     m.ell((0, 30.5, -4.5), (3.4, 7.5, 3.4), 'night', 'abdomen', rot=(0, -25, 0))
@@ -598,6 +633,9 @@ def sylvarch(g):
     m.height = 58
     m.max_w = 62
     m.front_yaw = -28
+    g.OW_TURN[m.name] = -24.0
+    # overworld: the crown lifts back a little so the face shows under it
+    m.ow_offsets = {'antler-1': (-1.5, 2.5, -3.5), 'antler1': (1.5, 2.5, -3.5)}
     # legs: strong, dark hooves
     for s in (-1, 1):
         top = (s * 4.2, 18.0, 7.0)
@@ -629,9 +667,9 @@ def sylvarch(g):
         q = (0.4 * (rnd.f() - 0.5), 35.0 - t * 11.0, 13.8 - t * 0.5)
         m.sph(q, 2.4 + 0.6 * rnd.f(), 'moss', 'beard')
     # head
-    head_c, head_r = (0, 40.5, 14.0), (4.8, 4.6, 5.2)
+    head_c, head_r = (0, 40.5, 14.0), (5.4, 5.0, 5.4)
     m.ell(head_c, head_r, 'fur', 'head')
-    sn_c, sn_r = (0, 38.6, 18.4), (2.8, 2.6, 3.4)
+    sn_c, sn_r = (0, 38.4, 18.8), (3.2, 2.9, 3.6)
     m.ell(sn_c, sn_r, 'fur', 'head')
     m.paint(add(sn_c, (0, -0.4, 2.2)), (2.0, 1.6, 1.4), 'bark', ['head'])
     for s in (-1, 1):
@@ -654,8 +692,13 @@ def sylvarch(g):
                                         ((s * 14.5, 48.0, 10.0), 1.7, 0))):
             foliage(m, q, r, 'moss', 'antler%d' % s, seed=60 + k + (10 if s > 0 else 0),
                     n=4, bloom_mat='bloom', blooms=nb)
-    eye_pair(m, head_c, head_r, 40, 16, 3.2, 3.2, style='glow', iris=('glow', 0), slant=0.5,
-             center=(0, 38, 22), turn=6, pupil='outline')
+    for s in (-1, 1):
+        a, e = (40 * s + 6) * DEG, 16 * DEG
+        p, n = on(head_c, head_r, (math.sin(a) * math.cos(e), math.sin(e),
+                                   math.cos(a) * math.cos(e)))
+        m.dot(p, n, w=4.8, h=4.4, color='outline', minw=3, minh=3, shape='oval')
+        m.eye(p, n, 4.0, 3.8, style='glow', iris=('glow', 0), slant=0.5, center=(0, 38, 22),
+              pupil='outline', minw=2, minh=2)
     m.dot(on(sn_c, sn_r, (0, 0.2, 1))[0], (0, 0.2, 1), w=1.6, h=1.0, minw=2)
     return m
 
@@ -730,86 +773,182 @@ def horologos(g):
 # --------------------------------------------------------------------------
 # 128 SCRIPTORA: serpent of living pages (RELIC/DREAM), DUST LIBRARY
 # --------------------------------------------------------------------------
+def obox(m, c, axes, half, mat, part):
+    """A box along three orthonormal axes (no bevel), as a hull."""
+    planes = []
+    for a, h in zip(axes, half):
+        planes.append((a, h + dot(a, c)))
+        planes.append((mul(a, -1), h - dot(a, c)))
+    return m.hull(planes, c, math.sqrt(sum(h * h for h in half)) + 0.5, mat, part)
+
+
+def paint_axes(m, c, axes, mat, parts):
+    """Paint volume along arbitrary (scaled) axes."""
+    m.paints.append((tuple(c), tuple(tuple(a) for a in axes), mat, set(parts)))
+
+
+def resample(pts, n):
+    """n+1 evenly spaced points (by arc length) along a Catmull-Rom curve."""
+    dense = [q for q, _ in catmull(pts, 16)]
+    cum = [0.0]
+    for i in range(1, len(dense)):
+        cum.append(cum[-1] + length(sub(dense[i], dense[i - 1])))
+    out = []
+    j = 0
+    for k in range(n + 1):
+        s = cum[-1] * k / n
+        while j < len(cum) - 2 and cum[j + 1] < s:
+            j += 1
+        f = (s - cum[j]) / max(cum[j + 1] - cum[j], 1e-9)
+        out.append(lerp(dense[j], dense[j + 1], min(1.0, f)))
+    return out
+
+
 def scriptora(g):
     _use(g)
     hover(g, 'SCRIPTORA', 2)
     m = Model('SCRIPTORA')
-    m.outline = (36, 20, 26)
-    m.mat('paper', ['#8c7c5c', '#c6b690', '#eee2c2', '#fffaee'], th=[0.18, 0.42, 0.74])
-    m.mat('edge', ['#9a8660', '#c2ae84'])
-    m.mat('leather', ['#44141e', '#74242e', '#a44242'])
+    m.outline = (40, 20, 22)
+    m.mat('paper', ['#b08a5a', '#dcc08c', '#f4e4bc', '#fff8e4'], th=[0.16, 0.38, 0.7])
+    m.mat('page', ['#f0dcae', '#fffbea'], emissive=0.55)
+    m.mat('leather', ['#44141e', '#74242e', '#a8403c'])
     m.mat('gold', ['#b8841c', '#ffe070'], spec=0.4)
-    m.mat('ink', ['#5a2ea4', '#b278f0'], emissive=0.55)
-    m.eye_dark = (36, 20, 26)
-    m.white = (255, 250, 238)
+    m.mat('ink', ['#6a34c4', '#c890ff'], emissive=0.8)
+    m.eye_dark = (40, 20, 22)
+    m.white = (255, 251, 234)
     m.height = 58
     m.max_w = 62
     m.float_lift = 2
-    # coiled body rising in an S, bound like a book: leather above, pages below
-    spine = [(1.0, 44.0, 7.0), (-0.5, 39.0, 4.0), (-2.5, 33.5, 1.0), (-1.5, 28.0, -2.0),
-             (2.5, 23.5, -3.0), (7.0, 20.5, -1.0), (8.5, 16.5, 2.0), (5.5, 12.0, 4.0),
-             (0.0, 9.5, 4.0), (-5.0, 7.5, 1.0), (-7.0, 5.5, -3.5), (-4.0, 4.5, -7.5),
-             (2.5, 4.0, -8.5), (8.5, 4.5, -6.5), (12.5, 6.0, -2.5), (13.5, 7.5, 1.5)]
-    radii = [3.8, 4.2, 4.5, 4.6, 4.6, 4.5, 4.4, 4.2, 4.0, 3.8, 3.6, 3.3, 2.9, 2.4, 1.6, 0.7]
-    m.tube(spine[:9], radii[:9], 'paper', 'body')
-    m.tube(spine[8:], radii[8:], 'paper', 'tail')
-    # page edges: fine lines running along the body
-    for i in range(len(spine) - 1):
-        a, b = spine[i], spine[i + 1]
-        r = (radii[i] + radii[i + 1]) * 0.5
-        part = 'body' if i < 8 else 'tail'
-        for f in (0.2, 0.5, 0.8):
-            q = lerp(a, b, f)
-            for off in (-0.45, 0.45):
-                m.paint(add(q, (off * r * 0.4, -r * (0.35 + abs(off) * 0.2), r * 0.3)),
-                        (r * 0.18, 0.28, r * 0.9), 'edge', [part])
-    # leather cover over the back with gold bands, pages fanned out as a frill
-    back = [add(q, (0, r * 0.35, -r * 0.55)) for q, r in zip(spine[:15], radii[:15])]
-    m.tube(back, [r * 0.82 for r in radii[:15]], 'leather', 'binding')
-    for i in range(1, 14, 2):
-        m.tube([lerp(back[i], back[i + 1], 0.35), lerp(back[i], back[i + 1], 0.6)],
-               radii[i] * 0.88, 'gold', 'binding')
-    for i in range(0, 12):
-        a, b = back[i], back[i + 1]
-        d = norm(sub(b, a))
-        c = add(lerp(a, b, 0.5), (0, radii[i] * 0.75, -radii[i] * 0.2))
-        yaw = math.atan2(d[0], d[2]) / DEG
-        h = 2.6 + 1.2 * math.sin(i * 1.7)
-        m.box(add(c, (0, h * 0.4, 0)), (0.25, h, 1.5), 'paper', 'frill',
-              rot=(yaw + 90, 0, 8 * math.sin(i * 2.3)), bevel=0.1)
-    # dream runes glowing on the pages
-    for (i, off) in ((2, (-3.4, -1.0, 2.5)), (4, (-2.0, -0.6, 3.8)), (6, (2.5, -1.5, 3.4)),
-                     (9, (-2.0, -1.0, 3.0)), (11, (-1.2, -0.6, 2.6))):
-        m.paint(add(spine[i], off), (0.9, 1.3, 1.2), 'ink', ['body' if i < 8 else 'tail'])
-    # head: a bound book snout, jaws of pages, a gold clasp
-    hc = (1.5, 47.5, 10.0)
-    m.ell(hc, (4.6, 3.6, 5.2), 'leather', 'head')
-    m.ell(add(hc, (0, 0.2, 4.2)), (3.4, 2.4, 4.0), 'leather', 'head')
-    m.ell(add(hc, (0, -2.8, 3.8)), (3.0, 1.4, 4.2), 'paper', 'jaw', rot=(0, 16, 0))
-    m.ell(add(hc, (0, -1.6, 4.4)), (2.6, 1.0, 3.6), 'ink', 'jaw')
-    m.box(add(hc, (0, 1.4, 8.2)), (1.2, 1.3, 0.5), 'gold', 'head', bevel=0.3)
-    m.tube([add(hc, (0, -1.8, 6.0)), add(hc, (0.5, -3.6, 9.5)), add(hc, (1.4, -2.6, 12.0)),
-            add(hc, (1.8, -4.4, 13.2))], [0.8, 0.7, 0.6, 0.4], 'leather', 'tongue',
-           flat=0.4, up=(0, 1, 0))
-    # quill-feather crest
-    for k, (dx, ln) in enumerate(((0.0, 12.0), (2.8, 9.5), (-2.8, 9.5))):
-        b = add(hc, (dx, 2.6, -3.0))
-        d = norm((dx * 0.14, 0.85, -0.55))
-        leaf(m, b, add(b, mul(d, ln * 0.5)), add(b, mul(d, ln)), 1.8, 'paper', 'crest',
-             up=(0, 0.3, 1), flat=0.3)
-        m.tube([b, add(b, mul(d, ln * 0.95))], [0.35, 0.25], 'gold', 'crest')
-    # loose pages drifting round the coils
-    for k, (c, yaw, pitch) in enumerate((((-13.0, 30.0, 4.0), 25, 15),
-                                        ((15.0, 31.0, -2.0), -20, -10),
-                                        ((-13.0, 15.0, 6.0), 40, 10))):
-        m.box(c, (2.6, 3.2, 0.25), 'paper', 'page%d' % k, rot=(yaw, pitch, 12), bevel=0.1)
-        for j in range(3):
-            m.paint(add(c, (0, 1.4 - j * 1.2, 0)), (1.8, 0.28, 1.0), 'edge', ['page%d' % k],
-                    rot=(yaw, pitch, 12))
-        m.paint(add(c, (0.4, -1.6, 0)), (0.8, 0.8, 1.0), 'ink', ['page%d' % k])
+    view = norm((0.5, 0.25, 0.85))
+    # ---- the body: a narrow scroll winding down in an open S, the sky showing
+    # between its turns, to the rolled end
+    path = [(1.0, 47.0, 2.0), (12.0, 45.5, 0.0), (19.5, 39.5, -1.0), (17.0, 31.5, 0.0),
+            (4.0, 27.0, 1.5), (-11.5, 23.0, 1.0), (-18.0, 16.0, 0.0), (-13.5, 8.5, -1.0),
+            (0.0, 5.0, -2.0), (13.0, 4.5, -1.5), (22.5, 6.5, 1.0)]
+    N = 32
+    cen = resample(path, N)
+    half = []
+    rib = []
+    for i, p in enumerate(cen):
+        t = i / float(N)
+        a = cen[max(0, i - 1)]
+        b = cen[min(N, i + 1)]
+        T = norm(sub(b, a))
+        W0 = norm(cross(T, view))
+        if rib and dot(W0, rib[-1][2]) < 0:
+            W0 = mul(W0, -1)
+        B0 = cross(T, W0)
+        # a gentle ripple so it reads as a ribbon, but mostly face-on
+        ph = 16.0 * math.sin(2 * math.pi * 1.5 * t + 0.6) * DEG
+        W = add(mul(W0, math.cos(ph)), mul(B0, math.sin(ph)))
+        # the last stretch stands on edge so the roll at its end stands upright
+        e = max(0.0, min(1.0, (t - 0.74) / 0.2))
+        Wv = norm(sub((0, 1, 0), mul(T, T[1])))
+        if dot(Wv, W) < 0:
+            Wv = mul(Wv, -1)
+        W = norm(lerp(W, Wv, e * e * (3 - 2 * e)))
+        h = 3.4 + 1.8 * min(1.0, t * 2.6)
+        half.append(h)
+        rib.append((p, T, W, cross(T, W)))
+    # the ribbon is cut into parts so its loops outline where they cross
+    seg_part = lambda i: 'rib%d' % min(i // 4, (N - 1) // 4)
+    edges = {1: [], -1: []}
+    for i in range(N):
+        (p0, T0, W0, _), (p1, T1, W1, N1) = rib[i], rib[i + 1]
+        h0, h1 = half[i], half[i + 1]
+        quad = [add(p0, mul(W0, h0)), add(p1, mul(W1, h1)), add(p1, mul(W1, -h1)),
+                add(p0, mul(W0, -h0))]
+        m.poly(quad, 'paper', seg_part(i), puff=0.15, spine=(p0, p1))
+    for i, (p, T, W, Nn) in enumerate(rib):
+        for s in (-1, 1):
+            edges[s].append(add(p, mul(W, s * half[i])))
+    # bold red-leather bindings down both edges, so the S reads at any size
+    for c0 in range(0, N, 4):
+        for s in (-1, 1):
+            m.tube(edges[s][c0:min(N, c0 + 4) + 1], 1.5, 'leather', seg_part(c0))
+    # a few bold lines of script across the page, and three glowing runes
+    runes = (6, 15, 23)
+    for i in range(3, N - 4, 3):
+        if any(abs(i - r) < 2 for r in runes):
+            continue
+        p, T, W, Nn = rib[i]
+        paint_axes(m, p, (mul(T, 0.75), mul(W, half[i] * 0.62), mul(Nn, 1.6)), 'leather',
+                   [seg_part(i)])
+    for i in runes:
+        p, T, W, Nn = rib[i]
+        paint_axes(m, p, (mul(add(T, W), 1.7), mul(sub(T, W), 1.7), mul(Nn, 1.6)), 'ink',
+                   [seg_part(i)])
+    # ---- the rolled scroll end with gold handles
+    pe, Te, We, Ne = rib[-1]
+    rc = add(pe, mul(Ne, -3.2))
+    hw = half[-1] + 0.8
+    m.tube([add(rc, mul(We, -hw)), add(rc, mul(We, hw))], 4.0, 'paper', 'roll')
     for s in (-1, 1):
-        m.eye(add(hc, (s * 2.6, 1.8, 3.8)), (s * 0.4, 0.3, 1), 3.0, 2.8, style='glow',
-              iris=('ink', 1), slant=0.7, glint=True, center=add(hc, (0, 0, 9)))
+        cap = add(rc, mul(We, s * hw))
+        m.ell_axes(cap, (mul(We, 0.6), mul(Te, 4.1), mul(Ne, 4.1)), 'leather', 'roll')
+        m.tube([cap, add(rc, mul(We, s * (hw + 3.4)))], 1.3, 'gold', 'roll')
+        m.sph(add(rc, mul(We, s * (hw + 3.8))), 2.3, 'gold', 'roll')
+    # ---- the head: an open tome; its covers are the jaws, its spine the skull
+    hn = add(rib[0][0], (-1.0, 4.5, 1.0))
+    R, U, F = frame((-0.5, -0.12, 0.85), (0, 1, 0))
+    m.ell_axes(hn, (mul(R, 8.2), mul(U, 7.0), mul(F, 7.2)), 'leather', 'head')
+    # raised gold bands across the spine
+    for z in (-2.2, 1.8):
+        paint_axes(m, add(hn, mul(F, z)), (mul(R, 9.0), mul(U, 9.0), mul(F, 0.9)), 'gold',
+                   ['head'])
+    cl, cw = 20.0, 8.2                                  # cover length, half width
+    for ang, part in ((20.0, 'head'), (-16.0, 'jaw')):
+        up = ang > 0
+        d = norm(add(mul(F, math.cos(ang * DEG)), mul(U, math.sin(ang * DEG))))
+        nrm = norm(cross(d, R)) if up else norm(cross(R, d))     # outward
+        hp = add(hn, add(mul(F, 4.2), mul(U, 1.8 if up else -2.2)))
+        c = add(hp, mul(d, cl * 0.5))
+        obox(m, c, (R, nrm, d), (cw + 0.5, 1.5, cl * 0.5), 'leather', part)
+        # page block inside the cover; its edge shows as a cream band
+        pc = add(add(hp, mul(d, cl * 0.46)), mul(nrm, -2.5))
+        obox(m, pc, (R, nrm, d), (cw - 0.6, 1.9, cl * 0.44), 'page', part)
+        # one glowing rune on each open page, and page-corner fangs
+        q = add(add(pc, mul(nrm, -1.6)), mul(d, cl * 0.05))
+        paint_axes(m, q, (mul(R, 2.2), mul(nrm, 1.0), mul(d, 2.2)), 'ink', [part])
+        for k in range(2):
+            b = add(add(hp, mul(d, cl * (0.62 + 0.24 * k))), mul(nrm, -3.8))
+            for x in (-4.0, 4.0):
+                bb = add(b, mul(R, x))
+                m.crystal(bb, add(bb, mul(nrm, -3.0)), 1.3, 'page', part, sides=3,
+                          tip_frac=0.9)
+        # gold corner caps and a gold boss on the cover
+        for x in (-1, 1):
+            q = add(add(hp, mul(d, cl * 0.97)), add(mul(R, x * cw * 0.95), mul(nrm, 0.3)))
+            m.sph(q, 1.9, 'gold', part)
+        if up:
+            q = add(add(hp, mul(d, cl * 0.55)), mul(nrm, 1.2))
+            m.ell_axes(q, (mul(R, 2.6), mul(nrm, 0.8), mul(d, 2.6)), 'gold', part)
+            paint_axes(m, add(q, mul(nrm, 0.6)), (mul(R, 1.3), mul(nrm, 0.8), mul(d, 1.3)),
+                       'ink', [part])
+    # a bookmark-ribbon tongue
+    t0 = add(hn, add(mul(F, 5.0), mul(U, -1.0)))
+    m.tube([t0, add(t0, mul(F, 9.0)), add(add(t0, mul(F, 13.5)), mul(U, -4.0)),
+            add(add(t0, mul(F, 14.5)), mul(U, -8.5))], [1.4, 1.4, 1.2, 0.9], 'ink',
+           'tongue', flat=0.4, up=R)
+    # loose pages fanned out behind the head as a mane, gold-edged
+    fc = add(hn, mul(F, -2.0))
+    for k in range(3):
+        a = (95 + 90.0 * k / 2) * DEG               # from overhead round to the back
+        dr = norm(add(mul(F, math.cos(a)), mul(U, math.sin(a))))
+        ln = 11.0 if k % 2 == 0 else 13.0
+        tg = norm(cross(R, dr))
+        c = add(add(fc, mul(dr, 5.0 + ln * 0.5)), mul(R, -2.4 if k % 2 else 0.6))
+        pp = 'mane%d' % k
+        obox(m, c, (tg, R, dr), (3.2, 0.5, ln * 0.5), 'page', pp)
+        paint_axes(m, add(c, mul(dr, ln * 0.5)), (mul(tg, 4.0), mul(R, 1.4), mul(dr, 2.0)),
+                   'gold', [pp])
+    # eyes glowing from the sides of the spine
+    for s in (-1, 1):
+        q = add(hn, add(mul(R, s * 7.1), add(mul(U, 2.4), mul(F, 1.8))))
+        n = norm(add(mul(R, s), add(mul(F, 0.5), mul(U, 0.3))))
+        m.dot(q, n, w=6.8, h=5.8, color='outline', minw=4, minh=4, shape='oval')
+        m.eye(q, n, 5.6, 4.8, style='glow', iris=('ink', 1), slant=0.7, glint=True,
+              pupil='outline', center=add(hn, mul(F, 20)), minw=3, minh=3)
     return m
 
 
@@ -874,7 +1013,7 @@ def skylorn(g):
                                       (11.0, 2.8, 0.5, 3.2), (3.0, 6.5, 1.0, 3.6))):
         m.sph((x, y, z), r, 'cloud', 'clouds')
     for s in (-1, 1):
-        p = L(s * 3.4, 2.0, 9.4)
+        p = L(s * 2.8, 1.9, 7.6)
         n = norm(add(add(mul(u_, 0.7), mul(f_, 0.6)), mul(r_, s * 0.35)))
         m.eye(p, n, 3.2, 3.4, iris=('top', 3), center=L(0, 3, 14))
     m.mouth(L(0, 1.6, 11.2), norm(add(u_, f_)), 'smile', w=3.0)

@@ -920,6 +920,9 @@ static void draw_weather(void)
     }
 }
 
+static int npc_keeper_look(int i, u8 *kind, u8 *vary);     /* keeper.c */
+static void keeper_palette(u16 *dst, int kind, int vary);
+
 static void field_draw_sprites(void)
 {
     FieldSprite list[96];
@@ -940,8 +943,14 @@ static void field_draw_sprites(void)
         int wx = a->x * 16 + a->ox, wy = a->y * 16 + a->oy;
         if (wx - cam_x >= -16 && wx - cam_x <= SCREEN_WIDTH && wy - cam_y >= -16 &&
             wy - cam_y <= SCREEN_HEIGHT + 16 && slot < grass_npc_slots()) {
-            copy32(VRAM_OBJ_TILES + OT_NPC(slot) * 8, char_gfx[NPCS[i].chr][actor_frame(a)], 64);
-            load_pal(obj_palette + (OBANK_NPC + slot) * 16, char_palettes[NPCS[i].chr]);
+            u8 lk, lv;
+            if (npc_keeper_look(i, &lk, &lv)) {    /* drawn from the keeper cast (keeper.c) */
+                copy32(VRAM_OBJ_TILES + OT_NPC(slot) * 8, keeper_ow_gfx[lk][actor_frame(a)], 64);
+                keeper_palette(obj_palette + (OBANK_NPC + slot) * 16, lk, lv);
+            } else {
+                copy32(VRAM_OBJ_TILES + OT_NPC(slot) * 8, char_gfx[NPCS[i].chr][actor_frame(a)], 64);
+                load_pal(obj_palette + (OBANK_NPC + slot) * 16, char_palettes[NPCS[i].chr]);
+            }
             list[n++] = (FieldSprite){ wy, wx, 0, OT_NPC(slot), OBANK_NPC + slot, a->facing == DIR_RIGHT,
                                        0, 0, elev_obj_prio(a) };
             if (emote.npc == i && emote.timer > 0)

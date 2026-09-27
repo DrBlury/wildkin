@@ -658,3 +658,596 @@ def cryptclaw(g):
         m.crystal(c, g.add(c, (0.3 if c[0] > 0 else -0.3, 1.8, -0.4)), r, 'bone', 'claw1' if c[0] > 0 else 'claw-1',
                   sides=4, tip_frac=0.8)
     return m
+
+
+# ==========================================================================
+# 67-75 (QUARTZPEDE .. LODEHORN)
+# ==========================================================================
+QUARTZ = ['#4a2470', '#8a4cc8', '#c894f0', '#f4e0ff']
+PALE_SHELL = ['#5c4c64', '#9a8aa0', '#d4c8d0', '#f6eef0']
+
+
+def _frame(t, upv=(0, 1, 0)):
+    """(tangent, up, side) frame for a spine tangent t."""
+    t = _norm3(t)
+    d = sum(a * b for a, b in zip(upv, t))
+    u = _norm3(tuple(a - d * b for a, b in zip(upv, t)))
+    s = (u[1] * t[2] - u[2] * t[1], u[2] * t[0] - u[0] * t[2], u[0] * t[1] - u[1] * t[0])
+    return t, u, s
+
+
+def _norm3(v):
+    ln = math.sqrt(sum(a * a for a in v)) or 1.0
+    return tuple(a / ln for a in v)
+
+
+# ---- 67 QUARTZPEDE -------------------------------------------------------
+def quartzpede(g):
+    m = g.Model('QUARTZPEDE')
+    m.outline = (36, 22, 48)
+    m.mat('shell', PALE_SHELL)
+    m.mat('quartz', QUARTZ, emissive=0.3)
+    m.mat('leg', ['#4a3a5c', '#7e6a90'])
+    m.eye_dark = (36, 22, 48)
+    m.height = 44
+    m.max_w = 62
+    m.front_yaw = -62
+    m.back_yaw = 120
+    # the overworld down/up frames look along the body: turn to a 3/4 view
+    g.OW_TURN[m.name] = -76
+    # spine seen side-on: the front third rears up, the middle snakes along
+    # the ground and the tail curls up again; a quartz point on each segment
+    path = [(1.0, 17.6, 13.4), (0.6, 14.4, 12.0), (0.0, 11.0, 10.4), (-0.6, 7.6, 8.2), (-0.8, 5.0, 5.4),
+            (-0.4, 3.6, 2.2), (0.4, 3.3, -1.0), (1.0, 3.2, -4.2), (0.8, 3.2, -7.4), (0.0, 3.3, -10.4),
+            (-0.6, 4.4, -13.2), (-0.6, 6.8, -15.4), (-0.2, 9.6, -16.4), (0.2, 12.2, -15.8)]
+    n = len(path)
+    for i in range(1, n):
+        p = path[i]
+        r = 3.2 - 1.4 * (i - 1) / (n - 2)
+        t = g.sub(path[min(i + 1, n - 1)], path[i - 1])
+        t, up, side = _frame(t, (0, 1, 0) if t[1] < 0.8 else (0, 0.5, -1))
+        m.ell_axes(p, (g.mul(side, r * 1.15), g.mul(up, r * 0.95), g.mul(t, r * 0.85)), 'shell', 'body')
+        # a quartz point on every segment, leaning to alternate sides
+        alt = 1 if i % 2 else -1
+        d = g.norm(g.add(g.add((0, 1.0, 0), g.mul(up, 0.3)), g.mul(side, 0.4 * alt)))
+        base = g.add(p, g.mul(d, r * 0.4))
+        ln = r * (2.4 if 2 <= i <= 10 else 1.9)
+        m.crystal(base, g.add(base, g.mul(d, ln)), r * 0.5, 'quartz', 'body', sides=6, tip_frac=0.4)
+        # a pair of legs per segment
+        for s in (-1, 1):
+            root = g.add(p, g.mul(side, s * r * 0.9))
+            knee = g.add(root, g.add(g.mul(side, s * 2.8), (0, 1.2, 0.0)))
+            if p[1] > 5.5:
+                foot = g.add(knee, g.add(g.mul(side, s * 0.8), (0, -2.6, 1.2)))
+                part = 'arm%d' % s
+            else:
+                foot = (knee[0] + side[0] * s * 1.6, 0.3, knee[2] + side[2] * s * 1.6 + 0.6)
+                part = 'leg%s%d' % ('AB'[i % 2], s)
+            m.tube([root, knee, foot], [0.75, 0.6, 0.3], 'leg', part)
+    # head, turned toward the viewer: a pale helmet with a quartz crest,
+    # antennae and hooked fangs
+    T, hc = 46, path[0]
+
+    def H(v):
+        return g.add(hc, yrot(v, (0, 0, 0), T))
+    hr = (5.2, 4.2, 4.4)
+    m.ell(hc, hr, 'shell', 'head', rot=(T, 0, 0))
+    m.crystal(H((0, 2.4, -1.0)), H((0, 7.4, -2.6)), 1.1, 'quartz', 'head')
+    for s in (-1, 1):
+        m.crystal(H((s * 1.8, 2.2, -0.8)), H((s * 3.6, 5.4, -2.0)), 0.8, 'quartz', 'head')
+        m.tube([H((s * 2.0, 2.0, 2.4)), H((s * 4.4, 5.0, 5.0)), H((s * 6.6, 5.2, 7.0))],
+               [0.5, 0.4, 0.25], 'leg', 'ant%d' % s)
+        m.tube([H((s * 1.8, -2.0, 2.4)), H((s * 1.9, -3.2, 4.2)), H((s * 0.5, -3.8, 5.0))],
+               [0.7, 0.55, 0.25], 'leg', 'fang%d' % s)
+    g.eye_pair(m, hc, hr, 38, 4, 3.6, 4.4, rot=(T, 0, 0), turn=T, style='cute', center=H((0, 0, 12)))
+    return m
+
+
+# ---- 68 FLYSQUIRL --------------------------------------------------------
+SQ_FUR = ['#3e3440', '#7a6458', '#b09078', '#dcc4a4']
+SQ_CREAM = ['#e0d0b0', '#fcf2dc']
+
+
+def flysquirl(g):
+    m = g.Model('FLYSQUIRL')
+    m.outline = (40, 28, 34)
+    m.mat('fur', SQ_FUR)
+    m.mat('cream', SQ_CREAM)
+    m.mat('web', ['#5a4448', '#8e7064'])
+    m.mat('pink', ['#e88c98'])
+    m.eye_dark = (30, 22, 30)
+    m.height = 36
+    m.front_yaw = -24
+    # bushy flat tail curling up behind
+    m.tube([(-0.6, 3.6, -2.6), (-2.6, 7.0, -5.6), (-4.0, 13.0, -6.4), (-3.4, 18.0, -4.4), (-1.8, 19.6, -2.4)],
+           [1.6, 2.8, 3.4, 2.8, 1.6], 'fur', 'tail', flat=0.6, up=(0.4, 0, 1))
+    m.paint((-3.4, 18.6, -4.2), (2.4, 1.8, 2.4), 'cream', ['tail'])
+    # body upright, cream belly
+    m.ell((0, 7.8, 0), (3.6, 4.6, 3.2), 'fur', 'body')
+    m.paint((0, 7.2, 2.4), (2.6, 3.8, 1.6), 'cream', ['body'])
+    # arms flung wide, the gliding membrane stretched wrist to ankle
+    for s in (-1, 1):
+        a = 'arm%d' % s
+        m.tube([(s * 2.8, 10.4, 0.6), (s * 6.4, 10.2, 1.2), (s * 9.4, 11.8, 0.8)], [1.1, 0.9, 0.8], 'fur', a)
+        m.sph((s * 9.8, 12.2, 0.9), 1.0, 'cream', a)
+        lg = 'leg%d' % s
+        m.tube([(s * 2.4, 4.4, 0.2), (s * 4.4, 2.8, 1.2), (s * 5.2, 1.0, 2.0)], [1.5, 1.1, 0.9], 'fur', lg)
+        m.ell((s * 5.4, 0.8, 2.8), (1.1, 0.8, 1.5), 'cream', lg)
+        web = [(s * 9.6, 11.6, 0.6), (s * 3.0, 10.6, 0.2), (s * 3.2, 6.0, 0.2), (s * 3.0, 3.6, 0.4),
+               (s * 5.4, 1.6, 1.4), (s * 7.0, 3.6, 1.2), (s * 8.0, 5.6, 1.0), (s * 9.2, 6.8, 0.9),
+               (s * 10.2, 9.0, 0.8)]
+        m.poly(web, 'web', 'web%d' % s, puff=0.4)
+        m.paint((s * 9.2, 7.0, 1.0), (1.6, 3.4, 1.4), 'fur', ['web%d' % s])
+    # head: big round eyes, cream muzzle, rounded ears
+    hc, hr = (0, 14.4, 0.8), (4.6, 3.9, 3.9)
+    m.ell(hc, hr, 'fur', 'head')
+    m.ell((0, 12.6, 3.7), (2.2, 1.5, 1.2), 'cream', 'head')
+    for s in (-1, 1):
+        m.ell((s * 3.0, 18.2, -0.2), (1.4, 1.9, 0.8), 'fur', 'ear%d' % s, rot=(0, 0, -s * 18))
+        m.paint((s * 3.0, 18.2, 0.5), (0.8, 1.2, 0.6), 'pink', ['ear%d' % s])
+    g.eye_pair(m, hc, hr, 34, 14, 3.6, 4.2, style='cute', center=(0, 14, 12))
+    p, n = g.on((0, 12.6, 3.7), (2.2, 1.5, 1.2), sdir(0, 30))
+    m.dot(p, n, 1.4, 1.0, color=('pink', 0))
+    p, n = g.on((0, 12.6, 3.7), (2.2, 1.5, 1.2), sdir(0, -30))
+    m.mouth(p, n, 'smile', w=2.0, h=1.0)
+    return m
+
+
+# ---- 69 GALESQUIRL -------------------------------------------------------
+GS_FUR = ['#2c3450', '#56668a', '#94a6c4', '#d8e2f0']
+
+
+def galesquirl(g):
+    m = g.Model('GALESQUIRL')
+    m.outline = (26, 28, 46)
+    m.mat('fur', GS_FUR)
+    m.mat('cream', SQ_CREAM)
+    m.mat('cape', ['#1e4454', '#327484', '#5ea8b0'])
+    m.mat('wind', ['#a8e8f4', '#f0ffff'], emissive=0.4)
+    m.mat('pink', ['#e88c98'])
+    m.eye_dark = (26, 28, 46)
+    m.height = 50
+    m.max_w = 60
+    m.front_yaw = -24
+    # huge curled tail behind, white tip
+    m.tube([(-1.0, 6.0, -4.4), (-5.0, 10.0, -8.6), (-10.0, 16.0, -9.0), (-12.6, 24.0, -7.0), (-11.0, 29.4, -4.6),
+            (-8.0, 29.6, -3.0)], [2.6, 4.2, 4.8, 4.4, 3.2, 2.0], 'fur', 'tail', flat=0.62, up=(0.5, 0, 1))
+    m.paint((-10.0, 29.6, -4.2), (3.6, 2.6, 3.2), 'cream', ['tail'])
+    # the cape: gliding membrane swept back from the raised wrists
+    for s in (-1, 1):
+        cape = [(s * 4.0, 20.0, -1.6), (s * 11.0, 24.0, -2.0), (s * 15.2, 21.4, -3.4), (s * 15.0, 15.0, -4.4),
+                (s * 13.0, 11.0, -4.6), (s * 13.4, 6.0, -4.0), (s * 10.0, 3.0, -3.0), (s * 7.4, 4.4, -2.4),
+                (s * 4.4, 1.6, -2.0), (s * 3.2, 8.0, -2.2)]
+        m.poly(cape, 'cape', 'cape%d' % s, puff=0.6)
+        m.paint((s * 15.0, 14.0, -4.4), (1.8, 9.0, 2.0), 'fur', ['cape%d' % s])
+    # legs
+    for s in (-1, 1):
+        lg = 'leg%d' % s
+        m.ell((s * 3.4, 6.6, 0.2), (2.8, 4.0, 3.4), 'fur', lg)
+        m.tube([(s * 3.6, 5.0, 0.8), (s * 4.0, 1.8, 2.0)], [1.6, 1.3], 'fur', lg)
+        m.ell((s * 4.0, 1.0, 3.4), (1.8, 1.0, 2.6), 'cream', lg)
+    # lean torso, cream chest
+    m.ell((0, 13.4, 0), (5.0, 7.0, 4.4), 'fur', 'body')
+    m.paint((0, 13.0, 3.6), (3.4, 5.8, 2.0), 'cream', ['body'])
+    # arms raised, holding the cape open at the wrists
+    for s in (-1, 1):
+        a = 'arm%d' % s
+        m.tube([(s * 4.2, 18.0, 0.2), (s * 7.8, 19.4, 0.6), (s * 11.0, 23.6, -1.2)], [1.7, 1.4, 1.2], 'fur', a)
+        m.sph((s * 11.4, 24.4, -1.2), 1.4, 'cream', a)
+    # head: tufted ears, bold eyes, cheek ruff
+    hc, hr = (0, 23.8, 1.0), (5.4, 4.6, 4.6)
+    m.ell(hc, hr, 'fur', 'head')
+    for s in (-1, 1):
+        m.ell((s * 4.4, 21.6, 1.2), (2.0, 1.8, 2.0), 'cream', 'head')
+        e = 'ear%d' % s
+        m.tube([(s * 3.2, 27.0, -0.4), (s * 4.4, 30.2, -0.8), (s * 5.6, 32.4, -1.0)], [1.8, 1.0, 0.3], 'fur', e,
+               flat=0.5, up=(0, 0, 1))
+        m.tube([(s * 5.4, 31.8, -1.0), (s * 6.8, 33.8, -1.2)], [0.6, 0.2], 'cream', e)
+    m.ell((0, 22.4, 4.6), (2.4, 1.8, 1.4), 'cream', 'head')
+    g.eye_pair(m, hc, hr, 30, 10, 4.2, 4.4, style='sharp', center=(0, 24, 14))
+    p, n = g.on((0, 22.4, 4.6), (2.4, 1.8, 1.4), sdir(0, 30))
+    m.dot(p, n, 1.6, 1.0, color=('pink', 0))
+    p, n = g.on((0, 22.4, 4.6), (2.4, 1.8, 1.4), sdir(0, -30))
+    m.mouth(p, n, 'smile', w=2.8, h=1.2)
+    # wind swirls curling round its feet and over one shoulder
+    for (c, rad, a0, y0, dy, sc) in (((0, 0, 1.0), 9.0, 200, 1.6, 3.0, 1), ((-12.0, 0, -2.0), 4.0, 60, 27.0, 1.2, -1)):
+        pts = []
+        for k in range(8):
+            a = (a0 + sc * k * 38) * DEG
+            rr = rad * (1 - 0.06 * k)
+            pts.append((c[0] + math.sin(a) * rr, y0 + dy * k / 7.0, c[2] + math.cos(a) * rr))
+        m.tube(pts, None, 'wind', 'wind', rfn=lambda t: 0.9 * (1 - t) + 0.2)
+    return m
+
+
+# ---- 70 DOZLOTH ----------------------------------------------------------
+DREAM_CLOUD = ['#7e76b8', '#bcb4e8', '#f0ecff']
+SLOTH_FUR = ['#3a2c28', '#6a5444', '#9e8468', '#c8b08c']
+GOLD_STAR = ['#ffe070']
+
+
+def dream_cloud(g, m, c, w, part, mat='cloud', seed=1):
+    """A puffy dream cloud about w wide, flat underneath."""
+    rnd = g.Rand(seed)
+    m.ell(g.add(c, (0, -0.4 * w * 0.12, 0)), (w * 0.46, w * 0.12, w * 0.26), mat, part)
+    for (x, y, rr) in ((0.0, 0.10, 0.22), (-0.24, 0.02, 0.17), (0.25, 0.04, 0.18), (-0.10, 0.24, 0.16),
+                       (0.13, 0.26, 0.15), (-0.40, -0.02, 0.11), (0.42, 0.0, 0.12)):
+        z = (rnd.f() - 0.5) * 0.06 * w
+        m.sph(g.add(c, (x * w, y * w * 0.9, z)), rr * w, mat, part)
+
+
+def sloth_face(g, m, hc, hr, rot, turn, big=1.0, droop=18, sel=2, saz=58):
+    """Cream sloth mask: dark stripes trailing back from closed, dozing
+    eyes, a button nose and a small content smile."""
+    for s in (-1, 1):
+        p, n = g.on(hc, hr, sdir(s * saz + turn, sel), rot)
+        m.paint(p, (1.2 * big, 0.8 * big, 1.6 * big), 'patch', ['head'], rot=(turn + s * saz, 0, s * droop))
+    g.eye_pair(m, hc, hr, 30, 8, 3.2 * big, 2.0 * big, rot=rot, turn=turn, style='closed',
+               center=g.add(hc, (0, 0, 10)))
+    p, n = g.on(hc, hr, sdir(turn, -8), rot)
+    m.dot(p, n, 1.8 * big, 1.1 * big, color='outline')
+    p, n = g.on(hc, hr, sdir(turn, -30), rot)
+    m.mouth(p, n, 'smile', w=2.6 * big, h=1.0 * big)
+
+
+def dozloth(g):
+    m = g.Model('DOZLOTH')
+    m.outline = (36, 28, 40)
+    m.mat('fur', SLOTH_FUR)
+    m.mat('face', ['#d8c8a4', '#f4ead0'])
+    m.mat('patch', ['#4a3428'])
+    m.mat('cloud', DREAM_CLOUD)
+    m.mat('claw', ['#2e2628'])
+    m.mat('star', GOLD_STAR, emissive=0.6)
+    m.eye_dark = rgb('#2e2628')
+    m.height = 44
+    m.max_w = 60
+    m.front_yaw = -12
+    m.front_pitch = 2
+    m.float_lift = 3
+    ow(g, m, lift=3, side=-42)
+    # overworld (seen from above): nudge the cloud back and up so it does
+    # not hide the body and face below it
+    m.ow_offsets = {'cloud': (0, 1.0, -4.0)}
+    # the dream cloud it clings to, high overhead
+    dream_cloud(g, m, (0, 25.0, -1.0), 26.0, 'cloud')
+    for (x, y, z) in ((-8.0, 30.0, 1.4), (8.4, 29.2, 1.8)):
+        m.sph((x, y, z), 1.0, 'star', 'cloud')
+    # chunky body slung horizontally just under the cloud, its cream belly
+    # turned down toward the viewer, shaggy tufts hanging off the underside
+    bc, br = (0, 14.8, 0.4), (7.6, 4.2, 4.0)
+    m.ell(bc, br, 'fur', 'body')
+    m.paint((0.4, 13.2, 3.2), (5.8, 2.6, 2.0), 'face', ['body'])
+    for (x, z) in ((-5.6, 0.6), (-3.2, 2.2), (-0.6, 2.6), (2.0, 2.4), (-4.4, -1.8), (0.6, -1.6)):
+        c0 = (x, 11.6, z)
+        m.tube([c0, g.add(c0, (-0.3, -1.2, 0.2)), g.add(c0, (-0.7, -1.9, 0.1))], [1.2, 0.8, 0.3], 'fur', 'body')
+    # four short thick limbs straight up into the cloud, claws hooked over
+    # its front rim
+    for x, nm in ((4.8, 'armF'), (-4.8, 'armB')):
+        for s in (-1, 1):
+            a = '%s%d' % (nm, s)
+            z = 2.0 if s > 0 else -1.6
+            m.tube([(x, 16.4, z), (x + 0.2, 19.6, z + 0.2), (x + 0.3, 22.4, z + 0.4)], [2.2, 2.0, 1.9], 'fur', a)
+            if s > 0:
+                for k in (-1, 0, 1):
+                    c0 = (x + k * 0.9, 21.4, z + 1.2)
+                    m.tube([c0, g.add(c0, (0, 1.4, 2.4)), g.add(c0, (0, 1.6, 4.2)), g.add(c0, (0, 0.6, 4.8))],
+                           [0.55, 0.5, 0.4, 0.15], 'claw', a)
+    # a big sleepy head at the front end, the face turned to the viewer
+    T = 16
+    hc, hr = (9.4, 13.2, 3.0), (5.6, 5.4, 4.8)
+    rot = (T, 0, -6)
+    m.tube([(5.6, 14.6, 0.8), (7.8, 13.6, 2.0)], [3.0, 3.4], 'fur', 'head')
+    m.ell(hc, hr, 'fur', 'head', rot=rot)
+    fc, fr = g.add(hc, (0.4, -0.4, 2.4)), (4.8, 4.5, 3.2)
+    m.ell(fc, fr, 'face', 'head', rot=rot)
+    sloth_face(g, m, fc, fr, rot, T, big=1.3, droop=-24, sel=-2, saz=50)
+    return m
+
+
+# ---- 71 SOMNISLOTH -------------------------------------------------------
+def somnisloth(g):
+    m = g.Model('SOMNISLOTH')
+    m.outline = (32, 30, 40)
+    m.mat('fur', ['#4a4238', '#7c7060', '#ae9e82'])
+    m.mat('moss', ['#355f2e', '#6e9a42'])
+    m.mat('face', ['#d8c8a4', '#f4ead0'])
+    m.mat('patch', ['#3a3028'])
+    m.mat('cloud', DREAM_CLOUD)
+    m.mat('claw', ['#2e2628'])
+    m.mat('star', GOLD_STAR, emissive=0.6)
+    m.eye_dark = rgb('#2e2628')
+    m.height = 56
+    m.max_w = 62
+    m.front_yaw = -24
+    m.float_lift = 2
+    ow(g, m, lift=2)
+    # a big dream cloud for a bed, with smaller puffs drifting round it
+    dream_cloud(g, m, (0, 4.4, 0), 34.0, 'cloud', seed=4)
+    for (c, w) in (((-15.0, 22.0, -2.0), 6.0), ((14.6, 30.0, -3.0), 5.0)):
+        dream_cloud(g, m, c, w, 'puff%d' % int(c[0]), seed=2)
+    for (x, y, z) in ((-12.0, 34.0, 0.0), (11.4, 20.4, 3.0), (-9.4, 12.6, 8.0)):
+        m.sph((x, y, z), 0.9, 'star', 'stars')
+    # slumped body sitting in the cloud, hind legs dangling over the front
+    m.ell((0, 14.0, -0.6), (8.4, 8.0, 7.4), 'fur', 'body')
+    m.paint((0, 13.0, 5.8), (5.0, 5.6, 2.2), 'face', ['body'])
+    for s in (-1, 1):
+        lg = 'leg%d' % s
+        m.tube([(s * 5.2, 9.6, 2.4), (s * 6.4, 8.4, 7.6), (s * 6.6, 5.0, 10.0)], [3.0, 2.4, 1.8], 'fur', lg)
+        for k in (-1, 0, 1):
+            c0 = (s * 6.6 + k * 0.9, 4.2, 10.4)
+            m.tube([c0, g.add(c0, (0, -1.8, 0.8)), g.add(c0, (0, -2.4, -0.4))], [0.5, 0.4, 0.2], 'claw', lg)
+    # long arms draped over the cloud, long hooked claws
+    for s in (-1, 1):
+        a = 'arm%d' % s
+        m.tube([(s * 7.0, 19.0, 0.0), (s * 12.0, 14.0, 2.0), (s * 14.6, 8.6, 3.4)], [2.8, 2.3, 2.0], 'fur', a)
+        for k in (-1, 0, 1):
+            c0 = (s * 14.8, 7.4, 3.6 + k * 1.0)
+            m.tube([c0, g.add(c0, (s * 0.6, -2.4, 0.6)), g.add(c0, (-s * 0.4, -3.6, 1.2))], [0.6, 0.5, 0.2],
+                   'claw', a)
+    # moss draped over its shoulders and back, strands hanging off the arms
+    m.paint((0, 22.0, -2.0), (9.0, 3.6, 7.0), 'moss', ['body'])
+    for s in (-1, 1):
+        m.paint((s * 9.4, 17.0, 0.6), (3.2, 3.0, 3.6), 'moss', ['arm%d' % s])
+        for (u, ln) in ((0.3, 5.0), (0.55, 4.0)):
+            r0 = (s * (7.0 + 5.6 * u * 1.4), 19.0 - 9.0 * u - 0.6, 1.2 * u - 0.6)
+            m.tube([r0, g.add(r0, (s * 0.3, -ln * 0.6, -0.6)), g.add(r0, (s * 0.2, -ln, -0.2))], [0.8, 0.6, 0.3],
+                   'moss', 'arm%d' % s)
+    # heavy head lolling to one side, mossy cap
+    T = 18
+    hc, hr = (0.6, 26.6, 2.0), (6.4, 5.6, 5.4)
+    rot = (T, 0, -10)
+    m.ell(hc, hr, 'fur', 'head', rot=rot)
+    fc, fr = g.add(hc, (0.8, -0.6, 2.2)), (5.0, 4.2, 4.0)
+    m.ell(fc, fr, 'face', 'head', rot=rot)
+    m.paint(g.add(hc, (-0.6, 4.6, -1.4)), (6.0, 2.6, 5.0), 'moss', ['head'])
+    for x in (-4.0, -1.4, 4.0):
+        m.tube([g.add(hc, (x, 4.0, 1.6)), g.add(hc, (x * 1.1, 2.4, 4.0)), g.add(hc, (x * 1.1, 1.2, 4.4))],
+               [0.8, 0.6, 0.3], 'moss', 'head')
+    sloth_face(g, m, fc, fr, rot, T, big=1.4)
+    return m
+
+
+# ---- 72 SCYTHLING --------------------------------------------------------
+LEAF = ['#24482a', '#4a8238', '#88bc4c', '#d0ec88']
+SPROUT = ['#2c6a2c', '#4ea83a', '#8cd84c', '#d4f68c']
+
+
+def scythling(g):
+    m = g.Model('SCYTHLING')
+    m.outline = (22, 44, 26)
+    m.mat('leaf', SPROUT)
+    m.mat('belly', ['#bce67c', '#f0ffc0'])
+    m.mat('blade', ['#c4d8a0', '#fafff0'], spec=0.3)
+    m.mat('pink', ['#f08c9c'])
+    m.eye_dark = (22, 44, 26)
+    m.height = 40
+    m.max_w = 56
+    m.front_yaw = -20
+    m.front_pitch = 6
+    # plump abdomen curled up over its back, as nymphs carry it
+    m.tube([(0, 5.0, -0.8), (0, 4.6, -4.2), (0, 7.0, -7.4), (0, 11.0, -8.0), (0, 13.6, -6.0)],
+           [2.4, 2.8, 2.6, 1.9, 1.0], 'leaf', 'tail')
+    m.paint((0, 8.0, -10.2), (1.8, 3.6, 1.8), 'belly', ['tail'])
+    # four short sturdy legs, splayed wide and low
+    for s in (-1, 1):
+        for (z0, zk, zf, nm) in ((0.8, 2.0, 3.4, 'legA'), (-1.2, -3.0, -4.6, 'legB')):
+            lg = '%s%d' % (nm, s)
+            m.tube([(s * 1.4, 4.8, z0), (s * 4.2, 5.8, zk), (s * 5.0, 0.5, zf)], [0.9, 0.8, 0.65], 'leaf', lg)
+    # small upright thorax, a pale belly down its front
+    m.ell((0, 7.4, 0.6), (2.4, 3.2, 2.2), 'leaf', 'body')
+    m.paint((0, 7.0, 2.4), (1.6, 2.6, 1.2), 'belly', ['body'])
+    # sickle arms folded up in front of the chest; the pale blades hook
+    # up, out and down again like two crescent moons
+    for s in (-1, 1):
+        a = 'arm%d' % s
+        sh, el, wr = (s * 1.8, 9.0, 2.0), (s * 3.0, 6.8, 4.4), (s * 4.4, 9.6, 5.0)
+        m.tube([sh, el], [0.95, 0.9], 'leaf', a)
+        m.tube([el, wr], [1.05, 1.0], 'leaf', a)
+        m.tube([wr, g.add(wr, (s * 1.0, 2.6, 0.2)), g.add(wr, (s * 3.2, 3.6, 0.2)), g.add(wr, (s * 5.0, 2.0, 0.2)),
+                g.add(wr, (s * 5.0, -1.0, 0.2)), g.add(wr, (s * 3.8, -2.8, 0.2))],
+               [0.9, 1.2, 1.25, 1.0, 0.6, 0.12], 'blade', a, flat=0.45, up=(0, 0, 1))
+    # big rounded chibi head, huge eyes, two feelers
+    hc, hr = (0, 14.4, 2.2), (5.0, 4.2, 3.8)
+    m.ell(hc, hr, 'leaf', 'head')
+    for s in (-1, 1):
+        m.sph((s * 3.8, 15.0, 1.8), 2.6, 'leaf', 'head')
+        m.tube([(s * 1.2, 18.0, 2.4), (s * 2.8, 21.4, 3.2), (s * 4.8, 22.6, 1.8)], [0.45, 0.35, 0.22], 'leaf',
+               'ant%d' % s)
+    m.ell((0, 12.0, 4.6), (2.2, 1.6, 1.4), 'belly', 'head')
+    g.eye_pair(m, hc, hr, 40, 8, 3.8, 4.6, style='cute', center=(0, 14, 14))
+    for s in (-1, 1):
+        p, n = g.on(hc, hr, sdir(s * 46, -24))
+        m.dot(p, n, 1.4, 0.8, color=('pink', 0))
+    p, n = g.on((0, 12.0, 4.6), (2.2, 1.6, 1.4), (0, -0.2, 1))
+    m.mouth(p, n, 'smile', w=2.0, h=1.0)
+    return m
+
+
+# ---- 73 REAPMANTIS -------------------------------------------------------
+def reapmantis(g):
+    m = g.Model('REAPMANTIS')
+    m.outline = (26, 20, 32)
+    m.mat('bone', ['#4e4650', '#8a8290', '#c4bec4', '#eeeae4'])
+    m.mat('hood', ['#1e1826', '#3a3044', '#5a4a66'])
+    m.mat('soul', ['#5ae0d0', '#d0fff8'], emissive=0.9)
+    m.mat('void', ['#0e0a14'])
+    m.mat('blade', ['#8a8290', '#eeeae4'], spec=0.4)
+    m.eye_dark = (30, 22, 36)
+    m.height = 58
+    m.max_w = 62
+    m.front_yaw = -28
+    # tattered wings folded behind like a cloak
+    for s in (-1, 1):
+        cloak = [(s * 1.4, 27.0, -1.4), (s * 6.0, 24.0, -3.0), (s * 8.2, 16.0, -5.4), (s * 8.6, 8.0, -7.4),
+                 (s * 7.0, 9.8, -7.4), (s * 6.2, 5.6, -7.8), (s * 4.4, 8.4, -7.2), (s * 3.0, 4.2, -7.2),
+                 (s * 1.6, 8.0, -6.2), (s * 0.6, 16.0, -3.6)]
+        m.poly(cloak, 'hood', 'wing%d' % s, puff=0.6)
+    # ribbed bone abdomen trailing behind
+    beads(g, m, [(0, 11.0, -1.0), (0, 10.0, -6.0), (0, 8.0, -10.4), (0, 6.6, -13.4)], 3.4, 1.6, 'bone',
+          'tail', n=5, depth=0.3)
+    # four long thin walking legs
+    for s in (-1, 1):
+        for (z0, zk, zf, nm) in ((1.4, 3.4, 6.0, 'legA'), (-2.4, -6.0, -10.0, 'legB')):
+            lg = '%s%d' % (nm, s)
+            m.tube([(s * 1.8, 11.0, z0), (s * 8.4, 15.0, zk), (s * 10.6, 0.4, zf)], [0.8, 0.65, 0.35], 'bone', lg)
+            m.sph((s * 8.4, 15.0, zk), 0.9, 'bone', lg)
+    # tall thorax, a spine of vertebrae up its front
+    m.tube([(0, 10.0, 0.0), (0, 18.0, 1.4), (0, 26.0, 2.8)], [2.8, 2.0, 2.2], 'bone', 'body')
+    beads(g, m, [(0, 12.0, 2.2), (0, 18.4, 3.2), (0, 24.0, 4.4)], 1.0, 0.9, 'bone', 'body', n=4)
+    # scythe arms raised high, the long bone blades hooked forward
+    for s in (-1, 1):
+        a = 'arm%d' % s
+        sh, el, wr = (s * 2.0, 24.4, 3.6), (s * 6.0, 20.6, 6.2), (s * 6.4, 30.0, 6.0)
+        m.tube([sh, el], [1.4, 1.2], 'bone', a)
+        m.sph(el, 1.5, 'bone', a)
+        m.tube([el, wr], [1.5, 1.2], 'bone', a)
+        m.sph(wr, 1.5, 'bone', a)
+        blade = [wr, g.add(wr, (s * 1.0, 3.8, 0.2)), g.add(wr, (s * 5.0, 5.6, 0.0)), g.add(wr, (s * 8.8, 3.0, -0.4)),
+                 g.add(wr, (s * 10.0, -2.0, -0.6)), g.add(wr, (s * 9.0, -5.8, -0.6))]
+        m.tube(blade, [1.3, 2.1, 2.0, 1.4, 0.7, 0.1], 'blade', a, flat=0.35, up=(0, 0, 1))
+        # saw teeth along the inner edge
+        for (u, v) in ((3.4, 3.0), (6.2, 2.0), (7.6, -0.6)):
+            b0 = g.add(wr, (s * u, v, 0.0))
+            m.tube([b0, g.add(b0, (-s * 0.6, -1.6, 0.0))], [0.55, 0.1], 'blade', a)
+    # the hood: a peaked cowl with a dark face opening and two soul-lights
+    hc, hr = (0, 29.6, 3.8), (4.6, 4.4, 4.2)
+    m.ell(hc, hr, 'hood', 'head')
+    m.tube([(0, 32.0, 1.6), (0, 35.4, -1.0), (0, 36.0, -4.4)], [3.0, 1.6, 0.3], 'hood', 'head')
+    m.ell((0, 26.4, 5.0), (3.0, 1.8, 2.6), 'hood', 'head')
+    p, n = g.on(hc, hr, (0, -0.1, 1))
+    m.paint(p, (3.0, 3.2, 1.8), 'void', ['head'])
+    for s in (-1, 1):
+        m.tube([(s * 1.4, 25.4, 6.6), (s * 1.0, 24.0, 7.4), (s * 0.2, 23.6, 7.0)], [0.5, 0.4, 0.2], 'bone', 'head')
+    g.eye_pair(m, hc, hr, 22, -2, 2.6, 2.2, style='glow', iris=('soul', 1), slant=0.5, center=(0, 29, 14))
+    return m
+
+
+# ---- 74 MAGNITICK --------------------------------------------------------
+IRON = ['#1e222e', '#3a4252', '#62708a', '#b0bccc']
+MAG_RED = ['#7a1820', '#c83434', '#f07060']
+
+
+def horseshoe(g, m, c, w, ln, r, yaw, part, tilt=0.0, tip=0.2, roll=0.0):
+    """A classic horseshoe magnet: a red arch on top at c, two legs of
+    length ln hanging down (w apart from the centre), bare steel tips.
+    yaw/tilt turn the magnet's plane (0 = facing +Z); roll=180 flips it
+    into a fork with the arch at the bottom."""
+    pts = [(-w, -ln, 0), (-w, -ln * 0.4, 0)]
+    for k in range(1, 6):
+        a = math.pi * (1 - k / 6.0)
+        pts.append((w * math.cos(a), w * math.sin(a) * 1.05, 0))
+    pts += [(w, -ln * 0.4, 0), (w, -ln, 0)]
+    rm = g.rot_matrix(yaw, tilt, roll)
+    pts = [g.add(c, g.mat_apply(rm, p)) for p in pts]
+    m.tube(pts, [r] * len(pts), 'red', part, mats=[(0.0, 'steel'), (tip, 'red'), (1 - tip, 'steel')])
+
+
+def magnitick(g):
+    m = g.Model('MAGNITICK')
+    m.outline = (28, 26, 36)
+    m.mat('iron', IRON, spec=0.5)
+    m.mat('red', MAG_RED)
+    m.mat('steel', ['#8a96aa', '#e8eef6'], spec=0.6)
+    m.mat('spark', ['#9ce8ff', '#f0ffff'], emissive=0.8)
+    m.eye_dark = rgb(IRON[0])
+    m.height = 28
+    m.max_w = 50
+    m.front_yaw = -26
+    m.front_pitch = 12
+    # six stubby legs
+    for s in (-1, 1):
+        for k, z in enumerate((2.4, -0.6, -3.6)):
+            lg = 'leg%s%d' % ('ABC'[k], s)
+            m.tube([(s * 3.6, 3.6, z), (s * 6.4, 4.2, z + 0.6 * (1 - k)), (s * 7.2, 0.5, z + 1.0 * (1 - k))],
+                   [0.9, 0.8, 0.6], 'iron', lg)
+    # round iron dome, a red pole band and rivets
+    bc, br = (0, 5.4, -1.0), (6.0, 4.8, 6.4)
+    m.ell(bc, br, 'iron', 'body')
+    m.paint((0, 5.4, -1.0), (7.0, 6.0, 1.4), 'red', ['body'])
+    for d in (sdir(40, 40), sdir(-40, 40), sdir(150, 38), sdir(-150, 38), sdir(0, 70)):
+        p, n = g.on(bc, br, d)
+        m.paint(p, 0.9, 'spark', ['body'])
+    # head tucked under the front; its jaws are two little horseshoe magnets
+    # hanging like fangs, red arches and bright steel tips
+    hc, hr = (0, 5.2, 5.4), (4.0, 3.4, 3.0)
+    m.ell(hc, hr, 'iron', 'head')
+    for s in (-1, 1):
+        horseshoe(g, m, (s * 3.8, 3.9, 9.0), 2.0, 3.2, 0.85, 24 - s * 10, 'jaw%d' % s, tilt=-6, tip=0.2)
+    # a crackle of field between the two magnets, iron filings standing up
+    m.tube([(-1.2, 1.4, 10.0), (-0.4, 2.4, 10.4), (0.4, 0.8, 10.4), (1.2, 1.8, 10.0)], [0.3, 0.3, 0.3, 0.3],
+           'spark', 'spark')
+    for (x, z) in ((-2.0, 1.4), (2.2, 0.6), (0.0, -3.6)):
+        p, n = g.on(bc, br, (x / 6.0, 0.9, z / 6.4))
+        m.tube([p, g.add(p, g.mul(n, 1.6))], [0.35, 0.15], 'iron', 'body')
+    g.eye_pair(m, hc, hr, 34, 30, 2.5, 2.9, style='cute', center=(0, 5, 14))
+    return m
+
+
+# ---- 75 LODEHORN ---------------------------------------------------------
+STEEL = ['#262a3a', '#4e5a74', '#8c9cb6', '#e2eaf6']
+LODE = ['#2a2024', '#5c4034', '#a86c44']
+
+
+def lodehorn(g):
+    m = g.Model('LODEHORN')
+    m.outline = (24, 20, 30)
+    m.mat('steel', STEEL, spec=0.7)
+    m.mat('dark', STEEL[:2] + ['#6c7a94'])
+    m.mat('red', MAG_RED)
+    m.mat('lode', LODE)
+    m.mat('spark', ['#9ce8ff', '#f0ffff'], emissive=0.8)
+    m.eye_dark = rgb(STEEL[0])
+    m.height = 48
+    m.max_w = 62
+    m.front_yaw = -58
+    m.front_pitch = 10
+    m.back_yaw = 130
+    # overworld down/up: a 3/4 turn so the long body and horn read
+    g.OW_TURN[m.name] = -66
+    # six short, sturdy legs planted wide, clawed feet
+    for s in (-1, 1):
+        for k, z in enumerate((3.0, -2.6, -8.0)):
+            lg = 'leg%s%d' % ('ABC'[k], s)
+            root = (s * 5.2, 5.4, z)
+            knee = (s * 8.4, 6.2, z + 0.8 * (1 - k))
+            foot = (s * 9.2, 0.7, z + 1.6 * (1 - k))
+            m.tube([root, knee, foot], [1.8, 1.6, 1.2], 'dark', lg)
+            m.sph(knee, 1.8, 'dark', lg)
+            m.ell(g.add(foot, (s * 0.3, -0.1, 0.6)), (1.3, 0.7, 1.6), 'dark', lg)
+    # long glossy steel wing cases, the red pole seam down the middle
+    ec, er = (0, 8.6, -5.2), (7.4, 6.0, 10.6)
+    m.ell(ec, er, 'steel', 'body')
+    m.paint((0, 14.6, -5.2), (1.1, 1.8, 11.2), 'red', ['body'])
+    # domed pronotum; its short horn curves forward and down to meet the
+    # great horn like the upper jaw of a pincer
+    pc, pr = (0, 9.8, 4.6), (6.2, 5.6, 4.8)
+    m.ell(pc, pr, 'steel', 'thorax')
+    m.tube([(0, 14.6, 5.0), (0, 16.6, 8.6), (0, 17.0, 12.6), (0, 15.6, 16.0), (0, 13.8, 17.4)],
+           [1.9, 1.6, 1.3, 0.9, 0.3], 'steel', 'thorax')
+    # head low and forward, darker steel, bright eyes on its sides
+    hc, hr = (0, 7.2, 11.0), (4.8, 4.2, 4.2)
+    m.ell(hc, hr, 'dark', 'head')
+    for s in (-1, 1):
+        m.tube([(s * 1.8, 4.6, 13.2), (s * 1.8, 4.0, 14.8), (s * 0.6, 4.2, 15.4)], [0.9, 0.7, 0.3], 'dark',
+               'mand%d' % s)
+    # the lodestone: a rough rust-brown rock where the horn roots in the
+    # head, stuck with filings
+    kc = (0, 9.8, 13.6)
+    m.rock(kc, (3.4, 2.8, 3.0), 'lode', 'horn', seed=7, jitter=0.3, n=9)
+    for (c, r, sd) in (((-2.2, 8.8, 15.0), 1.9, 12), ((2.2, 10.6, 12.8), 1.9, 13), ((0.4, 8.2, 16.0), 1.5, 14)):
+        m.rock(c, (r, r * 0.95, r), 'lode', 'horn', seed=sd, jitter=0.3, n=8)
+    rnd = g.Rand(9)
+    for d in (sdir(-80, 20), sdir(80, 25), sdir(-110, -10), sdir(110, -5)):
+        p = g.add(kc, (d[0] * 3.4, d[1] * 2.8, d[2] * 3.0))
+        m.tube([p, g.add(p, g.mul(d, 1.1 + 0.6 * rnd.f()))], [0.38, 0.12], 'steel', 'horn')
+    # the great horn: thick red, sweeping forward and curving up, ending in
+    # a horseshoe-magnet fork with steel poles
+    m.tube([(0, 10.6, 15.0), (0, 11.0, 18.4), (0, 12.8, 21.4), (0, 15.8, 23.2), (0, 19.0, 23.6)],
+           [2.4, 2.0, 1.7, 1.45, 1.3], 'red', 'horn')
+    horseshoe(g, m, (0, 19.8, 23.6), 2.2, 3.4, 1.15, 58, 'horn', tilt=18, tip=0.14, roll=180)
+    # a spark crackling across the poles
+    m.tube([(-2.0, 24.8, 25.0), (-0.7, 25.8, 25.4), (0.7, 24.4, 25.4), (2.0, 25.4, 25.0)], [0.4, 0.4, 0.4, 0.4],
+           'spark', 'spark')
+    g.eye_pair(m, hc, hr, 56, 10, 4.4, 4.2, style='glow', iris=('spark', 1), slant=0.25, center=(0, 8, 24))
+    return m
