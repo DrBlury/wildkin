@@ -221,7 +221,15 @@ static const DecorPlace BROOKMILL_DECOR[] = {
     DP(WOODPILE, 27, 19), DP(CART, 34, 22), DP(CRATE, 25, 21),
     DP(LOG, 23, 21), DP(BARREL, 34, 19), DP(BENCH, 12, 20),
     DP(LILY_PADS, 22, 9), DP(SIGNPOST, 34, 30),
-    /* Tram depot lot (33-37, 29-32): plan 10 can apply a FLAG_TRAM patch here. */
+    /* Tram depot lot (33-37, 29-32) stays clear until construction. */
+};
+/* Ground-level rail apron; the guide at (33,28) and the road stay clear. */
+static const char *const BROOKMILL_TRAM_APRON[] = {
+    "#c=c#", "#c=c#", "#c=c#", "=ccc=",
+};
+static const MapPatch BROOKMILL_PROJECT_PATCHES[] = {
+    { .flag = FLAG_PROJECT_TRAM, .x = 33, .y = 29, .w = 5, .h = 4,
+      .rows = BROOKMILL_TRAM_APRON },
 };
 static const WildSlot WILD_BROOK_POND[] = {
     { SP_KOIRIN, 5, 18, 18, WHEN_ANY }, { SP_PEBBOTTER, 25, 17, 19, WHEN_ANY },
@@ -441,11 +449,15 @@ static const WildSlot WILD_COPPERLINE[] = {
  * reachable on its own approach after the matching story crest. */
 static const char *const LUMEN_FLOOD_SEAL[] = { "T", "T" };
 static const char *const LUMEN_FOG_SEAL[] = { "TT" };
+/* Buffer stop off the Boulevard, west of the Cut; no gate cell is touched. */
+static const char *const LUMEN_TRAM_STOP[] = { "c=cc=", "c=cc=" };
 static const MapPatch LUMEN_GATE_PATCHES[] = {
     { .flag = FLAG_TIDE_CREST, .invert = 1, .x = 55, .y = 20, .w = 1, .h = 2,
       .rows = LUMEN_FLOOD_SEAL },
     { .flag = FLAG_LANTERN_CREST, .invert = 1, .x = 24, .y = 0, .w = 2, .h = 1,
       .rows = LUMEN_FOG_SEAL },
+    { .flag = FLAG_PROJECT_TRAM, .x = 33, .y = 22, .w = 5, .h = 2,
+      .rows = LUMEN_TRAM_STOP },
 };
 static const char *const LUMEN_ROWS[] = {
     "TTTTTT##################==#########TTTTTTTTTTTTTTTTTTTTT", /*  0 */

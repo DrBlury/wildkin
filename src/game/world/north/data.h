@@ -770,6 +770,18 @@ static const MapObj FOOTHILLS_OBJS[] = {
     OBJ(BOULDER, 11, 56, 0), OBJ(BOULDER, 12, 56, 0), OBJ(BOULDER, 11, 54, 0),
     OBJ(BERRY, 7, 44, 25),
 };
+/* Short approach aprons for the existing two-way guide warp, not a new pass
+ * through the G4 rockslide below (y54-56). */
+static const char *const FOOTHILLS_LIFT_APRON[] = { "#=#", "#=#" };
+static const char *const TIMBERLINE_LIFT_APRON[] = { "#=#", "#=#" };
+static const MapPatch FOOTHILLS_PROJECT_PATCHES[] = {
+    { .flag = FLAG_PROJECT_LIFT, .x = 8, .y = 49, .w = 3, .h = 2,
+      .rows = FOOTHILLS_LIFT_APRON },
+};
+static const MapPatch TIMBERLINE_PROJECT_PATCHES[] = {
+    { .flag = FLAG_PROJECT_LIFT, .x = 8, .y = 28, .w = 3, .h = 2,
+      .rows = TIMBERLINE_LIFT_APRON },
+};
 static const Stamp TIMBERLINE_STAMPS[] = { STAMP(SN, HOUSE, 6, 11), STAMP(SN, HOUSE, 28, 11) };
 static const DecorPlace TIMBERLINE_DECOR[] = {
     DP(LOG, 7, 21), DP(LOG, 8, 21), DP(STUMP, 27, 21),

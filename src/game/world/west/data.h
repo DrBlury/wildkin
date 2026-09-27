@@ -785,6 +785,12 @@ static const DecorPlace REEDWICK_DECOR[] = {
     DP(BRIDGE_V, 15, 19), DP(BRIDGE_H, 20, 19),
 };
 static const MapObj REEDWICK_OBJS[] = { OBJ(BERRY, 7, 24, 16) };
+/* The punt's short landing replaces water, without opening a second shore. */
+static const char *const REEDWICK_PUNT_LANDING[] = { "===", "===" };
+static const MapPatch REEDWICK_PROJECT_PATCHES[] = {
+    { .flag = FLAG_PROJECT_REED_FERRY, .x = 24, .y = 25, .w = 3, .h = 2,
+      .rows = REEDWICK_PUNT_LANDING },
+};
 static const char *const REED_HEARTH_ROWS[] = {
     "WWnWWWWWnWW", /*  0 */
     "wwwwwwwwwww", /*  1 */

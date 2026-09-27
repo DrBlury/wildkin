@@ -976,6 +976,12 @@ static const MapPatch CINDER_CROSSING_PATCHES[] = {
     { .flag = FLAG_PROJECT_CINDER_BRIDGE, .x = 6, .y = 20, .w = 4, .h = 2,
       .rows = CINDER_BRIDGE_REPAIRED },
 };
+/* Foreman's finished road apron is setts, north of the through road. */
+static const char *const RAILHEAD_BRIDGE_APRON[] = { "##=##", "##=##" };
+static const MapPatch RAILHEAD_PROJECT_PATCHES[] = {
+    { .flag = FLAG_PROJECT_CINDER_BRIDGE, .x = 24, .y = 18, .w = 5, .h = 2,
+      .rows = RAILHEAD_BRIDGE_APRON },
+};
 static const char *const MISTFEN_FOG_PASSAGE[] = { "==", "==", "==" };
 static const MapPatch MISTFEN_PATCHES[] = {
     { .flag = FLAG_LANTERN_CREST, .x = 24, .y = 52, .w = 2, .h = 3,
