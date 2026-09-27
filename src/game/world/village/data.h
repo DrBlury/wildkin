@@ -554,6 +554,6 @@ static const WildSlot WILD_LAKE[] = {
 };
 static const WildSlot WILD_RISE[] = {
     { SP_VOLTUX, 25, 9, 13 }, { SP_ZAPPET, 25, 9, 12 }, { SP_GOLEMIT, 20, 9, 12 },
-    { SP_PUFFOWL, 15, 9, 12 }, { SP_FROSTOAT, 10, 10, 13 }, { SP_STORMHAWK, 5, 14, 17 },
+    { SP_PUFFOWL, 15, 9, 12 }, { SP_FROSTOAT, 10, 10, 13 }, { SP_STORMHAWK, 5, 14, 15 },
 };
 
