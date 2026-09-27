@@ -1,5 +1,30 @@
 # WILDKIN expansion: handoff
 
+> **Long-route checkpoint (2026-09-27; supersedes the interim notes below):**
+> The engine save layout and v5→v7 migrations, seven-act gated route graph,
+> new hamlets and loop maps, daily events, cross-region projects/quests, Sorrel
+> and Stillwarden route bouts, FIELD NOTES quest page and town-map markers are
+> integrated on `expansion`. `make art && make && make test` passes with no
+> compiler warnings. The bounded puzzle search covers 157 map/ability cases;
+> the progression suite checks physical G1–G6 gates, Hall solutions, the
+> postgame Sky Isle flag, entry-component Hearth returns and level ranges.
+> XP from lower-level opponents now scales per recipient by `3/(3+level gap)`
+> (minimum one XP); the production award and direct-path balance simulation
+> share that rule, and all seven Hall arrival assertions pass. The stitched
+> world image covers 39 authored outdoor maps, including warp-only areas.
+>
+> **Still not complete against every plan detail:** the one-map renderer uses
+> short palette-safe fades, not seamless two-map crossings; paired wardens
+> fight separate 1v1 bouts because a real four-battler combat/UI redesign is
+> required ([doubles handoff](handoff/double_bouts.md)). Special weather and
+> festival art, some still-only project vehicles, direct tile-examination
+> FIELD NOTES triggers, and four requested event/project clips are missing.
+> [ROM-backed playtime probes](handoff/playtime.md) stop at specific blockers;
+> no complete act or 16–18-hour human playthrough has been measured, and
+> human Acts II/III playtests remain open. Older branch handoffs below record
+> their earlier isolated status, not the current integrated result. No remote
+> release, push or tag was requested or performed.
+
 > **Wave 2–4 integration (2026-09-27):** Links `330a69d`, Events
 > `2f11c89`, Saga `50fd42e` and QA `c732942` are merged, after wave-one
 > Story. The route registration lists share the same saved-ID order, and
