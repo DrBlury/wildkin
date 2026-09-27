@@ -1,0 +1,6 @@
+    [SCR_STORY_ROAD] = scr_story_road,
+    [SCR_STORY_FAREWELL] = scr_story_farewell,
+    [SCR_STORY_RIDGE] = scr_story_ridge,
+    [SCR_STORY_SORREL] = scr_story_sorrel,
+    [SCR_STORY_STILL] = scr_story_still,
+    [SCR_STORY_VESTA] = scr_story_vesta,

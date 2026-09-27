@@ -10,7 +10,7 @@
     { MAP_TOWN, 17, 9, "BAKERY\fGlow-bee honey buns every morning!" },
     { MAP_MEADOW, 21, 40, "WHISPER MEADOW\fBrimming kin roam the tall grass. Answer them!" },
     { MAP_MEADOW, 13, 2, "STORMSTONE RISE ahead\fThe wind up there never stops." },
-    { MAP_RISE, 13, 17, "STORMSTONE RISE\fAn old stone circle. The air hums like a plucked string." },
+    { MAP_RISE, 13, 17, "STORMSTONE RISE\fAn old stone circle. The air hums like a plucked string.\fThe storm left a rockslide north of here. STRENGTH may clear it someday." },
     { MAP_WOOD, 2, 16, "BRAMBLEWOOD\fThe woodward's path runs east over the creek." },
     { MAP_WOOD, 33, 10, "HERMIT'S CABIN\fKnock. Wait. Knock again. Then wait longer." },
     { MAP_LAKE, 36, 16, "MIRROR LAKE\fField station: follow the path north." },

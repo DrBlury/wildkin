@@ -3,6 +3,8 @@
  * (register each in script_ids.inc and script_table.inc). Owner: core (the original Maple Village area).
  */
 
+static int story_hearth_talk(void); /* story/scripts.c, included after village */
+
 static void scr_keeper(int npc) { (void)npc; script_keeper(); }
 static void scr_aide(int npc) { (void)npc; script_aide(); }
 static void scr_gran(int npc) { (void)npc; script_gran(); }
@@ -20,9 +22,15 @@ static void scr_shop(int npc)
     dlg_ask("Welcome to MAPLE SHOP! What can I do for you?", SHOP_MENU, 3, shop_answer);
 }
 
+static void village_heal_answer(int choice)
+{
+    if (choice == 0) story_hearth_talk();
+    heal_answer(choice);
+}
+
 static void scr_tender(int npc)
 {
     (void)npc;
     dlg_ask("Welcome to the HEARTH HALL. Would your kin like to rest by the hearth?", HEARTH_MENU, 3,
-            heal_answer);
+            village_heal_answer);
 }
