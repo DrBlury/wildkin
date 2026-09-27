@@ -1633,39 +1633,13 @@ static int map_spot(int m)
 {
     for (int guard = 0; guard < 5 && m >= 0 && m < MAP_COUNT; guard++) {
         switch (m) {
-        case MAP_TOWN: return WM_MAPLE;
-        case MAP_MEADOW: return WM_MEADOW;
-        case MAP_RISE: return WM_RISE;
-        case MAP_WOOD: return WM_WOOD;
-        case MAP_LAKE: return WM_LAKE;
-        case MAP_WILLOW_ACRE: return WM_WILLOW;
-        case MAP_SALTWIND: return WM_SALTWIND;
-        case MAP_PORT_BRINE: return WM_PORT_BRINE;
-        case MAP_SEA_ROUTE: return WM_SEA_ROUTE;
-        case MAP_GULL_ISLE: return WM_GULL_ISLE;
-        case MAP_DROWNED_BELL: return WM_DROWNED_BELL;
-        case MAP_FROSTPINE: return WM_FROSTPINE;
-        case MAP_FROSTHOLLOW: return WM_FROSTHOLLOW;
-        case MAP_WHITECROWN: return WM_WHITECROWN;
-        case MAP_SKY_ISLE: return WM_SKY_ISLE;
-        case MAP_GLIMMER_1: case MAP_GLIMMER_2: return WM_GLIMMER;
-        case MAP_STARFALL: return WM_STARFALL;
-        case MAP_COPPERLINE: return WM_COPPERLINE;
-        case MAP_LUMEN: return WM_LUMEN;
-        case MAP_ELDERWOOD: return WM_ELDERWOOD;
-        case MAP_MOONVEIL: return WM_MOONVEIL;
-        case MAP_DREAMSPIRE: return WM_DREAMSPIRE;
-        case MAP_DUST_LIBRARY: return WM_DUST_LIBRARY;
-        case MAP_CINDER_ROAD: return WM_CINDER_ROAD;
-        case MAP_CINDERMOOR: return WM_CINDERMOOR;
-        case MAP_EMBER_TUNNEL: return WM_EMBER_TUNNEL;
-        case MAP_CALDERA: return WM_CALDERA;
-        case MAP_CLOCKWORK_SPIRE: return WM_CLOCKWORK;
-        case MAP_ASHEN_FIELDS: return WM_ASHEN;
-        case MAP_GRAVEWOOD: return WM_GRAVEWOOD;
-        case MAP_DUSKMERE: return WM_DUSKMERE;
-        case MAP_OSSUARY_1: case MAP_OSSUARY_2: return WM_OSSUARY;
-        case MAP_BONE_THRONE: return WM_BONE_THRONE;
+#define WORLD_POS(map, anchor, dx, dy)
+#define TOWN_SPOT(key, map, x, y, kind) case map: return WM_##key;
+#include "world/worldpos.inc"
+#undef TOWN_SPOT
+#undef WORLD_POS
+        case MAP_GLIMMER_2: return WM_GLIMMER;
+        case MAP_OSSUARY_2: return WM_OSSUARY;
         default: break;
         }
         int parent = -1;
@@ -1676,10 +1650,31 @@ static int map_spot(int m)
     return -1;
 }
 
+/* Use the same authored spot for cursor and landing markers; regional
+ * FlyPoint map_x/map_y fields remain save-compatible legacy metadata. */
+static int fly_spot(int i)
+{
+    return map_spot(FLY_POINTS[i].map);
+}
+
+static int fly_map_x(int i)
+{
+    int spot = fly_spot(i);
+    return spot >= 0 ? WM_SPOTS[spot][0] : FLY_POINTS[i].map_x;
+}
+
+static int fly_map_y(int i)
+{
+    int spot = fly_spot(i);
+    return spot >= 0 ? WM_SPOTS[spot][1] : FLY_POINTS[i].map_y;
+}
+
 /* A fly point you may fly to: visited (the Sky Isle only needs the wings). */
 static int fly_point_open(int i)
 {
     int m = FLY_POINTS[i].map;
+    /* A hamlet without a Hearth is a map marker, not a landing point. */
+    if (m == MAP_WAYCHAPEL) return 0;
     return travel_visited_get(m) || m == MAP_SKY_ISLE;
 }
 
@@ -1718,12 +1713,10 @@ static void wm_update(void)
     }
     int dx = key_hit(KEY_RIGHT) - key_hit(KEY_LEFT), dy = key_hit(KEY_DOWN) - key_hit(KEY_UP);
     if ((!dx && !dy) || wm.n < 2) return;
-    const FlyPoint *c = &FLY_POINTS[wm.pt[wm.cur]];
     int best = -1, best_d = 1 << 30;
     for (int k = 0; k < wm.n; k++) {
         if (k == wm.cur) continue;
-        const FlyPoint *f = &FLY_POINTS[wm.pt[k]];
-        int vx = f->map_x - c->map_x, vy = f->map_y - c->map_y;
+        int vx = fly_map_x(wm.pt[k]) - fly_map_x(wm.pt[wm.cur]), vy = fly_map_y(wm.pt[k]) - fly_map_y(wm.pt[wm.cur]);
         int along = vx * dx + vy * dy, across = absi(vx * dy - vy * dx);
         if (along <= 0) continue;
         int d = along + across * 2;
@@ -1752,8 +1745,7 @@ static void wm_draw(void)
     if (wm.here >= 0 && ((wm.t >> 4) & 1))
         spr_push(WM_SPOTS[wm.here][0] - 8, WM_SPOTS[wm.here][1] - 16, OT_TX(TX_PIN), SQ16, OBANK_TFX, 0, 0);
     if (wm.n) {
-        const FlyPoint *f = &FLY_POINTS[wm.pt[wm.cur]];
-        spr_push(f->map_x - 8, f->map_y - 8, OT_TX(TX_CURSOR0 + ((wm.t >> 4) & 1)), SQ16, OBANK_TFX, 0, 0);
+        spr_push(fly_map_x(wm.pt[wm.cur]) - 8, fly_map_y(wm.pt[wm.cur]) - 8, OT_TX(TX_CURSOR0 + ((wm.t >> 4) & 1)), SQ16, OBANK_TFX, 0, 0);
     }
     for (int q = 1; q < QUEST_COUNT; q++) {
         int map = quest_marker_map(q);
@@ -1796,7 +1788,7 @@ static void worldmap_open(int fly)
     for (int i = 0; i < FLY_POINT_COUNT && wm.n < WM_PTS; i++) {
         if (!fly_point_open(i)) continue;
         if (wm.here >= 0) {
-            int d = absi(FLY_POINTS[i].map_x - WM_SPOTS[wm.here][0]) + absi(FLY_POINTS[i].map_y - WM_SPOTS[wm.here][1]);
+            int d = absi(fly_map_x(i) - WM_SPOTS[wm.here][0]) + absi(fly_map_y(i) - WM_SPOTS[wm.here][1]);
             if (d < best) {
                 best = d;
                 wm.cur = wm.n;

@@ -8,9 +8,73 @@
  *   build/render_world OUTDIR
  *
  * Writes OUTDIR/maps.txt (one line per map: id name|w|h|outdoor|link N S W
- * E|link offsets) and OUTDIR/<id>.rgb (w*16 x h*16 pixels, 3 bytes each).
+ * E|link offsets), OUTDIR/positions.txt (id x y in tiles for placed
+ * outdoor maps), and OUTDIR/<id>.rgb (w*16 x h*16 pixels, 3 bytes each).
  * Noon, clear weather, the storm calmed.
  */
+/* Tile-space layout shared by the renderer and the isolated layout test.
+ * A warp hint is relative to a placed anchor; it never overrides an edge. */
+#include <stdio.h>
+
+typedef struct {
+    int w, h, outdoor, link[4], off[4];
+} WorldMap;
+typedef struct { int map, anchor, dx, dy; } WorldHint;
+typedef struct { int x, y, placed; } WorldPlace;
+
+static int world_layout(const WorldMap *maps, int count, const WorldHint *hints,
+                        int hint_count, WorldPlace *pos, FILE *errors)
+{
+    if (count < 1 || count > 255) return -1;
+    for (int i = 0; i < count; i++) pos[i] = (WorldPlace){0, 0, 0};
+    pos[0].placed = 1;
+    int changed;
+    do {
+        changed = 0;
+        for (int m = 0; m < count; m++) {
+            if (!pos[m].placed) continue;
+            for (int d = 0; d < 4; d++) {
+                int n = maps[m].link[d];
+                if (n < 0 || n >= count || pos[n].placed) continue;
+                int x = pos[m].x, y = pos[m].y;
+                if (d == 0) { x += maps[m].off[d]; y -= maps[n].h; }
+                if (d == 1) { x += maps[m].off[d]; y += maps[m].h; }
+                if (d == 2) { x -= maps[n].w; y += maps[m].off[d]; }
+                if (d == 3) { x += maps[m].w; y += maps[m].off[d]; }
+                pos[n] = (WorldPlace){x, y, 1};
+                changed = 1;
+            }
+        }
+        for (int i = 0; i < hint_count; i++) {
+            WorldHint h = hints[i];
+            if (h.map < 0 || h.map >= count || h.anchor < 0 || h.anchor >= count) {
+                fprintf(errors, "invalid WORLD_POS map %d anchor %d\n", h.map, h.anchor);
+                return -1;
+            }
+            if (!pos[h.anchor].placed || pos[h.map].placed) continue;
+            pos[h.map] = (WorldPlace){pos[h.anchor].x + h.dx, pos[h.anchor].y + h.dy, 1};
+            changed = 1;
+        }
+    } while (changed);
+    int overlaps = 0;
+    for (int m = 0; m < count; m++)
+        if (maps[m].outdoor && !pos[m].placed)
+            fprintf(errors, "world map %d has no edge path or WORLD_POS hint\n", m);
+    for (int a = 0; a < count; a++) {
+        if (!pos[a].placed || !maps[a].outdoor) continue;
+        for (int b = a + 1; b < count; b++) {
+            if (!pos[b].placed || !maps[b].outdoor) continue;
+            if (pos[a].x < pos[b].x + maps[b].w && pos[b].x < pos[a].x + maps[a].w &&
+                pos[a].y < pos[b].y + maps[b].h && pos[b].y < pos[a].y + maps[a].h) {
+                fprintf(errors, "world overlap: map %d and map %d\n", a, b);
+                overlaps++;
+            }
+        }
+    }
+    return overlaps;
+}
+
+#ifndef WORLD_LAYOUT_TEST
 #define main gba_main
 #include "../src/main.c"
 #undef main
@@ -62,6 +126,15 @@ static void draw_sprite(const u32 *gfx, const u16 *pal, int x0, int y0, int flip
         }
 }
 
+#define TOWN_SPOT(key, map, x, y, kind)
+#define WORLD_POS(map, anchor, dx, dy) { map, anchor, dx, dy },
+static const WorldHint world_hints[] = {
+#include "../src/game/world/worldpos.inc"
+    { -1, -1, 0, 0 }
+};
+#undef WORLD_POS
+#undef TOWN_SPOT
+
 static const u8 OFF[4] = { 0, 1, 32, 33 };
 
 int main(int argc, char **argv)
@@ -82,6 +155,33 @@ int main(int argc, char **argv)
         perror(path);
         return 1;
     }
+    WorldMap layout_maps[MAP_COUNT];
+    WorldPlace positions[MAP_COUNT];
+    for (int m = 0; m < MAP_COUNT; m++) {
+        const MapDef *d = &MAPS[m];
+        layout_maps[m].w = d->w;
+        layout_maps[m].h = d->h;
+        layout_maps[m].outdoor = (d->flags & MF_OUTDOOR) && !(d->flags & MF_DEBUG);
+        for (int dir = 0; dir < 4; dir++) {
+            layout_maps[m].link[dir] = d->link[dir];
+            layout_maps[m].off[dir] = d->link_off[dir];
+        }
+    }
+    int layout_errors = world_layout(layout_maps, MAP_COUNT, world_hints,
+                                     (int)(sizeof(world_hints) / sizeof(world_hints[0])) - 1,
+                                     positions, stderr);
+    if (layout_errors) {
+        fclose(list);
+        fprintf(stderr, "world layout failed (%d conflicts)\n", layout_errors);
+        return 1;
+    }
+    snprintf(path, sizeof(path), "%s/positions.txt", argv[1]);
+    FILE *placed = fopen(path, "w");
+    if (!placed) { perror(path); fclose(list); return 1; }
+    for (int m = 0; m < MAP_COUNT; m++)
+        if (positions[m].placed && layout_maps[m].outdoor)
+            fprintf(placed, "%d %d %d\n", m, positions[m].x, positions[m].y);
+    fclose(placed);
     for (int m = 0; m < MAP_COUNT; m++) {
         const MapDef *d = &MAPS[m];
         if (d->flags & MF_DEBUG) continue;
@@ -138,3 +238,5 @@ int main(int argc, char **argv)
     fclose(list);
     return 0;
 }
+
+#endif /* WORLD_LAYOUT_TEST */
