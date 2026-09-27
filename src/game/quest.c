@@ -36,6 +36,18 @@ MAYBE_UNUSED static int quest_get(int q) { return q > 0 && q < QUEST_COUNT ? que
 MAYBE_UNUSED static void quest_set(int q, int stage) { if (q > 0 && q < QUEST_COUNT) quest.stage[q] = (u8)stage; }
 MAYBE_UNUSED static int quest_done(int q) { return quest_get(q) == 255; }
 
+/* Called only by the A-button tile interaction, never by map entry or movement. */
+static int saga_note_examine(int map, int x, int y)
+{
+    for (int i = 0; i < NOTE_COUNT; i++) {
+        if (saga_note_map(i) != map || saga_note_x(i) != x || saga_note_y(i) != y) continue;
+        saga_note(i, 0);
+        saga_notes_sync();
+        return 1;
+    }
+    return 0;
+}
+
 static int quest_marker_map(int q)
 {
     int stage = quest_get(q);

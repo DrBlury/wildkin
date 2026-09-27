@@ -972,6 +972,7 @@ static int field_try_interact(void)
      * a deck are out of reach; signs and objects can still be read */
     int nl, reach = elev_enter(player.x, player.y, player.level, player.facing, &nl) != ELEV_BLOCK;
     if (!reach) {
+        saga_note_examine(cur_map, fx, fy);
         int s = sign_at(fx, fy);
         if (s >= 0) {
             dlg_say(SIGNS[s].text);
@@ -1010,6 +1011,7 @@ static int field_try_interact(void)
         give_item(ITEM_BALLS[ib].item, ITEM_BALLS[ib].qty);
         return 1;
     }
+    saga_note_examine(cur_map, fx, fy);
     int s = sign_at(fx, fy);
     if (s >= 0) {
         dlg_say(SIGNS[s].text);

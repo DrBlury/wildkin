@@ -25,6 +25,45 @@ static int npc_named(const char *name)
 
 static int walk_ok(int x, int y) { return !(cell_attr(x, y) & (A_SOLID | A_WATER | A_LEDGE)); }
 
+static int trail_step(int dir, int x, int y, int level)
+{
+    player_try_move(dir);
+    settle();
+    return cur_map == MAP_BROOKMILL_TRAIL && player.x == x && player.y == y &&
+           player.level == level && !travel.surfing;
+}
+
+static void test_brook_bridge(void)
+{
+    fresh_game();
+    flag_set(FLAG_STORM_CALMED);
+    field_enter_map(MAP_BROOKMILL_TRAIL, 32, 18, DIR_DOWN);
+    int shore = player.level == 0;
+    shore &= trail_step(DIR_RIGHT, 33, 18, 0);
+    shore &= trail_step(DIR_RIGHT, 34, 18, 0);
+    shore &= trail_step(DIR_DOWN, 34, 19, 0);
+    for (int x = 35; x <= 38; x++)
+        shore &= trail_step(DIR_RIGHT, x, 19, x == 36 || x == 37 ? 1 : 0) &&
+                 !(cell_attr(x, 19) & A_WATER);
+    CHECK(shore, "fresh-save trail walker crosses x35 on the shore without SURF or solved-gate shortcuts");
+
+    field_enter_map(MAP_BROOKMILL_TRAIL, 24, 18, DIR_RIGHT);
+    int bridge = player.level == 0 && trail_step(DIR_RIGHT, 25, 18, 0) &&
+                 trail_step(DIR_RIGHT, 26, 18, 1);
+    for (int x = 27; x <= 35; x++)
+        bridge &= trail_step(DIR_RIGHT, x, 18, 1);
+    bridge &= trail_step(DIR_RIGHT, 36, 18, 1);
+    bridge &= trail_step(DIR_RIGHT, 37, 18, 0);
+    CHECK(bridge, "fresh-save walker climbs, crosses and descends the raised bridge without falling into water");
+    field_enter_map(MAP_BROOKMILL_TRAIL, 34, 17, DIR_RIGHT);
+    CHECK(player.level == 1 && trail_step(DIR_RIGHT, 35, 17, 1) &&
+          trail_step(DIR_RIGHT, 36, 17, 1) && trail_step(DIR_RIGHT, 37, 17, 0),
+          "the north bridge lane crosses x35 and descends onto dry ground");
+    CHECK(!flag(FLAG_TIDE_CREST) && !flag(FLAG_VOLT_CREST),
+          "the bridge crossing does not grant later crests");
+    flag_clear(FLAG_STORM_CALMED);
+}
+
 /* ---------------- edges ---------------- */
 
 static int edge_open(int map, int side, int a, int b)
@@ -593,6 +632,7 @@ int main(void)
 {
     setvbuf(stdout, NULL, _IONBF, 0);
     game_init();
+    test_brook_bridge();
     test_routes();
     test_project_visuals();
     test_lumen_heights();

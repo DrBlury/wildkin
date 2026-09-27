@@ -167,7 +167,11 @@ static int time_tint_applies(void)
 static int time_tint_key(void)
 {
     if (!time_tint_applies()) return 0;
-    return time_night_level() * 2 + time_raining_here() + 1;
+    int wx = time_weather_here(cur_map);
+    /* Only the aurora cycles palettes; ordinary fronts update on band changes. */
+    int phase = wx == WX_AURORA ? (field_anim_frame / 12) % 4 :
+                wx == WX_HEAT ? (field_anim_frame / 10) % 2 : 0;
+    return 1 + time_night_level() + wx * 17 + phase * WX_COUNT * 17;
 }
 
 /* Field palettes pass through here (field.c field_load_palettes). */
@@ -175,7 +179,8 @@ static u16 field_tint(u16 c)
 {
     if (!time_tint_applies()) return c;
     int n = time_night_level(), rain = time_raining_here();
-    if (!n && !rain) return c;
+    int wx = time_weather_here(cur_map);
+    if (!n && !rain && wx != WX_FOG && wx != WX_SNOW && wx != WX_HEAT && wx != WX_ASH && wx != WX_AURORA) return c;
     int r = c & 31, g = (c >> 5) & 31, b = (c >> 10) & 31;
     if (rain) {  /* overcast: toward grey, a little darker */
         int l = (r * 5 + g * 8 + b * 3) >> 4;
@@ -189,6 +194,18 @@ static u16 field_tint(u16 c)
         r = (r * (256 - n * 9) >> 8) + warm / 2;
         g = (g * (256 - n * 8) >> 8) + warm / 5;
         b = (b * (256 - n * 3) >> 8) + n / 4;
+    }
+    if (wx == WX_FOG) {
+        r = (r * 3 + 22) / 4; g = (g * 3 + 25) / 4; b = (b * 3 + 27) / 4;
+    } else if (wx == WX_SNOW) {
+        b += 2; g += 1;
+    } else if (wx == WX_HEAT) {
+        r += 2 + (field_anim_frame / 10) % 2; g += 1; b = b * 7 / 8;
+    } else if (wx == WX_ASH) {
+        r = r * 7 / 8; g = g * 3 / 4; b = (b * 7 + 8) / 8;
+    } else if (wx == WX_AURORA && time_is_night()) {
+        int phase = (field_anim_frame / 12) % 4;
+        g += 2 + phase; b += 4 - phase; r += phase / 2;
     }
     return RGB15(clampi(r, 0, 31), clampi(g, 0, 31), clampi(b, 0, 31));
 }

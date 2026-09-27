@@ -610,6 +610,34 @@ static void plot_redraw(int pi)
 #define OT_FARM_BERRY OT_FARM            /* 2 frames x 4 tiles (off the farm) */
 #define OT_FARM_FX (OT_FARM + 8)         /* FXT_COUNT tiles */
 #define OT_FARM_CURSOR (OT_FARM + 16)    /* 4 tiles */
+#define OT_WEATHER (OT_FARM + 20)        /* 7 x 8x8 tiles, below travel's 640 */
+enum { WFX_SNOW, WFX_FOG, WFX_HEAT, WFX_GLOW, WFX_STREAM, WFX_STAR, WFX_ASH, WFX_COUNT };
+/* Existing emote bank: 2 white, 3 warm red, 4 cyan, 5 grey, 6 pale gold. */
+static const char *const WEATHER_ART[WFX_COUNT][8] = {
+    { "........", "...2....", "..222...", "...2....", "........", "......2.", "........", "........" },
+    { "........", "........", ".6666...", "6666666.", "..22222.", "........", "........", "........" },
+    { "........", "..6.....", ".6......", "..6.....", "...6....", "..6.....", "........", "........" },
+    { "...6....", "..666...", ".66466..", "..646...", "...6....", "........", "........", "........" },
+    { "........", ".444444.", "..2222..", "........", "........", ".444444.", "........", "........" },
+    { "2.......", ".22.....", "..222...", "...222..", ".....22.", ".......2", "........", "........" },
+    { "........", "........", "....5...", "...565..", "....6...", "........", "........", "........" },
+};
+
+static void weather_load_tiles(void)
+{
+    for (int t = 0; t < WFX_COUNT; t++) {
+        u32 rows[8];
+        for (int y = 0; y < 8; y++) {
+            u32 r = 0;
+            for (int x = 0; x < 8; x++) {
+                int v = WEATHER_ART[t][y][x] - '0';
+                if (v >= 1 && v <= 6) r |= (u32)v << (x * 4);
+            }
+            rows[y] = r;
+        }
+        copy32(VRAM_OBJ_TILES + (OT_WEATHER + t) * 8, rows, 8);
+    }
+}
 #define FARM_OBANK OBANK_ITEM_BALL       /* colours 9-15 */
 
 enum { FXT_CLOD, FXT_DROP, FXT_SPARK, FXT_LEAF, FXT_SEED, FXT_COUNT };
@@ -1803,6 +1831,7 @@ static void farm_map_loaded(void)
     for (int i = 0; i < PARTICLE_MAX; i++) particles[i].life = 0;
     for (int i = 0; i < FARM_WORKERS; i++) farm_kin[i].shown = 0;
     fx_freeze = 0;
+    weather_load_tiles();
     if (cur_map == MAP_WILLOW_ACRE) {
         fx_load_farm();
         if (farm.owned) {
@@ -1904,10 +1933,68 @@ static void farm_draw_fx(void)
     }
 }
 
+/* Limited field particles; use the emote bank and no new OBJ palette. */
+static void weather_draw_particles(void)
+{
+    const MapDef *m = &MAPS[cur_map];
+    if (!(m->flags & MF_OUTDOOR) || (m->flags & (MF_NIGHTLESS | MF_DEBUG))) return;
+    int wx = time_weather_here(cur_map), tile = -1, count = 0, speed = 1;
+    switch (wx) {
+    case WX_SNOW: tile = WFX_SNOW; count = 12; speed = 2;
+                  if (events.front_region == events_region(cur_map) && events.front_kind == WX_SNOW) count = 16;
+                  break;
+    case WX_FOG: tile = WFX_FOG; count = 8; speed = 1; break;
+    case WX_HEAT: tile = WFX_HEAT; count = 8; speed = 1; break;
+    case WX_ASH: if (!grim_ash_active(cur_map)) { tile = WFX_ASH; count = 10; speed = 1; }
+                 else if (events.front_region == events_region(cur_map) && events.front_kind == WX_ASH) {
+                     tile = WFX_ASH; count = 5; speed = 2;
+                 } break;
+    case WX_AURORA: if (time_is_night()) { tile = WFX_STREAM; count = 8; speed = 0; } break;
+    default: break;
+    }
+    for (int i = 0; i < count && oam_count < 104; i++) {
+        unsigned t = (unsigned)field_anim_frame;
+        int x = (int)((cell_hash(i, 67) + t / 3 + 512u - (unsigned)(cam_x & 255)) % 256u) - 8;
+        if (wx == WX_HEAT) x += (int)((t / 6 + (unsigned)i) % 7u) - 3;
+        int y = (int)((cell_hash(i, 47) + t * (unsigned)speed + 704u - (unsigned)(cam_y % 176)) % 176u) - 8;
+        if (wx == WX_AURORA) y = 12 + i * 7 + (int)((t / 8 + (unsigned)i) % 9u);
+        if (wx == WX_HEAT) y = 55 + (i * 13) % 100;
+        if (wx == WX_FOG) y = 72 + (i * 11) % 88;
+        spr_push(x, y, OT_WEATHER + tile, SQ8, OBANK_EMOTE, 1, 0);
+    }
+}
+
+static void festival_draw_particles(void)
+{
+    int festival = events_visual_festival(cur_map);
+    if (!festival || !(MAPS[cur_map].flags & MF_OUTDOOR)) return;
+    int hx = 0, hy = 0, tile = WFX_GLOW;
+    switch (festival) {
+    case FEST_KINDLING: hx = 13; hy = 10; break;
+    case FEST_MILLRACE: hx = 14; hy = 12; tile = WFX_STREAM; break;
+    case FEST_LANTERN: hx = 29; hy = 14; break;
+    case FEST_FROST: hx = 12; hy = 14; tile = WFX_SNOW; break;
+    case FEST_STARFALL: hx = 9; hy = 12; tile = WFX_STAR; break;
+    }
+    int cx = hx * 16 - cam_x, cy = hy * 16 - cam_y;
+    for (int i = 0; i < 6 && oam_count < 104; i++) {
+        int x = cx - 32 + i * 12, y = cy - 8 - (int)((field_anim_frame / 3 + i * 13) % 35u);
+        if (festival == FEST_STARFALL) {
+            x = (int)((cell_hash(i, 71) + (unsigned)field_anim_frame * 3u) % 256u) - 8;
+            y = (int)((cell_hash(i, 73) + (unsigned)field_anim_frame * 2u) % 176u) - 8;
+        }
+        spr_push(x, y, OT_WEATHER + tile, SQ8, OBANK_EMOTE, 1, 0);
+    }
+}
+
 /* Sprites and labels over the field (script.c field_draw, after the
  * field's own sprites, so they sit behind people). */
 static void farm_draw(void)
 {
+    /* Battle FX reuse these tiles; the first field draw after another screen restores them. */
+    static unsigned last_field_draw;
+    if ((unsigned)frame_count != last_field_draw + 1) weather_load_tiles();
+    last_field_draw = (unsigned)frame_count;
     farm_canvas_draw();
     /* the plot you face */
     if (farm_here() && !player.moving && game_mode == MODE_FIELD && !dialog_active()) {
@@ -1924,6 +2011,8 @@ static void farm_draw(void)
             if (sx < -16 || sy < -16 || sx > SCREEN_WIDTH || sy > SCREEN_HEIGHT) continue;
             spr_push(sx, sy, OT_FARM_BERRY + (berry_ripe(m->objs[i].arg) ? 4 : 0), SQ16, FARM_OBANK, 2, 0);
         }
+    weather_draw_particles();
+    festival_draw_particles();
     /* rain (the storm draws its own) */
     if (time_raining_here() && !storm_active()) {
         for (int i = 0; i < 12; i++) {
