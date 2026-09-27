@@ -356,11 +356,16 @@ static void scr_saga_notes(int npc)
 }
 static void scr_saga_ferry(int npc)
 { (void)npc; saga_project_talk(SAGA_FERRY, "ELSPETH: Four TIMBER, two SALT, 2000c for the ferry. Fund it?"); }
+static void saga_punt_sail(int to_lake)
+{
+    if (to_lake) travel_boat_to(MAP_LAKE, 31, 17);
+    else travel_boat_to(MAP_REEDWICK, 25, 20);
+}
 static void saga_punt_answer(int choice)
 {
     if (choice) return;
-    if (cur_map == MAP_REEDWICK) field_begin_warp(MAP_LAKE, 31, 17, DIR_RIGHT);
-    else field_begin_warp(MAP_REEDWICK, 25, 20, DIR_LEFT);
+    /* The voyage owns the display after the dialog callback has returned. */
+    dlg_call(saga_punt_sail, cur_map == MAP_REEDWICK);
 }
 static void scr_saga_punt(int npc)
 {
@@ -417,8 +422,8 @@ static void saga_lift_stop(void)
 static void scr_saga_lift_low(int npc) { (void)npc; saga_lift_stop(); }
 static void scr_saga_lift_high(int npc) { (void)npc; saga_lift_stop(); }
 
-/* Until the far owner attaches its dormant E5 MapPatch, this keeps the
- * SURF-first route and the paid bridge bidirectional without a trap. */
+/* Keep the optional guide crossing for SURF and as a redundant return path
+ * while the rebuilt deck is validated by broader progression playthroughs. */
 static void saga_bridge_pass_answer(int choice)
 {
     if (choice) return;
