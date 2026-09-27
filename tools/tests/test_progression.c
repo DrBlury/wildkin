@@ -265,6 +265,11 @@ static void check_gate_cells(void)
         CHECK(warp.active && warp.dest == MAP_RISE && warp.x == 11 && warp.y == 2,
               "G4 one-way ridge chute returns directly to the Rise");
         warp.active = 0;
+        flag_set(FLAG_CREST_ANVIL);
+        map_load(MAP_RISE);
+        flood_ex(11, 2, FLOOD_WALK);
+        CHECK(at(11, 19) || at(12, 19), "G4 ridge chute landing can walk home through the Rise");
+        flag_clear(FLAG_CREST_ANVIL);
     }
 }
 
