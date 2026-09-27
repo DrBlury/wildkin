@@ -36,6 +36,17 @@
  * Abilities: Halls must be solvable with no SURF or STRENGTH (they are
  * self-contained); every other map is searched with SURF + STRENGTH (+ FLY
  * landings). Soft-locks are checked under both ability sets.
+ *
+ * Levels (elev.c): a position is (level, cell), and every boulder's level
+ * is part of the state (a boulder on a deck and one under it are different
+ * states). On maps with a height layer the fast path only joins plain
+ * ground cells on the same level (no stairs, ledges, faces, decks, tunnels
+ * or hidden cells); everything else is played by the game.
+ *
+ * The TEST maps (debug WARP only) are searched too. One without a door or
+ * edge in is entered where the WARP menu lands you (dbg_find_spot), and
+ * that spot is its way "out": from every reachable state the player must be
+ * able to walk back to it.
  */
 #include "harness.h"
 #include <stdint.h>
@@ -56,11 +67,14 @@ enum { FM_SIM = -2, FM_BLOCK = -1 };
 /* ---------------- the map being solved ---------------- */
 
 static int W, H, NC, abil;
-static int elevated;            /* the map has a height layer: every step goes through the game */
+static int elevated;            /* the map has a height layer (the fast path: plain ground only) */
 static u16 sattr[CELLS];        /* cell_attr with the movable objects taken out */
 static u8 swalk[CELLS];         /* cell_walkable, same */
 static u8 ssurf[CELLS];         /* travel_surf_cell, same */
 static u8 special[CELLS];       /* arriving here does something */
+static u8 eplain[CELLS];        /* plain ground for the fast path (no stairs, ledge, face, deck, tunnel, secret) */
+static u8 home_pos[POSMAX];     /* a map without entrances: the WARP menu's spot */
+static int home_x, home_y;
 static u8 dyn[CELLS];           /* loaded state: 1 boulder, 2 other solid object */
 static s16 exit_cache[POSMAX * 4];  /* -1 unknown, 0 bump, 1+LINK edge, 5 mat, 16+warp */
 
@@ -90,8 +104,9 @@ static void capture(u8 *k)
     for (int s = 0; s < nb;) {
         int e = s;
         while (e < nb && tobj[bobj[e]].arg == tobj[bobj[s]].arg) e++;
-        int pos[TOBJ_MAX], n = 0;
-        for (int i = s; i < e; i++) pos[n++] = tobj[bobj[i]].y * W + tobj[bobj[i]].x;
+        int pos[TOBJ_MAX], n = 0;   /* level, y, x: a boulder on a deck differs from one below it */
+        for (int i = s; i < e; i++)
+            pos[n++] = (tobj[bobj[i]].level << 12) | (tobj[bobj[i]].y << 6) | tobj[bobj[i]].x;
         for (int i = 1; i < n; i++)
             for (int j = i; j > 0 && pos[j - 1] > pos[j]; j--) {
                 int t = pos[j];
@@ -99,8 +114,8 @@ static void capture(u8 *k)
                 pos[j - 1] = t;
             }
         for (int i = 0; i < n; i++) {
-            k[2 * (s + i)] = (u8)(pos[i] % W);
-            k[2 * (s + i) + 1] = (u8)(pos[i] / W);
+            k[2 * (s + i)] = (u8)(pos[i] & 63);
+            k[2 * (s + i) + 1] = (u8)(pos[i] >> 6);   /* y | level << 6 */
         }
         s = e;
     }
@@ -118,7 +133,8 @@ static void restore(const u8 *k)
     for (int i = 0; i < nb; i++) {
         TObj *o = &tobj[bobj[i]];
         o->x = k[2 * i];
-        o->y = k[2 * i + 1];
+        o->y = k[2 * i + 1] & 63;
+        o->level = k[2 * i + 1] >> 6;
         o->ox = o->oy = 0;
     }
     int sw = k[2 * nb] | (k[2 * nb + 1] << 8);
@@ -153,7 +169,8 @@ static void place_player(int c)
     player.hop = 0;
     player.anim = 0;
     player.facing = DIR_DOWN;
-    travel.surfing = (cell_attr(player.x, player.y) & A_WATER) != 0;
+    travel.surfing = (cell_attr(player.x, player.y) & A_WATER) != 0 &&
+                     (!map_elevated || player.level == elev_floor(player.x, player.y));   /* not on a deck */
     travel.biking = 0;
     tv.slide = tv.hop1 = tv.push_t = tv.busy = 0;
     tv.flash_t = tv.splash_t = 0;
@@ -357,15 +374,24 @@ static void dyn_set(u32 m)
     dyn_m = m;
 }
 
-/* The fast path for a step from c: the cell it lands on (a plain step),
- * FM_BLOCK (a certain bump) or FM_SIM (let the game play it). */
-static int fast_move(int c, int d)
+/* The fast path for a step from position pos: the position it lands on (a
+ * plain step), FM_BLOCK (a certain bump) or FM_SIM (let the game play it). */
+static int fast_move_cell(int a, int b, int n, int d);
+static int fast_move(int pos, int d)
 {
-    if (elevated) return FM_SIM;
+    int lv = pos / NC, c = pos % NC;
     int x = c % W, y = c / W, nx = x + DIR_DX[d], ny = y + DIR_DY[d];
     if (nx < 0 || ny < 0 || nx >= W || ny >= H) return FM_SIM;
     int a = sattr[c];
     int n = ny * W + nx, b = sattr[n];
+    /* heights: only between plain ground cells on the level you stand on */
+    if (elevated && (!eplain[c] || !eplain[n] || elev_floor(x, y) != lv || elev_floor(nx, ny) != lv)) return FM_SIM;
+    int r = fast_move_cell(a, b, n, d);
+    return r >= 0 ? lv * NC + r : r;
+}
+
+static int fast_move_cell(int a, int b, int n, int d)
+{
     if (a & A_WATER) {   /* surfing */
         if (b & A_DOOR) return FM_SIM;
         if (dyn[n]) return dyn[n] == 1 ? FM_SIM : FM_BLOCK;
@@ -438,8 +464,8 @@ static int sim(u32 m, int c, int d, int act, u32 *om, int *oc, int *exit_code)
 
 /* ---------------- targets ---------------- */
 
-enum { T_NPC, T_SATCHEL, T_CHEST, T_LEGEND, T_FERRY, T_WARP, T_EDGE, T_MAT };
-static const char *const T_KIND[] = { "person", "satchel", "chest", "legend", "ferry", "door", "edge", "exit mat" };
+enum { T_NPC, T_SATCHEL, T_CHEST, T_LEGEND, T_FERRY, T_WARP, T_EDGE, T_MAT, T_HOME };
+static const char *const T_KIND[] = { "person", "satchel", "chest", "legend", "ferry", "door", "edge", "exit mat", "spot" };
 static const char *const EDGE_NAME[4] = { "north", "south", "west", "east" };
 
 typedef struct {
@@ -453,7 +479,7 @@ typedef struct {
 static Target tgt[TGT_MAX];
 static int ntgt;
 static s16 tgt_at[CELLS];
-static int tgt_edge[4], tgt_mat;
+static int tgt_edge[4], tgt_mat, tgt_home;
 static s16 tgt_warp[256];
 static u8 legend_at[CELLS];     /* persist index + 1 of a legend */
 static u8 ferry_at[CELLS];
@@ -619,16 +645,20 @@ static void process_node(u32 id)
     memcpy(key, macro_key(m), (size_t)keylen);
     for (int i = 0; i < n; i++) {
         int c = cells[i], cl = c % NC, lvl = c / NC, x = cl % W, y = cl / W;
+        if (home_pos[c]) {   /* back where the WARP menu put you: a way out */
+            tgt_hit(tgt_home, id, c);
+            mark_exit(id, c);
+        }
         for (int d = 0; d < 4; d++) {
             int nx = x + DIR_DX[d], ny = y + DIR_DY[d];
             int inside = nx >= 0 && ny >= 0 && nx < W && ny < H;
             if (inside) {
                 int nc = ny * W + nx;
                 int t = tgt_at[nc];
-                /* people and satchels across a cliff or under a deck are out of reach
-                 * (field_try_interact); objects can still be used */
+                /* people, satchels, chests, legends and ferries across a cliff or under a
+                 * deck are out of reach (field_try_interact reads only signs across) */
                 int nl, reach = elev_enter(x, y, lvl, d, &nl) != ELEV_BLOCK;
-                if (t >= 0 && !reach && (tgt[t].kind == T_NPC || tgt[t].kind == T_SATCHEL)) t = -1;
+                if (t >= 0 && !reach) t = -1;
                 int sat_taken = nsat && ((key[2 * nb + 2 + SAT_BIT / 8] >> (SAT_BIT & 7)) & 1);
                 if (t >= 0 && !(tgt[t].kind == T_SATCHEL && sat_taken)) tgt_hit(t, id, c);
                 if (sat_at[nc] && reach && !sat_taken) {   /* pick it up: the way is clear from now on */
@@ -643,10 +673,10 @@ static void process_node(u32 id)
                         tgt[tgt_at[fy * W + fx]].kind == T_NPC)
                         tgt_hit(tgt_at[fy * W + fx], id, c);
                 }
-                if (ferry_at[nc]) mark_exit(id, c);
+                if (ferry_at[nc] && reach) mark_exit(id, c);
                 /* answer a legend: it is gone for good */
                 int j = legend_at[nc] - 1;
-                if (j >= 0 && !((key[2 * nb + 2 + j / 8] >> (j & 7)) & 1)) {
+                if (j >= 0 && reach && !((key[2 * nb + 2 + j / 8] >> (j & 7)) & 1)) {
                     u8 k[KEY_MAX];
                     memcpy(k, key, KEY_MAX);
                     k[2 * nb + 2 + j / 8] |= (u8)(1u << (j & 7));
@@ -767,6 +797,8 @@ static void setup_map(int m, int ability)
 {
     memset(travel.puzzle, 0, sizeof(travel.puzzle));
     abil = ability;
+    home_x = home_y = -1;
+    if (!strncmp(MAPS[m].name, "TEST ", 5)) dbg_find_spot(m, &home_x, &home_y);   /* where WARP lands */
     map_load(m);
 #ifdef PZ_PATCH
     PZ_PATCH(m);
@@ -808,6 +840,8 @@ static void setup_map(int m, int ability)
         swalk[c] = (u8)cell_walkable(x, y);
         ssurf[c] = (u8)travel_surf_cell(x, y);
         special[c] = (sattr[c] & (A_ICE | A_CURRENT | A_WATER | A_PAD | A_SWITCH)) != 0;
+        u16 e = elev_at(x, y);
+        eplain[c] = !elevated || (EV_KIND(e) == EK_GROUND && EV_COVER(e) == EC_NONE);
         if (sattr[c] & (A_ICE | A_CURRENT | A_PAD | A_SWITCH | A_LEDGE)) interesting = 1;
         tgt_at[c] = -1;
         legend_at[c] = 0;
@@ -833,7 +867,8 @@ static void setup_map(int m, int ability)
     ntgt = 0;
     for (int i = 0; i < 4; i++) tgt_edge[i] = -1;
     for (int i = 0; i < 256; i++) tgt_warp[i] = -1;
-    tgt_mat = -1;
+    tgt_mat = tgt_home = -1;
+    memset(home_pos, 0, sizeof(home_pos));
     for (int i = 0; i < NPC_COUNT; i++)
         if (NPCS[i].map == m) tgt_add(T_NPC, i, NPCS[i].x, NPCS[i].y, NPCS[i].name ? NPCS[i].name : "warden");
     for (int i = 0; i < ITEM_BALL_COUNT; i++)
@@ -877,6 +912,14 @@ static void setup_map(int m, int ability)
     if (abil & ABL_FLY)
         for (int i = 0; i < FLY_POINT_COUNT; i++)
             if (FLY_POINTS[i].map == m) entr_add(FLY_POINTS[i].x, FLY_POINTS[i].y, DIR_DOWN);
+    /* a TEST map with no way in: the WARP menu's spot is the way in and out */
+    if (!nentr && home_x >= 0) {
+        entr_add(home_x, home_y, -1);
+        if (nentr) {
+            home_pos[entr[0]] = 1;
+            tgt_home = tgt_add(T_HOME, 0, -1, -1, "the WARP spot");
+        }
+    }
 }
 
 /* Replay every fast-path step of the starting state through the game. */
@@ -885,8 +928,9 @@ static int validate_fast_path(void)
     u32 m0 = macro_intern(key_init);
     int bad = 0;
     dyn_set(m0);
-    for (int c = 0; c < NC; c++) {
-        if (dyn[c] || (!swalk[c] && !ssurf[c])) continue;
+    for (int cell = 0; cell < NC; cell++) {
+        if (dyn[cell] || (!swalk[cell] && !ssurf[cell])) continue;
+        int c = (elevated ? elev_floor(cell % W, cell / W) : 0) * NC + cell;   /* standing on its ground */
         for (int d = 0; d < 4; d++) {
             int r = fast_move(c, d);
             if (r == FM_SIM) continue;
@@ -896,9 +940,9 @@ static int validate_fast_path(void)
             int ok = r == FM_BLOCK ? res == R_BLOCK : (res == R_MOVE && om == m0 && oc == r);
             if (!ok && bad++ < 4)
                 printf("  %s: fast path says %d for %d,%d dir %d, the game says %d (%d,%d)\n", MAPS[cur_map].name, r,
-                       c % W, c / W, d, res, oc % W, oc / W);
-            int nx = c % W + DIR_DX[d], ny = c / W + DIR_DY[d], nc = ny * W + nx;
-            if ((abil & ABL_SURF) && !(sattr[c] & A_WATER) && nx >= 0 && ny >= 0 && nx < W && ny < H && ssurf[nc] &&
+                       cell % W, cell / W, d, res, oc % NC % W, oc % NC / W);
+            int nx = cell % W + DIR_DX[d], ny = cell / W + DIR_DY[d], nc = ny * W + nx;
+            if (!elevated && (abil & ABL_SURF) && !(sattr[c] & A_WATER) && nx >= 0 && ny >= 0 && nx < W && ny < H && ssurf[nc] &&
                 !dyn[nc] && !(sattr[nc] & A_CURRENT)) {
                 res = sim(m0, c, d, SA_SURF, &om, &oc, &code);
                 if (!(res == R_MOVE && om == m0 && oc == nc) && bad++ < 4)
@@ -914,7 +958,10 @@ static void describe_state(u32 m, int c)
     const u8 *k = macro_key(m);
     printf("player %d,%d", c % NC % W, c % NC / W);
     if (elevated) printf(" level %d", c / NC);
-    for (int i = 0; i < nb; i++) printf(" boulder %d,%d", k[2 * i], k[2 * i + 1]);
+    for (int i = 0; i < nb; i++) {
+        printf(" boulder %d,%d", k[2 * i], k[2 * i + 1] & 63);
+        if (elevated) printf(" (level %d)", k[2 * i + 1] >> 6);
+    }
     int sw = k[2 * nb] | (k[2 * nb + 1] << 8);
     if (sw) printf(" switches %04x", sw);
     for (int j = 0; j < np; j++)
@@ -1114,7 +1161,6 @@ int main(void)
     printf("puzzle solver (Halls without SURF/STRENGTH, other maps with SURF+STRENGTH+FLY):\n");
     for (int m = 0; m < MAP_COUNT; m++) {
         if (MAPS[m].flags & MF_DEBUG) continue;
-        if (!strncmp(MAPS[m].name, "TEST ", 5)) continue;   /* traversal fixtures (test_travel.c), not the game */
         const char *only = getenv("PZ_MAP");   /* a map id or name */
         if (only && (only[0] >= '0' && only[0] <= '9' ? atoi(only) != m : strcmp(only, MAPS[m].name) != 0)) continue;
         int designed = is_hall(m) ? 0 : ABL_ALL;

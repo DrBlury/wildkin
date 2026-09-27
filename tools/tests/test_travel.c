@@ -101,7 +101,7 @@ int main(void)
     CHECK(pads_ok, "every teleport pad has exactly one partner");
     CHECK(ferry_ok, "every ferry has a ferry back on its destination map");
     CHECK(travel_pbit_total() <= 128, "gates, chests and legends fit the 128 puzzle bits");
-    CHECK(sizeof(TravelState) == 41, "the travel save blob keeps its size");
+    CHECK(sizeof(TravelState) == 49, "the travel save blob keeps its size (41 + 8 secret bytes at the end)");
 
     /* ---- attributes ---- */
     enter(MAP_TT_HALL, 9, 14, DIR_UP);
@@ -165,9 +165,9 @@ int main(void)
     CHECK(player.x == 17 && player.y == 12, "and back again");
 
     /* ---- currents ---- */
-    enter(MAP_TT_HALL, 3, 13, DIR_RIGHT);
+    enter(MAP_TT_HALL, 4, 13, DIR_RIGHT);
     go(DIR_RIGHT);
-    CHECK(player.x == 8 && player.y == 13, "a current carries you to its end");
+    CHECK(player.x == 9 && player.y == 13, "a current carries you to its end");
 
     /* ---- chests ---- */
     enter(MAP_TT_HALL, 2, 4, DIR_UP);

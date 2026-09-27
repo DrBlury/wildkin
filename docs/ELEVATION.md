@@ -92,7 +92,7 @@ lower level); the feature adds its upper level (ground + 1).
 | `BRIDGE_H` | a bridge deck walked **east-west** on top. Underneath, the ground is walkable as usual (north-south along a gorge, or by surf on water). Both ends of the deck must meet ground at the deck's height. Make it 2 rows tall: the actor under the lower row is hidden entirely, and the look (railings + front beam) is made for it. |
 | `BRIDGE_V` | the same, walked **north-south** on top. |
 | `TUNNEL` | cells under a plateau: their top (ground + 1) is walkable in every direction like the plateau around it, and drawn over anyone inside; the tunnel floor is the ground digit. Write the ground height (e.g. `0`) in the tunnel column, the plateau height (`1`) around it. The cliff face just south of the tunnel becomes its **mouth** automatically. The tunnel's north end opens onto whatever lower ground is north of the plateau. |
-| `HIDDEN` | a secret passage: whatever the rows show there (trees, a cliff face, a wall), the cells are walkable at their ground height and drawn **over** the walker. The first time the player steps in, a rustle and a "!" (per visit). Put a subtle hint next to it (a path stub, pebbles). |
+| `HIDDEN` | a secret passage: whatever the rows show there (trees, a cliff face, a wall), the cells are walkable at their ground height and drawn **over** the walker. The first time the player steps into any of its cells, a rustle and a "!", and the whole rectangle is **found for good** (saved): from then on it shows a worn gap (section 5.6). Put a subtle hint next to it (a path stub, pebbles). |
 
 ### 2.3 Derived things (never written)
 
@@ -138,7 +138,30 @@ lower level); the feature adds its upper level (ground + 1).
   docs/EXPANSION.md 9).
 - **Save**: the level is stored (`SaveData.level`, level + 1; 0 = derive
   it, as older saves do); a saved position on a bridge cell comes back on
-  the right side of the deck.
+  the right side of the deck. Found hidden passages are bits in the travel
+  module blob (`TravelState.secrets`, section 7).
+
+### 3.1 Puzzles and farms on heights
+
+Map objects (`MapDef.objs`) and puzzle tiles are level-aware. Every object
+stands on a **level**: the ground of its cell (a boulder placed on a bridge
+cell over water starts on the deck).
+
+| piece | on heights |
+| --- | --- |
+| boulder | keeps its level. It can't go up or down **stairs**, can't be pushed off a **cliff edge** (the rim stops it) and never goes onto a face, a ledge, a tunnel mouth or into a **hidden** passage. Pushed **south off a ledge** it **drops** to the ground below and lands on the cell past the ledge, like a hopping player (so it can only come back up by reloading the map). Along a **bridge**: a boulder on the deck is pushed along the deck by someone on the deck; one on the ground under it by someone underneath; a walker on the other level passes it by. Over a **tunnel** top the same. |
+| plate | pressed only by a boulder on its own level (a boulder rolled along a deck over a plate doesn't press it) |
+| switch | pressed only by a player on its level (not by someone crossing a deck above it) |
+| gate / barrier | solid only on their level |
+| ice | slides stop at any height change: the ground rising or falling away, stairs, a ledge or a deck end; ice on a terrace works like flat ice. Someone on a deck above ice doesn't slide. |
+| current | carries you on your level only and stops at a height change |
+| teleport pad | puts you on its **partner's** level: pads may join terraces |
+| farm plot (WILLOW ACRE) | its terrace is its ground height (`plot_lv`); tools reach only plots on your level (a plot below a terrace edge is out of reach, like a person); sprinklers water the plots of their own terrace; workers wander their own terrace |
+
+Authoring: objects other than boulders stand on plain ground (not on a
+face, stairs, a ledge, a hidden cell or up on a deck); the elevation puzzle
+test lints this. Chests, legends and ferries are used like people: never
+across a cliff or from under a deck.
 
 ---
 
@@ -236,7 +259,44 @@ tttttt     -> EF(HIDDEN, 2, 1, 2, 1): walk east through the trunks at
 Hidden cells also work in a cliff face (a secret cave: `HIDDEN` over the
 mouth cell of a `TUNNEL`) or in a wall of rocks.
 
-### 5.7 Pits, mounds, bluffs and silhouettes
+Once found (saved for good), a passage changes its look so returning
+players can see it: the lower half of each cell (and the whole cell further
+down a north-south passage) becomes a **worn gap**, the tileset's path
+joined to any path beside it, under the trees' crowns; a crack in a cliff
+face becomes an open **cave mouth**.
+
+| not found | found |
+| --- | --- |
+| ![](images/elevation_secret_hidden.png) | ![](images/elevation_secret_found.png) |
+
+### 5.7 A puzzle on a terrace
+
+TEST HEIGHTS (east plateau): a pumice boulder in a chute of bushes on the
+plateau (height 1), a ledge below the chute, a plate on the ground below
+(height 0) and a gate at the foot of the stairs up a knoll (height 2) with
+a chest. Push the boulder down the chute and off the ledge (it drops a
+level), hop down the other ledge, push it west onto the plate: the gate
+sinks.
+
+```
+  x 23 24 25 26 27
+    .  .  .  .  2     row 10  the knoll (height 2) and its chest
+    B  .  B  .  2     row 11  B: bushes; the boulder starts at (24,12)
+    B  o  B  .  ^     row 12  stairs up the knoll
+    B  .  B  .  G     row 13  G: the gate (height 1)
+    |  _  |  _  |     row 14  ledges at x 24 and 26 ('|' faces)
+    .  .  .  .  .     row 15  the ground (height 0); the plate is at (22,15)
+```
+
+The chute keeps the boulder away from the gate and the rest of the plateau
+(a boulder that can roam a whole terrace can jam it); a boulder dropped off
+a ledge can never come back up, so give it room below.
+
+| start | dropped off the ledge | on the plate, the gate sunk |
+| --- | --- | --- |
+| ![](images/elevation_terrace_start.png) | ![](images/elevation_terrace_drop.png) | ![](images/elevation_terrace_plate.png) |
+
+### 5.8 Pits, mounds, bluffs and silhouettes
 
 - A **sunken arena**: a rectangle of `0` inside a `1` terrace; its north
   wall is a face (put `^` steps in it), the other sides are rims. (Maple
@@ -302,8 +362,48 @@ mouth cell of a `TUNNEL`) or in a wall of rocks.
   `wild_at_lv()` are the level-aware checks; the test harness floods over
   (x, y, level) states (`flood_ex_lv`, `reached_lv`).
 
-Things that don't know about levels (fine on flat maps, avoid mixing them
-with heights): ice and current puzzles, boulders, teleport pads, farm plots.
+**Objects and puzzle tiles** (travel.c, section 3.1):
+
+- `TObj.level`; `obj_on_floor(o)`: on its cell's ground. The cell grid
+  (`obj_grid`, `obj_index_at`, `travel_attr`, so `cell_attr`) holds ground
+  objects only; `obj_at_lv(x, y, level)` finds an object on any level and
+  `travel_top_solid(x, y, level)` blocks a deck (used by
+  `cell_walkable_lv(..., top = 1)`).
+- `player_try_move` hands `travel_player_move(dir, nx, ny, nl, top)` every
+  step that isn't blocked (ground or deck), so a boulder on a deck is
+  pushed from the deck. `boulder_push` asks `elev_enter` for the boulder
+  itself (same level, no stairs) and `boulder_room` for the target; the
+  ledge drop moves it two cells and one level (`oy` -32, `SFX_LEDGE`).
+- `plates_update` uses `boulder_at_lv`; `travel_player_arrived` presses a
+  switch / takes a pad only via `obj_at_lv(player.level)`, applies ice and
+  currents only on the ground level, and `forced_can_enter` stops a slide
+  at a height change; `pad_teleport` sets `player.level` to the partner's.
+  Surfing isn't derived on a deck over water.
+- Object sprites get `elev_obj_prio` (a deck boulder over the deck, a
+  ground one under it).
+- farm.c: `plot_lv[]` (from WILLOW ACRE's height layer, 0 while it has
+  none), sprinklers per terrace, workers step with `elev_enter` and stay
+  on their level, the facing cursor only for reachable plots.
+
+**Hidden passages found** (saved): `TravelState.secrets[8]` (64 bits,
+travel.c `travel_secret_get/set`), numbered across the world in map order,
+then feature order (`elev_secret_base`, `elev_secret_total` <= 64: tested),
+like the puzzle bits. The bytes were added at the end of `TravelState`
+(41 -> 49 bytes, save still version 5): an older save's shorter travel blob
+loads with no passage found (`save_game.h mod_load`). Adding a hidden
+passage to a map shifts the bits of the maps after it, as for gates and
+chests. `elev_decode` marks found features' cells `EV_FOUND`;
+`elev_secret_find(x, y)` (from `elev_player_arrived`) finds a whole
+feature, sets its bit and field.c redraws it and its neighbours;
+`elev_render_cover` draws the found look (`elev_pathy`; `same_kind` in
+field.c lets paths join a found gap).
+
+**The puzzle solver** (tools/tests/test_puzzles.c) searches positions as
+(level, cell) and stores each boulder's level in the state; on height maps
+its fast path joins plain ground cells of the same level only (validated
+against the game like before); TEST maps are searched too (see
+docs/handoff/puzzles.md). tools/tests/test_elev_puzzles.c tests all of the
+above.
 
 ---
 

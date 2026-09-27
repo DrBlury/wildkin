@@ -340,6 +340,7 @@ static void farm_validate(void)
 /* ================================================================ */
 
 static u8 plot_x[FARM_PLOTS], plot_y[FARM_PLOTS], plot_orchard[FARM_PLOTS];
+static u8 plot_lv[FARM_PLOTS];      /* the terrace a plot lies on (elev.c; 0 on a flat farm) */
 static int plot_count = -1;
 EWRAM_BSS static u8 plot_at_cell[MAP_MAX_W * MAP_MAX_H];   /* plot + 1, 0 = none */
 
@@ -357,6 +358,7 @@ static void farm_geom_init(void)
             plot_x[plot_count] = (u8)x;
             plot_y[plot_count] = (u8)y;
             plot_orchard[plot_count] = v == MT_FA_ORCHARD;
+            plot_lv[plot_count] = (u8)(m->elev ? elev_floor_of(m, x, y, 0) : 0);
             plot_at_cell[y * m->w + x] = (u8)(++plot_count);
         }
 }
@@ -956,7 +958,7 @@ static void farm_new_day(void)
         for (int dy = -1; dy <= 1; dy++)
             for (int dx = -1; dx <= 1; dx++) {
                 int n = plot_at_xy(plot_x[i] + dx, plot_y[i] + dy);
-                if (n >= 0 && n != i) plot_water(&farm.plots[n]);
+                if (n >= 0 && n != i && plot_lv[n] == plot_lv[i]) plot_water(&farm.plots[n]);   /* its own terrace */
             }
     }
     int guarded = 0;
@@ -1726,6 +1728,7 @@ static void workers_place(void)
             if (!cell_walkable(x, y) || (x == player.x && y == player.y)) continue;
             int lustrous = (storage[worker_slot(w)].flags & MF_LUSTROUS) != 0;
             kin_place(&farm_kin[i], w->species, lustrous, x, y, (int)rng_range(4));
+            farm_kin[i].a.level = (u8)elev_level_at(x, y, -1, -1);
             farm_kin_timer[i] = (u16)(30 + rng_range(90));
             break;
         }
@@ -1753,7 +1756,9 @@ static void workers_update(void)
         if ((nx == player.x && ny == player.y) || (follower_active() && nx == follower.a.x && ny == follower.a.y))
             continue;
         k->shown = 0;           /* don't block itself */
-        int ok = cell_walkable(nx, ny) && worker_at(nx, ny) < 0;
+        int nl, ek = elev_enter(k->a.x, k->a.y, k->a.level, dir, &nl);   /* workers keep to their terrace */
+        int ok = ek == ELEV_FLOOR && nl == k->a.level && elev_floor(nx, ny) == nl &&
+                 cell_walkable(nx, ny) && worker_at(nx, ny) < 0;
         k->shown = 1;
         if (ok) actor_start_move(&k->a, dir);
     }
@@ -1906,8 +1911,8 @@ static void farm_draw(void)
     farm_canvas_draw();
     /* the plot you face */
     if (farm_here() && !player.moving && game_mode == MODE_FIELD && !dialog_active()) {
-        int fx = player.x + DIR_DX[player.facing], fy = player.y + DIR_DY[player.facing];
-        if (farm_plot_at(fx, fy) >= 0)
+        int fx = player.x + DIR_DX[player.facing], fy = player.y + DIR_DY[player.facing], nl;
+        if (farm_plot_at(fx, fy) >= 0 && elev_enter(player.x, player.y, player.level, player.facing, &nl) != ELEV_BLOCK)
             spr_push(fx * 16 - cam_x, fy * 16 - cam_y, OT_FARM_CURSOR, SQ16, FARM_OBANK, 2, 0);
     }
     /* berry bushes off the farm */
