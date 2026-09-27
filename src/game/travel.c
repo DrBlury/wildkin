@@ -1624,6 +1624,150 @@ MAYBE_UNUSED static void travel_boat_to(int map, int x, int y)
     boat_ride(map, x, y);
 }
 
+/* Project shortcuts use a land scene, not the ferry's sea and boat art.
+ * Kept out of TravelState: a ride cannot alter the save layout. */
+enum { PROJECT_RIDE_TRAM, PROJECT_RIDE_LIFT, PROJECT_RIDE_END = 112 };
+static struct { int t, kind, map, x, y; } project_ride;
+
+static int project_ride_stop(int kind, int map)
+{
+    if (kind == PROJECT_RIDE_TRAM)
+        return map == MAP_TOWN || map == MAP_BROOKMILL || map == MAP_LUMEN;
+    return map == MAP_FOOTHILLS || map == MAP_TIMBERLINE;
+}
+
+static void project_ride_land(void)
+{
+    int facing = project_ride.kind == PROJECT_RIDE_LIFT && project_ride.map == MAP_TIMBERLINE
+        ? DIR_UP : DIR_DOWN;
+    travel.surfing = 0;
+    travel.biking = 0;
+    travel_arrive(project_ride.map, project_ride.x, project_ride.y, facing);
+    if (!cell_walkable(player.x, player.y) || (cell_attr(player.x, player.y) & A_WATER)) {
+        int best = 1 << 30, bx = player.x, by = player.y;
+        for (int y = 0; y < map_h; y++)
+            for (int x = 0; x < map_w; x++)
+                if (cell_walkable(x, y) && !(cell_attr(x, y) & A_WATER)) {
+                    int distance = absi(x - player.x) + absi(y - player.y);
+                    if (distance < best) { best = distance; bx = x; by = y; }
+                }
+        player.x = (s16)bx;
+        player.y = (s16)by;
+        player.level = (u8)elev_level_at(bx, by, -1, facing);
+        travel.surfing = 0;
+        follower_reset();
+        field_update_camera();
+    }
+}
+
+static void project_ride_update(void)
+{
+    if (project_ride.t == 0) {
+        char msg[64];
+        canvas_window(0, 17, CANVAS_COLS, 3, WIN_STD);
+        str_copy(msg, project_ride.kind == PROJECT_RIDE_TRAM ? "Tram to " : "Lift to ");
+        str_put(msg, MAPS[project_ride.map].name);
+        str_put(msg, "...");
+        text_draw_center(120, 140, msg);
+    }
+    project_ride.t++;
+    if (project_ride.t > 24 && project_ride.t < PROJECT_RIDE_END - 16 &&
+        (key_hit(KEY_A) || key_hit(KEY_B))) project_ride.t = PROJECT_RIDE_END - 16;
+    if (project_ride.t < 16) set_brightness(project_ride.t - 16);
+    else if (project_ride.t >= PROJECT_RIDE_END - 16)
+        set_brightness(-clampi(project_ride.t - (PROJECT_RIDE_END - 16), 0, 16));
+    else set_brightness(0);
+    if (project_ride.t == 20) sfx_play(project_ride.kind == PROJECT_RIDE_TRAM ? SFX_ROCK : SFX_WIND);
+    if (project_ride.t == 64 && project_ride.kind == PROJECT_RIDE_TRAM) sfx_play(SFX_ROCK);
+    if (project_ride.t >= PROJECT_RIDE_END) project_ride_land();
+}
+
+static void project_ride_draw(void)
+{
+    int t = project_ride.t, lift = project_ride.kind == PROJECT_RIDE_LIFT;
+    int x = lift ? 104 : -32 + (t * 2) % 304;
+    int y = lift ? 104 - (t * 3) % 88 : 79 + ((t >> 3) & 1);
+    spr_push(x, y, OT_BOAT, SQ32, OBANK_TRAVEL, 1, 0);
+}
+
+static void project_ride_present(void)
+{
+    REG_BG0HOFS = project_ride.kind == PROJECT_RIDE_TRAM ? (u16)(project_ride.t * 2) : 0;
+    REG_BG0VOFS = project_ride.kind == PROJECT_RIDE_LIFT ? (u16)(project_ride.t / 2) : 0;
+}
+
+/* A compact four-tile land backdrop and a 32x32 tram car / cable platform.
+ * Drawn into the temporary voyage VRAM slot; field_return restores field art. */
+static void project_ride_art(int kind)
+{
+    u32 tiles[4][8], car[128];
+    for (int row = 0; row < 8; row++) {
+        tiles[0][row] = 0x66666666; /* open sky */
+        tiles[1][row] = row < 3 ? 0x77777777 : 0x99999999; /* hillside */
+        tiles[2][row] = row == 2 || row == 6 ? 0x11111111 : 0x33333333; /* rails */
+        tiles[3][row] = row == 4 ? 0x11111111 : 0x66666666; /* cable */
+    }
+    for (int i = 0; i < 128; i++) car[i] = 0;
+    for (int y = 0; y < 32; y++)
+        for (int x = 0; x < 32; x++) {
+            int ink = 0;
+            if (kind == PROJECT_RIDE_TRAM) {
+                if (x >= 2 && x <= 29 && y >= 8 && y <= 25) ink = 10;
+                if (x >= 4 && x <= 27 && y >= 11 && y <= 17) ink = 5;
+                if ((x >= 7 && x <= 8) || (x >= 16 && x <= 17) || (x >= 26 && x <= 27))
+                    if (y >= 11 && y <= 18) ink = 1;
+                if (((x >= 6 && x <= 10) || (x >= 22 && x <= 26)) && y >= 26 && y <= 29) ink = 1;
+                if (y == 7 || y == 25) ink = x >= 2 && x <= 29 ? 1 : 0;
+            } else {
+                if (x >= 4 && x <= 27 && y >= 8 && y <= 25) ink = 8;
+                if (x >= 6 && x <= 25 && y >= 11 && y <= 19) ink = 5;
+                if ((x == 14 || x == 17) && y >= 10 && y <= 23) ink = 1;
+                if (y >= 3 && y <= 7 && x >= 14 && x <= 17) ink = 1;
+                if (y >= 24 && y <= 27 && x >= 2 && x <= 29) ink = 1;
+            }
+            int word = ((y / 8) * 4 + x / 8) * 8 + y % 8;
+            car[word] |= (u32)ink << ((x % 8) * 4);
+        }
+    copy32(VRAM_SCENE_TILES, tiles, 4 * 8);
+    copy32(VRAM_OBJ_TILES + OT_BOAT * 8, car, 128);
+    u16 *screen = VRAM_MAP(SB_FIELD_BOTTOM);
+    for (int y = 0; y < 32; y++)
+        for (int x = 0; x < 32; x++)
+            screen[y * 32 + x] = kind == PROJECT_RIDE_TRAM
+                ? (y < 9 ? 0 : y < 13 ? 1 : 2)
+                : (y < 6 ? 3 : y < 16 ? 0 : 1);
+    load_pal(bg_palette, travel_map_palette);
+    load_pal(obj_palette + OBANK_TRAVEL * 16, travel_misc_palette);
+}
+
+/* Called by the saga stop callbacks after confirmation. Unknown stop pairs
+ * retain the old fade-warp behavior; a locked project cannot be bypassed. */
+MAYBE_UNUSED static void travel_project_ride_to(int kind, int map, int x, int y)
+{
+    if (kind != PROJECT_RIDE_TRAM && kind != PROJECT_RIDE_LIFT) return;
+    if (map < 0 || map >= MAP_COUNT || x < 0 || y < 0 ||
+        x >= MAPS[map].w || y >= MAPS[map].h || warp.active) return;
+    if (!flag(kind == PROJECT_RIDE_TRAM ? FLAG_PROJECT_TRAM : FLAG_PROJECT_LIFT)) return;
+    if (!project_ride_stop(kind, cur_map) || !project_ride_stop(kind, map) || cur_map == map) {
+        field_begin_warp(map, x, y, DIR_DOWN);
+        return;
+    }
+    project_ride.t = 0;
+    project_ride.kind = kind;
+    project_ride.map = map;
+    project_ride.x = x;
+    project_ride.y = y;
+    dialog_clear();
+    canvas_clear();
+    travel_dark_off();
+    project_ride_art(kind);
+    REG_BG0CNT = BGCNT_CHARBLOCK(0) | BGCNT_SCREENBLOCK(SB_FIELD_BOTTOM) | BGCNT_PRIO(3);
+    REG_BG0HOFS = REG_BG0VOFS = 0;
+    REG_DISPCNT = DCNT_MODE0 | DCNT_BG0 | DCNT_BG1 | DCNT_OBJ | DCNT_OBJ_1D;
+    set_brightness(-16);
+    ext_open(project_ride_update, project_ride_draw, project_ride_present);
+}
+
 /* ================================================================ */
 /*  The town map (and FLY)                                          */
 /* ================================================================ */
