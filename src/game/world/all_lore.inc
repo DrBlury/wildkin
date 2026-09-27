@@ -11,4 +11,5 @@
 #include "travel/lore.inc"
 #include "elev/lore.inc"
 #include "ui/lore.inc"
+#include "events/lore.inc"
 #include "debug/lore.inc"

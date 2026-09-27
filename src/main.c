@@ -54,6 +54,7 @@
 #include "game/field.c"
 #include "game/grass.c"
 #include "game/time.c"
+#include "game/events.c"
 #include "game/travel.c"
 #include "game/battle.c"
 #include "game/anim3d.c"

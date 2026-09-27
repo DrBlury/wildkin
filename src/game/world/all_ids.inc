@@ -11,4 +11,5 @@
 #include "travel/ids.inc"
 #include "elev/ids.inc"
 #include "ui/ids.inc"
+#include "events/ids.inc"
 #include "debug/ids.inc"
