@@ -254,7 +254,7 @@ def clip_elevation():
     """The Maple Run bridge (docs/ELEVATION.md): in front of it, under it
     walking north along the lane, and over it on the road."""
     save = demo_save('elev_under', 'TOWN', 20, 22, calm=True)
-    s = Script().boot().wait(20).walk('UP', 3).wait(20).shot('elevation_front')
+    s = Script().boot().wait(20).walk('UP', 1).wait(20).shot('elevation_front')
     s.walk('UP', 2).wait(20).shot('elevation_under')
     run(s, save)
     save = demo_save('elev_over', 'TOWN', 15, 17, calm=True)

@@ -306,24 +306,24 @@ static void test_movement(void)
 {
     fresh_game();
     CHECK(cur_map == MAP_HOME, "a new game starts at home");
-    field_enter_map(MAP_TOWN, 6, 9, DIR_DOWN);
+    field_enter_map(MAP_TOWN, 6, 10, DIR_DOWN);
     tap(KEY_RIGHT);
     CHECK(player.x == 6 && player.facing == DIR_RIGHT, "tapping a new direction only turns the player");
     hold(KEY_RIGHT, 40);
     settle();
-    CHECK(player.x >= 8 && player.y == 9 && player.ox == 0, "holding a direction walks cell by cell");
+    CHECK(player.x >= 8 && player.y == 10 && player.ox == 0, "holding a direction walks cell by cell");
     int x0 = player.x;
     hold(KEY_B | KEY_RIGHT, 16);
     settle();
     CHECK(player.x - x0 == 2, "holding B runs twice as fast");
 
-    field_enter_map(MAP_TOWN, 6, 7, DIR_UP);
+    field_enter_map(MAP_TOWN, 7, 8, DIR_UP);
     hold(KEY_UP, 4);
     for (int f = 0; f < 30; f++) step(0);
     CHECK(cur_map == MAP_HOME && player.x == 5 && player.y == 8, "walking into a door enters the house");
     hold(KEY_DOWN, 12);
     for (int f = 0; f < 30; f++) step(0);
-    CHECK(cur_map == MAP_TOWN && player.x == 6 && player.y == 7, "stepping off the mat leaves the house");
+    CHECK(cur_map == MAP_TOWN && player.x == 7 && player.y == 8, "stepping off the mat leaves the house");
 
     /* the village won't let you out without a kin */
     field_enter_map(MAP_TOWN, 19, 2, DIR_UP);
@@ -452,7 +452,7 @@ static void test_people(void)
 
     /* lore from people */
     int before = lore_known_count();
-    field_enter_map(MAP_TOWN, 16, 15, DIR_UP);
+    field_enter_map(MAP_TOWN, 11, 14, DIR_UP);
     tap(KEY_A);
     run_dialog(1200);
     CHECK(lore_known_count() == before + 1 && lore_is_known(lore_next_from(LSRC_ELDER) < 0 ? LORE_KINSHIP : LORE_KINSHIP),

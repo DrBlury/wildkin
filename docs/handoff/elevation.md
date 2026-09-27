@@ -151,3 +151,54 @@ every map through the game renderer.
 - Adding a hidden passage (or a gate/chest/legend) to a map shifts the
   saved bits of every later map: append new ones to maps late in the
   order, or accept that found secrets of later maps reset.
+
+
+## Town art pass (deck styles, frost cliffs, Hollow Bridge, Maple Village v2)
+
+- **Deck styles** (`tools/elevation.py`, `deck_styled()`): besides the wooden
+  deck, `'iron'` (riveted plates, lit edges, girders with a riveted web) and
+  `'stone'` (flagstones in a running bond between parapets with a coping).
+  Chosen per tileset in `ROLES` (`'deck'` + `'deck_roles'`, six colours of
+  one bank; docs/ELEVATION.md section 8): volcanic = iron (Cindermoor's
+  Iron Bridge), city = pale sandstone (Lumen's Boulevard bridge), dream =
+  moonstone (the Dream Bridge), snow = frosted granite (the Hollow Bridge,
+  Sky Isle's Stone Span). Town, wild, coast, farm and grim keep wood.
+  Per-bridge styles would need an engine change (a second deck table).
+- **Snow cliffs**: the snow ROLES now use the light end of the granite ramp
+  (`rk_hi` / `sn_dk` / `rk_lt`, outline `rk_dk`) and `'frost': True` caps the
+  lit top edge of every slab with snow, so Frosthollow's valley reads bright.
+- **Frosthollow's Hollow Bridge** is 3 rows (was 7): the south bank juts out
+  as a spur (18-21, rows 26-29, level 1) that the bridge lands on, and the
+  Hollow lane passes under it on rows 24-25 only, so you are hidden for the
+  two steps under the deck instead of wandering six rows under it. The lane
+  under the bridge is still the only way between the west Hollow and the
+  Steam Hollow at the foot of the cliffs (the bathhouse), besides the
+  terrace stairs (26,30) and the one-way ledges. test_north follows (19,24).
+- **MAPLE VILLAGE redesigned again** (same size, doors and edges): four
+  levels; the north ridge and the Almanac knoll are level 3 over **two-row
+  faces** whose edge steps in and out; the west bluff and a wooded bump run
+  down the west edge; the raised Hearth mound; High Street (2) with the
+  Hearth Hall and the shop, whose two-row face juts out over the pond dell;
+  the lily pond runs off the west and south edges; the Maple Run widens into
+  a mill pond and leaves by the south edge; the south-east terrace drops
+  into the field by stairs and a ledge yard; the hidden gap in the thicket
+  (33-34,33) still leads to the SUNSEED; tree borders vary in depth. The map
+  was painted with a scratch script (not committed): `data.h` is the source
+  of truth (header comment above `TOWN_ROWS`).
+  Moved: doors home (7,7), bakery (14,9), Almanac (30,5), Hearth Hall
+  (5,23), shop (12,23) (garden house 33,24 and the Land Office 26,25 in
+  world/east unchanged); Elder Bram (11,13), kid (7,14), kid by the pond
+  (9,29); signs (17,16) (18,7) (26,6) (8,22) (15,22) (17,9); fly point
+  (5,24). Satchels, Marlo, the farmer, the bridge and the edge openings
+  are where they were. Tests updated: test_field (movement on row 10, the
+  home door, Elder Bram). `tools/make_media.py elevation` re-shot.
+- Tile budget: `SCENE_TILE_MAX` is 768 now (farm seasons merge), so the
+  per-map decor budget is no longer tight (Maple Village 505, Frosthollow
+  510). Tileset sizes: snow 435, volcanic 410, city 407, dream 395.
+
+Screenshots (ROM, build/shot): `docs/images/towns_art/` — `cm_iron_over`,
+`cm_iron_under`, `lumen_stone_bridge`, `ds_stone_bridge`, `sky_stone_span`,
+`fh_bridge_over`, `fh_bridge_front`, `fh_bridge_under` (hidden under the
+3-row deck), `fh_valley`, `mv_home`, `mv_knoll`, `mv_high_street`,
+`mv_dell`, `mv_hidden` (the "!" in the thicket gap), `mv_over`; renders
+`maple_village_map.png`, `frosthollow_map.png`.

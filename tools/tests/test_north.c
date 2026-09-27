@@ -357,7 +357,7 @@ static void test_frosthollow(void)
         if (!decor_base[MAPS[MAP_FROSTHOLLOW].decor[i].kind]) decor_ok = 0;
     CHECK(decor_ok, "Frosthollow: every decor kind fits the scene tiles (none silently dropped)");
     flood(19, map_h - 1);
-    CHECK(reached_lv(19, 0, 3) && reached_lv(19, 26, 1) && reached_lv(19, 26, 0),
+    CHECK(reached_lv(19, 0, 3) && reached_lv(19, 24, 1) && reached_lv(19, 24, 0),
           "Frosthollow: the road climbs to Crownside over the Hollow Bridge; the Hollow lane runs under it");
     int w = warp_from(MAP_FROSTHOLLOW, MAP_HOT_SPRING);
     CHECK(w >= 0 && reached_lv(WARPS[w].x, WARPS[w].y + 1, 0) && elev_floor(WARPS[w].x, WARPS[w].y + 1) == 0,

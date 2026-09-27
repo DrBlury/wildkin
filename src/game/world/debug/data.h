@@ -3530,7 +3530,6 @@ static const DecorPlace VIEW_SNOW_3_DECOR[] = {
     DP(SIGN_ARROW, 14, 1),
     DP(GATE, 16, 1),
     DP(CLOTHESLINE, 18, 1),
-    DP(WEATHER_VANE, 21, 1),
 };
 
 static const u16 VIEW_SNOW_4_CELLS[480] = {
@@ -3660,13 +3659,13 @@ static const u16 VIEW_SNOW_4_GROUND[480] = {
 };
 
 static const DecorPlace VIEW_SNOW_4_DECOR[] = {
-    DP(TELESCOPE, 1, 1),
-    DP(SNOWMAN, 3, 1),
-    DP(ICE_CRYSTAL, 5, 1),
-    DP(ICE_BLOCKS, 7, 1),
-    DP(HOT_SPRING, 9, 1),
-    DP(STEAM, 14, 1),
-    DP(WOLF_STATUE, 16, 1),
+    DP(WEATHER_VANE, 1, 1),
+    DP(TELESCOPE, 3, 1),
+    DP(SNOWMAN, 5, 1),
+    DP(ICE_CRYSTAL, 7, 1),
+    DP(ICE_BLOCKS, 9, 1),
+    DP(HOT_SPRING, 11, 1),
+    DP(STEAM, 16, 1),
 };
 
 static const u16 VIEW_SNOW_5_CELLS[440] = {
@@ -3786,15 +3785,16 @@ static const u16 VIEW_SNOW_5_GROUND[440] = {
 };
 
 static const DecorPlace VIEW_SNOW_5_DECOR[] = {
-    DP(AURORA_STONE, 1, 1),
-    DP(FROST_BANNER, 3, 1),
-    DP(ICE_STATUE, 5, 1),
-    DP(RIME_PILLAR, 7, 1),
-    DP(SKY_ARCH, 9, 1),
-    DP(SLED, 13, 1),
-    DP(SKI_RACK, 15, 1),
-    DP(FROZEN_TREE, 17, 1),
-    DP(WASH_BUCKET, 19, 1),
+    DP(WOLF_STATUE, 1, 1),
+    DP(AURORA_STONE, 3, 1),
+    DP(FROST_BANNER, 5, 1),
+    DP(ICE_STATUE, 7, 1),
+    DP(RIME_PILLAR, 9, 1),
+    DP(SKY_ARCH, 11, 1),
+    DP(SLED, 15, 1),
+    DP(SKI_RACK, 17, 1),
+    DP(FROZEN_TREE, 19, 1),
+    DP(WASH_BUCKET, 21, 1),
 };
 
 static const u16 VIEW_CAVE_1_CELLS[680] = {
@@ -4965,6 +4965,7 @@ static const DecorPlace VIEW_VOLCANIC_1_DECOR[] = {
     DP(EMBER_ROCK, 8, 20),
     DP(LAVA_ORE_CART, 10, 20),
     DP(FORGE_ANVIL, 12, 20),
+    DP(FURNACE, 14, 20),
 };
 
 static const u16 VIEW_VOLCANIC_2_CELLS[440] = {
@@ -5084,14 +5085,13 @@ static const u16 VIEW_VOLCANIC_2_GROUND[440] = {
 };
 
 static const DecorPlace VIEW_VOLCANIC_2_DECOR[] = {
-    DP(FURNACE, 1, 1),
-    DP(BIG_BELL, 4, 1),
-    DP(BRAZIER, 7, 1),
-    DP(COAL_PILE, 9, 1),
-    DP(TOOL_RACK, 11, 1),
-    DP(SALAMANDER_STATUE, 13, 1),
-    DP(SMOKE, 15, 1),
-    DP(HALL_BANNER, 17, 1),
+    DP(BIG_BELL, 1, 1),
+    DP(BRAZIER, 4, 1),
+    DP(COAL_PILE, 6, 1),
+    DP(TOOL_RACK, 8, 1),
+    DP(SALAMANDER_STATUE, 10, 1),
+    DP(SMOKE, 12, 1),
+    DP(HALL_BANNER, 14, 1),
 };
 
 static const u16 VIEW_DREAM_1_CELLS[1080] = {

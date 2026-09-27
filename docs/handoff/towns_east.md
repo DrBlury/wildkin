@@ -76,6 +76,8 @@ the layout); the authoring format is `docs/ELEVATION.md`.
   might fail maps owned by other sessions.
 - The flat `BRIDGE_H/V` decor looked broken on the city tileset, and Lumen
   no longer uses it (the low canal ends in land in the west instead).
+- The city tileset's elevation bridges are pale sandstone now (`'deck':
+  'stone'` in `elevation.ROLES`), so the Boulevard bridge matches the city.
 
 ## Screenshots (in the ROM, build/shot)
 

@@ -93,8 +93,10 @@ ledges drop from both spires back onto the landing.
   free of decor, trees and people.
 - Border trees and crags stop at face rows, so there are a few single tree
   tops on a cliff lip (for example Dreamspire (0-1,12)). That is intentional.
-- The volcanic bridge deck uses the shared wooden deck art. An iron deck
-  (ELEVATION.md section 8 roles) would suit Cindermoor better.
+- Done: the volcanic tileset draws its bridges as riveted iron (the Iron
+  Bridge), the dream tileset as moonstone (the Dream Bridge) and the snow
+  tileset as frosted granite (the Stone Span): `'deck'` in
+  `elevation.ROLES`, docs/ELEVATION.md section 8.
 - The Sky Isle satchel is appended to the north list, so it shifts the global
   satchel index of every later region by one. That only matters for
   "taken" bits in old dev saves.
