@@ -184,47 +184,79 @@ def clip_places():
         still(name, 'place_%s.png' % name)
 
 
+def render_world():
+    """Every map drawn by the game's own code (tools/render_world.c) ->
+    {id: (name, w, h, outdoor, links, offsets, rows of RGB)}."""
+    exe = os.path.join(ROOT, 'build', 'render_world')
+    subprocess.check_call(['cc', '-std=c11', '-O2', '-Wno-unused-function', '-o', exe,
+                           os.path.join(ROOT, 'tools', 'render_world.c')])
+    out = os.path.join(WORK, 'world')
+    os.makedirs(out, exist_ok=True)
+    subprocess.check_call([exe, out])
+    maps = {}
+    for line in open(os.path.join(out, 'maps.txt')):
+        mid, rest = line.rstrip('\n').split(' ', 1)
+        name, w, h, outdoor, links, offs = rest.split('|')
+        w, h = int(w), int(h)
+        raw = open(os.path.join(out, mid + '.rgb'), 'rb').read()
+        rows = [[tuple(raw[(y * w * 16 + x) * 3:(y * w * 16 + x) * 3 + 3]) for x in range(w * 16)]
+                for y in range(h * 16)]
+        maps[int(mid)] = (name, w, h, outdoor == '1', [int(v) for v in links.split()],
+                          [int(v) for v in offs.split()], rows)
+    return maps
+
+
 def clip_world():
-    """All outdoor maps stitched the way their edges connect, with names."""
+    """All outdoor maps, drawn by the game itself and stitched the way their
+    edges connect (from Maple Village), each with its name; half size."""
     from gen_field_gfx import draw_label
     from pixelart import write_png
-    mapdir = os.path.join(WORK, 'maps')
-    subprocess.check_call([sys.executable, os.path.join(ROOT, 'tools', 'render_maps.py'), mapdir],
-                          stdout=subprocess.DEVNULL)
-    # cell origins: links in maps.h have no offsets, so neighbours share x or y
-    rise_h, meadow_h = 20, 44
-    layout = [('rise', 40, 0, 'STORMSTONE RISE'), ('meadow', 40, rise_h, 'WHISPER MEADOW'),
-              ('town', 40, rise_h + meadow_h, 'MAPLE VILLAGE'), ('lake', 0, rise_h + meadow_h, 'MIRROR LAKE'),
-              ('wood', 80, rise_h + meadow_h, 'BRAMBLEWOOD')]
-    files = {'rise': '08_stormstone_rise', 'meadow': '07_whisper_meadow', 'town': '00_maple_village',
-             'lake': '10_mirror_lake', 'wood': '09_bramblewood'}  # render_maps.py names
-    imgs = {name: make_gif.read_png(os.path.join(mapdir, files[name] + '.png')) for (name, _, _, _) in layout}
-    W = max(x * 16 + imgs[n][0] for (n, x, _, _) in layout)
-    H = max(y * 16 + imgs[n][1] for (n, _, y, _) in layout)
+    maps = render_world()
+    # place maps by following the edge links (N S W E) from Maple Village
+    pos, todo = {0: (0, 0)}, [0]
+    while todo:
+        m = todo.pop(0)
+        x, y = pos[m]
+        _, w, h, _, links, offs, _ = maps[m]
+        for d, n in enumerate(links):
+            if n == 255 or n in pos or n not in maps:
+                continue
+            nw, nh = maps[n][1], maps[n][2]
+            pos[n] = [(x + offs[d], y - nh), (x + offs[d], y + h), (x - nw, y + offs[d]), (x + w, y + offs[d])][d]
+            todo.append(n)
+    x0 = min(x for (x, _) in pos.values())
+    y0 = min(y for (_, y) in pos.values())
+    W = max(x + maps[m][1] for m, (x, _) in pos.items()) - x0
+    H = max(y + maps[m][2] for m, (_, y) in pos.items()) - y0
+    # half size: every other pixel of each 2x2 block
     bg = (22, 26, 38)
-    rows = [[bg] * W for _ in range(H)]
-    for (name, cx, cy, _) in layout:
-        w, h, src = imgs[name]
-        for y in range(h):
-            rows[cy * 16 + y][cx * 16:cx * 16 + w] = src[y]
-    S = 5  # label pixel size
-    for (name, cx, cy, label) in layout:
-        w = imgs[name][0]
+    rows = [[bg] * (W * 8) for _ in range(H * 8)]
+    for m, (x, y) in pos.items():
+        src = maps[m][6]
+        ox, oy = (x - x0) * 8, (y - y0) * 8
+        for yy in range(0, len(src), 2):
+            row, dst = src[yy], rows[oy + yy // 2]
+            for xx in range(0, len(row), 2):
+                dst[ox + xx // 2] = row[xx]
+    S = 3  # label pixel size
+    for m, (x, y) in pos.items():
+        label = maps[m][0]
+        w = maps[m][1] * 8
         tw, th = len(label) * 4 * S + 4 * S, 9 * S
-        x0, y0 = cx * 16 + (w - tw) // 2, cy * 16 + 24
+        lx, ly = (x - x0) * 8 + (w - tw) // 2, (y - y0) * 8 + 10
         glyph = Canvas1(len(label) * 4, 5)
         draw_label(glyph, 0, 0, label)
-        for y in range(th):
-            for x in range(tw):
-                rows[y0 + y][x0 + x] = (20, 24, 40)
+        for yy in range(th):
+            for xx in range(tw):
+                rows[ly + yy][lx + xx] = (20, 24, 40)
         for gy in range(5):
             for gx in range(len(label) * 4):
                 if glyph.rows[gy][gx]:
-                    for y in range(S):
-                        for x in range(S):
-                            rows[y0 + 2 * S + gy * S + y][x0 + 2 * S + gx * S + x] = (250, 236, 180)
-    write_png(os.path.join(OUT, 'world.png'), W, H, rows)
-    print('wrote world.png (%dx%d)' % (W, H))
+                    for yy in range(S):
+                        for xx in range(S):
+                            rows[ly + 2 * S + gy * S + yy][lx + 2 * S + gx * S + xx] = (250, 236, 180)
+    write_png(os.path.join(OUT, 'world.png'), W * 8, H * 8, rows)
+    print('wrote world.png (%dx%d, %d maps)' % (W * 8, H * 8, len(pos)))
 
 
 def clip_regions():

@@ -37,7 +37,7 @@ lairs.
 | | |
 | --- | --- |
 | **174 kin** | 18 types, 20 rares, 10 legends and 44 fusion kin woven at the Loom |
-| **78 maps** | the Vale plus 5 new regions: 26 outdoor areas, caves, crypts, halls and lairs |
+| **78 maps** | the Vale plus 5 new regions: 24 outdoor areas, caves, crypts, halls and lairs |
 | **6 Halls** | each with a puzzle, wardens and a six-kin Hall Master who awards a crest |
 | **Systems** | day and night, weather, farming, crafting minigames, energy and fusion, bikes, ferries and field abilities |
 | **161 Lorebook entries** | in 14 chapters, and **12 quests** in a quest log |
@@ -107,7 +107,8 @@ mGBA lets you change any of these under *Settings → Controllers*.
 - Saves from older versions (v1 to v3) are upgraded automatically when you
   load them. Your team, Shelf, bag and progress carry over.
 - With **Autosave** on (the default), the game also saves every time you walk
-  into a Hearth Hall.
+  into the Hearth Hall you last rested in. Resting there also makes it the
+  place you wake up after all your kin doze off.
 - Emulators write the save next to the ROM as `wildkin-….sav`. Copy that
   file to move your game to another device.
 
@@ -168,9 +169,12 @@ RIME crest.
 
 <sub>Places in [brackets] are lairs and hidden places.</sub>
 
-### The Vale
+<img src="docs/images/world.png" alt="The whole overworld: every outdoor area, joined the way you walk between them">
 
-<img src="docs/images/world.png" alt="Map of the Vale: Stormstone Rise, Whisper Meadow, Maple Village, Mirror Lake and Bramblewood">
+<sub>Every outdoor area, drawn by the game's own map code and joined edge to
+edge the way you walk between them (the Sky Isle is only reached by air).</sub>
+
+### The Vale
 
 | Area | What you find there |
 | --- | --- |
@@ -490,6 +494,9 @@ At Lumen's **Resonance Works**, Engineer Nell shows you four machines:
   ([docs/ELEVATION.md](docs/ELEVATION.md)). Every town is built on
   several levels, with a bridge or tunnel you pass both over and under and a
   hidden path to find. Found passages stay open in your save.
+- **Ground that blends**: sand, soil, dirt, mud, moss, basalt and sulfur
+  fade into the ground around them with soft, ragged edges instead of hard
+  squares, while shores, paths and buildings keep their crisp lines.
 - **Grass that moves**: each region has its own tall grass (meadow, reeds,
   flowers, golden, dune, snow-capped, glowing moss, dead bracken, ember brush,
   moonpetal) that sways in the wind and parts when you walk through; only
@@ -504,6 +511,12 @@ At Lumen's **Resonance Works**, Engineer Nell shows you four machines:
   aquariums; lighthouses, boats and bell buoys; steam vents, forges and a
   great bell; gravestones and wisps; moon lanterns and floating pages. Many
   are animated, and most say something when you examine them.
+- **Keepers on the field**: in a bout with another keeper you both stand on
+  the field: they stride in, strike their pose and throw their lantern, you
+  wind up and throw yours, and when it is decided they walk back in, proud or
+  sheepish. Wardens and Masters wear the same look on the map. There is no
+  running from a keeper's bout; in the wild the bag shows each lantern's odds
+  of befriending the kin in front of you.
 - **Wardens and Masters**: 84 warden teams of up to six kin, plus six Hall
   Masters. A Master's bout opens with a banner, and winning it plays a
   victory fanfare.
@@ -576,7 +589,7 @@ At Lumen's **Resonance Works**, Engineer Nell shows you four machines:
 - **HUSH BELL** keeps wild kin away for a while.
 - The summary shows temperament, trait, potential grades, size, bond and
   where and when you met each kin.
-- Beds heal your team; Hearth Halls heal and autosave.
+- Beds heal your team; resting at a Hearth Hall heals, sets where you wake up after a lost bout, and autosaves there.
 - Two checked save slots; older saves are migrated automatically.
 - **Debug tools** for the curious: tap SELECT+START on the title screen for
   an asset viewer, a kin viewer, a WARP menu and the ADMIN MODE switch.
