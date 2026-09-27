@@ -848,11 +848,33 @@ def volt_banner():
     return img
 
 
+def waterwheel_frames():
+    """The mill wheel turns one spoke between frames above the Brook."""
+    ring = ["....OOOOOOOO....", "..OOBBBBBBBBOO..", ".OBB........BBO.",
+            ".OB..........BO.", "OB............BO", "OB............BO",
+            "OB............BO", "OB............BO", "OB............BO",
+            "OB............BO", "OB............BO", "OB............BO",
+            ".OB..........BO.", ".OBB........BBO.", "..OOBBBBBBBBOO..", "....OOOOOOOO...."]
+    frames = []
+    for diagonal in (False, True):
+        pixels = [list(row) for row in ring]
+        for n in range(3, 13):
+            x, y = (n, n) if diagonal else (8, n)
+            pixels[y][x] = 'm'
+            x, y = (15 - n, n) if diagonal else (n, 8)
+            pixels[y][x] = 'm'
+        pixels[8][8] = 'O'
+        frames.append(SG('\n'.join(''.join(row) for row in pixels), OL))
+    return frames
+
+
 # ===========================================================================
 # catalog
 # ===========================================================================
 
 EAST_DECOR = [
+    Decor('WATERWHEEL', ['town'], frames=waterwheel_frames(), period=18,
+          doc='Brookmill mill wheel turning on the pond spillway'),
     # --- LUMEN CITY ---------------------------------------------------------
     Decor('CITY_LAMP', C, city_lamp(), top='X/.',
           doc='Lumen street lamp: patina post, glass globe of stored charge; globe over people',

@@ -113,3 +113,8 @@
         "warden strong enough to move the stone.",
         "HORA: You moved nothing yet, I see. Good. Then I can tell you why the stair is sealed.\f"
         "It isn't a clock up there. Not really." },
+    [LORE_BROOK_TOLL] = { LCH_PLACES, LSRC_TOLL, "THE OLD TOLL", "The Brook was the Vale's first trade road. The old bridge is still used by herons and wardens. A dark hollow runs beneath it.", "TOLL KEEPER: Before the rails, this bridge was how copper reached the valley." },
+    [LORE_BROOK_HERONS] = { LCH_PLACES, LSRC_HERON, "THE ROOKERY", "The herons nest in the dead trees downstream. PEBBOTTER juggle pebbles to attract them; neither has learned to stop stealing from the other.", "HERON WATCHER: Listen for their wings when the Brook is quiet." },
+    [LORE_BROOK_WHEEL] = { LCH_PLACES, LSRC_MILLER, "WATER POWER", "The mill wheel uses the Brook's fall to turn a great cog. TIDE kin sometimes push it through the dry months. Lumen's rivets hold the vanes together.", "ADA: A mill must turn even when the brook is low." },
+    [LORE_BROOK_SONG] = { LCH_PLACES, LSRC_FIDDLER, "THE BROOK'S SONG", "The fiddlers of Brookmill say the Brook sings a different tune after dark. KOIRIN follow its old falls back to the millpond.", "FIDDLER: It sounds like a tune if you wait long enough." },
+    [LORE_COPPER_RUSH] = { LCH_PLACES, LSRC_COPPER_RUSH, "THE COPPER RUSH", "The first copper miners laid rails by lantern light. The vein ran dry, but a side gallery still shows their survey marks.", "MINE BOSS: The tablets still tell the old miners' story." },
