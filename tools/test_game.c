@@ -931,8 +931,9 @@ static void test_effects_and_bond(void)
     int got[3] = { -1, -1, -1 };
     for (int i = 0; i < battle.ev_count; i++)
         if (battle.ev[i].type == EV_XP) got[battle.ev[i].a] = battle.ev[i].b;
-    CHECK(got[0] == base && got[1] == base / 2 && got[2] == -1,
-          "XP: the fighter gets it all, the bench half, dozing kin none");
+    CHECK(got[0] == monster_scaled_xp(base, 10, party[0].level) &&
+          got[1] == monster_scaled_xp(base / 2, 10, party[1].level) && got[2] == -1,
+          "XP: level-scaled fighter share, half bench share, dozing kin none");
 
     /* befriending gives XP and records where and when */
     fresh_game();
