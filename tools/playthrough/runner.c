@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
     for (int i = 0; i < 180; i++) frame(0, 0);
     FILE *file = fopen(argv[2], "r");
     if (!file) { perror(argv[2]); return 1; }
-    char buf[256], op[32]; int a, b, c, line_direction, line = 0, started = 0;
+    char buf[256], op[32]; int a, b, c, line_direction, dest, line = 0, started = 0;
     while (fgets(buf, sizeof(buf), file)) {
         line++;
         if (sscanf(buf, "%31s", op) != 1 || op[0] == '#') continue;
@@ -192,6 +192,16 @@ int main(int argc, char **argv) {
             if (wardens != before + 1 || map() != a)
                 fail(line, "warden interaction did not yield a victory");
             printf("WARDEN line=%d map=%d x=%d y=%d frames=%lu\n", line, map(), x(), y(), frames);
+        } else if (!strcmp(op, "door") && sscanf(buf, "%*s %d %d %d %d %d", &a, &b, &c, &line_direction, &dest) == 5 && started) {
+            if (map() != a || x() != b || y() != c || mode() != 0 || rd32(dialog_addr) || rd32(warp_addr))
+                fail(line, "door starting checkpoint mismatch");
+            int last_kind = -1;
+            for (int i = 0; i < 300 && map() == a; i++) step(line, 1u << line_direction, &last_kind);
+            if (map() != dest) fail(line, "door did not reach expected map");
+            for (int i = 0; i < 300 && (mode() != 0 || rd32(warp_addr)) && map() == dest; i++) step(line, 0, &last_kind);
+            if (map() != dest || mode() != 0 || rd32(warp_addr)) fail(line, "door transition did not settle");
+            wild_wins = wild_runs = 0;
+            printf("DOOR line=%d map=%d x=%d y=%d frames=%lu\n", line, map(), x(), y(), frames);
         } else if (!strcmp(op, "edge") && sscanf(buf, "%*s %d %d %d", &a, &b, &c) == 3 && started) {
             if (map() != a) fail(line, "edge source map mismatch");
             int last_kind = -1;

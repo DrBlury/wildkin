@@ -58,9 +58,9 @@ def main():
         parts = line.split('#', 1)[0].split()
         if not parts:
             continue
-        if parts[0] not in ('start', 'flag', 'way', 'edge', 'warden', 'wild_limit'):
+        if parts[0] not in ('start', 'flag', 'way', 'edge', 'door', 'warden', 'wild_limit'):
             parser.error(f'line {number}: invalid command {parts[0]}')
-        expected = {'start': 2, 'flag': 2, 'way': 4, 'edge': 4, 'warden': 5, 'wild_limit': 2}[parts[0]]
+        expected = {'start': 2, 'flag': 2, 'way': 4, 'edge': 4, 'door': 6, 'warden': 5, 'wild_limit': 2}[parts[0]]
         if len(parts) != expected:
             parser.error(f'line {number}: expected {expected - 1} arguments')
         table = flags if parts[0] == 'flag' else maps if parts[0] != 'wild_limit' else None
@@ -80,6 +80,15 @@ def main():
                 parser.error(f'line {number}: edge needs direction and destination map ID')
             parts[2] = str({'north': 6, 'south': 7, 'west': 5, 'east': 4}[parts[2]])
             parts[3] = str(maps[parts[3]])
+        if parts[0] == 'door':
+            try:
+                x, y = map(int, parts[2:4])
+            except ValueError:
+                parser.error(f'line {number}: door coordinates must be integers')
+            if not (0 <= x < 64 and 0 <= y < 64) or parts[4] not in ('north', 'south', 'west', 'east') or parts[5] not in maps:
+                parser.error(f'line {number}: door needs adjacent position, direction and destination map ID')
+            parts[4] = str({'north': 6, 'south': 7, 'west': 5, 'east': 4}[parts[4]])
+            parts[5] = str(maps[parts[5]])
         if parts[0] == 'warden':
             try:
                 x, y = map(int, parts[2:4])
