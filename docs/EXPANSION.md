@@ -616,24 +616,24 @@ Each Hall has a Master and 3-5 wardens. Beat the Master for a crest.
 
 ## 9. World map
 
-```
-                        [SKY ISLE] (FLY)
-          [WHITECROWN PEAK]
-               |
-         FROSTHOLLOW ---- GLIMMER CAVERNS -- [STARFALL GROTTO]
-               |
-         FROSTPINE PASS                       DREAMSPIRE -- [DUST LIBRARY]
-               |                                   |
-        STORMSTONE RISE                      MOONVEIL PATH
-               |                                   |
-         WHISPER MEADOW                        LUMEN CITY ---- CINDER ROAD ---- CINDERMOOR -- EMBER TUNNEL -- [CALDERA HEART]
-               |                               /   |                             |
- PORT BRINE - SALTWIND - MIRROR LAKE - MAPLE - BRAMBLEWOOD - COPPERLINE ROAD     [CLOCKWORK SPIRE]
-    |                        VILLAGE     |       |
- SEA ROUTE                     |    [ELDERWOOD   ASHEN FIELDS - GRAVEWOOD - DUSKMERE - THE OSSUARY - [BONE THRONE]
-    |                    WILLOW ACRE    HEART]
- GULL ISLE - [DROWNED BELL]    (farm)
-```
+The long-route progression target, including the loops and one-way gate
+conditions, is [plan 01 §2–5](plans/01_progression_contract.md). The map
+below shows only the five new region corridors present in this branch; it
+is **not** a claim that the planned gates, shortcuts or events work yet.
+
+| Corridor | Added maps on this branch (in route order) |
+| --- | --- |
+| East, Bramblewood → Copperline | Brookmill Trail → Brookmill |
+| West, Mirror Lake → Saltwind | Heron Fen → Reedwick |
+| Forge, Lumen → Cinder Road | Cinder Crossing → Railhead |
+| North, Stormstone Rise → Frostpine | Stormstep Foothills → Timberline |
+| March, Copperline → Ashen Fields | Accord Checkpoint → Hollow Downs (including Waychapel) |
+| Dream, Lumen → Moonveil Path | Mistfen (including Pilgrim Rest) |
+
+The far-side joins, checkpoint and fog/bridge gates still need integration
+validation; the eventual loop routes are not present here. The existing
+[world image](images/world.png) predates these routes and must be re-rendered
+after `WORLD_POS` and loops arrive. Do not use it as evidence of this graph.
 
 Region codes used in the roster: VILLAGE, MEADOW, WOOD, LAKE, RISE (the
 existing areas); FARM (Willow Acre); E1 (Copperline Road); LUMEN; W1
@@ -647,32 +647,19 @@ Dreamspire); LIBRARY; ELDER (Elderwood Heart).
 
 | owner | maps | tilesets owned |
 | --- | --- | --- |
-| **W-EAST** | COPPERLINE ROAD, LUMEN CITY (+ interiors: hearth hall, market, VOLT HALL, RESONANCE WORKS, bike shop, 2 houses), CLOCKWORK SPIRE (+ lair), ELDERWOOD HEART (from Bramblewood); the Land Office building in Maple Village | `city` |
-| **W-WEST** | SALTWIND TRAIL, PORT BRINE (+ interiors, CURRENT HALL, harbour office, inn), SEA ROUTE, GULL ISLE (+ interiors), DROWNED BELL | `coast` |
-| **W-NORTH** | FROSTPINE PASS, FROSTHOLLOW (+ interiors, RIME HALL, hot spring), GLIMMER CAVERNS (2 floors), STARFALL GROTTO, WHITECROWN PEAK, SKY ISLE | `snow`, `cave` |
-| **W-GRIM** | ASHEN FIELDS, GRAVEWOOD, DUSKMERE (+ interiors, apothecary, LANTERN CRYPT), THE OSSUARY (2 floors), BONE THRONE | `grim`, `crypt` |
-| **W-FAR** | CINDER ROAD, CINDERMOOR (+ interiors, forge, ANVIL HALL), EMBER TUNNEL, CALDERA HEART, MOONVEIL PATH, DREAMSPIRE (+ interiors, MIRROR HALL), DUST LIBRARY | `volcanic`, `dream` |
+| **W-EAST** | BROOKMILL TRAIL, BROOKMILL, COPPERLINE MINE, COPPERLINE ROAD, LUMEN CITY (+ interiors: hearth hall, market, VOLT HALL, RESONANCE WORKS, bike shop, 2 houses), CLOCKWORK SPIRE (+ lair), ELDERWOOD HEART (from Bramblewood); the Land Office building in Maple Village | `city` |
+| **W-WEST** | HERON FEN, REEDWICK, SALTWIND TRAIL, PORT BRINE (+ interiors, CURRENT HALL, harbour office, inn), SEA ROUTE, GULL ISLE (+ interiors), DROWNED BELL | `coast` |
+| **W-NORTH** | STORMSTEP FOOTHILLS, TIMBERLINE, FROSTPINE PASS, FROSTHOLLOW (+ interiors, RIME HALL, hot spring), GLIMMER CAVERNS (2 floors), STARFALL GROTTO, WHITECROWN PEAK, SKY ISLE | `snow`, `cave` |
+| **W-GRIM** | ACCORD CHECKPOINT, HOLLOW DOWNS, WAYCHAPEL, ASHEN FIELDS, GRAVEWOOD, DUSKMERE (+ interiors, apothecary, LANTERN CRYPT), THE OSSUARY (2 floors), BONE THRONE | `grim`, `crypt` |
+| **W-FAR** | CINDER CROSSING, RAILHEAD, MISTFEN, CINDER ROAD, CINDERMOOR (+ interiors, forge, ANVIL HALL), EMBER TUNNEL, CALDERA HEART, MOONVEIL PATH, DREAMSPIRE (+ interiors, MIRROR HALL), DUST LIBRARY | `volcanic`, `dream` |
 | **FARM** | WILLOW ACRE, FARMHOUSE, wild berry patches placed by the world owners | `farm` |
 
-**Edge contracts.** An edge link needs both sides to agree on the opening:
-
-- Offsets are 0 unless stated.
-- The walkable gap of the exit must be at the same x (for N/S edges) or
-  the same y (for E/W edges) on both maps.
-- For existing maps (owned by the core):
-  - Maple Village's south edge opens at x 19-20 into WILLOW ACRE.
-  - Bramblewood's east edge opens at y 17-18 into COPPERLINE ROAD.
-  - Mirror Lake's west edge opens at y 31-32 into SALTWIND TRAIL.
-  - Stormstone Rise's north edge opens at x 11-12 into FROSTPINE PASS.
-  - Bramblewood's south edge opens at x 30-31 into the ELDERWOOD HEART
-    path. It is blocked by a STRENGTH boulder.
-- Between regions:
-  - COPPERLINE ROAD's south edge links to ASHEN FIELDS' north edge at
-    x 20-21.
-  - LUMEN CITY's east edge links to CINDER ROAD at y 20-21.
-  - LUMEN CITY's north edge links to MOONVEIL PATH at x 24-25.
-
-Each region owner documents their other exits in their region header.
+**Edge contracts.** See [plan 01 §6](plans/01_progression_contract.md#6-new-maps-names-ids-sizes-owners)
+for the planned openings and the region handoffs for current map ownership.
+This branch has unmerged cross-region joins (including a reference to the
+unmerged Greywater loop), so the route graph and gate return paths must be
+checked again after integration. The older direct Copperline → Ashen and
+Lumen → Cinder Road/Moonveil edges are **not** the target graph.
 
 ---
 
