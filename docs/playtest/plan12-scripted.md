@@ -9,6 +9,8 @@ The production ROM runs with blank in-memory SRAM, title debug warp and required
 | Act II | Brookmill Trail shore → Brookmill → Copperline Juno victory → Lumen entry (0,20) | 3466 | 0.967 | `BOUT_END kind=warden result=1` at frame 3040; one warden, zero wild; no Volt Hall |
 | Act III | Heron Fen warden victory → Reedwick entry (39,19) | 2076 | 0.579 | `BOUT_END kind=warden result=1` at frame 1609; one warden, zero wild; no Current Hall |
 
+**Extended current-ROM probes:** The [Act II Hall route](../handoff/act2_timing.md) enters Volt Hall and verifies switches a/b/c, one Hall warden win, and Fara-adjacent (7,3) in **6,154 frames / 1.717 min**. The [Act III westbound route](../handoff/act3_timing.md) reaches Saltwind at 3,111 frames, Port Brine at 4,524, and upper frontage (27,5) at **5,069 frames / 1.414 min**. It bypasses Reedwick wardens; separate attempted bouts with the debug starter lost. Neither probe opens its Hall Master fight or completes an act.
+
 Act II's route faces Juno from (36,18), then steps back west around her still-occupied tile and continues on y20. The earlier field→title return in Act III was an IWRAM stack collision in `field_draw_sprites`, not a normal loss; the scratch arrays are now in EWRAM and a ROM/ELF placement test covers that choice. The earlier intro hang was a separate nested field draw in the battle wipe. There is no properly prepared four-kin team, Hall quest choice policy, measured recovery, required wild encounter quota, or full-act endpoint in these fixtures. Do not apply the 2.5× human factor or claim the 16–18-hour target from these partial times. Human templates remain blank.
 
 ## Historical post-battle-fix ROM: Act III title transition (2026-09-27)

@@ -11,10 +11,11 @@
 > Regional weather and festival effects, direct A-to-examine FIELD NOTES,
 > animated tram/lift/punt scenes, the wagon arrival, and five authentic
 > route/event GIFs are integrated. The event animation is transient and does
-> not change save IDs. ROM-backed Act II reaches Lumen after Juno in 3,466
-> frames; Act III reaches Reedwick after a Fen warden in 2,076 frames.
-> Full-act timing and human Acts II/III playtests remain unverified. The
-> 16–18-hour target must not be inferred from partial
+> not change save IDs. ROM-backed Act II reaches Fara’s adjacent tile after
+> Juno, a Hall warden, and three switches in 6,154 frames; Act III reaches
+> Port Brine’s upper frontage after a Fen warden in 5,069 frames. Neither
+> fixture has a Master victory. Full-act timing and human Acts II/III
+> playtests remain unverified; the 16–18-hour target cannot follow from partial
 > scripted segments. See [doubles](handoff/double_bouts.md),
 > [playtime](handoff/playtime.md) and the [route media](../README.md).
 >
