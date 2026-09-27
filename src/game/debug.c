@@ -8,6 +8,10 @@
  *                 L / R change the kin in the pen; SELECT goes back here.
  *   KIN VIEWER    every species: front, back (lustrous with A), menu icon and
  *                 the walking overworld frames on light, grass and dark.
+ *   PORTRAITS     the bout portraits: every keeper archetype cycling through
+ *                 its five frames in any of its colour variations (with its
+ *                 overworld self walking beside it), and the player from the
+ *                 front and from behind.
  *   WARP          jump to any map (lands on the walkable cell nearest the
  *                 middle).
  *   ADMIN MODE    A switches it ON / OFF (opt.admin): while it is on, the
@@ -18,16 +22,16 @@
  * Nothing else here touches the save unless you save from the START menu.
  */
 
-enum { DBG_MENU, DBG_VIEWS, DBG_KIN, DBG_WARP };
+enum { DBG_MENU, DBG_VIEWS, DBG_KIN, DBG_WARP, DBG_KEEPER };
 #define VIEW_PEN_ROWS 6   /* tools/gen_field_gfx.py VIEW_PEN_H */
 
 static struct {
-    int state, cursor, scroll, sp, lustrous, parade, frame;
+    int state, cursor, scroll, sp, lustrous, parade, frame, keeper, vary;
     int admin_note;   /* 0 none, 1 saved, 2 not saved (no save yet), 3 the write failed */
 } dbg;
 
-enum { DBGI_VIEWS, DBGI_KIN, DBGI_WARP, DBGI_ADMIN, DBGI_BACK };
-static const char *const DBG_ITEMS[] = { "ASSET VIEWER", "KIN VIEWER", "WARP TO MAP", "ADMIN MODE", "BACK" };
+enum { DBGI_VIEWS, DBGI_KIN, DBGI_PORTRAITS, DBGI_WARP, DBGI_ADMIN, DBGI_BACK };
+static const char *const DBG_ITEMS[] = { "ASSET VIEWER", "KIN VIEWER", "PORTRAITS", "WARP TO MAP", "ADMIN MODE", "BACK" };
 #define DBG_ITEM_COUNT 5
 #define DBG_ROWS 8
 
@@ -199,6 +203,68 @@ static void dbg_kin_input(void)
     }
 }
 
+/* ---------------- portrait viewer ---------------- */
+
+static void dbg_keeper_redraw(void)
+{
+    char buf[40];
+    screen_begin(0);
+    canvas_window(0, 0, CANVAS_COLS, 3, WIN_STD);
+    str_copy(buf, KEEPER_LOOK[dbg.keeper].title);
+    text_draw_col(16, 8, buf, INK_BLUE, INK_BLUE_SH);
+    str_copy(buf, "look ");
+    str_put_int(buf, dbg.vary);
+    text_draw_right(228, 8, dbg.vary ? buf : "default look");
+    canvas_fill(0, 24, 80, 88, 6);
+    canvas_fill(80, 24, 80, 88, 1);
+    canvas_fill(160, 24, 80, 88, 4);
+    canvas_window(0, 14, CANVAS_COLS, 6, WIN_STD);
+    text_draw(12, 118, "LEFT/RIGHT: keeper");
+    text_draw(12, 134, "UP/DOWN: look   L/R: 10");
+    keeper_palette(obj_palette + OBANK_MON_A * 16, dbg.keeper, dbg.vary);
+    copy16(obj_palette + OBANK_MON_B * 16, hero_palette, 16);
+}
+
+static void dbg_keeper_input(void)
+{
+    int ok = dbg.keeper, ov = dbg.vary;
+    if (key_rep(KEY_LEFT)) dbg.keeper = (dbg.keeper + KEEPER_COUNT - 1) % KEEPER_COUNT;
+    if (key_rep(KEY_RIGHT)) dbg.keeper = (dbg.keeper + 1) % KEEPER_COUNT;
+    if (key_rep(KEY_UP)) dbg.vary = (dbg.vary + 1) & 255;
+    if (key_rep(KEY_DOWN)) dbg.vary = (dbg.vary + 255) & 255;
+    if (key_rep(KEY_R)) dbg.vary = (dbg.vary + 10) & 255;
+    if (key_rep(KEY_L)) dbg.vary = (dbg.vary + 246) & 255;
+    if (ok != dbg.keeper || ov != dbg.vary) {
+        sfx_play(SFX_CURSOR);
+        dbg_keeper_redraw();
+    }
+    if (key_hit(KEY_B)) {
+        dbg.state = DBG_MENU;
+        dbg.cursor = 2;
+        dbg_redraw();
+    }
+}
+
+static void dbg_keeper_draw(void)
+{
+    /* the overworld-kin slots: menus own the low OBJ tiles */
+    int step = dbg.frame / 36;
+    /* the keeper walking the overworld: each direction for a while */
+    static const u8 WALK[4] = { 0, 1, 0, 2 };
+    int dir = (dbg.frame / 64) % 4, walk = WALK[(dbg.frame / 8) % 4];
+    int owf = (dir == 1 ? 3 : dir >= 2 ? 6 : 0) + walk;
+    switch (dbg.frame % 4) {   /* one upload a frame */
+    case 0: copy32(VRAM_OBJ_TILES + OT_OWKIN(0) * 8, keeper_gfx[dbg.keeper][step % KF_COUNT], 64 * 8); break;
+    case 1: copy32(VRAM_OBJ_TILES + OT_OWKIN(4) * 8, hero_front_gfx[step % HF_COUNT], 64 * 8); break;
+    case 2: copy32(VRAM_OBJ_TILES + OT_OWKIN(8) * 8, hero_back_gfx[step % HB_COUNT], 64 * 8); break;
+    default: copy32(VRAM_OBJ_TILES + OT_OWKIN(12) * 8, keeper_ow_gfx[dbg.keeper][owf], 8 * 8); break;
+    }
+    spr_push(62, 76, OT_OWKIN(12), TALL16x32, OBANK_MON_A, 0, dir == 3 ? ATTR1_HFLIP : 0);
+    spr_push(0, 40, OT_OWKIN(0), SQ64, OBANK_MON_A, 0, 0);
+    spr_push(88, 40, OT_OWKIN(4), SQ64, OBANK_MON_B, 0, 0);
+    spr_push(168, 40, OT_OWKIN(8), SQ64, OBANK_MON_B, 0, 0);
+}
+
 /* ---------------- the screen ---------------- */
 
 static void debug_update(void)
@@ -206,6 +272,10 @@ static void debug_update(void)
     dbg.frame++;
     if (dbg.state == DBG_KIN) {
         dbg_kin_input();
+        return;
+    }
+    if (dbg.state == DBG_KEEPER) {
+        dbg_keeper_input();
         return;
     }
     int count = dbg.state == DBG_MENU ? DBG_ITEM_COUNT : dbg.state == DBG_VIEWS ? dbg_view_count() : MAP_COUNT;
@@ -231,6 +301,10 @@ static void debug_update(void)
             dbg.state = DBG_KIN;
             dbg_kin_redraw();
             return;
+        case DBGI_PORTRAITS:
+            dbg.state = DBG_KEEPER;
+            dbg_keeper_redraw();
+            return;
         case DBGI_WARP: dbg.state = DBG_WARP; break;
         case DBGI_ADMIN:
             /* the title loaded the save into memory: writing it back only
@@ -255,6 +329,10 @@ static void debug_update(void)
 
 static void debug_draw(void)
 {
+    if (dbg.state == DBG_KEEPER) {
+        dbg_keeper_draw();
+        return;
+    }
     if (dbg.state != DBG_KIN) return;
     spr_push(8, 40, OT_MON_A, SQ64, OBANK_MON_A, 0, 0);
     spr_push(88, 40, OT_MON_B, SQ64, OBANK_MON_B, 0, 0);

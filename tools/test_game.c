@@ -114,8 +114,11 @@ static void test_data(void)
         const Species *sp = &SPECIES[s];
         int prev = 1, has_stab = 0, n = 0;
         if (str_len(sp->name) > 10 || !renderable(sp->name) || !renderable(sp->desc) ||
-            !renderable(sp->category) || text_width(sp->category) > 72)
+            !renderable(sp->category) || text_width(sp->category) > 72) {
             text_ok = 0;
+            printf("     %s: name/category/desc does not fit (category %d px)\n", sp->name,
+                   text_width(sp->category));
+        }
         if (sp->type1 >= TYPE_COUNT || (sp->type2 != TYPE_NONE && sp->type2 >= TYPE_COUNT) ||
             sp->type1 == sp->type2 || sp->catch_rate < 3 || !sp->xp_yield) {
             species_ok = 0;

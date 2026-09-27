@@ -42,7 +42,7 @@ OBJS     += $(BUILD)/src/crt0.o
 
 # Generated art headers and the scripts that write them.
 ART      := src/gfx_ui.h src/gfx_monsters.h src/gfx_field.h src/gfx_battle.h src/species_data.h \
-            src/gfx_travel.h src/gfx_craft.h src/gfx_fusion.h src/gfx_rune.h
+            src/gfx_travel.h src/gfx_craft.h src/gfx_fusion.h src/gfx_rune.h src/gfx_keepers.h
 
 all: $(TARGET).gba
 
@@ -75,6 +75,7 @@ art:
 	python3 tools/gen_craft_gfx.py
 	python3 tools/gen_fusion_gfx.py
 	python3 tools/gen_rune_gfx.py
+	python3 tools/gen_keeper_gfx.py
 	python3 tools/gen_music.py
 
 maps:

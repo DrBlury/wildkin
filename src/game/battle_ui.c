@@ -551,6 +551,9 @@ static int bev_run(BEvent *e)
         case EV_CUE:
             battle_cue(e->a);
             return 1;
+        case EV_PORTRAIT:
+            portrait_act(side, e->a, e->b);
+            break;
         case EV_NAME:
             catch_name_begin(e);
             break;
@@ -693,6 +696,8 @@ static int bev_run(BEvent *e)
         return !anim_busy();
     case EV_BANNER:
         return banner_update(t);
+    case EV_PORTRAIT:
+        return portrait_ready(side, e->a);
     case EV_HP: {
         int *hp = &battle.disp[side].hp;
         battle.disp[side].hp_t++;
@@ -727,6 +732,13 @@ static int bev_run(BEvent *e)
         if (e->b) return t >= 24;                       /* wild: already there */
         /* the lantern arcs in, opens with a burst of light, the kin pops out */
         int from_x = side == SIDE_ALLY ? -8 : 248, from_y = side == SIDE_ALLY ? 120 : 20;
+        /* thrown by a keeper/the player on screen: from the raised hand */
+        static int hand_x, hand_y, from_hand;
+        if (t == 1) from_hand = portrait_hand(side, &hand_x, &hand_y);
+        if (from_hand) {
+            from_x = hand_x;
+            from_y = hand_y;
+        }
         int cx = side_cx(side), cy = side_cy(side) - 12;
         if (t < SEND_OUT_OPEN) {
             int k = t * 256 / SEND_OUT_OPEN;
@@ -938,6 +950,7 @@ static void battle_reset(int kind)
     battle.fought = battle.participants;
     battle.state = BST_INTRO;
     battle.timer = 0;
+    portrait_reset();
     anim_clear();
     if (game_mode != MODE_BATTLE) copy16(saved_light_bank, obj_palette + OBANK_LIGHT * 16, 16);
     game_mode = MODE_BATTLE;
@@ -961,6 +974,7 @@ static void battle_queue_intro(void)
         bsay_wait(msg);
     } else {
         if (battle.master) str_copy(bev_push(EV_BANNER, SIDE_ENEMY, 0, 0)->text, battle.foe_title);
+        bev_push(EV_PORTRAIT, SIDE_ENEMY, PA_FLAIR, 0);
         str_copy(msg, battle.foe_title);
         str_put(msg, " wants a bout!");
         bsay_wait(msg);
@@ -969,12 +983,14 @@ static void battle_queue_intro(void)
         str_put(msg, SPECIES[battle.team[0].species].name);
         str_put(msg, "!");
         bsay(msg);
+        bev_push(EV_PORTRAIT, SIDE_ENEMY, PA_THROW, 0);
         bev_push(EV_SEND_OUT, SIDE_ENEMY, 0, 0);
     }
     str_copy(msg, "Out you come, ");
     str_put(msg, kin_name(&party[battle.ally]));
     str_put(msg, "!");
     bsay(msg);
+    bev_push(EV_PORTRAIT, SIDE_ALLY, PA_THROW, 0);
     bev_push(EV_SEND_OUT, SIDE_ALLY, battle.ally, 0);
     apply_meal_stages();
     entry_traits(SIDE_ENEMY);
@@ -1027,6 +1043,7 @@ static void battle_start_trainer_team(const TrainerTeam *t)
     battle.lose_line = t->lose_line;
     battle.scene = t->scene == BSCENE_AREA ? clampi(battle_next_scene, 0, BSCENE_COUNT - 1) :
                    clampi(t->scene, 0, BSCENE_COUNT - 1);
+    keeper_choose(t, battle.master);
     battle_cue(battle.master ? BCUE_START_MASTER : BCUE_START_WARDEN);
 }
 
@@ -1073,6 +1090,8 @@ static void battle_start_trainer(void)
     marlo.prize = (u16)(best * 60);
     marlo.scene = BSCENE_RING;
     marlo.lose_line = "MARLO: Ha! Now that's a bout. Come back any time!";
+    keeper_trainer_look(TR_MARLO, &marlo.look, &marlo.vary);   /* the Marlo you see in town */
+    marlo.look++;
     battle_start_trainer_team(&marlo);
 }
 
@@ -1209,6 +1228,7 @@ static void battle_reload_gfx(void)
     hud_load_palettes();
     battle_apply_scene_tint(0, 0);
     build_fx_palette(OBANK_LIGHT, RGB15(31, 22, 8), RGB15(31, 31, 24));
+    portrait_load_palettes();
     REG_DISPCNT = DCNT_MODE0 | DCNT_BG0 | DCNT_BG1 | DCNT_OBJ | DCNT_OBJ_1D;
 }
 
@@ -1270,6 +1290,9 @@ static void intro_update(void)
         battle_load_scene();
         dialog_style = WIN_BATTLE;
         canvas_window(0, 14, CANVAS_COLS, 6, WIN_BATTLE);
+        portrait_load_palettes();
+        portrait_act(SIDE_ALLY, PA_ENTER, 0);
+        if (battle.kind == BK_TRAINER) portrait_act(SIDE_ENEMY, PA_ENTER, 0);
         if (battle.kind == BK_WILD) {
             battle_load_mon_gfx(SIDE_ENEMY);
             disp_sync(SIDE_ENEMY);
@@ -1303,6 +1326,7 @@ static int intro_radius(void)
 
 static void battle_update(void)
 {
+    if (battle.state != BST_INTRO || battle.timer > INTRO_DARK) portrait_update();
     switch (battle.state) {
     case BST_INTRO:
         intro_update();
@@ -1557,6 +1581,7 @@ static void battle_draw(void)
     battle_draw_battlers();
     a3_flush_back();
     a3_defer_back = 0;
+    portrait_draw();
     battle_draw_palettes();
 
     /* background tint eases toward what the animation wants */

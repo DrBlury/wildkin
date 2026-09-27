@@ -1,10 +1,8 @@
-"""Kin 113-120 (rare). Owner: KIN-R3.
+"""Kin 113-120 (rare singles). Owner: KIN-R3.
 
-PLACEHOLDER data and art: stats, learnsets, traits and descriptions
-were generated from docs/EXPANSION.md; replace every entry with the real
-design (keep id, name, types, rarity and growth), give it a model, and
-set placeholder=False (then its base stat total is checked by tier).
-The art lives in tools/kin/art_rare_c.py.
+Eight lone rares out of folklore, each met in one or two places only
+(docs/EXPANSION.md 4.3). Base stat totals sit in the 'rare' tier
+(440-545); the art is in tools/kin/art_rare_c.py.
 """
 
 from kin import KinSpec
@@ -17,52 +15,76 @@ def _m(name):
 
 
 SPECIES = [
-    KinSpec(113, 'KELPYRE', ('TIDE', 'DUSK'), 'R', base=(103, 51, 77, 115, 77, 77), catch=30, xp=190, evo=None,
-            category='KIN', height=10, weight=100,
-            learnset=[(1, 'M_BONK'), (1, 'M_FIZZ'), (1, 'M_SLIPSTREAM'), (1, 'M_STARE_DOWN'), (14, 'M_SNAP'), (20, 'M_UNDERTOW'), (26, 'M_HAUNT'), (32, 'M_SHADE_CUT'), (38, 'M_RIPTIDE'), (44, 'M_GLOOM_ORB'), (50, 'M_GNASH')],
+    KinSpec(113, 'KELPYRE', ('TIDE', 'DUSK'), 'R', base=(95, 105, 75, 90, 75, 85), catch=30, xp=190, evo=None,
+            category='KELP HORSE', height=18, weight=2400,
+            learnset=[(1, 'M_SLIPSTREAM'), (1, 'M_STARE_DOWN'), (1, 'M_FIZZ'), (8, 'M_SNAP'), (15, 'M_UNDERTOW'),
+                      (22, 'M_HAUNT'), (29, 'M_SHADE_CUT'), (36, 'M_RIPTIDE'), (43, 'M_GLOOM_ORB'),
+                      (50, 'M_GNASH'), (56, 'M_SWELL')],
             traits=('SURGE', 'SLIPPERY'), field=('SURF',),
-            desc='Kelpie water horse.',
-            concept='kelpie water horse', placeholder=True),
-    KinSpec(114, 'TENGALE', ('GALE', 'BRAWL'), 'R', base=(74, 138, 50, 50, 50, 138), catch=30, xp=190, evo=None,
-            category='KIN', height=10, weight=100,
-            learnset=[(1, 'M_BONK'), (1, 'M_PUMMEL'), (1, 'M_ONE_TWO'), (1, 'M_BEAK_JAB'), (14, 'M_DRAFT'), (20, 'M_UPDRAFT'), (26, 'M_WAR_CRY'), (32, 'M_HAMMER_FIST'), (38, 'M_COUNTERJAB'), (44, 'M_FEATHER_CUT'), (50, 'M_CROSSWIND')],
+            desc='It grazes at the LAKE shore on moonless nights, its kelp mane dripping. Riders who climb on '
+                 'its back are carried down to the lake bed.',
+            model=_m('kelpyre'), placeholder=False),
+    KinSpec(114, 'TENGALE', ('GALE', 'BRAWL'), 'R', base=(80, 125, 70, 70, 70, 115), catch=30, xp=190, evo=None,
+            category='WIND GOBLIN', height=15, weight=450,
+            learnset=[(1, 'M_BEAK_JAB'), (1, 'M_ONE_TWO'), (1, 'M_DRAFT'), (9, 'M_PUMMEL'), (16, 'M_UPDRAFT'),
+                      (22, 'M_COUNTERJAB'), (28, 'M_FEATHER_CUT'), (34, 'M_WAR_CRY'), (40, 'M_HAMMER_FIST'),
+                      (46, 'M_CROSSWIND'), (52, 'M_HAYMAKER'), (58, 'M_STOOP')],
             traits=('DRIFTER', 'STUBBORN'), field=('FLY',),
-            desc='Tengu, long nose and a feather fan.',
-            concept='tengu, long nose and a feather fan', placeholder=True),
-    KinSpec(115, 'SLUMBAKU', ('DREAM', 'BEAST'), 'R', base=(76, 62, 50, 125, 112, 75), catch=30, xp=190, evo=None,
-            category='KIN', height=10, weight=100,
-            learnset=[(1, 'M_BONK'), (1, 'M_SWIPE'), (1, 'M_DART'), (1, 'M_BRACE'), (14, 'M_CATNAP'), (20, 'M_LULLABY'), (26, 'M_POUT'), (32, 'M_STILL_POND'), (38, 'M_DAYDREAM'), (44, 'M_SNARL'), (50, 'M_GLINT')],
-            traits=('FOCUSED', 'MOMENTUM'), field=('TELEPORT',),
-            desc='Baku dream-eater tapir.',
-            concept='baku dream-eater tapir', placeholder=True),
-    KinSpec(116, 'WENDIGAUNT', ('FROST', 'HOLLOW'), 'R', base=(63, 51, 103, 103, 103, 77), catch=30, xp=190, evo=None,
-            category='KIN', height=10, weight=100,
-            learnset=[(1, 'M_BONK'), (1, 'M_HAILSTONES'), (1, 'M_BONE_RATTLE'), (1, 'M_FLURRY'), (14, 'M_RIME_SHOT'), (20, 'M_LAST_RITES'), (26, 'M_SNOWDRIFT'), (32, 'M_SHROUD'), (36, 'M_GRAVE_CHILL'), (40, 'M_MARROW_SIP'), (45, 'M_OSSIFY'), (50, 'M_WINTER_RAY')],
+            desc='It trains alone on the highest ledges of the PEAK. One sweep of its feather fan turns a gale, '
+                 'and it scolds any climber who litters.',
+            model=_m('tengale'), placeholder=False),
+    KinSpec(115, 'SLUMBAKU', ('DREAM', 'BEAST'), 'R', base=(105, 70, 80, 115, 105, 55), catch=30, xp=190,
+            evo=None, category='DREAM EATER', height=11, weight=1300,
+            learnset=[(1, 'M_SWIPE'), (1, 'M_DAYDREAM'), (1, 'M_BRACE'), (8, 'M_DART'), (14, 'M_LULLABY'),
+                      (20, 'M_PRISM_RAY'), (26, 'M_CATNAP'), (32, 'M_STILL_POND'), (38, 'M_SNARL'),
+                      (44, 'M_GLINT'), (50, 'M_DREAMQUAKE'), (56, 'M_BELLY_FLOP')],
+            traits=('WAKEFUL', 'SELFMEND'), field=('TELEPORT',),
+            desc='It snuffles through the dreams of sleepers and eats their nightmares. Each one it swallows '
+                 'floats off as a bubble, and the dreamer wakes up smiling.',
+            model=_m('slumbaku'), placeholder=False),
+    KinSpec(116, 'WENDIGAUNT', ('FROST', 'HOLLOW'), 'R', base=(80, 110, 75, 105, 70, 85), catch=30, xp=190,
+            evo=None, category='FROST HAUNT', height=26, weight=380,
+            learnset=[(1, 'M_BONE_RATTLE'), (1, 'M_FLURRY'), (1, 'M_RIME_SHOT'), (8, 'M_HAILSTONES'),
+                      (14, 'M_GRAVE_CHILL'), (20, 'M_SNOWDRIFT'), (26, 'M_LAST_RITES'), (32, 'M_SHROUD'),
+                      (38, 'M_MARROW_SIP'), (44, 'M_OSSIFY'), (50, 'M_WINTER_RAY'), (56, 'M_DEATH_KNELL')],
             traits=('THICK FUR', 'SELFMEND'), field=(),
-            desc='Wendigo, antlered and gaunt.',
-            concept='wendigo, antlered and gaunt', placeholder=True),
-    KinSpec(117, 'LAMPJINN', ('RELIC', 'GALE'), 'R', base=(49, 73, 122, 98, 73, 85), catch=30, xp=190, evo=None,
-            category='KIN', height=10, weight=100,
-            learnset=[(1, 'M_BONK'), (1, 'M_TRINKET_TOSS'), (1, 'M_BEAK_JAB'), (1, 'M_CLATTER'), (14, 'M_DRAFT'), (20, 'M_TARNISH'), (26, 'M_UPDRAFT'), (32, 'M_FEATHER_CUT'), (38, 'M_POLTERGUST'), (44, 'M_GILDED_GLEAM'), (50, 'M_CROSSWIND')],
-            traits=('HOARDER', 'MOMENTUM'), field=('TELEPORT',),
-            desc='A genie rising from an oil lamp.',
-            concept='a genie rising from an oil lamp', placeholder=True),
-    KinSpec(118, 'GARGOLITH', ('STONE', 'DUSK'), 'R', base=(73, 98, 122, 85, 49, 73), catch=30, xp=190, evo=None,
-            category='KIN', height=10, weight=100,
-            learnset=[(1, 'M_BONK'), (1, 'M_GRIT_KICK'), (1, 'M_STARE_DOWN'), (1, 'M_STONESKIN'), (14, 'M_PEBBLE_PELT'), (20, 'M_MUD_PIE'), (26, 'M_SNAP'), (32, 'M_HAUNT'), (38, 'M_SANDBLAST'), (44, 'M_SHADE_CUT'), (50, 'M_ROCKFALL')],
-            traits=('BEDROCK', 'SLIPPERY'), field=('FLY',),
-            desc='Gargoyle.',
-            concept='gargoyle', placeholder=True),
-    KinSpec(119, 'HOPSHI', ('HOLLOW', 'BRAWL'), 'R', base=(100, 88, 100, 50, 100, 62), catch=30, xp=190, evo=None,
-            category='KIN', height=10, weight=100,
-            learnset=[(1, 'M_BONK'), (1, 'M_PUMMEL'), (1, 'M_ONE_TWO'), (1, 'M_BONE_RATTLE'), (14, 'M_LAST_RITES'), (20, 'M_SHROUD'), (26, 'M_WAR_CRY'), (32, 'M_HAMMER_FIST'), (38, 'M_GRAVE_CHILL'), (44, 'M_COUNTERJAB'), (50, 'M_MARROW_SIP')],
+            desc='It stalks the PEAK on the longest nights, its deer-skull face white with frost. It is never '
+                 'full, and it calls in the voices of lost climbers.',
+            model=_m('wendigaunt'), placeholder=False),
+    KinSpec(117, 'LAMPJINN', ('RELIC', 'GALE'), 'R', base=(70, 60, 80, 125, 100, 95), catch=30, xp=190, evo=None,
+            category='LAMP GENIE', height=14, weight=90,
+            learnset=[(1, 'M_DRAFT'), (1, 'M_TRINKET_TOSS'), (1, 'M_TARNISH'), (9, 'M_CLATTER'),
+                      (15, 'M_POLTERGUST'), (21, 'M_UPDRAFT'), (27, 'M_GILDED_GLEAM'), (33, 'M_CROSSWIND'),
+                      (39, 'M_CURSED_CURIO'), (45, 'M_STILL_POND'), (51, 'M_HEIRLOOM')],
+            traits=('HOARDER', 'DRIFTER'), field=('TELEPORT',),
+            desc='It sleeps curled in an old brass lamp in the LIBRARY stacks. Rub the lamp and it billows out '
+                 'in smoke, but it only grants wishes to those who polish it daily.',
+            model=_m('lampjinn'), placeholder=False),
+    KinSpec(118, 'GARGOLITH', ('STONE', 'DUSK'), 'R', base=(85, 115, 125, 55, 80, 60), catch=30, xp=190,
+            evo=None, category='ROOF GUARD', height=12, weight=1800,
+            learnset=[(1, 'M_PEBBLE_PELT'), (1, 'M_STARE_DOWN'), (1, 'M_STONESKIN'), (1, 'M_GRIT_KICK'),
+                      (9, 'M_SNAP'), (15, 'M_MUD_PIE'), (21, 'M_ROCKFALL'), (27, 'M_HAUNT'), (33, 'M_SHADE_CUT'),
+                      (39, 'M_SANDBLAST'), (45, 'M_GNASH'), (52, 'M_FAULTLINE')],
+            traits=('BEDROCK', 'WAKEFUL'), field=('FLY',),
+            desc='By day it crouches on the LUMEN rooftops, still as the eaves. At dusk its stone skin softens '
+                 'and it glides off to guard the town until dawn.',
+            model=_m('gargolith'), placeholder=False),
+    KinSpec(119, 'HOPSHI', ('HOLLOW', 'BRAWL'), 'R', base=(95, 120, 100, 50, 90, 55), catch=30, xp=190, evo=None,
+            category='TALISMAN', height=16, weight=520,
+            learnset=[(1, 'M_PUMMEL'), (1, 'M_BONE_RATTLE'), (1, 'M_ONE_TWO'), (8, 'M_SHROUD'),
+                      (14, 'M_GRAVE_CHILL'), (20, 'M_HAMMER_FIST'), (26, 'M_LAST_RITES'), (32, 'M_WAR_CRY'),
+                      (38, 'M_COUNTERJAB'), (44, 'M_MARROW_SIP'), (50, 'M_HAYMAKER'), (56, 'M_REQUIEM')],
             traits=('STUBBORN', 'KEEN EYE'), field=(),
-            desc='Hopping vampire (jiangshi).',
-            concept='hopping vampire (jiangshi)', placeholder=True),
-    KinSpec(120, 'QILUMEN', ('ASTRAL', 'SPARK'), 'R', base=(106, 54, 54, 140, 54, 92), catch=30, xp=190, evo=None,
-            category='KIN', height=10, weight=100,
-            learnset=[(1, 'M_BONK'), (1, 'M_STATIC_POP'), (1, 'M_TWINKLE'), (1, 'M_NEBULA_VEIL'), (14, 'M_TINGLE'), (20, 'M_LIVE_WIRE'), (26, 'M_MOONBEAM'), (32, 'M_ARC_FLASH'), (38, 'M_COMET_DASH'), (44, 'M_STARDUST'), (50, 'M_FORKED_BOLT')],
+            desc='Its knees never bend, so it hops through the GRAVEYARD at night with its arms held out. The '
+                 'paper talisman on its hat keeps it calm.',
+            model=_m('hopshi'), placeholder=False),
+    KinSpec(120, 'QILUMEN', ('ASTRAL', 'SPARK'), 'R', base=(90, 70, 75, 115, 85, 80), catch=25, xp=200, evo=None,
+            category='STAR KIRIN', height=20, weight=2600,
+            learnset=[(1, 'M_TWINKLE'), (1, 'M_STATIC_POP'), (1, 'M_NEBULA_VEIL'), (8, 'M_TINGLE'),
+                      (14, 'M_LIVE_WIRE'), (20, 'M_MOONBEAM'), (26, 'M_STARDUST'), (32, 'M_ARC_FLASH'),
+                      (38, 'M_COMET_DASH'), (44, 'M_FORKED_BOLT'), (50, 'M_MUON_RAIN'), (56, 'M_SUPERNOVA')],
             traits=('FOCUSED', 'CONDUCTOR'), field=('TELEPORT', 'LIGHT'),
-            desc='Kirin with a star-lit mane.',
-            concept='kirin with a star-lit mane', placeholder=True),
+            desc='It walks on starlight without bending a blade of grass, and shows itself at STARFALL only in '
+                 'peaceful years. Its mane crackles with tiny stars.',
+            model=_m('qilumen'), placeholder=False),
 ]
