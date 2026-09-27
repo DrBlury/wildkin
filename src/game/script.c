@@ -542,21 +542,54 @@ static void heal_answer(int c)
 
 static struct { int active, npc, phase, timer; } spot;
 
+/* Only authored route pairs opt in; trainer IDs remain the saved bit indices. */
+static const u16 WARDEN_PAIRS[][2] = {
+    { TR_OAK, TR_ASH }, { TR_FEN_REED_A, TR_FEN_REED_B },
+    { TR_CC_SPA_A, TR_CC_SPA_B }, { TR_MF_TWIN_A, TR_MF_TWIN_B },
+    { TR_N_CLIMBER_1, TR_N_CLIMBER_2 }, { TR_PILGRIM_A, TR_PILGRIM_B },
+};
+
 static void warden_end(int result);
-static int warden_battling = -1;
+static int warden_battling = -1, warden_partner_battling = -1;
+
+static int warden_pair_partner(int npc)
+{
+    int trainer = NPCS[npc].trainer, partner = -1;
+    if (!npc_visible[npc] || NPCS[npc].map != cur_map ||
+        trainer_beaten(trainer) || npc_state[npc].level != player.level) return -1;
+    for (unsigned p = 0; p < sizeof(WARDEN_PAIRS) / sizeof(WARDEN_PAIRS[0]); p++) {
+        if (WARDEN_PAIRS[p][0] == trainer) partner = WARDEN_PAIRS[p][1];
+        if (WARDEN_PAIRS[p][1] == trainer) partner = WARDEN_PAIRS[p][0];
+    }
+    if (partner < 0 || trainer_beaten(partner)) return -1;
+    int healthy = 0;
+    for (int i = 0; i < party_count; i++) if (party[i].hp) healthy++;
+    if (healthy < 2) return -1;
+    for (int i = 0; i < NPC_COUNT; i++)
+        if (i != npc && NPCS[i].trainer == partner && NPCS[i].map == cur_map &&
+            npc_visible[i] && !npc_state[i].moving && npc_state[i].level == player.level)
+            return i;
+    return -1;
+}
 
 static void warden_battle(int npc)
 {
     int t = NPCS[npc].trainer;
-    static TrainerTeam team;
+    int partner = warden_pair_partner(npc);
+    static TrainerTeam team, second;
     team = team_from(&TRAINERS[t], BSCENE_AREA);
     if (trainer_beaten(t) && events_rematch_ready(t))
         for (int i = 0; i < team.count; i++)
             team.level[i] = (u8)events_rematch_level(t, i);
     set_battle_scene(MAPS[cur_map].scene);
     warden_battling = t;
+    warden_partner_battling = -1;
     battle_end_hook = warden_end;
-    battle_start_trainer_team(&team);
+    if (partner >= 0) {
+        warden_partner_battling = NPCS[partner].trainer;
+        second = team_from(&TRAINERS[warden_partner_battling], BSCENE_AREA);
+        battle_start_trainer_pair(&team, &second);
+    } else battle_start_trainer_team(&team);
 }
 
 static void warden_battle_call(int npc)
@@ -567,10 +600,13 @@ static void warden_battle_call(int npc)
 static void warden_end(int result)
 {
     if (result == BR_WIN && warden_battling >= 0) {
-        if (trainer_beaten(warden_battling)) events_rematch_used(warden_battling);
+        if (warden_partner_battling >= 0) {
+            trainer_mark_beaten(warden_battling);
+            trainer_mark_beaten(warden_partner_battling);
+        } else if (trainer_beaten(warden_battling)) events_rematch_used(warden_battling);
         else trainer_mark_beaten(warden_battling);
     }
-    warden_battling = -1;
+    warden_battling = warden_partner_battling = -1;
 }
 
 static void script_warden(int npc)
