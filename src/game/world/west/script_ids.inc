@@ -9,3 +9,6 @@
     SCR_HALL_GUIDE,     /* CURRENT HALL tips; a letter for HARBOR POST */
     SCR_MAREN,          /* HALL MASTER MAREN: battle_start_master -> TIDE CREST */
     SCR_ODA,            /* GULL ISLE: SALT FOR THE ISLE quest; the Drowned Bell */
+    SCR_FEN_CARPENTER,
+    SCR_REED_NELL,
+    SCR_FEN_HERMIT,

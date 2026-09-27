@@ -10,6 +10,7 @@
 static const u8 WEST_MAPS[] = {
     MAP_SALTWIND, MAP_PORT_BRINE, MAP_SEA_ROUTE, MAP_GULL_ISLE, MAP_BRINE_HEARTH, MAP_BRINE_SHOP,
     MAP_CURRENT_HALL, MAP_HARBOR_OFFICE, MAP_BRINE_INN, MAP_GULL_HOUSE, MAP_DROWNED_BELL, MAP_BRINE_HOUSE,
+    MAP_HERON_FEN, MAP_REEDWICK, MAP_REED_HEARTH, MAP_REED_SHOP, MAP_REED_TUNNEL, MAP_FEN_HERMIT,
 };
 #define WEST_N ((int)sizeof(WEST_MAPS))
 
@@ -120,7 +121,7 @@ int main(void)
         /* field_load_tileset skips a kind that doesn't fit: it would draw garbage */
         for (int i = 0; i < MAPS[m].decor_count; i++)
             if (!decor_base[MAPS[m].decor[i].kind]) {
-                if (budget_ok) printf("  %s: decor kind %d doesn't fit the 512 scene tiles\n", MAPS[m].name,
+                if (budget_ok) printf("  %s: decor kind %d doesn't fit the 768 scene tiles\n", MAPS[m].name,
                                       MAPS[m].decor[i].kind);
                 budget_ok = 0;
             }
@@ -137,24 +138,81 @@ int main(void)
             printf("  %s: %d people, %d characters\n", MAPS[m].name, n, chars);
         }
     }
-    CHECK(budget_ok, "every west map fits its tileset and every decor kind in 512 scene tiles");
+    CHECK(budget_ok, "every west map fits its tileset and every decor kind in 768 scene tiles");
     CHECK(people_ok, "at most 24 people and 7 characters on every west map");
 
-    /* edge contracts (docs/EXPANSION.md 9) */
+    /* Worst-case NPC configuration also includes mutually exclusive carpenter variants. */
+    int conditional_npcs = 0, night_wardens = 0;
+    for (int i = 0; i < NPC_COUNT; i++) {
+        if (NPCS[i].map == MAP_HERON_FEN && NPCS[i].script == SCR_FEN_CARPENTER) conditional_npcs++;
+        if (NPCS[i].map == MAP_HERON_FEN && NPCS[i].trainer == TR_FEN_WISP &&
+            NPCS[i].when == WHEN_NIGHT) night_wardens++;
+    }
+    CHECK(conditional_npcs == 3 && night_wardens == 1,
+          "two conditional carpenters, a replacement, and a night-only warden exist");
+
+    /* Route edge contracts, including the two distinct fen entrances. */
     map_load(MAP_SALTWIND);
     int e1 = open_cell(49, 31) && open_cell(49, 32) && open_cell(0, 19) && open_cell(0, 20);
+    map_load(MAP_REEDWICK);
+    e1 = e1 && open_cell(0, 31) && open_cell(0, 32) && open_cell(39, 19) && open_cell(39, 20);
+    map_load(MAP_HERON_FEN);
+    e1 = e1 && open_cell(0, 19) && open_cell(0, 20) && open_cell(63, 31) && open_cell(63, 32);
     map_load(MAP_LAKE);
     e1 = e1 && open_cell(0, 31) && open_cell(0, 32);
     map_load(MAP_PORT_BRINE);
-    e1 = e1 && open_cell(47, 19) && open_cell(47, 20) && open_cell(20, map_h - 1) && open_cell(21, map_h - 1);
+    e1 = e1 && open_cell(47, 19) && open_cell(47, 20) &&
+         open_cell(20, map_h - 1) && open_cell(21, map_h - 1);
     map_load(MAP_SEA_ROUTE);
     e1 = e1 && open_cell(20, 0) && open_cell(21, 0) && open_cell(20, 47) && open_cell(21, 47);
     map_load(MAP_GULL_ISLE);
     e1 = e1 && open_cell(20, 0) && open_cell(21, 0);
-    CHECK(e1, "the edge openings match: Lake y31-32, Brine y19-20, Sea Route x20-21 (both ends)");
-    CHECK(MAPS[MAP_SALTWIND].link[LINK_E] == MAP_LAKE && MAPS[MAP_PORT_BRINE].link[LINK_S] == MAP_SEA_ROUTE &&
+    CHECK(e1, "all West edges match, including Heron Fen east y31-32 and Reedwick west y31-32");
+    CHECK(MAPS[MAP_LAKE].link[LINK_W] == MAP_HERON_FEN &&
+              MAPS[MAP_HERON_FEN].link[LINK_W] == MAP_REEDWICK &&
+              MAPS[MAP_REEDWICK].link[LINK_W] == MAP_SALTWIND &&
+              MAPS[MAP_SALTWIND].link[LINK_E] == MAP_REEDWICK &&
+              MAPS[MAP_PORT_BRINE].link[LINK_S] == MAP_SEA_ROUTE &&
               MAPS[MAP_SEA_ROUTE].link[LINK_S] == MAP_GULL_ISLE,
-          "the region's links follow the world graph");
+          "the West route is linked in both directions");
+
+    /* The E5 patch closes the only foot span, never the east bank or home.
+     * E3 carpenters stand on the lake side until the rivets arrive. */
+    fresh_game();
+    map_load(MAP_HERON_FEN);
+    flood(63, 31);
+    CHECK(reached(55, 19) && !reached(0, 19), "G2 closes the west shore while the teaser stays open");
+    CHECK((cell_attr(29, 19) & (A_WATER | A_DEEP)) == (A_WATER | A_DEEP) &&
+              MAPS[MAP_HERON_FEN].patch_count == 1,
+          "G2 is impassable deep water while FEN_RIVETS is clear");
+    int before_crew = 0;
+    for (int i = 0; i < NPC_COUNT; i++)
+        if (NPCS[i].map == MAP_HERON_FEN && NPCS[i].script == SCR_FEN_CARPENTER &&
+            NPCS[i].hide_flag == FLAG_FEN_RIVETS) before_crew++;
+    CHECK(before_crew == 2, "the work crew is hidden once G2 opens");
+    flag_set(FLAG_VOLT_CREST);
+    talk(MAP_HERON_FEN, SCR_FEN_CARPENTER);
+    finish();
+    map_load(MAP_HERON_FEN);
+    flood(63, 31);
+    field_load_tileset();
+    CHECK(decor_tiles_wanted <= SCENE_TILE_MAX, "the repaired Fen stays within the tile budget");
+    CHECK(flag(FLAG_FEN_RIVETS) && reached(0, 19) && !(cell_attr(29, 19) & A_WATER),
+          "Volt rivets close G2 and connect Lake to Reedwick and Port Brine on foot");
+    CHECK(MAPS[MAP_REED_TUNNEL].flags & MF_DARK, "the LIGHT reed tunnel stays dark");
+    CHECK((MAPS[MAP_REED_HEARTH].flags & MF_HEAL) != 0,
+          "Reedwick has a separate Hearth interior");
+    map_load(MAP_PORT_BRINE);
+    CHECK(MAPS[MAP_PORT_BRINE].link[LINK_N] == MAP_GREYWATER_FJORD &&
+              (cell_attr(20, 0) & A_WATER) && (cell_attr(21, 0) & A_WATER) &&
+              !open_cell(20, 0) && !open_cell(21, 0),
+          "Greywater Fjord mouth x20-21 is water only and needs SURF");
+    flood_ex(1, 12, FLOOD_SURF);
+    CHECK(reached(20, 0) && reached(21, 0), "SURF can reach both fjord edge water cells");
+
+    CHECK(MAPS[MAP_SALTWIND].objs[2].kind == OBJ_BOULDER &&
+              MAPS[MAP_SALTWIND].objs[2].arg == 0,
+          "Saltwind cache requires STRENGTH rather than a pushable pumice stone");
 
     /* the Sea Route needs SURF: without it the south shore can't be reached */
     map_load(MAP_SEA_ROUTE);
@@ -218,11 +276,15 @@ int main(void)
     map_load(MAP_DROWNED_BELL);
     int legend = 0;
     flood(9, 17);
+    CHECK(!reached_beside(11, 8), "the Drowned Bell remains sealed before OSSUREX is answered");
+    flag_set(FLAG_OSSUREX_ANSWERED);
+    map_load(MAP_DROWNED_BELL);
+    flood(9, 17);
     for (int i = 0; i < MAPS[MAP_DROWNED_BELL].obj_count; i++) {
         const MapObj *o = &MAPS[MAP_DROWNED_BELL].objs[i];
         if (o->kind == OBJ_LEGEND && o->arg == SP_NOCTHALE && reached_beside(o->x, o->y)) legend = 1;
     }
-    CHECK(legend, "NOCTHALE waits in the Drowned Bell and can be faced");
+    CHECK(legend, "NOCTHALE can be faced after the March is quiet");
     int ferries = 0, berries_ok = 1;
     for (int k = 0; k < WEST_N; k++) {
         int m = WEST_MAPS[k];
@@ -286,6 +348,20 @@ int main(void)
     talk(MAP_GULL_ISLE, SCR_ODA);
     finish();
     CHECK(quest_done(QUEST_ISLE_SALT) && lore_known_count() > lore0, "3 SALT finish Oda's quest, with a story");
+
+    /* Seasonal roof materials use West berry ids and pay only once per season. */
+    talk(MAP_REEDWICK, SCR_REED_NELL);
+    finish();
+    CHECK(quest_get(QUEST_REED_ROOF) == 1, "Nell starts REEDS FOR THE ROOF");
+    bag_add(ITEM_CROP_TIDEBERRY, 5);
+    int roof_money = money;
+    talk(MAP_REEDWICK, SCR_REED_NELL);
+    finish();
+    CHECK(money == roof_money + 300 && quest_get(QUEST_REED_ROOF) == reed_roof_season(),
+          "five TIDEBERRIES pay 300c and record the season");
+    talk(MAP_REEDWICK, SCR_REED_NELL);
+    finish();
+    CHECK(money == roof_money + 300, "the roof quest cannot be paid twice in the same season");
 
     /* the Hall Master */
     talk(MAP_CURRENT_HALL, SCR_MAREN);

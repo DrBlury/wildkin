@@ -824,6 +824,21 @@ def net_wall():
     return outline(img, 'i_out')
 
 
+def heron_statue():
+    """Carved heron keeping watch over the reed rookery (one cell wide, two high)."""
+    img = Img(16, 32)
+    img.rect(2, 27, 13, 30, 'st_dk')
+    img.rect(3, 27, 12, 28, 'st_lt')
+    ell(img, 8, 19, 4.5, 6, 'st_mid')
+    ell(img, 7, 17, 3.5, 4.5, 'st_lt')
+    img.rect(9, 9, 10, 19, 'st_mid')
+    ell(img, 10, 8, 3, 2.5, 'st_lt')
+    line(img, 12, 8, 15, 9, 'st_dk')
+    line(img, 7, 23, 6, 27, 'st_dk')
+    line(img, 9, 23, 10, 27, 'st_dk')
+    return outline(img)
+
+
 # ---------------------------------------------------------------------------
 # the catalogue
 # ---------------------------------------------------------------------------
@@ -880,6 +895,9 @@ WEST_DECOR = [
           examine='Glow coral. It brightens in time with a slow, deep hum you feel in your teeth.'),
     Decor('WHALE_CARVING', TIDE, whale_carving(), doc='star whale carved on the grotto wall (3x2)',
           examine='A whale carved in the rock, with stars for eyes. Scratched beneath: SHE SINGS THE TIDE IN.'),
+    Decor('HERON_STATUE', COAST, heron_statue(), top='X/.',
+          doc='carved heron at the Fen rookery (1x2)',
+          examine='The heron is carved from driftwood. Real herons watch from the reeds.'),
     # harbour interiors
     Decor('SHIP_WHEEL', INT, ship_wheel(), doc='ship\'s wheel hung on the wall',
           examine='A ship\'s wheel from a wreck on the SEA ROUTE. Someone polished the spokes.'),

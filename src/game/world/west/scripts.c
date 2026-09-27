@@ -276,3 +276,89 @@ static void scr_oda(int npc)
     }
     lore_reveal(LSRC_ODA, "The bell rang again last night. Somebody down there is waiting for an answer.");
 }
+
+/* Brookmill's Lumen rivets arrive once VOLT is earned. E5 refreshes the gap
+ * when flag_set runs, and E3 swaps the two builders for their thank-you. */
+static void scr_fen_carpenter(int npc)
+{
+    (void)npc;
+    if (flag(FLAG_FEN_RIVETS)) {
+        dlg_say("The boardwalk holds now. Mind the reeds under your feet!");
+    } else if (flag(FLAG_VOLT_CREST)) {
+        flag_set(FLAG_FEN_RIVETS);
+        dlg_say("Lumen's rivets came through Brookmill! We've finished the span. Head west to REEDWICK.");
+    } else {
+        dlg_say("Lumen's lamps went out west. No rivets till a Volt warden helps them. "
+                "Mind the missing planks; the eastern bank is safe to explore.");
+    }
+}
+
+/* Quest stage 2..254 records the season ordinal modulo 253.
+ * Save state stays in the quest slot; no new global season counter. */
+static int reed_roof_season(void)
+{
+    return ((gtime.day - 1) / SEASON_DAYS) % 253 + 2;
+}
+
+static void scr_reed_nell(int npc)
+{
+    (void)npc;
+    if (cur_map == MAP_REED_SHOP) {
+        static const u8 stock[] = { ITEM_BERRY_JUICE, ITEM_TONIC, ITEM_SALT };
+        shop_open_stock(stock, (int)sizeof(stock));
+        return;
+    }
+    int stage = quest_get(QUEST_REED_ROOF);
+    if (!stage) {
+        quest_set(QUEST_REED_ROOF, 1);
+        lore_reveal(LSRC_REEDWICK, "Five TIDEBERRIES for the smokehouse roof, please.");
+        return;
+    }
+    if (stage == reed_roof_season()) {
+        dlg_say("The new roof is holding. Come back when the season turns!");
+        return;
+    }
+    if (bag[ITEM_CROP_TIDEBERRY] < 5) {
+        dlg_say("Five TIDEBERRIES from the fen berry bushes. They grow back after a few days.");
+        return;
+    }
+    bag_add(ITEM_CROP_TIDEBERRY, -5);
+    money += 300;
+    quest_set(QUEST_REED_ROOF, reed_roof_season());
+    sfx_play(SFX_ITEM);
+    dlg_say("NELL: Five bundles for the roof! Here's 300c. Come again next season.");
+}
+
+static void fen_tutor_answer(int choice)
+{
+    if (choice != 0) return;
+    int slot = party_first_healthy();
+    if (slot < 0 || bag[ITEM_SALT] < 2) {
+        dlg_say("Bring a healthy kin and two SALT for the lesson.");
+        return;
+    }
+    Monster *m = &party[slot];
+    for (int i = 0; i < MAX_MOVES; i++) {
+        if (m->moves[i] == M_SLIPSTREAM) {
+            dlg_say("Your kin already knows SLIPSTREAM.");
+            return;
+        }
+    }
+    int empty = -1;
+    for (int i = 0; i < MAX_MOVES; i++)
+        if (m->moves[i] == MOVE_NONE) { empty = i; break; }
+    if (empty < 0) {
+        dlg_say("Your first healthy kin knows four moves already. Make room before returning.");
+        return;
+    }
+    bag_add(ITEM_SALT, -2);
+    monster_replace_move(m, empty, M_SLIPSTREAM);
+    dlg_say("The hermit taught your kin SLIPSTREAM! The tide remembers the lesson.");
+}
+
+static void scr_fen_hermit(int npc)
+{
+    (void)npc;
+    dlg_ask("I'll teach your first healthy kin SLIPSTREAM for two SALT. Learn?",
+            YES_NO, 2, fen_tutor_answer);
+}

@@ -9,3 +9,6 @@
     [SCR_HALL_GUIDE] = scr_hall_guide,
     [SCR_MAREN] = scr_maren,
     [SCR_ODA] = scr_oda,
+    [SCR_FEN_CARPENTER] = scr_fen_carpenter,
+    [SCR_REED_NELL] = scr_reed_nell,
+    [SCR_FEN_HERMIT] = scr_fen_hermit,
