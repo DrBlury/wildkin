@@ -151,11 +151,11 @@ mGBA lets you change any of these under *Settings → Controllers*.
 
 The eastern Brookmill Trail joins Brookmill and Copperline; Heron Fen and Reedwick open the western return. Cinder Crossing leads to Railhead, while Mistfen links the far routes to Moonveil. Stormstep Foothills climbs toward Timberline; Hollow Downs leads toward the March, with Waychapel as an indoor stop. The [progression contract](docs/plans/01_progression_contract.md) gives the intended gate order; [integration status](docs/HANDOFF.md) records outstanding mechanics.
 
-The stitched image uses the game renderer's edge connections and `WORLD_POS` placement hints. Warp-only or disconnected outdoors without hints (including Hollow Downs) cannot be positioned in it; their individual renders appear below. Doors, ferry crossings, and flight do not appear as drawn edge connections.
+The stitched image uses the game renderer's edge connections and `WORLD_POS` hints for warp-only areas such as Hollow Downs and Sky Isle. Doors, ferry crossings, and flight do not appear as drawn edge connections.
 
-<img src="docs/images/routes/world.png" alt="Game-rendered outdoor maps with edge-linked route corridors; unpositioned maps are omitted">
+<img src="docs/images/routes/world.png" alt="Game-rendered outdoor maps with edge-linked routes and positioned warp-only areas">
 
-<sub>Game-rendered outdoor layout at noon in clear weather; 34 positioned maps, not a gameplay screenshot.</sub>
+<sub>Game-rendered outdoor layout at noon in clear weather; 39 positioned maps, not a gameplay screenshot.</sub>
 
 Each picture below is a **labeled full-map render from the game renderer**, not a captured player viewport or proof of event weather or project state.
 

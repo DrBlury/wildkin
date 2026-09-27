@@ -161,7 +161,8 @@ int main(int argc, char **argv)
         const MapDef *d = &MAPS[m];
         layout_maps[m].w = d->w;
         layout_maps[m].h = d->h;
-        layout_maps[m].outdoor = (d->flags & MF_OUTDOOR) && !(d->flags & MF_DEBUG);
+        layout_maps[m].outdoor = (d->flags & MF_OUTDOOR) && !(d->flags & MF_DEBUG) &&
+                                 strncmp(d->name, "TEST ", 5) != 0;
         for (int dir = 0; dir < 4; dir++) {
             layout_maps[m].link[dir] = d->link[dir];
             layout_maps[m].off[dir] = d->link_off[dir];
