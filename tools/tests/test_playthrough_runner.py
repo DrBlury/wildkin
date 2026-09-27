@@ -1,5 +1,6 @@
 """Fail-closed parser and ELF-layout checks for the isolated ROM timer."""
 import subprocess
+import hashlib
 import tempfile
 import unittest
 from pathlib import Path
@@ -78,9 +79,11 @@ class PlaythroughRunnerTest(unittest.TestCase):
     def test_brookmill_shore_and_hearth_door_are_observed(self):
         if not (ROOT / 'game.elf').exists():
             self.skipTest('build local ROM first with make')
-        result = subprocess.run(['python3', str(ROOT / 'tools/playthrough/run.py'),
-                                 str(ROOT / 'tools/playthrough/act2.route')],
-                                capture_output=True, text=True)
+        with tempfile.TemporaryDirectory() as directory:
+            approach = Path(directory) / 'act2-approach.route'
+            approach.write_text((ROOT / 'tools/playthrough/act2.route').read_text().split('party_min 4')[0])
+            result = subprocess.run(['python3', str(ROOT / 'tools/playthrough/run.py'), str(approach)],
+                                    capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn('WAY line=7 map=', result.stdout)
         self.assertIn('WARDEN line=15 map=', result.stdout)
@@ -102,30 +105,67 @@ class PlaythroughRunnerTest(unittest.TestCase):
         if not (ROOT / 'game.elf').exists():
             self.skipTest('build local ROM first with make')
         route = ROOT / 'tools/playthrough/act2.route'
-        result = subprocess.run(['python3', str(ROOT / 'tools/playthrough/run.py'), str(route)],
-                                capture_output=True, text=True)
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn('DOOR line=27 map=19 x=7 y=16 frames=4324', result.stdout)
-        for group in range(3):
-            self.assertRegex(result.stdout, rf'SWITCH line=\d+ group={group} state=1 frames=\d+')
-        self.assertIn('WAY line=44 map=19 x=7 y=3 frames=6154', result.stdout)
-        self.assertRegex(result.stdout, r'CHECKPOINTS_COMPLETE frames=6154 .* wardens=2 wild_wins=0')
-        self.assertNotIn('MASTER line=', result.stdout)
         with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / 'master-gate.route'
-            path.write_text(route.read_text() + 'party_min 4\n')
+            path = Path(directory) / 'hall-only.route'
+            path.write_text(route.read_text().split('party_min 4')[0])
+            result = subprocess.run(['python3', str(ROOT / 'tools/playthrough/run.py'), str(path)],
+                                    capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn('DOOR line=27 map=19 x=7 y=16 frames=4324', result.stdout)
+            for group in range(3):
+                self.assertRegex(result.stdout, rf'SWITCH line=\d+ group={group} state=1 frames=\d+')
+            self.assertIn('WAY line=44 map=19 x=7 y=3 frames=6154', result.stdout)
+            self.assertRegex(result.stdout, r'CHECKPOINTS_COMPLETE frames=6154 .* wardens=2 wild_wins=0')
+            path.write_text(path.read_text() + 'party_min 4\n')
             blocked = subprocess.run(['python3', str(ROOT / 'tools/playthrough/run.py'), str(path)],
                                      capture_output=True, text=True)
             self.assertEqual(blocked.returncode, 2, blocked.stderr)
             self.assertIn('reason=insufficient in-game party for Master map=19 x=7 y=3', blocked.stderr)
             self.assertIn('frames=6154', blocked.stderr)
-            self.assertNotIn('MASTER line=', blocked.stdout)
-            path.write_text(route.read_text().replace('switch MAP_VOLT_HALL 0 1',
-                                                      'switch MAP_VOLT_HALL 0 0'))
+            path.write_text(route.read_text().split('party_min 4')[0].replace(
+                'switch MAP_VOLT_HALL 0 1', 'switch MAP_VOLT_HALL 0 0'))
             wrong = subprocess.run(['python3', str(ROOT / 'tools/playthrough/run.py'), str(path)],
                                    capture_output=True, text=True)
             self.assertEqual(wrong.returncode, 2, wrong.stderr)
             self.assertIn('reason=Hall switch state mismatch map=19 x=4 y=13', wrong.stderr)
+
+    def test_act2_fixture_master_loss_never_claims_crest(self):
+        if not (ROOT / 'game.elf').exists():
+            self.skipTest('build local ROM first with make')
+        with tempfile.TemporaryDirectory() as directory:
+            binary = Path(directory) / 'make-save'
+            fixture = Path(directory) / 'act2.sav'
+            subprocess.run(['cc', '-std=c11', '-O2', '-Wno-unused-function',
+                            '-Wno-missing-field-initializers', '-o', str(binary),
+                            str(ROOT / 'tools/playthrough/make_act_start_save.c')], check=True)
+            generate = lambda: subprocess.run([str(binary), str(fixture)], capture_output=True, text=True, check=True)
+            first = generate()
+            digest = hashlib.sha256(fixture.read_bytes()).hexdigest()
+            self.assertEqual(len(fixture.read_bytes()), 32768)
+            self.assertIn('SAVE version=7 party=4 map=26 x=34 y=18', first.stdout)
+            generate()
+            self.assertEqual(hashlib.sha256(fixture.read_bytes()).hexdigest(), digest)
+            route = ROOT / 'tools/playthrough/act2.route'
+            command = ['python3', str(ROOT / 'tools/playthrough/run.py'), '--act-start-save',
+                       str(fixture), str(route)]
+            result = subprocess.run(command, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 2, result.stderr)
+            self.assertIn('MASTER_CHOICE yes', result.stdout)
+            self.assertIn('MASTER_TEAM opponents=6 trainer_kind=1', result.stdout)
+            self.assertIn('FORCED_SWITCH slot=1', result.stdout)
+            self.assertIn('MASTER_LOSS team_index=4/6 frames=8849', result.stderr)
+            self.assertEqual(result.stdout.count('PARTY_STATE master_loss_in_battle_before_heal'), 1)
+            self.assertRegex(result.stdout, r'PARTY_STATE master_loss_in_battle_before_heal frames=8462.*slot0=species:0,lv:20,hp:0.*slot1=species:3,lv:19,hp:0.*slot2=species:13,lv:19,hp:0.*slot3=species:21,lv:20,hp:0')
+            self.assertIn('PARTY_STATE blocked_after_game_recovery_possible frames=8849', result.stdout)
+            self.assertIn('reason=party lost; no unmeasured recovery', result.stderr)
+            self.assertNotIn('MASTER line=', result.stdout)
+            self.assertNotIn('ACT_COMPLETE', result.stdout)
+            self.assertNotIn('CHECKPOINTS_COMPLETE', result.stdout)
+            self.assertNotIn('crest=', result.stdout)
+            no_fixture = subprocess.run(['python3', str(ROOT / 'tools/playthrough/run.py'),
+                                         str(route)], capture_output=True, text=True)
+            self.assertNotEqual(no_fixture.returncode, 0)
+            self.assertIn('master requires --act-start-save', no_fixture.stderr)
 
     def test_invalid_routes_fail_before_emulation(self):
         cases = [
@@ -139,7 +179,7 @@ class PlaythroughRunnerTest(unittest.TestCase):
             ('start MAP_MEADOW\ndoor MAP_MEADOW 0 0 east MAP_INVALID\n', 'destination'),
             ('start MAP_MEADOW\nswitch MAP_VOLT_HALL 3 1\n', 'switch needs'),
             ('start MAP_MEADOW\nparty_min 7\n', 'party_min needs'),
-            ('start MAP_MEADOW\nmaster FLAG_VOLT_CREST MAP_VOLT_HALL 7 3 north\n', 'invalid command'),
+            ('start MAP_MEADOW\nmaster MAP_VOLT_HALL 7 3 north FLAG_INVALID\n', 'master needs'),
         ]
         if not (ROOT / 'game.elf').exists():
             self.skipTest('build local ROM first with make')

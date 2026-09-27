@@ -31,3 +31,18 @@ entry-flag setup is still a debug prerequisite, not a representative Act I
 save; absence of wild bouts does not satisfy the plan's 3/6 encounter quota.
 See [Act II timing](../../docs/handoff/act2_timing.md) for exact frames and
 reproduction of the party gate.
+
+## Act II four-kin Master attempt (blocked by actual loss)
+
+Generate a disposable SRAM fixture with the game's `save_write_to` as shown in
+[Act II Master timing](../../docs/handoff/act2_master_timing.md), then run
+`python3 tools/playthrough/run.py --act-start-save build/act2-start.sav tools/playthrough/act2.route`.
+The `master MAP_VOLT_HALL 7 3 north FLAG_VOLT_CREST` command only accepts the
+explicit fixture, presses YES at Fara's actual two-option dialog, and requires
+six ROM opponents, a win and the crest bit. The current deterministic Lv19–20
+team loses at 8,849 frames after three forced in-game switches; exit 2 is
+expected and no act-complete result is asserted. In save mode prerequisite
+`flag` lines *assert* loaded flags rather than setting them. In blank-SRAM mode
+`flag` continues to be a pre-start debug prerequisite for other routes.
+The old single-kin Hall approach can still be tested by truncating Act II
+before `party_min 4` and running that copy without a fixture.
