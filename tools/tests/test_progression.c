@@ -9,6 +9,8 @@ typedef struct { u8 map, x, y; int from; } Seed;
 static Seed seeds[MAX_SEEDS];
 static u8 visited[MAP_COUNT][CELLS];
 static u8 reached_maps[MAP_COUNT];
+static u8 valid_seed[MAX_SEEDS];
+static u8 act_maps[8][MAP_COUNT];
 static int first_seed[MAP_COUNT];
 static int nseeds;
 
@@ -45,19 +47,25 @@ static void path_to(int index)
     printf(" -> %s(%d,%d)", MAPS[seeds[index].map].name, seeds[index].x, seeds[index].y);
 }
 
-static void solve(void)
+static void solve_from(int map, int x, int y)
 {
     memset(visited, 0, sizeof visited);
     memset(reached_maps, 0, sizeof reached_maps);
+    memset(valid_seed, 0, sizeof valid_seed);
     for (int i = 0; i < MAP_COUNT; i++) first_seed[i] = -1;
     nseeds = 0;
-    enqueue(MAP_TOWN, 23, 17, -1);
+    enqueue(map, x, y, -1);
     for (int head = 0; head < nseeds; head++) {
         Seed s = seeds[head];
         if (visited[s.map][s.y * MAPS[s.map].w + s.x]) continue;
         map_load(s.map); /* decode active patches and refresh visible blockers */
-        flood_ex(s.x, s.y, flag(FLAG_TIDE_CREST) ? FLOOD_SURF : FLOOD_WALK);
+        /* Strength-enabled obstacle paths are optimistic here; each Hall
+         * Master is separately proven by the real-move puzzle search. */
+        int mode = (flag(FLAG_TIDE_CREST) ? FLOOD_SURF : 0) |
+                   (flag(FLAG_CREST_ANVIL) ? FLOOD_SOLVED : 0);
+        flood_ex(s.x, s.y, mode);
         if (!at(s.x, s.y)) continue;
+        valid_seed[head] = 1;
         reached_maps[s.map] = 1;
         if (first_seed[s.map] < 0) first_seed[s.map] = head;
         for (int y = 0; y < map_h; y++) for (int x = 0; x < map_w; x++) {
@@ -82,8 +90,35 @@ static void solve(void)
             const Warp *w = &WARPS[i];
             if (w->map == s.map && beside(w->x, w->y) && (cell_attr(w->x, w->y) & A_DOOR))
                 enqueue(w->dest, w->dx, w->dy, head);
-            if (w->dest == s.map && at(w->dx, w->dy) && (cell_attr(w->dx, w->dy) & A_EXIT))
-                enqueue(w->map, w->x, w->y + 1, head);
+            if (w->dest == s.map && at(w->dx, w->dy)) {
+                /* Interior exit mats can sit beside the spawn (Reed Tunnel's
+                 * mat is diagonally one cell away), not necessarily on it. */
+                for (int oy = -1; oy <= 1; oy++) for (int ox = -1; ox <= 1; ox++) {
+                    int ex = w->dx + ox, ey = w->dy + oy;
+                    if (at(ex, ey) && (cell_attr(ex, ey) & A_EXIT))
+                        enqueue(w->map, w->x, w->y + 1, head);
+                }
+            }
+        }
+        /* OSRIC's yes/no script warps to the Ossuary; no MapDef link or
+         * entrance warp exists. Merely entering Duskmere cannot grant it. */
+        if (s.map == MAP_DUSKMERE && beside(34, 19) &&
+            flag(FLAG_VOLT_CREST) && flag(FLAG_TIDE_CREST) &&
+            flag(FLAG_CREST_ANVIL) && flag(FLAG_RIME_CREST) &&
+            flag(FLAG_LANTERN_CREST) && flag(FLAG_CREST_DREAM))
+            enqueue(MAP_OSSUARY_1, 4, 2, head);
+        /* Aurora's cave guides use scripted warps, not automatic Warp rows. */
+        if (flag(FLAG_LANTERN_CREST) && flag(FLAG_CREST_DREAM)) {
+            if (s.map == MAP_DREAMSPIRE && beside(3, 18))
+                enqueue(MAP_AURORA_RIDGE_2, 49, 19, head);
+            if (s.map == MAP_AURORA_RIDGE_2 && beside(50, 18))
+                enqueue(MAP_DREAMSPIRE, 4, 29, head);
+        }
+        /* Sky Isle is a FLY landing available without a prior visit. */
+        if (flag(FLAG_RIME_CREST) && (MAPS[s.map].flags & MF_OUTDOOR) &&
+            !(MAPS[s.map].flags & MF_NOFLY)) {
+            enqueue(MAP_SKY_ISLE, 17, 21, head);
+            enqueue(MAP_TOWN, 23, 17, head); /* visited Maple fly point */
         }
         for (int i = 0; i < MAPS[s.map].obj_count; i++) {
             const MapObj *o = &MAPS[s.map].objs[i];
@@ -97,6 +132,8 @@ static void solve(void)
         }
     }
 }
+
+static void solve(void) { solve_from(MAP_TOWN, 23, 17); }
 
 /* Milestones are interactions: a Master occupies the target cell, so the
  * player must reach an adjacent cell; simply reaching the map is insufficient. */
@@ -292,6 +329,56 @@ static void check_levels(void)
     CHECK(!bad, "contract wild-zone levels are within one level");
 }
 
+/* Compose with the real-move exhaustive puzzle search, not the optimistic
+ * FLOOD_SOLVED shortcut. A Hall crest is earned only when its actual Master
+ * NPC target has a complete, non-soft-locked solution from the Hall entrance. */
+#define PZ_NO_MAIN
+#define solve puzzle_solve
+#include "test_puzzles.c"
+#undef solve
+
+static int hall_master_proved(const Milestone *m)
+{
+    Tally proof = { 0 };
+    ENTRY_CAP = m->map == MAP_ANVIL_HALL ? 12000000u : 500000u;
+    puzzle_solve(m->map, 0, 1, &proof, 0);
+    int master = 0;
+    for (int i = 0; i < ntgt; i++)
+        if (tgt[i].kind == T_NPC && tgt[i].x == m->x && tgt[i].y == m->y &&
+            tgt[i].node != NIL) master = 1;
+    if (!master || proof.overflow || proof.unreachable || proof.softlocks ||
+        proof.loops || proof.maps != 1) {
+        printf("  %s puzzle proof: master=%d maps=%d overflow=%d missing=%d softlocks=%d loops=%d\n",
+               MAPS[m->map].name, master, proof.maps, proof.overflow,
+               proof.unreachable, proof.softlocks, proof.loops);
+        return 0;
+    }
+    return 1;
+}
+
+static void check_returns(int act)
+{
+    Seed roots[MAX_SEEDS];
+    int count = 0;
+    for (int i = 0; i < nseeds; i++)
+        if (valid_seed[i]) roots[count++] = seeds[i];
+    int stranded = 0;
+    for (int i = 0; i < count; i++) {
+        Seed r = roots[i];
+        solve_from(r.map, r.x, r.y);
+        int hearth = 0;
+        for (int map = 0; map < MAP_COUNT; map++)
+            if (reached_maps[map] && (MAPS[map].flags & MF_HEAL)) hearth = 1;
+        if (!hearth) {
+            printf("  act %d: %s entry (%d,%d) cannot return to a Hearth\n",
+                   act, MAPS[r.map].name, r.x, r.y);
+            stranded++;
+        }
+    }
+    CHECK(!stranded, "each reached entry component can return to a Hearth");
+    solve(); /* restore forward reachable cells for the next milestone */
+}
+
 int main(void)
 {
     fresh_game();
@@ -302,17 +389,19 @@ int main(void)
     for (int act = 1; act <= 7; act++) {
         solve();
         check_order(act);
-        int heal = 0;
-        for (int map = 0; map < MAP_COUNT; map++)
-            if (reached_maps[map] && (MAPS[map].flags & MF_HEAL)) heal = 1;
-        CHECK(heal, "a Hearth is reachable from the starting cell");
+        check_returns(act);
+        memcpy(act_maps[act], reached_maps, sizeof reached_maps);
+        if (act >= 5 && !flag(FLAG_OSSUREX_ANSWERED))
+            CHECK(!reached_maps[MAP_SKY_ISLE],
+                  "postgame Sky Isle remains gated until Ossurex is answered");
         const Milestone *m = &milestones[act - 1];
-        if (!flag(m->requires) || !milestone_reached(m)) {
+        int interactable = reached_maps[m->map] && (act == 1 ? milestone_reached(m) : hall_master_proved(m));
+        if (!flag(m->requires) || !interactable) {
             printf("FAIL: act %d milestone %s at (%d,%d) not interactable\n",
                    act, MAPS[m->map].name, m->x, m->y);
             failures++;
         }
-        if (milestone_reached(m)) {
+        if (flag(m->requires) && interactable) {
             if (party_level > m->level + 2) {
                 printf("FAIL: act %d party estimate %d exceeds master %d by over two\n",
                        act, party_level, m->level);
@@ -333,6 +422,8 @@ int main(void)
     for (int i = 0; i < (int)NDEC(milestones); i++) flag_set(milestones[i].sets);
     flag_set(FLAG_FEN_RIVETS);
     flag_set(FLAG_OSSUREX_ANSWERED);
+    flag_set(FLAG_MINE_LIGHT_CACHE);
+    flag_set(FLAG_PROJECT_CINDER_BRIDGE);
     solve();
     int missing = 0;
     for (int map = 0; map < MAP_COUNT; map++)
@@ -342,5 +433,12 @@ int main(void)
         }
     CHECK(!missing, "every non-debug map is reachable after all milestones");
     check_levels();
+    if (failures)
+        for (int act = 1; act <= 7; act++) {
+            printf("  act %d reachable:", act);
+            for (int map = 0; map < MAP_COUNT; map++)
+                if (act_maps[act][map]) printf(" %s;", MAPS[map].name);
+            putchar('\n');
+        }
     return failures ? 1 : 0;
 }
