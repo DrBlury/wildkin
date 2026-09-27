@@ -1,6 +1,17 @@
 # Plan 12 scripted playtime — measured ROM checkpoints, not act totals
 
-## Current expansion ROM: four-actor layout follow-up (2026-09-27)
+## Post-stack-fix expansion ROM: Act III title transition (2026-09-27)
+
+Isolated branch `finish-act3-timing` at `91a32fb`; `make` built a matching 3,651,872-byte ROM and ELF and `make shot` built `build/shot`. Blank in-memory SRAM, title debug warp and three prerequisites before timed route; no post-start warp or fabricated victory. Scripted frames at 59.7275 fps, not human playtime.
+
+| Route | Last verified checkpoint | Frames | Minutes | Outcome |
+| --- | --- | ---: | ---: | --- |
+| Act II | Copperline warden ROM victory → Lumen entry (0,20) | 2971 | 0.829 | `BOUT_END kind=warden result=1`, `CHECKPOINTS_COMPLETE`; not Volt Hall or an act total |
+| Act III | Heron Fen (22,19), adjacent to warden | 838 | 0.234 | At line 7, `BLOCKED` exit 2 at 1138 attempted frames/0.318 min: title mode 10, map 1 (9,3), `wardens=0`, `saw_battle=0`; no victory or Reedwick entry |
+
+The first observed title entry follows field mode 0 on map 1 at (0,0), not a sampled battle mode (`last_battle_state=-1`, `last_battle_result=-1`, `last_battle_pair=-1`). Source `battle_exit` on `BR_LOSE` instead heals and returns to a Hearth in field mode, so the observed title is inconsistent with normal loss; reset is plausible, but the root cause and any unsampled transient state are unproven. The runner's paired-battle rejection is not involved because no battle-mode frame was sampled. The starter from title debug warp is one Lv20 FLARIX; no stronger team or natural Act III start has been measured. The Act III success assertion remains red. Do not extrapolate a full-act or 16–18h total from these checkpoints; human templates remain blank.
+
+## Earlier expansion ROM: four-actor layout follow-up (2026-09-27)
 
 Branch `finish-timing-layout` at expansion base `87beed5`; local `make` produced `game.gba`/`game.elf` (3,649,680-byte ROM) and `make shot` built `build/shot`. The runner resolves the anonymous Battle by a unique DWARF member signature: **21,396 bytes**, with `state=792`, `result=820`, `timer=860` (and the other live offsets supplied to C at invocation). This replaces the older 10,556-byte/source-line policy. Blank in-memory SRAM; setup/debug warp excluded. No human playtest and no full act result.
 
@@ -15,7 +26,7 @@ Branch `finish-timing-layout` at expansion base `87beed5`; local `make` produced
 | VII | Mistfen (24,27) | 50 | 0.014 | Checkpoint only |
 | VIII | Ossuary 1 (15,10), bout initiated | 524 attempted | 0.146 attempted | Battle ran and party lost; recovery to map 5, not a victory |
 
-The Act II/III success tests fail on this ROM: both bouts enter mode 8 but the intro timer stops advancing at 1. After 300 unchanged intro iterations the runner fails closed instead of counting arbitrary stalled frames. This is a ROM-observed runtime blocker, not evidence of a won warden fight or of a particular source-code defect; Act VIII's different bout does progress to loss. Until the intro issue is resolved, the old branch's Copperline/Lumen and Heron/Reedwick victories below are **historical measurements on an older ROM, not current expansion evidence**. Even once bouts work, a pair fight will stop at an explicit unsupported actor/target-policy error rather than fake a single-target win. Master wins, properly prepared party, natural Act II/III starts, healing and human timing remain unmeasured.
+At that revision the Act II/III success tests failed: both bouts enter mode 8 but the intro timer stops advancing at 1. After 300 unchanged intro iterations the runner fails closed instead of counting arbitrary stalled frames. This is a ROM-observed runtime blocker, not evidence of a won warden fight or of a particular source-code defect; Act VIII's different bout does progress to loss. Until the intro issue is resolved, the old branch's Copperline/Lumen and Heron/Reedwick victories below are **historical measurements on an older ROM, not evidence for that expansion revision**. Even once bouts work, a pair fight will stop at an explicit unsupported actor/target-policy error rather than fake a single-target win. Master wins, properly prepared party, natural Act II/III starts, healing and human timing remain unmeasured.
 
 ## Historical pre-merge measurements
 
