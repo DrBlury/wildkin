@@ -1,0 +1,47 @@
+/* world/east/trainers.inc -- Wardens: [TR_X] = { "WARDEN X", count, { species... }, { levels... }, prize, "intro", "lose" },. Owner: W-EAST.
+ * Level curve: Copperline 15-18, Lumen 18-19, Volt Hall 19-22, MASTER FARA 21-24 (the first crest
+ * after the storm); Elderwood 31-33 and the Spire 38-40 are late (STRENGTH). */
+    /* COPPERLINE ROAD */
+    [TR_DUNN] = { "WARDEN DUNN", 2, { SP_MAGNITICK, SP_RIVETILLO }, { 15, 16 }, 640,
+                  "My grandad dug this hill hollow. Now I dig bouts. Swing!",
+                  "Hah! You hit like a falling timber." },
+    [TR_PIA] = { "WARDEN PIA", 3, { SP_STATICKO, SP_FLYSQUIRL, SP_RACCOIN }, { 15, 15, 16 }, 690,
+                 "Nobody walks the Copperline without a bout from me!",
+                 "Okay, okay, you can walk it." },
+    [TR_ROSS] = { "WARDEN ROSS", 2, { SP_QUILLDRUM, SP_MANDRAGOR }, { 17, 17 }, 720,
+                  "Cover your ears! My MANDRAGOR sings when it's happy.",
+                  "...Did you hear that? It sang for you." },
+    [TR_JUNO] = { "WARDEN JUNO", 4, { SP_BLINKET, SP_STATICKO, SP_ZAPPET, SP_MAGNITICK }, { 16, 17, 17, 18 }, 860,
+                  "Lumen's Hall Master is my hero. I'm her warm-up act!",
+                  "You're ready for FARA. Better than me, anyway." },
+    /* LUMEN CITY */
+    [TR_ARLO] = { "WARDEN ARLO", 3, { SP_KETTLEKIN, SP_PARASOLE, SP_STATICKO }, { 18, 18, 19 }, 900,
+                  "The park is my office. Step into it and you're in a meeting!",
+                  "Meeting adjourned. You win." },
+    /* VOLT HALL */
+    [TR_IONE] = { "WARDEN IONE", 2, { SP_ZAPPET, SP_STATICKO }, { 19, 20 }, 960,
+                  "Charge flows from high to low. Guess which one you are?",
+                  "Oh. I'm the low one." },
+    [TR_CORRIN] = { "WARDEN CORRIN", 3, { SP_BLINKET, SP_VOLTUX, SP_JELLUME }, { 19, 20, 20 }, 1000,
+                    "Those barriers? Every switch flips one colour. Every one!",
+                    "Now go flip them. In the right order." },
+    [TR_LUX] = { "WARDEN LUX", 3, { SP_STATICKO, SP_BEACONFLY, SP_ZAPPET }, { 20, 20, 21 }, 1050,
+                 "My kin shine brighter than the Beacon. Look!",
+                 "I'm seeing spots. Well done." },
+    [TR_BRISK] = { "WARDEN BRISK", 3, { SP_VOLTUX, SP_FULGECKO, SP_JELLUME }, { 21, 21, 22 }, 1100,
+                   "Last warden before the Master. I don't hold back!",
+                   "Go on up. She's been watching you." },
+    [TR_FARA] = { "FARA", 6, { SP_ZAPPET, SP_STATICKO, SP_JELLUME, SP_BLINKET, SP_VOLTLOPE, SP_FULGECKO },
+                  { 21, 21, 22, 22, 23, 24 }, 3000,
+                  "", "A current finds the easiest way home. You found yours. The VOLT CREST is yours!" },
+    /* ELDERWOOD HEART */
+    [TR_SORREL] = { "WARDEN SORREL", 3, { SP_TRUFFLOAR, SP_GALESQUIRL, SP_COMBQUEEN }, { 31, 32, 33 }, 1800,
+                    "You moved the boulders? Then the Elder let you in. Prove you deserve it.",
+                    "The Elder is pleased. I think. It's hard to tell with trees." },
+    [TR_BRAN] = { "WARDEN BRAN", 3, { SP_MYCOLOSSUS, SP_DOZLOTH, SP_SHROOMLET }, { 32, 32, 33 }, 1850,
+                  "Shh. The mushrooms are listening.",
+                  "They heard all of that. Embarrassing." },
+    /* CLOCKWORK SPIRE */
+    [TR_COGSWORTH] = { "WARDEN COGSWORTH", 3, { SP_LODEHORN, SP_FORTADILLO, SP_HOLLOWHELM }, { 38, 39, 40 }, 2600,
+                       "Tick. Tock. Your time is up, visitor.",
+                       "Hm. You wound me down." },

@@ -1,0 +1,13 @@
+/* world/grim/script_ids.inc -- NPC script ids: SCR_X,. Owner: W-GRIM. */
+    SCR_SURVEYOR,
+    SCR_ASHFARMER,
+    SCR_GRIM_TALK,
+    SCR_SEXTON,
+    SCR_MOURNER,
+    SCR_GATEKEEPER,
+    SCR_BELLKEEPER,
+    SCR_DUSK_TENDER,
+    SCR_DUSK_SHOP,
+    SCR_SISTER,
+    SCR_MORWEN,
+    SCR_VIGIL,

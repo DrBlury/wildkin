@@ -1,0 +1,13 @@
+/* world/grim/script_table.inc -- Script dispatch: [SCR_X] = scr_x,. Owner: W-GRIM. */
+    [SCR_SURVEYOR] = scr_surveyor,
+    [SCR_ASHFARMER] = scr_ashfarmer,
+    [SCR_GRIM_TALK] = scr_grim_talk,
+    [SCR_SEXTON] = scr_sexton,
+    [SCR_MOURNER] = scr_mourner,
+    [SCR_GATEKEEPER] = scr_gatekeeper,
+    [SCR_BELLKEEPER] = scr_bellkeeper,
+    [SCR_DUSK_TENDER] = scr_dusk_tender,
+    [SCR_DUSK_SHOP] = scr_dusk_shop,
+    [SCR_SISTER] = scr_sister,
+    [SCR_MORWEN] = scr_morwen,
+    [SCR_VIGIL] = scr_vigil,

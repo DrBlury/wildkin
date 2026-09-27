@@ -149,7 +149,7 @@ C = {
 }
 
 
-from pixelart import (c15, c15_to_rgb, Img, G, tex_fill, hash2, write_png,
+from pixelart import (c15, c15_to_rgb, Img, G, tex_fill, hash2, write_png, SETS,
                       scale_rows, Canvas, shade_clumps)
 
 # =====================================================================
@@ -166,7 +166,7 @@ def flip_idx(t, h, v):
 
 
 class TileSet:
-    def __init__(self, name, banks, limit=500):
+    def __init__(self, name, banks, limit=600):
         self.name = name
         self.banks = banks          # list of 8 lists of color names (idx 1..)
         self.limit = limit
@@ -709,6 +709,19 @@ def lab():
 import decor_outdoor
 import decor_indoor
 import terrain_wild
+import grass
+
+
+def register_colors(extra):
+    """Add a module's colours to C (a name may not change its value)."""
+    for k, v in extra.items():
+        if k in C and C[k] != v:
+            raise ValueError('colour %s redefined' % k)
+        C[k] = v
+
+
+register_colors(decor_outdoor.OUTDOOR_COLORS)
+register_colors(decor_indoor.INDOOR_COLORS)
 from decor_indoor import (I_FLOOR, I_FLOOR2, I_WALL_TOP, I_WALL, I_WINDOW, I_CLOCK, I_PAINTING,
                           I_DOORMAT, I_COUNTER, I_COUNTER_L, i_rug, on, shadowize)
 
@@ -798,7 +811,10 @@ INTERIOR_BANKS = [
     decor_indoor.INDOOR_DECOR_BANKS[7],
 ]
 
-TS_NAMES = ['town', 'wild', 'interior']
+TS_NAMES = list(SETS)
+TS_TAGS = {'town': 'T', 'wild': 'W', 'interior': 'I', 'city': 'CY', 'coast': 'CO', 'snow': 'SN',
+           'cave': 'CV', 'grim': 'GR', 'crypt': 'CR', 'volcanic': 'VO', 'dream': 'DR', 'farm': 'FA',
+           'tide': 'TD'}
 QUADS = ((0, 0), (8, 0), (0, 8), (8, 8))
 
 
@@ -866,31 +882,251 @@ def add_path(ts, out):
                       for v in range(5)] for c in range(4)]
 
 
-def build_town():
-    check_banks('town', TOWN_BANKS)
-    ts = TileSet('town', TOWN_BANKS)
+# ---------------------------------------------------------------------
+# Ground blends: a ground laid over another (soil or sand on grass, mud on
+# ash...) fades into it instead of changing at a hard 16px edge.
+#
+# Like paths, a blend is autotiled per 8x8 quadrant from the four
+# neighbours (field.c blend_quads), with the same five variants:
+#   0 inside (the cell's own tile: its texture variants stay),
+#   1 inner corner, 2 edge on the left, 3 edge on top, 4 outer corner.
+# Only the top-left quadrant of each variant is drawn; the other quadrants
+# use it mirrored, which also makes every seam line up: across quadrants
+# and cells the edge is always the same wobble mirrored. The edge wobbles,
+# is rounded at the corners and dithered over one pixel.
+# ---------------------------------------------------------------------
+
+def _blend_wob(u, seed, alt=0):
+    """The edge's wobble along a quadrant (u = 0..8). Mirrored copies make
+    it a wave a cell long, so it must be smooth at u = 0 and u = 8; the two
+    sets (alt) share those ends, so any mix of them still joins up."""
+    k = 0.8 + 0.4 * math.sin(seed * 3.1)
+    mid = math.sin(u * math.pi / 8) ** 2
+    return (k * 1.7 * math.cos(u * math.pi / 8) + 0.7 * math.cos(u * math.pi / 4 + seed) * math.sin(u * math.pi / 8)
+            + (1.3 if alt else -0.5) * mid * math.sin(u * 0.9 + seed * 2.0 + alt))
+
+
+def _sdf_corner(a, b, r):
+    """Signed distance to the rounded region {a < 0, b < 0} (> 0 outside)."""
+    qa, qb = a + r, b + r
+    return math.hypot(max(qa, 0.0), max(qb, 0.0)) + min(max(qa, qb), 0.0) - r
+
+
+def blend_depth(variant, x, y, width, seed, alt=0, amp=1.0):
+    """How far pixel (x, y) of a top-left quadrant is inside the blended
+    ground (> 0 inside, < 0 the ground around it). amp scales the wobble."""
+    px, py = x + 0.5, y + 0.5
+    dx = px - (width + amp * _blend_wob(py, seed, alt))
+    dy = py - (width + amp * _blend_wob(px, seed, alt))
+    if variant == 2:
+        return dx
+    if variant == 3:
+        return dy
+    if variant == 4:
+        return -_sdf_corner(-dx, -dy, 2.5)
+    return _sdf_corner(dx, dy, 1.5)   # 1: inner corner
+
+
+def fit_bank_pix(ts, pix, prefer=()):
+    """Pixels whose colours fit no bank take the nearest colours of the bank
+    they fit best (edge tiles mix two grounds' textures)."""
+    cols = set(c for c in pix if c is not None)
+    if ts.bank_for(cols, prefer) is not None:
+        return pix
+    best, best_n = 0, -1
+    for b, bank in enumerate(ts.banks):
+        n = sum(1 for c in pix if c in bank)
+        if n > best_n:
+            best, best_n = b, n
+    bank = ts.banks[best]
+
+    def near(c):
+        if c is None or c in bank:
+            return c
+        r, g, bl = C[c]
+        return min(bank, key=lambda k: (C[k][0] - r) ** 2 + (C[k][1] - g) ** 2 + (C[k][2] - bl) ** 2)
+    return [near(c) for c in pix]
+
+
+def blend_quads(ts, inner, outer, width=3.0, seed=0.0, rim_in=None, rim_out=None, where='blend', alt=0):
+    """-> q[4][5] tile entries for a blend of image `inner` into `outer`
+    (16x16 each); q[c][0] is 0 (the cell's own tile is used there)."""
+    q = [[0] * 5 for _ in range(4)]
+    for v in range(1, 5):
+        pix = []
+        for y in range(8):
+            for x in range(8):
+                d = blend_depth(v, x, y, width, seed, alt)
+                # a ragged, dithered edge about two pixels wide
+                n = ((hash2(x, y, int(seed * 97) + v * 13 + alt * 7) & 255) / 255.0 - 0.5) * 1.8
+                inside = d + n > 0
+                c = inner.get(x, y) if inside else outer.get(x, y)
+                if rim_in and inside and d + n < 1.0:
+                    c = rim_in
+                if rim_out and not inside and d + n > -1.0 and hash2(x, y, 73) % 3 == 0:
+                    c = rim_out
+                pix.append(c)
+        e = ts.add(fit_bank_pix(ts, pix), where='%s[%d]' % (where, v))
+        for c in range(4):
+            q[c][v] = e ^ ((c & 1) << 10) ^ ((c >> 1) << 11)
+    return q
+
+
+def add_blend(ts, out, inner_names, inner_img, outer_img, outer_names, **kw):
+    """Make the terrains inner_names one blend group that fades into the
+    terrains outer_names where it meets them (outer_img is how they look;
+    against anything else, like water or other grounds, it keeps its edge).
+    Images may be Img or (bottom, top) pairs as the builders keep them."""
+    if isinstance(inner_img, tuple):
+        inner_img = inner_img[0]
+    if isinstance(outer_img, tuple):
+        outer_img = outer_img[0]
+    where = '%s.blend.%s' % (ts.name, inner_names[0])
+    q = [blend_quads(ts, inner_img, outer_img, where=where, alt=a, **kw) for a in (0, 1)]
+    out.setdefault('blends', []).append({'inner': list(inner_names), 'outer': list(outer_names), 'q': q})
+
+
+BLEND_MAX = 8   # blends per tileset (blend_outer[] is a bit mask)
+
+
+# ---------------------------------------------------------------------
+# Tile attributes (u16, docs/EXPANSION.md 10.2) and metatile flags
+# ---------------------------------------------------------------------
+A_SOLID, A_GRASS, A_DOOR, A_WATER, A_COUNTER, A_EXIT, A_SIGN, A_LEDGE = (1 << i for i in range(8))
+A_ICE, A_SOIL, A_CURRENT, A_DIR_LO, A_DIR_HI, A_PAD, A_SWITCH, A_DEEP = (1 << i for i in range(8, 16))
+MF_GROUND = 1    # plain ground: may be drawn under overlays (trees)
+MF_OVERLAY = 2   # transparent object terrain (trees): ground drawn beneath
+ATTR_NAMES = ['SOLID', 'GRASS', 'DOOR', 'WATER', 'COUNTER', 'EXIT', 'SIGN', 'LEDGE',
+              'ICE', 'SOIL', 'CURRENT', 'DIR_LO', 'DIR_HI', 'PAD', 'SWITCH', 'DEEP']
+
+# Grass variants: GRASS3 1/16, GRASS2 4/16, GRASS 11/16 (by cell hash).
+GRASS_VARIANTS = [('GRASS3', 1), ('GRASS2', 4), ('GRASS', 11)]
+
+
+def add_overlay_terrain(ts, out, name, img, top):
+    """An overlay cell: transparent art on BG2 (bottom) or BG3 (top)."""
+    ents = ts.meta(img, where=name, opaque=False)
+    if top:
+        out['meta_b'].append([0, 0, 0, 0])
+        out['meta_t'].append(ents)
+    else:
+        out['meta_b'].append(ents)
+        out['meta_t'].append([0, 0, 0, 0])
+
+
+def finish_tileset(out, name, tag, attrs, ground, overlay, legend, oob, default_ground,
+                   backdrop, doors=(), legend_default='.', elev=None):
+    """Attach attributes, flags, the map legend and misc info to a build.
+
+    attrs:   {terrain or stamp name: A_* bits} (stamps default to A_SOLID)
+    ground:  terrain names that are plain ground (drawn under overlays)
+    overlay: terrain names that are transparent objects (trees)
+    legend:  {char: 'NAME' | [('NAME', weight/16), ...] | 'PATH' | 'WATER'}
+    doors:   [(stamp name, col, row)] cells that are doors
+    backdrop: 'ground' (bank 0 colour 1) or an (r, g, b) triple
+    elev:    None (no elevation art) or a colour-role mapping for
+             tools/elevation.py ({} = the town colour names; docs/ELEVATION.md)
+    """
+    grass.install(sys.modules[__name__], out, name, attrs, legend)  # tall grass (tools/grass.py)
+    ids = {n: i for i, n in enumerate(out['terrain'])}
+    for (sname, sid, cw, chh, doc) in out['stamps']:
+        ids[sname] = sid
+    n = len(out['meta_b'])
+    attr, mflags = [0] * n, [0] * n
+    for i, t in enumerate(out['terrain']):
+        attr[i] = attrs.get(t, A_SOLID if t in overlay else 0)
+        if t in ground:
+            mflags[i] |= MF_GROUND
+        if t in overlay:
+            mflags[i] |= MF_OVERLAY
+    for (sname, sid, cw, chh, doc) in out['stamps']:
+        for k in range(cw * chh):
+            attr[sid + k] = attrs.get(sname, A_SOLID)
+    for (sname, col, row) in doors:
+        st = [x for x in out['stamps'] if x[0] == sname][0]
+        attr[st[1] + row * st[2] + col] = A_SOLID | A_DOOR
+    for t in list(ground) + list(overlay) + list(attrs):
+        if t not in ids:
+            raise KeyError('%s: unknown terrain %s' % (name, t))
+    leg = {}
+    for ch, spec in legend.items():
+        if spec in ('PATH', 'WATER'):
+            if 'path_q' not in out:
+                raise ValueError('%s: legend %r needs path/water autotiles' % (name, ch))
+            leg[ch] = spec
+        elif isinstance(spec, str):
+            leg[ch] = [(spec, 16)]
+        else:
+            if sum(w for (_, w) in spec) != 16:
+                raise ValueError('%s: legend %r weights must sum to 16' % (name, ch))
+            leg[ch] = list(spec)
+        if isinstance(leg[ch], list):
+            for (t, w) in leg[ch]:
+                if t not in ids:
+                    raise KeyError('%s: legend %r: unknown terrain %s' % (name, ch, t))
+    if legend_default not in leg:
+        raise ValueError('%s: legend default %r missing' % (name, legend_default))
+    blend_of, blend_outer = [0] * n, [0] * n
+    if len(out.get('blends', [])) > BLEND_MAX:
+        raise ValueError('%s: more than %d blends' % (name, BLEND_MAX))
+    for bi, bl in enumerate(out.get('blends', [])):
+        for t in bl['inner'] + bl['outer']:
+            if t not in ids:
+                raise KeyError('%s: blend of unknown terrain %s' % (name, t))
+        for t in bl['inner']:
+            blend_of[ids[t]] = bi + 1
+        for t in bl['outer']:
+            blend_outer[ids[t]] |= 1 << bi
+    out['blend_of'], out['blend_outer'] = blend_of, blend_outer
+    out.setdefault('blends', [])
+    out.update(name=name, tag=tag, attr=attr, mflags=mflags, legend=leg,
+               legend_default=legend_default, oob=ids[oob], ground_default=ids[default_ground],
+               backdrop=backdrop, ids=ids)
+    anims = []
+    if 'water_first' in out:
+        anims.append((out['water_first'], out['water_anim'], 20))
+    if 'flower_first' in out:
+        anims.append((out['flower_first'], out['flower_anim'], 32))
+    out['anims'] = out.get('anims', []) + anims
+    import elevation
+    if elev is None:
+        elev = elevation.ROLES.get(name)
+    if elev is not None:
+        out['elev'] = elevation.elevation_art(out['ts'], elev, where=name)
+    if len(out['ts'].tiles) > out['ts'].limit:
+        raise ValueError('%s: %d tiles > %d' % (name, len(out['ts'].tiles), out['ts'].limit))
+    return out
+
+
+def build_town(name='town'):
+    check_banks(name, TOWN_BANKS)
+    ts = TileSet(name, TOWN_BANKS)
     out = {'ts': ts, 'meta_b': [], 'meta_t': [], 'terrain': TOWN_TERRAIN}
     add_water_anim(ts, out)
     flower_meta = add_flower_anim(ts, out)
     tall_b, tall_t = tallgrass_layers()
-    tree = tree_img()
+    tree = tree_img(overlay=True)
     imgs = {
         'GRASS': (GRASS_A, 0), 'GRASS2': (GRASS_B, 0), 'GRASS3': (GRASS_C, 0),
         'TALLGRASS': (tall_b, 0), 'STONE': (STONE, 1),
-        'TREE_TOP': (tree.crop(0, 0, 16, 16), 2),
-        'TREE_BOTTOM': (tree.crop(0, 16, 16, 16), 2),
         'COURT': (court_img(), 1), 'COURT_LINE_H': (court_img('h'), 1),
         'COURT_LINE_V': (court_img('v'), 1),
     }
-    for name in TOWN_TERRAIN:
-        if name == 'FLOWER_RED':
+    for tname in TOWN_TERRAIN:
+        if tname == 'FLOWER_RED':
             out['meta_b'].append(flower_meta[0])
-        elif name == 'FLOWER_YELLOW':
+        elif tname == 'FLOWER_YELLOW':
             out['meta_b'].append(flower_meta[1])
+        elif tname == 'TREE_TOP':
+            add_overlay_terrain(ts, out, tname, tree.crop(0, 0, 16, 16), top=True)
+            continue
+        elif tname == 'TREE_BOTTOM':
+            add_overlay_terrain(ts, out, tname, tree.crop(0, 16, 16, 16), top=False)
+            continue
         else:
-            im, bank = imgs[name]
-            out['meta_b'].append(ts.meta(im, prefer=(bank,), where=name))
-        if name == 'TALLGRASS':
+            im, bank = imgs[tname]
+            out['meta_b'].append(ts.meta(im, prefer=(bank,), where=tname))
+        if tname == 'TALLGRASS':
             out['meta_t'].append(ts.meta(tall_t, prefer=(0,), where='TALLGRASS.top',
                                          opaque=False))
         else:
@@ -905,30 +1141,43 @@ def build_town():
         ('COURT_CIRCLE', court_circle_img(), (1,), 'center circle on the ring floor (walkable)'),
     ])
     add_path(ts, out)
-    if len(ts.tiles) > ts.limit:
-        raise ValueError('town: %d tiles > %d' % (len(ts.tiles), ts.limit))
-    return out
+    return finish_tileset(
+        out, name, 'T',
+        attrs={'TALLGRASS': A_GRASS, 'COURT_CIRCLE': 0},
+        ground=['GRASS', 'GRASS2', 'GRASS3'], overlay=['TREE_TOP', 'TREE_BOTTOM'],
+        legend={'.': GRASS_VARIANTS, ',': 'TALLGRASS', 'r': 'FLOWER_RED', 'y': 'FLOWER_YELLOW',
+                '=': 'PATH', '~': 'WATER', '#': 'STONE', 'T': 'TREE_TOP', 't': 'TREE_BOTTOM',
+                'c': 'COURT', 'h': 'COURT_LINE_H', 'v': 'COURT_LINE_V'},
+        oob='TREE_TOP', default_ground='GRASS', backdrop='ground',
+        doors=[('HOUSE_RED', 2, 3), ('HOUSE_BLUE', 2, 3), ('SHOP', 2, 3), ('HEAL', 2, 3),
+               ('LAB', 3, 4)], elev={})
 
 
-def build_wild():
-    check_banks('wild', WILD_BANKS)
-    ts = TileSet('wild', WILD_BANKS)
+WILD_OVERLAY = ('TREE_TOP', 'TREE_BOTTOM', 'PINE_TOP', 'PINE_BOTTOM')
+
+
+def build_wild(name='wild'):
+    check_banks(name, WILD_BANKS)
+    ts = TileSet(name, WILD_BANKS)
     out = {'ts': ts, 'meta_b': [], 'meta_t': [], 'terrain': terrain_wild.WILD_TERRAIN}
     add_water_anim(ts, out)
     flower_meta = add_flower_anim(ts, out)
     imgs = terrain_wild.wild_images()
-    for name in terrain_wild.WILD_TERRAIN:
-        if name == 'FLOWER_RED':
+    for tname in terrain_wild.WILD_TERRAIN:
+        if tname == 'FLOWER_RED':
             out['meta_b'].append(flower_meta[0])
             out['meta_t'].append([0, 0, 0, 0])
             continue
-        if name == 'FLOWER_YELLOW':
+        if tname == 'FLOWER_YELLOW':
             out['meta_b'].append(flower_meta[1])
             out['meta_t'].append([0, 0, 0, 0])
             continue
-        bottom, top = imgs[name]
-        out['meta_b'].append(ts.meta(bottom, where='wild.' + name))
-        out['meta_t'].append(ts.meta(top, where='wild.%s.top' % name, opaque=False)
+        bottom, top = imgs[tname]
+        if tname in WILD_OVERLAY:
+            add_overlay_terrain(ts, out, tname, bottom, top=tname.endswith('_TOP'))
+            continue
+        out['meta_b'].append(ts.meta(bottom, where='wild.' + tname))
+        out['meta_t'].append(ts.meta(top, where='wild.%s.top' % tname, opaque=False)
                              if top else [0, 0, 0, 0])
     cabin = cottage('house').replace(RED_TO_BLUE)
     add_stamps(ts, out, [
@@ -937,14 +1186,30 @@ def build_wild():
          'lake field station (teal roof), door col 2 row 3'),
     ])
     add_path(ts, out)
-    if len(ts.tiles) > ts.limit:
-        raise ValueError('wild: %d tiles > %d' % (len(ts.tiles), ts.limit))
-    return out
+    GRASSY = ['GRASS', 'GRASS2', 'GRASS3', 'FLOWER_RED', 'FLOWER_YELLOW', 'TALLGRASS']
+    for (inner, width, seed) in ((['SAND', 'SAND2'], 3.0, 0.7), (['DIRT'], 2.5, 1.9),
+                                 (['MEADOW'], 2.0, 2.6), (['FOREST', 'FOREST2'], 2.5, 3.3)):
+        add_blend(ts, out, inner, imgs[inner[0]], imgs['GRASS'], GRASSY, width=width, seed=seed)
+    return finish_tileset(
+        out, name, 'W',
+        attrs={'TALLGRASS': A_GRASS, 'REEDS': A_GRASS, 'CLIFF': A_SOLID, 'CLIFF_FACE': A_SOLID,
+               'LEDGE': A_LEDGE, 'LEDGE_L': A_LEDGE, 'LEDGE_R': A_LEDGE},
+        ground=['GRASS', 'GRASS2', 'GRASS3', 'SAND', 'SAND2', 'FOREST', 'FOREST2', 'DIRT',
+                'MEADOW'],
+        overlay=list(WILD_OVERLAY),
+        legend={'.': GRASS_VARIANTS, ',': 'TALLGRASS', 'r': 'FLOWER_RED', 'y': 'FLOWER_YELLOW',
+                '=': 'PATH', '~': 'WATER', '#': 'STONE', 'T': 'TREE_TOP', 't': 'TREE_BOTTOM',
+                'P': 'PINE_TOP', 'p': 'PINE_BOTTOM', 'L': 'LEDGE', '[': 'LEDGE_L',
+                ']': 'LEDGE_R', 'C': 'CLIFF', 'c': 'CLIFF_FACE', 'd': 'DIRT', 'm': 'MEADOW',
+                's': [('SAND2', 2), ('SAND', 14)], 'f': [('FOREST2', 4), ('FOREST', 12)],
+                'R': 'REEDS'},
+        oob='TREE_TOP', default_ground='GRASS', backdrop='ground',
+        doors=[('CABIN', 2, 3), ('STATION', 2, 3)], elev={})
 
 
-def build_interior():
-    check_banks('interior', INTERIOR_BANKS)
-    ts = TileSet('interior', INTERIOR_BANKS)
+def build_interior(name='interior'):
+    check_banks(name, INTERIOR_BANKS)
+    ts = TileSet(name, INTERIOR_BANKS)
     out = {'ts': ts, 'meta_b': [], 'meta_t': [], 'terrain': INTERIOR_TERRAIN}
     solid = Img(16, 16, 'void')
     counter = shadowize(I_COUNTER, 'ck_dk', (14,))
@@ -964,9 +1229,38 @@ def build_interior():
     add_stamps(ts, out, [
         ('RUG', i_rug(), (), 'decorative rug on FLOOR (walkable; baked into the floor)'),
     ])
-    if len(ts.tiles) > ts.limit:
-        raise ValueError('interior: %d tiles' % len(ts.tiles))
-    return out
+    solid_names = ['VOID', 'WALL_TOP', 'WALL', 'WINDOW', 'WALL_CLOCK', 'PAINTING']
+    attrs = {n: A_SOLID for n in solid_names}
+    attrs.update({'DOORMAT': A_EXIT, 'COUNTER': A_SOLID | A_COUNTER,
+                  'COUNTER_L': A_SOLID | A_COUNTER, 'COUNTER_R': A_SOLID | A_COUNTER, 'RUG': 0})
+    return finish_tileset(
+        out, name, 'I', attrs=attrs, ground=['FLOOR', 'FLOOR2'], overlay=[],
+        legend={'W': 'WALL_TOP', 'w': 'WALL', 'n': 'WINDOW', 'k': 'WALL_CLOCK', 'p': 'PAINTING',
+                '.': 'FLOOR', ':': 'FLOOR2', 'D': 'DOORMAT', '<': 'COUNTER_L', '=': 'COUNTER',
+                '>': 'COUNTER_R', ' ': 'VOID'},
+        oob='VOID', default_ground='FLOOR', backdrop=(0, 0, 0), legend_default=' ')
+
+
+def build_tilesets():
+    """Every tileset in registry order (pixelart.SETS); new ones come from
+    tools/tilesets/ts_<name>.py (build(gf, name) -> finished tileset)."""
+    import importlib
+    import tilesets  # noqa: F401  (tools/tilesets/__init__.py)
+    sets = {}
+    for name in SETS:
+        if name == 'town':
+            sets[name] = build_town()
+        elif name == 'wild':
+            sets[name] = build_wild()
+        elif name == 'interior':
+            sets[name] = build_interior()
+        else:
+            mod = importlib.import_module('tilesets.ts_%s' % name)
+            sets[name] = mod.build(sys.modules[__name__], name)
+            sets[name]['uses_decor'] = list(getattr(mod, 'USES_DECOR', []))
+        sets[name]['tag'] = TS_TAGS[name]
+        sets[name]['name'] = name
+    return sets
 
 
 # =====================================================================
@@ -974,7 +1268,14 @@ def build_interior():
 # =====================================================================
 
 def all_decor():
-    items = decor_outdoor.OUTDOOR_DECOR + decor_indoor.INDOOR_DECOR
+    items = decor_outdoor.OUTDOOR_DECOR + decor_indoor.INDOOR_DECOR + __import__('decor_farm').FARM_DECOR
+    items = items + __import__('decor_north').NORTH_DECOR  # W-NORTH (snow, cave)
+    items = items + __import__('decor_fusion').FUSION_DECOR  # FUSION (Resonance Works machines)
+    items = items + __import__('decor_craft').CRAFT_DECOR  # CRAFT (stations)
+    items = items + __import__('decor_grim').DECOR  # W-GRIM (grim, crypt)
+    items = items + __import__('decor_east').EAST_DECOR  # W-EAST (city, Copperline, Elderwood)
+    items = items + __import__('decor_west').WEST_DECOR  # W-WEST (coast, harbour interiors)
+    items = items + __import__('decor_far').FAR_DECOR  # W-FAR (volcanic, dream)
     seen = set()
     for d in items:
         if d.name in seen:
@@ -1033,15 +1334,24 @@ def encode_decor(ts, d):
     return tiles, cells
 
 
+def decor_in_set(d, sname, tilesets):
+    return sname in d.sets or d.name in tilesets[sname].get('uses_decor', ())
+
+
 def build_decor(tilesets):
     """tilesets: {'town': out, ...}. Returns the global decor tables."""
     kinds = all_decor()
+    names = set(d.name for d in kinds)
+    for sname in TS_NAMES:
+        for n in tilesets[sname].get('uses_decor', ()):
+            if n not in names:
+                raise KeyError('%s: USES_DECOR names unknown decor %s' % (sname, n))
     words, meta, defs = [], [], {}
     tile_total = 0
     for sname in TS_NAMES:
         ts = tilesets[sname]['ts']
         for d in kinds:
-            if sname not in d.sets:
+            if not decor_in_set(d, sname, tilesets):
                 continue
             tiles, cells = encode_decor(ts, d)
             first = tile_total
@@ -1995,6 +2305,75 @@ def draw_label(cv, x, y, text, rgb=(255, 255, 255)):
                 cv.put(x + i * 4 + k % 3, y + k // 3, rgb)
 
 
+def ground_names(tsout):
+    return [n for i, n in enumerate(tsout['terrain']) if tsout['mflags'][i] & MF_GROUND]
+
+
+# ---------------------------------------------------------------------
+# Art lint: objects must never carry baked-in ground (docs/EXPANSION.md
+# 10.1). An object (overlay terrain or decor) whose outer border is mostly
+# covered by the tileset's ground colours has a background painted in: it
+# would show as a box on any other ground.
+# ---------------------------------------------------------------------
+
+def tile_colors(ts, ents_list):
+    cols = set()
+    pal = ts.banks
+    for ents in ents_list:
+        for e in ents:
+            if not e:
+                continue
+            t, b = e & 1023, e >> 12
+            for i in ts.tiles[t]:
+                if i:
+                    cols.add(pal[b][i - 1])
+    return cols
+
+
+def lint_image(img, ground_cols, what):
+    """img: Img of one object (frame 0). Raise if its border is ground."""
+    border = [(x, 0) for x in range(img.w)] + [(x, img.h - 1) for x in range(img.w)] + \
+             [(0, y) for y in range(1, img.h - 1)] + [(img.w - 1, y) for y in range(1, img.h - 1)]
+    ground = sum(1 for (x, y) in border if img.p[y][x] in ground_cols)
+    if ground * 100 >= 55 * len(border):
+        raise ValueError('art lint: %s has ground baked into its background (%d of %d border '
+                         'pixels are ground colours). Draw it on transparency; the engine puts '
+                         'the real ground underneath.' % (what, ground, len(border)))
+    for cy in range(img.h // 16):
+        for cx in range(img.w // 16):
+            pix = [img.p[cy * 16 + y][cx * 16 + x] for y in range(16) for x in range(16)]
+            if None not in pix and sum(1 for c in pix if c in ground_cols) * 2 >= len(pix):
+                raise ValueError('art lint: %s cell %d,%d is a solid square of ground colours '
+                                 '(baked background).' % (what, cx, cy))
+
+
+def lint_objects(sets, dec):
+    for sname in TS_NAMES:
+        out = sets[sname]
+        ts = out['ts']
+        gids = [i for i, f in enumerate(out['mflags']) if f & MF_GROUND]
+        ground_cols = tile_colors(ts, [out['meta_b'][i] for i in gids])
+        for i, n in enumerate(out['terrain']):
+            if not (out['mflags'][i] & MF_OVERLAY):
+                continue
+            img = Img(16, 16)
+            for ents in (out['meta_b'][i], out['meta_t'][i]):
+                for q, e in enumerate(ents):
+                    if not e:
+                        continue
+                    t, hf, vf, b = e & 1023, (e >> 10) & 1, (e >> 11) & 1, e >> 12
+                    idx = ts.tiles[t]
+                    for y in range(8):
+                        for x in range(8):
+                            k = idx[(7 - y if vf else y) * 8 + (7 - x if hf else x)]
+                            if k:
+                                img.p[(q >> 1) * 8 + y][(q & 1) * 8 + x] = ts.banks[b][k - 1]
+            lint_image(img, ground_cols, '%s overlay terrain %s' % (sname, n))
+        for d in dec['kinds']:
+            if (sname, d.name) in dec['defs'] and not getattr(d, 'ground_ok', False):
+                lint_image(d.frames[0], ground_cols, '%s decor %s' % (sname, d.name))
+
+
 def ground_meta(tsout, name):
     return tsout['meta_b'][tsout['terrain'].index(name)]
 
@@ -2003,9 +2382,8 @@ def render_decor_sheet(tsout, sname, dec, path):
     """Every decor kind of one tileset over its ground, labelled."""
     ts = tsout['ts']
     pals = ts.pal15()
-    items = [d for d in dec['kinds'] if sname in d.sets]
-    grounds = {'town': ['GRASS', 'STONE'], 'wild': ['GRASS', 'SAND'],
-               'interior': ['FLOOR', 'FLOOR2']}[sname]
+    items = [d for d in dec['kinds'] if (sname, d.name) in dec['defs']]
+    grounds = ground_names(tsout)[:2] * 2
     # a tile block after the terrain tiles, like the game does
     tiles = list(ts.tiles)
     col_w = 6 * 16
@@ -2215,7 +2593,11 @@ def meta_names(terrain, stamps, tag):
     return names
 
 
-def emit_tileset(o, prefix, PREFIX, tag, out, docs):
+LG_NONE, LG_SIMPLE, LG_VARIANT, LG_PATH, LG_WATER = range(5)
+
+
+def emit_tileset(o, out, docs):
+    prefix, PREFIX, tag = out['name'], out['name'].upper(), out['tag']
     ts = out['ts']
     o.append('enum {')
     for n in out['terrain']:
@@ -2249,31 +2631,241 @@ def emit_tileset(o, prefix, PREFIX, tag, out, docs):
             o.append('    {0x%04X, 0x%04X, 0x%04X, 0x%04X}, /* %s */' %
                      (e[0], e[1], e[2], e[3], names[i]))
         o.append('};')
+    o.append('static const u16 %s_attr[MT_%s_COUNT] = {' % (prefix, PREFIX))
+    for i, a in enumerate(out['attr']):
+        flags = '|'.join('A_' + ATTR_NAMES[b] for b in range(16) if a & (1 << b)) or '0'
+        o.append('    %s, /* %s */' % (flags, names[i]))
+    o.append('};')
+    o.append('static const u8 %s_mflags[MT_%s_COUNT] = {' % (prefix, PREFIX))
+    o.append('    ' + ', '.join(str(f) for f in out['mflags']) + ',')
+    o.append('};')
     if 'path_q' in out:
         for (nm, q) in (('path', out['path_q']), ('water', out['water_q'])):
             o.append('static const u16 %s_%s_quads[4][5] = {' % (prefix, nm))
             for c in range(4):
                 o.append('    {' + ', '.join('0x%04X' % v for v in q[c]) + '},')
             o.append('};')
-        wa = out['water_anim']
-        o.append('#define %s_WATER_ANIM_TILE  %d' % (PREFIX, out['water_first']))
-        o.append('#define %s_WATER_ANIM_COUNT %d' % (PREFIX, len(wa[0])))
-        o.append('static const u32 %s_water_anim[3][%s_WATER_ANIM_COUNT * 8] = {' % (prefix, PREFIX))
-        for f in range(3):
-            o.append('  {')
-            o.append(fmt_u32([w for t in wa[f] for w in pack4(t)]))
-            o.append('  },')
+    if out['blends']:
+        o.append('static const u8 %s_blend_of[MT_%s_COUNT] = {' % (prefix, PREFIX))
+        o.append('    ' + ', '.join(str(b) for b in out['blend_of']) + ',')
         o.append('};')
-        fa = out['flower_anim']
-        o.append('#define %s_FLOWER_ANIM_TILE  %d' % (PREFIX, out['flower_first']))
-        o.append('#define %s_FLOWER_ANIM_COUNT %d' % (PREFIX, len(fa[0])))
-        o.append('static const u32 %s_flower_anim[2][%s_FLOWER_ANIM_COUNT * 8] = {' % (prefix, PREFIX))
-        for f in range(2):
-            o.append('  {')
-            o.append(fmt_u32([w for t in fa[f] for w in pack4(t)]))
-            o.append('  },')
+        o.append('static const u8 %s_blend_outer[MT_%s_COUNT] = {' % (prefix, PREFIX))
+        o.append('    ' + ', '.join(str(b) for b in out['blend_outer']) + ',')
+        o.append('};')
+        o.append('static const u16 %s_blend_quads[%d][2][4][5] = {' % (prefix, len(out['blends'])))
+        for bl in out['blends']:
+            o.append('    { /* %s into %s */' % ('/'.join(bl['inner']), '/'.join(bl['outer'])))
+            for q in bl['q']:
+                o.append('        {')
+                for c in range(4):
+                    o.append('            {' + ', '.join('0x%04X' % v for v in q[c]) + '},')
+                o.append('        },')
+            o.append('    },')
+        o.append('};')
+    # tile animations: one flat block of frames x count tiles each
+    anim_rows = []
+    for k, (first, frames, period) in enumerate(out['anims']):
+        o.append('static const u32 %s_anim%d[%d * %d * 8] = {' % (prefix, k, len(frames), len(frames[0])))
+        for f in frames:
+            o.append(fmt_u32([w for t in f for w in pack4(t)]))
+        o.append('};')
+        anim_rows.append('{ %d, %d, %d, %d, %s_anim%d }' % (first, len(frames[0]), len(frames),
+                                                           period, prefix, k))
+    o.append('static const TileAnim %s_anims[%d] = { %s };' %
+             (prefix, max(1, len(anim_rows)), ', '.join(anim_rows) or '{ 0, 0, 0, 0, 0 }'))
+    ids = out['ids']
+    for line in out.get('c_extra', []):
+        o.append(line)
+    o.append('static const LegendEntry %s_legend[96] = {' % prefix)
+    for ch in range(32, 128):
+        spec = out['legend'].get(chr(ch))
+        if spec is None:
+            continue
+        cname = "'\\\\'" if chr(ch) == '\\' else ("'\\''" if chr(ch) == "'" else "'%s'" % chr(ch))
+        if spec == 'PATH':
+            o.append('    [%s - 32] = { LG_PATH, 0, {0}, {0} },' % cname)
+        elif spec == 'WATER':
+            o.append('    [%s - 32] = { LG_WATER, 0, {0}, {0} },' % cname)
+        else:
+            kind = 'LG_SIMPLE' if len(spec) == 1 else 'LG_VARIANT'
+            ws = ', '.join(str(w) for (_, w) in spec)
+            vs = ', '.join('MT_%s_%s' % (tag, t) for (t, _) in spec)
+            o.append('    [%s - 32] = { %s, %d, { %s }, { %s } },' % (cname, kind, len(spec), ws, vs))
+    o.append('};')
+    if 'elev' in out:
+        ea = out['elev']
+
+        def arr(v):
+            if isinstance(v, list):
+                return '{' + ', '.join(arr(x) for x in v) + '}'
+            return '0x%04X' % v
+        o.append('static const ElevArt %s_elev = {' % prefix)
+        for k in ('face', 'rim', 'shadow', 'stairs', 'deck_h', 'deck_v', 'mouth', 'ledge'):
+            o.append('    %s, /* %s */' % (arr(ea[k]), k))
         o.append('};')
     o.append('')
+
+
+def emit_tileset_table(o, sets):
+    o.append('static const TilesetDef TILESETS[TS_COUNT] = {')
+    for n in TS_NAMES:
+        out = sets[n]
+        P = n.upper()
+        bd = out['backdrop']
+        if bd == 'ground':
+            bdc = out['ts'].pal15()[0][1]
+        else:
+            bdc = c15(bd)
+        has_q = 'path_q' in out
+        o.append('    [TS_%s] = { "%s", %s_tiles, %s_TILE_COUNT, MT_%s_COUNT, %s_palettes,' % (
+            P, n, n, P, P, n))
+        o.append('        %s_meta_bottom, %s_meta_top, %s_attr, %s_mflags,' % (n, n, n, n))
+        o.append('        %s, %s, %s_anims, %d, %s_legend, \'%s\', %d, %d, 0x%04X, %s,' % (
+            ('%s_path_quads' % n) if has_q else '0', ('%s_water_quads' % n) if has_q else '0',
+            n, len(out['anims']), n, out['legend_default'], out['oob'], out['ground_default'], bdc,
+            ('&%s_elev' % n) if 'elev' in out else '0'))
+        if out['blends']:
+            o.append('        %s_blend_of, %s_blend_outer, %s_blend_quads },' % (n, n, n))
+        else:
+            o.append('        0, 0, 0 },')
+    o.append('};')
+    o.append('')
+
+
+# =====================================================================
+# ASSET VIEWER MAPS (docs/EXPANSION.md 10.1): generated for every tileset,
+# so every terrain tile, overlay, building and decor kind can be walked
+# around in the game (DEBUG menu on the title screen: hold SELECT, press
+# START). Objects stand on a checkerboard of the tileset's grounds, so a
+# baked-in background shows at once. Written to src/game/world/debug/.
+# =====================================================================
+
+VIEW_W = 40
+VIEW_PEN_H = 6
+
+
+def viewer_pages(sname, out, dec):
+    """-> list of pages: dict(w, h, cells, ground, decor[(kind, x, y)], name)."""
+    ids = out['ids']
+    grounds = [i for i, f in enumerate(out['mflags']) if f & MF_GROUND][:3] or [out['ground_default']]
+    overlay = [i for i, f in enumerate(out['mflags']) if f & MF_OVERLAY]
+    plain = [i for i, n in enumerate(out['terrain'])
+             if not (out['mflags'][i] & MF_OVERLAY)]
+    kinds = [d for d in dec['kinds'] if (sname, d.name) in dec['defs']]
+    budget = 512 - len(out['ts'].tiles)
+    # split decor into pages that fit the scene tile budget
+    decor_pages, cur, used = [], [], 0
+    for d in kinds:
+        tc = dec['defs'][(sname, d.name)]['tile_count']
+        if cur and used + tc > budget:
+            decor_pages.append(cur)
+            cur, used = [], 0
+        cur.append(d)
+        used += tc
+    decor_pages.append(cur)
+    pages = []
+    for pi, dpage in enumerate(decor_pages):
+        items = []   # (kind, w, h, payload)
+        if pi == 0:
+            for i in plain:
+                items.append(('cell', 1, 1, i))
+            # overlays: tops above bottoms, each over every ground
+            names = out['terrain']
+            pairs = []
+            for i in overlay:
+                n = names[i]
+                if n.endswith('_TOP') and n[:-4] + '_BOTTOM' in ids:
+                    pairs.append((i, ids[n[:-4] + '_BOTTOM']))
+                elif not n.endswith('_BOTTOM'):
+                    pairs.append((i, None))
+            for (top, bot) in pairs:
+                for g in grounds:
+                    items.append(('tree', 1, 2 if bot is not None else 1, (top, bot, g)))
+            for (nm, sid, cw, chh, doc) in out['stamps']:
+                items.append(('stamp', cw, chh, (sid, cw, chh)))
+            if 'path_q' in out:
+                items.append(('path', 4, 3, None))
+                items.append(('water', 4, 3, None))
+        for d in dpage:
+            items.append(('decor', d.w, d.h, d))
+        # shelf packing with one-cell gaps
+        x, y, row_h = 1, 1, 0
+        placed = []
+        for it in items:
+            kind, w, h, pay = it
+            if x + w + 1 > VIEW_W:
+                x, y, row_h = 1, y + row_h + 1, 0
+            placed.append((it, x, y))
+            x += w + 1
+            row_h = max(row_h, h)
+        H = min(64, y + row_h + 2 + VIEW_PEN_H)
+        cells = [[None] * VIEW_W for _ in range(H)]
+        ground = [[0] * VIEW_W for _ in range(H)]
+        for yy in range(H):
+            for xx in range(VIEW_W):
+                g = grounds[((xx // 4) + (yy // 4)) % len(grounds)]
+                cells[yy][xx] = g
+        decor = []
+        for (it, px, py) in placed:
+            kind, w, h, pay = it
+            if kind == 'cell':
+                cells[py][px] = pay
+            elif kind == 'tree':
+                top, bot, g = pay
+                cells[py][px] = top
+                ground[py][px] = g
+                if bot is not None:
+                    cells[py + 1][px] = bot
+                    ground[py + 1][px] = g
+            elif kind == 'stamp':
+                sid, cw, chh = pay
+                for yy in range(chh):
+                    for xx in range(cw):
+                        cells[py + yy][px + xx] = sid + yy * cw + xx
+            elif kind in ('path', 'water'):
+                v = 0xFFF0 if kind == 'path' else 0xFFF1
+                for yy in range(h):
+                    for xx in range(w):
+                        if kind == 'path' and yy == 1 or kind == 'water':
+                            cells[py + yy][px + xx] = v
+            else:
+                decor.append((pay.name, px, py))
+        pages.append(dict(w=VIEW_W, h=H, cells=cells, ground=ground, decor=decor,
+                          name='VIEW %s %d/%d' % (sname.upper(), pi + 1, len(decor_pages))))
+    return pages
+
+
+def write_viewer_maps(sets, dec, root):
+    d = os.path.join(root, 'src', 'game', 'world', 'debug')
+    ids, maps, data = [], [], []
+    head = '/* GENERATED by tools/gen_field_gfx.py (asset viewer maps). Do not edit. */\n'
+    for sname in TS_NAMES:
+        out = sets[sname]
+        for k, pg in enumerate(viewer_pages(sname, out, dec)):
+            tag = 'VIEW_%s_%d' % (sname.upper(), k + 1)
+            ids.append('    MAP_%s,\n' % tag)
+            flat = [v for row in pg['cells'] for v in row]
+            gflat = [v for row in pg['ground'] for v in row]
+            data.append('static const u16 %s_CELLS[%d] = {\n%s\n};\n' % (tag, len(flat), fmt_u16(flat)))
+            data.append('static const u16 %s_GROUND[%d] = {\n%s\n};\n' % (tag, len(gflat), fmt_u16(gflat)))
+            if pg['decor']:
+                data.append('static const DecorPlace %s_DECOR[] = {\n%s\n};\n' % (
+                    tag, '\n'.join('    DP(%s, %d, %d),' % (n, x, y) for (n, x, y) in pg['decor'])))
+                dref = '%s_DECOR, NDEC(%s_DECOR)' % (tag, tag)
+            else:
+                dref = '0, 0'
+            flags = 'MF_DEBUG | MF_NIGHTLESS' + (' | MF_OUTDOOR' if out['backdrop'] == 'ground' else '')
+            maps.append('    [MAP_%s] = { %d, %d, TS_%s, SC_MEADOW, 0, 0, 0, %s, "%s", ZONE_NONE, %s,\n'
+                        '        NO_LINKS, 0, 0, 0, %s_CELLS, %s_GROUND },\n' % (
+                            tag, pg['w'], pg['h'], sname.upper(), dref, pg['name'], flags, tag, tag))
+    open(os.path.join(d, 'ids.inc'), 'w').write(head + ''.join(ids))
+    open(os.path.join(d, 'maps.inc'), 'w').write(head + ''.join(maps))
+    open(os.path.join(d, 'data.h'), 'w').write(head + '\n'.join(data))
+    return len(ids)
+
+
+def c_string(text):
+    return '"' + text.replace('\\', '\\\\').replace('"', '\\"') + '"'
 
 
 def write_header(sets, dec, chars, item, emotes, path):
@@ -2291,16 +2883,64 @@ def write_header(sets, dec, chars, item, emotes, path):
     A('#ifndef GFX_FIELD_H')
     A('#define GFX_FIELD_H')
     A('')
-    A('enum { TS_TOWN, TS_WILD, TS_INTERIOR, TS_COUNT };')
+    A('enum { ' + ', '.join('TS_%s' % n.upper() for n in TS_NAMES) + ', TS_COUNT };')
     A('')
-    for (sname, prefix, PREFIX, tag, docs) in (
-            ('town', 'town', 'TOWN', 'T', TOWN_TERRAIN_DOC),
-            ('wild', 'wild', 'WILD', 'W', terrain_wild.WILD_TERRAIN_DOC),
-            ('interior', 'interior', 'INTERIOR', 'I', INTERIOR_TERRAIN_DOC)):
+    A('/* Tile attributes (u16) and metatile flags; docs/EXPANSION.md 10.2. */')
+    for b, an in enumerate(ATTR_NAMES):
+        A('#define A_%-8s 0x%04X' % (an, 1 << b))
+    A('#define MTF_GROUND  %d  /* plain ground: may be drawn under overlays */' % MF_GROUND)
+    A('#define MTF_OVERLAY %d  /* transparent object terrain (trees): ground drawn beneath */' % MF_OVERLAY)
+    A('enum { LG_NONE, LG_SIMPLE, LG_VARIANT, LG_PATH, LG_WATER };')
+    A('typedef struct { u16 tile, count; u8 frames, period; const u32 *data; } TileAnim;')
+    A('/* Map character -> metatile: SIMPLE id[0]; VARIANT picks by cell hash % 16')
+    A(' * through cumulative weights w[]; PATH / WATER are autotiled. */')
+    A('typedef struct { u8 kind, n; u8 w[4]; u16 id[4]; } LegendEntry;')
+    A('/* Elevation art (tools/elevation.py, docs/ELEVATION.md): map entries per')
+    A(' * 8x8 quadrant (TL, TR, BL, BR), autotiled by src/game/elev.c. */')
+    A('typedef struct ElevArt {')
+    A('    u16 face[4][4];     /* cliff face: variant = continues down/up | sideways << 1 */')
+    A('    u16 rim[4][5];      /* plateau edges, path-autotile variants (0 = none) */')
+    A('    u16 shadow[4];      /* cast shadow on low ground east of a rise */')
+    A('    u16 stairs[4][4];   /* per climbing direction N, S, W, E */')
+    A('    u16 deck_h[4][4];   /* bridge walked E-W: variant = railing | end << 1 */')
+    A('    u16 deck_v[4][4];   /* bridge walked N-S: variant = railing | end << 1 */')
+    A('    u16 mouth[4];       /* tunnel mouth in a cliff face */')
+    A('    u16 ledge[4][2];    /* ledge (hop down): variant = continues sideways */')
+    A('} ElevArt;')
+    A('typedef struct {')
+    A('    const char *name;')
+    A('    const u32 *tiles;')
+    A('    u16 tile_count, meta_count;')
+    A('    const u16 (*palettes)[16];')
+    A('    const u16 (*meta_bottom)[4];')
+    A('    const u16 (*meta_top)[4];')
+    A('    const u16 *attr;')
+    A('    const u8 *mflags;')
+    A('    const u16 (*path_q)[5];            /* 0 when the tileset has no autotiled paths */')
+    A('    const u16 (*water_q)[5];')
+    A('    const TileAnim *anims;')
+    A('    u8 anim_count;')
+    A('    const LegendEntry *legend;         /* chars 32..127 */')
+    A('    char legend_default;               /* used for unknown characters */')
+    A('    u16 oob, ground;                   /* out-of-bounds cell, default ground */')
+    A('    u16 backdrop;                      /* colour behind everything */')
+    A('    const struct ElevArt *elev;        /* elevation art (tools/elevation.py) or 0 */')
+    A('    /* ground blends (field.c blend_quads), 0 when the tileset has none:')
+    A('     * blend_of = group + 1 of each metatile (0: none); blend_outer = a bit per')
+    A('     * group the metatile is the surrounding ground of (edges fade into it) */')
+    A('    const u8 *blend_of, *blend_outer;')
+    A('    const u16 (*blend_q)[2][4][5];     /* [group][edge set][quadrant][variant], variant 0 unused */')
+    A('} TilesetDef;')
+    A('')
+    DOCS = {'town': TOWN_TERRAIN_DOC, 'wild': terrain_wild.WILD_TERRAIN_DOC,
+            'interior': INTERIOR_TERRAIN_DOC}
+    for sname in TS_NAMES:
         A('/* ================================================================ */')
         A('/* %-64s */' % ('%s tileset' % sname.upper()))
         A('/* ================================================================ */')
-        emit_tileset(o, prefix, PREFIX, tag, sets[sname], docs)
+        emit_tileset(o, sets[sname], sets[sname].get('docs', DOCS.get(sname, {})))
+    emit_tileset_table(o, sets)
+    grass.emit(o, sets, TS_NAMES, pack4, fmt_u32)
     # ---------------- decor
     kinds = dec['kinds']
     A('/* ================================================================ */')
@@ -2345,6 +2985,11 @@ def write_header(sets, dec, chars, item, emotes, path):
     A('static const char *const DECOR_NAMES[DK_COUNT] = {')
     for d in kinds:
         A('    "%s",' % d.name)
+    A('};')
+    A('/* What examining a decor kind says (0 = nothing; scripts may override). */')
+    A('static const char *const DECOR_EXAMINE[DK_COUNT] = {')
+    for d in kinds:
+        A('    %s, /* %s */' % (c_string(d.examine) if d.examine else '0', d.name))
     A('};')
     A('')
     # ---------------- characters
@@ -2561,26 +3206,26 @@ def main(argv):
         os.makedirs(preview, exist_ok=True)
     if '--out' in argv:
         out_h = argv[argv.index('--out') + 1]
-    for extra in (decor_outdoor.OUTDOOR_COLORS, decor_indoor.INDOOR_COLORS):
-        for k, v in extra.items():
-            if k in C and C[k] != v:
-                raise ValueError('colour %s redefined' % k)
-            C[k] = v
-    sets = {'town': build_town(), 'wild': build_wild(), 'interior': build_interior()}
+    sets = build_tilesets()
     dec = build_decor(sets)
+    lint_objects(sets, dec)
     chars = [char_gfx(c) for c in CHARACTERS]
     item = item_gfx()
     emotes = emote_gfx()
     if not ('--no-header' in argv):
         write_header(sets, dec, chars, item, emotes, out_h)
         print('wrote %s' % out_h)
+        if out_h == OUT_H:
+            n = write_viewer_maps(sets, dec, ROOT)
+            print('wrote %d asset viewer maps (src/game/world/debug/)' % n)
     for s in TS_NAMES:
         print('%s: %d tiles, %d metatiles' % (s, len(sets[s]['ts'].tiles), len(sets[s]['meta_b'])))
     print('decor: %d kinds, %d tiles' % (len(dec['kinds']), dec['tiles']))
     if preview:
         pl_frames, pl_pal = chars[0]
         for s in TS_NAMES:
-            render_decor_sheet(sets[s], s, dec, os.path.join(preview, 'decor_%s.png' % s))
+            if any((s, d.name) in dec['defs'] for d in dec['kinds']):
+                render_decor_sheet(sets[s], s, dec, os.path.join(preview, 'decor_%s.png' % s))
         render_map_sample(sets['town'], dec, 'town', TOWN_SAMPLE, TOWN_SAMPLE_KEY,
                           TOWN_SAMPLE_STAMPS, TOWN_SAMPLE_DECOR,
                           os.path.join(preview, 'town_sample.png'),

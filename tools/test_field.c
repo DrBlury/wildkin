@@ -7,115 +7,7 @@
  *
  * Run with `make test`.
  */
-#define main gba_main
-#include "../src/main.c"
-#undef main
-
-#include <stdio.h>
-#include <string.h>
-
-static int failures = 0;
-
-#define CHECK(cond, msg)                                                    \
-    do {                                                                    \
-        if (cond) {                                                         \
-            printf("ok: %s\n", (msg));                                      \
-        } else {                                                            \
-            printf("FAIL: %s\n", (msg));                                    \
-            failures++;                                                     \
-        }                                                                   \
-    } while (0)
-
-static void step(u16 keys)
-{
-    keys_prev = keys_now;
-    keys_now = keys;
-    game_frame();
-}
-
-static void tap(u16 keys)
-{
-    if (keys_now) step(0); /* a press only counts after a release */
-    step(keys);
-    step(0);
-}
-
-static void hold(u16 keys, int frames)
-{
-    while (frames--) step(keys);
-    step(0);
-}
-
-static void settle(void)
-{
-    for (int f = 0; f < 60 && (player.moving || warp.active); f++) step(0);
-}
-
-static void run_dialog(int limit)
-{
-    for (int f = 0; f < limit && (dialog_active() || game_mode == MODE_SHOP); f++)
-        step((f & 3) == 0 ? KEY_A : 0);
-}
-
-static void fresh_game(void)
-{
-    new_game();
-    dialog_clear();
-    canvas_clear();
-    game_mode = MODE_FIELD;
-    opt.follower = 1;
-}
-
-static void give_starter(void)
-{
-    Monster m = monster_make(SP_FLARIX, 8);
-    give_monster(&m);
-    story_flags |= FLAG_STARTER;
-    follower_reset();
-}
-
-/* ---------------- maps ---------------- */
-
-static u8 seen_cells[MAP_MAX_W * MAP_MAX_H];
-
-/* Flood fill over walkable cells (people and satchels count as walls). */
-static void flood(int sx, int sy)
-{
-    static int qx[MAP_MAX_W * MAP_MAX_H], qy[MAP_MAX_W * MAP_MAX_H];
-    memset(seen_cells, 0, sizeof(seen_cells));
-    if (!cell_walkable(sx, sy) && !(cell_attr(sx, sy) & A_EXIT)) return;
-    int head = 0, tail = 0;
-    qx[tail] = sx;
-    qy[tail++] = sy;
-    seen_cells[sy * map_w + sx] = 1;
-    while (head < tail) {
-        int x = qx[head], y = qy[head++];
-        for (int d = 0; d < 4; d++) {
-            int nx = x + DIR_DX[d], ny = y + DIR_DY[d];
-            /* ledges: one-way hop south */
-            if (d == DIR_DOWN && nx >= 0 && ny >= 0 && nx < map_w && ny < map_h &&
-                (cell_attr(nx, ny) & A_LEDGE) && cell_walkable(nx, ny + 1))
-                ny++;
-            if (nx < 0 || ny < 0 || nx >= map_w || ny >= map_h) continue;
-            if (seen_cells[ny * map_w + nx] || !cell_walkable(nx, ny)) continue;
-            seen_cells[ny * map_w + nx] = 1;
-            qx[tail] = nx;
-            qy[tail++] = ny;
-        }
-    }
-}
-
-static int reached(int x, int y)
-{
-    return x >= 0 && y >= 0 && x < map_w && y < map_h && seen_cells[y * map_w + x];
-}
-
-static int reached_beside(int x, int y)
-{
-    for (int d = 0; d < 4; d++)
-        if (reached(x + DIR_DX[d], y + DIR_DY[d])) return 1;
-    return 0;
-}
+#include "tests/harness.h"
 
 /* A walkable cell of `map` to start flood fills from. */
 static void map_entry(int map, int *ex, int *ey)
@@ -140,7 +32,52 @@ static void map_entry(int map, int *ex, int *ey)
             }
         }
     }
+    /* no door or edge leads in: a ferry landing, a fly point, else the
+     * walkable cell nearest the middle (maps reached by boat or FLY) */
+    for (int i = 0; i < m->obj_count; i++)
+        if (m->objs[i].kind == OBJ_FERRY) {
+            *ex = m->objs[i].x;
+            *ey = m->objs[i].y + 1;
+            return;
+        }
+    for (int i = 0; i < FLY_POINT_COUNT; i++)
+        if (FLY_POINTS[i].map == map) {
+            *ex = FLY_POINTS[i].x;
+            *ey = FLY_POINTS[i].y;
+            return;
+        }
+    /* a placeholder interior no door leads to yet: start on its exit mat */
+    for (int y = 0; y < m->h; y++)
+        for (int x = 0; x < m->w; x++)
+            if (cell_attr(x, y) & A_EXIT) {
+                *ex = x;
+                *ey = y;
+                return;
+            }
+    int best = 1 << 30;
     *ex = *ey = 0;
+    for (int y = 0; y < m->h; y++)
+        for (int x = 0; x < m->w; x++)
+            if (cell_walkable(x, y) && absi(x - m->w / 2) + absi(y - m->h / 2) < best) {
+                best = absi(x - m->w / 2) + absi(y - m->h / 2);
+                *ex = x;
+                *ey = y;
+            }
+}
+
+/* Boulders, plates, gates, switches, barriers, pads, ice or currents: the
+ * map's reachability is test_puzzles.c's job. */
+static int map_has_puzzle(int m)
+{
+    for (int i = 0; i < MAPS[m].obj_count; i++) {
+        int k = MAPS[m].objs[i].kind;
+        if (k == OBJ_BOULDER || k == OBJ_PLATE || k == OBJ_GATE || k == OBJ_SWITCH || k == OBJ_BARRIER || k == OBJ_PAD)
+            return 1;
+    }
+    for (int y = 0; y < map_h; y++)
+        for (int x = 0; x < map_w; x++)
+            if (cell_attr(x, y) & (A_ICE | A_CURRENT)) return 1;
+    return 0;
 }
 
 static void test_maps(void)
@@ -149,7 +86,7 @@ static void test_maps(void)
     for (int m = 0; m < MAP_COUNT; m++) {
         const MapDef *d = &MAPS[m];
         if (d->w > MAP_MAX_W || d->h > MAP_MAX_H) rows_ok = 0;
-        for (int y = 0; y < d->h; y++)
+        for (int y = 0; d->rows && y < d->h; y++)   /* generated viewer maps have no rows */
             if ((int)strlen(d->rows[y]) != d->w) {
                 rows_ok = 0;
                 printf("  %s row %d is %d wide\n", d->name, y, (int)strlen(d->rows[y]));
@@ -166,14 +103,21 @@ static void test_maps(void)
         }
         map_load(m);
         field_load_tileset();
-        if (decor_tiles_used > 512) {
+        if (decor_tiles_wanted > SCENE_TILE_MAX) {
             budget_ok = 0;
-            printf("  %s needs %d scene tiles\n", d->name, decor_tiles_used);
+            printf("  %s needs %d scene tiles\n", d->name, decor_tiles_wanted);
         }
+        /* the loader skips a decor kind that no longer fits, so check each one landed */
+        for (int i = 0; i < d->decor_count; i++)
+            if (!decor_base[d->decor[i].kind]) {
+                budget_ok = 0;
+                printf("  %s: decor %s does not fit next to the tileset\n", d->name, DECOR_NAMES[d->decor[i].kind]);
+                break;
+            }
     }
     CHECK(rows_ok, "every map row has the declared width and fits the buffers");
     CHECK(stamps_ok && decor_ok, "stamps and decor fit their maps (and exist in the map's tileset)");
-    CHECK(budget_ok, "each map's tileset plus its decor fits the 512-tile scene charblock");
+    CHECK(budget_ok, "each map's tileset plus its decor fits the scene tiles");
 
     /* links are two-way and land on walkable cells */
     int links_ok = 1;
@@ -185,6 +129,41 @@ static void test_maps(void)
             if (MAPS[to].link[BACK[l]] != m) links_ok = 0;
         }
     CHECK(links_ok, "map links are two-way");
+
+    /* every walkable edge cell lands on a walkable cell of the neighbour
+     * (the edge contracts in docs/EXPANSION.md 9) */
+    int land_ok = 1;
+    for (int m = 0; m < MAP_COUNT; m++)
+        for (int l = 0; l < 4; l++) {
+            int to = MAPS[m].link[l];
+            if (to == MAP_NONE) continue;
+            static u8 xs[MAP_MAX_W + MAP_MAX_H];
+            int n = 0;
+            map_load(m);
+            int len = l < 2 ? map_w : map_h;
+            for (int k = 0; k < len; k++) {
+                int x = l < 2 ? k : (l == LINK_W ? 0 : map_w - 1);
+                int y = l < 2 ? (l == LINK_N ? 0 : map_h - 1) : k;
+                if (!(cell_attr(x, y) & (A_SOLID | A_WATER | A_LEDGE))) xs[n++] = (u8)k;
+            }
+            int off = MAPS[m].link_off[l];
+            map_load(to);
+            for (int i = 0; i < n; i++) {
+                int x, y;
+                switch (l) {
+                case LINK_N: x = xs[i] + off; y = map_h - 1; break;
+                case LINK_S: x = xs[i] + off; y = 0; break;
+                case LINK_W: x = map_w - 1; y = xs[i] + off; break;
+                default: x = 0; y = xs[i] + off; break;
+                }
+                if (x < 0 || y < 0 || x >= map_w || y >= map_h || (cell_attr(x, y) & (A_SOLID | A_WATER))) {
+                    land_ok = 0;
+                    printf("  %s -> %s: walking off at %d lands on a wall (%d,%d)\n", MAPS[m].name,
+                           MAPS[to].name, xs[i], x, y);
+                }
+            }
+        }
+    CHECK(land_ok, "walking off any edge lands on a walkable cell of the next map");
 
     int doors_ok = 1;
     for (int i = 0; i < WARP_COUNT; i++) {
@@ -199,8 +178,36 @@ static void test_maps(void)
         map_load(m);
         int ex, ey;
         map_entry(m, &ex, &ey);
-        flood(ex, ey);
-        for (int i = 0; i < NPC_COUNT; i++) {
+        /* the map as it is (gates shut, boulders in place); water is open on
+         * maps with water kin (surf routes). On puzzle maps people, satchels,
+         * doors and exits are proven by tools/tests/test_puzzles.c, which
+         * plays the real pushes, slides, switches and pads; a flood that
+         * assumed every gate open would prove nothing. */
+        int puzzle = map_has_puzzle(m);
+        int fmode = MAPS[m].water_zone ? FLOOD_SURF : FLOOD_WALK;
+        flood_ex(ex, ey, fmode);
+        if (puzzle) {
+            /* a boulder may cut one entrance off: union every way in */
+            static u8 all[MAP_MAX_W * MAP_MAX_H];
+            memcpy(all, seen_cells, sizeof(all));
+            for (int i = 0; i < WARP_COUNT; i++)
+                if (WARPS[i].dest == m) {
+                    flood_ex(WARPS[i].dx, WARPS[i].dy, fmode);
+                    for (int c = 0; c < map_w * map_h; c++) all[c] |= seen_cells[c];
+                }
+            for (int l = 0; l < 4; l++) {
+                if (MAPS[m].link[l] == MAP_NONE) continue;
+                for (int k = 0; k < (l < 2 ? map_w : map_h); k++) {
+                    int x = l < 2 ? k : (l == LINK_W ? 0 : map_w - 1);
+                    int y = l < 2 ? (l == LINK_N ? 0 : map_h - 1) : k;
+                    if (!cell_walkable(x, y) || all[y * map_w + x]) continue;
+                    flood_ex(x, y, fmode);
+                    for (int c = 0; c < map_w * map_h; c++) all[c] |= seen_cells[c];
+                }
+            }
+            memcpy(seen_cells, all, sizeof(all));
+        }
+        for (int i = 0; i < NPC_COUNT && !puzzle; i++) {
             if (NPCS[i].map != m) continue;
             int ok = reached_beside(NPCS[i].x, NPCS[i].y);
             for (int d = 0; d < 4 && !ok; d++) {
@@ -213,7 +220,7 @@ static void test_maps(void)
                        NPCS[i].x, NPCS[i].y);
             }
         }
-        for (int i = 0; i < ITEM_BALL_COUNT; i++)
+        for (int i = 0; i < ITEM_BALL_COUNT && !puzzle; i++)
             if (ITEM_BALLS[i].map == m && !reached_beside(ITEM_BALLS[i].x, ITEM_BALLS[i].y)) {
                 reach_ok = 0;
                 printf("  %s: satchel %d at %d,%d unreachable\n", MAPS[m].name, i, ITEM_BALLS[i].x, ITEM_BALLS[i].y);
@@ -224,12 +231,12 @@ static void test_maps(void)
                 reach_ok = 0;
                 printf("  %s: sign at %d,%d not solid/reachable\n", MAPS[m].name, SIGNS[i].x, SIGNS[i].y);
             }
-        for (int i = 0; i < WARP_COUNT; i++)
+        for (int i = 0; i < WARP_COUNT && !puzzle; i++)
             if (WARPS[i].map == m && !reached(WARPS[i].x, WARPS[i].y + 1)) {
                 reach_ok = 0;
                 printf("  %s: door at %d,%d unreachable\n", MAPS[m].name, WARPS[i].x, WARPS[i].y);
             }
-        for (int l = 0; l < 4; l++) {
+        for (int l = 0; l < 4 && !puzzle; l++) {
             if (MAPS[m].link[l] == MAP_NONE) continue;
             int found = 0;
             for (int k = 0; k < (l < 2 ? map_w : map_h); k++) {
@@ -279,8 +286,18 @@ static void test_maps(void)
         for (int q = 0; q < 4; q++)
             if ((interior_meta_bottom[m][q] & 0x3FF) >= INTERIOR_TILE_COUNT) tiles_ok = 0;
     CHECK(tiles_ok, "terrain metatiles point at real tiles");
-    CHECK(town_meta_top[MT_T_TALLGRASS][2] != 0 && wild_meta_top[MT_W_REEDS][2] != 0,
-          "tall grass and reeds have a front layer drawn over legs");
+    /* tall grass (grass.c): every variety's variants are wild-kin grass, drawn on
+     * BG0 only (the front blades over actors are sprites) */
+    int grass_ok = GRASS_SETS[TS_TOWN].count >= 1 && GRASS_SETS[TS_WILD].count >= 4;
+    for (int t = 0; t < TS_COUNT; t++)
+        for (int d = 0; d < GRASS_SETS[t].count; d++)
+            for (int v = 0; v < GRASS_VARIANTS; v++) {
+                int mt = GRASS_SETS[t].defs[d].meta[v];
+                if (mt >= TILESETS[t].meta_count || !(TILESETS[t].attr[mt] & A_GRASS)) grass_ok = 0;
+                for (int q = 0; q < 4; q++)
+                    if (TILESETS[t].meta_top[mt][q]) grass_ok = 0;
+            }
+    CHECK(grass_ok, "every tall-grass variant is wild-kin grass with its front blades as sprites");
 }
 
 /* ---------------- movement ---------------- */
@@ -289,24 +306,24 @@ static void test_movement(void)
 {
     fresh_game();
     CHECK(cur_map == MAP_HOME, "a new game starts at home");
-    field_enter_map(MAP_TOWN, 6, 9, DIR_DOWN);
+    field_enter_map(MAP_TOWN, 6, 10, DIR_DOWN);
     tap(KEY_RIGHT);
     CHECK(player.x == 6 && player.facing == DIR_RIGHT, "tapping a new direction only turns the player");
     hold(KEY_RIGHT, 40);
     settle();
-    CHECK(player.x >= 8 && player.y == 9 && player.ox == 0, "holding a direction walks cell by cell");
+    CHECK(player.x >= 8 && player.y == 10 && player.ox == 0, "holding a direction walks cell by cell");
     int x0 = player.x;
     hold(KEY_B | KEY_RIGHT, 16);
     settle();
     CHECK(player.x - x0 == 2, "holding B runs twice as fast");
 
-    field_enter_map(MAP_TOWN, 6, 7, DIR_UP);
+    field_enter_map(MAP_TOWN, 7, 8, DIR_UP);
     hold(KEY_UP, 4);
     for (int f = 0; f < 30; f++) step(0);
     CHECK(cur_map == MAP_HOME && player.x == 5 && player.y == 8, "walking into a door enters the house");
     hold(KEY_DOWN, 12);
     for (int f = 0; f < 30; f++) step(0);
-    CHECK(cur_map == MAP_TOWN && player.x == 6 && player.y == 7, "stepping off the mat leaves the house");
+    CHECK(cur_map == MAP_TOWN && player.x == 7 && player.y == 8, "stepping off the mat leaves the house");
 
     /* the village won't let you out without a kin */
     field_enter_map(MAP_TOWN, 19, 2, DIR_UP);
@@ -357,7 +374,7 @@ static void test_encounters(void)
     CHECK(in_grass, "they spawn in grass");
     int lv_lo = 99, lv_hi = 0;
     for (int n = 0; n < 60; n++) {
-        Monster m = roll_wild(0);
+        Monster m = roll_wild(ZONE_MEADOW);
         if (m.level < lv_lo) lv_lo = m.level;
         if (m.level > lv_hi) lv_hi = m.level;
     }
@@ -423,7 +440,7 @@ static void test_people(void)
     step(0);
     CHECK(starter_preview == 1, "the preview follows the cursor");
     for (f = 0; f < 1500 && dialog_active(); f++) step((f & 3) == 0 ? KEY_A : 0);
-    CHECK(party_count == 1 && party[0].species == SP_AQUAPO && (story_flags & FLAG_STARTER) &&
+    CHECK(party_count == 1 && party[0].species == SP_AQUAPO && (flag(FLAG_STARTER)) &&
           bag[ITEM_LANTERN] == 5 && dex_caught[SP_AQUAPO] && lore_is_known(LORE_KINDLING),
           "choosing gives the kit, lanterns, an Almanac entry and a Lorebook page");
 
@@ -431,11 +448,11 @@ static void test_people(void)
     field_enter_map(MAP_LAB, 3, 6, DIR_UP);
     tap(KEY_A);
     run_dialog(1200);
-    CHECK((story_flags & FLAG_TWIN_CRYSTAL) && bag[ITEM_HUSH_BELL] == 1, "Pip hands over the TWIN CRYSTAL");
+    CHECK((flag(FLAG_TWIN_CRYSTAL)) && bag[ITEM_HUSH_BELL] == 1, "Pip hands over the TWIN CRYSTAL");
 
     /* lore from people */
     int before = lore_known_count();
-    field_enter_map(MAP_TOWN, 16, 15, DIR_UP);
+    field_enter_map(MAP_TOWN, 11, 14, DIR_UP);
     tap(KEY_A);
     run_dialog(1200);
     CHECK(lore_known_count() == before + 1 && lore_is_known(lore_next_from(LSRC_ELDER) < 0 ? LORE_KINSHIP : LORE_KINSHIP),
@@ -452,12 +469,12 @@ static void test_people(void)
     CHECK(told == total, "people keep telling new lore until they run out");
 
     /* satchels are picked up once */
-    field_enter_map(MAP_TOWN, 36, 3, DIR_RIGHT);
+    field_enter_map(MAP_TOWN, 37, 6, DIR_UP);
     int t = bag[ITEM_TONIC];
     tap(KEY_A);
     run_dialog(400);
     CHECK(bag[ITEM_TONIC] == t + 2 && item_taken(0), "a satchel gives its item");
-    CHECK(cell_walkable(37, 3), "an opened satchel no longer blocks the way");
+    CHECK(cell_walkable(37, 5), "an opened satchel no longer blocks the way");
 
     /* the tender across the counter */
     party[0].hp = 1;
@@ -492,13 +509,13 @@ static void test_people(void)
     CHECK(bag[ITEM_BLOOM_SHARD] == 1, "the gardener gives exactly one BLOOM SHARD");
 
     /* the story: sash -> keeper -> stormstone -> DRAKORA */
-    story_flags |= FLAG_SASH;
+    flag_set(FLAG_SASH);
     field_enter_map(MAP_LAB, 6, 5, DIR_UP);
-    for (int n = 0; n < 8 && !(story_flags & FLAG_STORM_TOLD); n++) {
+    for (int n = 0; n < 8 && !(flag(FLAG_STORM_TOLD)); n++) {
         tap(KEY_A);
         run_dialog(1500);
     }
-    CHECK(story_flags & FLAG_STORM_TOLD, "with the RING SASH the Keeper sends you to the Stormstone");
+    CHECK(flag(FLAG_STORM_TOLD), "with the RING SASH the Keeper sends you to the Stormstone");
     party_heal_all();
     field_enter_map(MAP_RISE, STORMSTONE_X, STORMSTONE_Y + 1, DIR_UP);
     run_dialog(400);
@@ -511,7 +528,7 @@ static void test_people(void)
     battle.timer = 16;
     for (f = 0; f < 4 && game_mode == MODE_BATTLE; f++) step(0);
     run_dialog(2000);
-    CHECK((story_flags & FLAG_STORM_CALMED) && lore_is_known(LORE_CLEAR_SKIES), "winning calms the storm");
+    CHECK((flag(FLAG_STORM_CALMED)) && lore_is_known(LORE_CLEAR_SKIES), "winning calms the storm");
     CHECK(!storm_active(), "and the sky clears");
 }
 
@@ -562,7 +579,7 @@ static void test_menus(void)
     fresh_game();
     Monster team[3] = { monster_make(SP_FLARIX, 20), monster_make(SP_AQUAPO, 18), monster_make(SP_GOLEMIT, 15) };
     for (int i = 0; i < 3; i++) give_monster(&team[i]);
-    story_flags |= FLAG_STARTER | FLAG_TWIN_CRYSTAL;
+    flag_set(FLAG_STARTER); flag_set(FLAG_TWIN_CRYSTAL);
     bag[ITEM_TONIC] = 3;
     bag[ITEM_FROST_SHARD] = 1;
     field_enter_map(MAP_TOWN, 20, 16, DIR_DOWN);
@@ -721,14 +738,20 @@ static void test_menus(void)
     start_cursor = start_index(SM_SHELF);
     tap(KEY_A);
     CHECK(game_mode == MODE_PC, "SHELF opens the Lantern Shelf anywhere");
-    tap(KEY_SELECT);
-    CHECK(pc.deposit, "SELECT swaps between withdraw and deposit");
+    tap(KEY_LEFT);
+    CHECK(pc.page == 0, "LEFT / RIGHT flip between the team and the boxes");
     tap(KEY_A);
-    for (int f = 0; f < 200 && pc.state == 2; f++) step((f & 3) == 0 ? KEY_A : 0);
+    choice.cursor = 1; /* MOVE */
+    tap(KEY_A);
+    tap(KEY_RIGHT);
+    tap(KEY_A);
     CHECK(party_count == 2 && storage_count == 1, "a kin goes to the shelf");
-    tap(KEY_SELECT);
+    pc.cursor = 0;
     tap(KEY_A);
-    for (int f = 0; f < 200 && pc.state == 2; f++) step((f & 3) == 0 ? KEY_A : 0);
+    choice.cursor = 1; /* MOVE */
+    tap(KEY_A);
+    tap(KEY_LEFT);
+    tap(KEY_A);
     CHECK(party_count == 3 && storage_count == 0, "and comes back");
     tap(KEY_B);
     CHECK(game_mode == MODE_START_MENU, "B returns to the START menu");
@@ -743,17 +766,18 @@ static void test_saves(void)
     party[0].temper = 3;
     party[0].trait = party[0].trait;
     lore_learn(LORE_POLARITONS);
-    trainer_flags = 5;
+    trainer_mark_beaten(0);
+    trainer_mark_beaten(2);
     opt.text_speed = TEXT_FAST;
     field_enter_map(MAP_LAKE, 30, 17, DIR_LEFT);
     CHECK(save_write(), "saving works");
     Monster before = party[0];
     new_game();
     opt.text_speed = TEXT_MID;
-    CHECK(save_load() == 3, "a version 3 save loads back");
+    CHECK(save_load() == SAVE_VERSION, "a current save loads back");
     CHECK(cur_map == MAP_LAKE && player.x == 30 && party_count == 1 &&
           memcmp(&party[0], &before, sizeof(Monster)) == 0 && lore_is_known(LORE_POLARITONS) &&
-          trainer_flags == 5 && opt.text_speed == TEXT_FAST,
+          trainer_beaten(0) && !trainer_beaten(1) && trainer_beaten(2) && opt.text_speed == TEXT_FAST,
           "position, kin individuality, lore, wardens and options are restored");
     opt.text_speed = TEXT_MID;
 
@@ -775,15 +799,53 @@ static void test_saves(void)
     old.bag[ITEM_LANTERN] = 7;
     old.money = 1234;
     old.caught[SP_PYREFOX] = 1;
-    old.story_flags = FLAG_STARTER;
+    old.story_flags = 1u << FLAG_STARTER;
     old.checksum = fnv_bytes(&old, sizeof(old) - sizeof(old.checksum));
+    memset(host_sram, 0xFF, sizeof(host_sram));
     sram_write(&old, (volatile u8 *)MEM_SRAM, sizeof(old));
-    sram_write(&old, (volatile u8 *)MEM_SRAM + SAVE_BACKUP_OFFSET, sizeof(old));
+    sram_write(&old, (volatile u8 *)MEM_SRAM + SAVE_V3_BACKUP_OFFSET, sizeof(old));
     CHECK(save_load() == 2, "a version 2 save is recognised");
     CHECK(party_count == 1 && party[0].species == SP_PYREFOX && party[0].level == 20 &&
           party[0].moves[0] == M_SEAR_BITE && bag[ITEM_LANTERN] == 7 && money == 1234 &&
           monster_valid(&party[0]) && cur_map == MAP_HOME,
           "its team, bag, coins and Almanac carry over");
+
+    /* a version 3 save (the release before the expansion) migrates in full */
+    static SaveDataV3 v3;
+    memset(&v3, 0, sizeof(v3));
+    v3.magic = SAVE_MAGIC;
+    v3.version = 3;
+    v3.party_count = 1;
+    { Monster t = monster_make(SP_AXOLURK, 22); v3.party[0] = monster_to_v4(&t); }
+    v3.storage_count = 2;
+    { Monster t = monster_make(SP_GOLEMIT, 9); v3.storage[0] = monster_to_v4(&t); }
+    { Monster t = monster_make(SP_ZAPPET, 11); v3.storage[1] = monster_to_v4(&t); }
+    v3.storage[1].flags |= MF_LUSTROUS;
+    v3.bag[ITEM_HUSH_BELL] = 2;
+    v3.money = 4321;
+    v3.caught[SP_ZAPPET] = v3.seen[SP_ZAPPET] = 1;
+    v3.story_flags = (1u << FLAG_STARTER) | (1u << FLAG_SASH);
+    v3.item_flags[1] = 1u << 3;          /* satchel 35 */
+    v3.trainer_flags = 1u << 4;
+    v3.lore_known[0] = 0x81;
+    v3.options[0] = TEXT_FAST;
+    v3.map = MAP_WOOD;
+    v3.player_x = 20;
+    v3.player_y = 8;
+    v3.facing = DIR_UP;
+    v3.checksum = fnv_bytes(&v3, sizeof(v3) - sizeof(v3.checksum));
+    memset(host_sram, 0xFF, sizeof(host_sram));
+    sram_write(&v3, (volatile u8 *)MEM_SRAM + SAVE_V3_BACKUP_OFFSET, sizeof(v3));
+    CHECK(save_load() == 3, "a version 3 save is recognised (even from its backup slot)");
+    CHECK(party_count == 1 && party[0].species == SP_AXOLURK && storage_count == 2 &&
+          storage[1].species == SP_ZAPPET && (storage[1].flags & MF_LUSTROUS) &&
+          bag[ITEM_HUSH_BELL] == 2 && money == 4321 && dex_caught[SP_ZAPPET] &&
+          flag(FLAG_SASH) && item_taken(35) && !item_taken(34) && trainer_beaten(4) &&
+          lore_known[0] == 0x81 && opt.text_speed == TEXT_FAST && cur_map == MAP_WOOD &&
+          player.x == 20 && player.y == 8,
+          "the whole version 3 game carries over");
+    CHECK(save_write() && save_load() == SAVE_VERSION, "and it saves back as the current version");
+    opt.text_speed = TEXT_MID;
 }
 
 int main(void)

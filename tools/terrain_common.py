@@ -66,6 +66,23 @@ GRASS_C = G('''
 ''', GL)
 
 
+def _sun_patch(img, cx, cy, rx, ry, col, base='g_base'):
+    """A soft, ordered-dithered patch of col over the base colour (denser
+    in the middle, a sparse checker at the rim), kept inside the cell."""
+    B = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]
+    for y in range(img.h):
+        for x in range(img.w):
+            e = ((x + 0.5 - cx) / rx) ** 2 + ((y + 0.5 - cy) / ry) ** 2
+            if e >= 1.0 or img.p[y][x] != base:
+                continue
+            if B[y & 3][x & 3] < int((1.0 - e) * 14):
+                img.p[y][x] = col
+
+
+# the 1-in-4 grass variant carries a sunlit patch, dithered into the base
+_sun_patch(GRASS_B, 8.0, 8.5, 6.5, 4.5, 'g_lt')
+
+
 def grass_img(w, h, tex=None):
     img = Img(w, h)
     tex_fill(img, tex or GRASS_A)
@@ -189,8 +206,9 @@ mmmdmmmmmmmdmmmm
 TREE_RAMP = ['t_hi', 't_lt', 't_base', 't_mid', 't_dk']
 
 
-def tree_img():
-    """16x32 tree on grass."""
+def tree_img(overlay=False):
+    """16x32 tree on grass; overlay=True: on transparent ground (the engine
+    draws whatever ground the tree stands on underneath)."""
     clumps = [
         (8.0, 8.0, 6.5, 6.5),
         (4.5, 13.0, 4.5, 4.6), (11.5, 13.0, 4.5, 4.6),
@@ -202,7 +220,7 @@ def tree_img():
                             clip=lambda x, y: 1 <= x <= 14)
     img = Img(16, 32)
     TK = {'.': None, 'O': 't_out', 'l': 'k_lt', 'b': 'k_base', 'd': 'k_dk',
-          's': 'g_dk'}
+          's': None if overlay else 'g_dk'}
     trunk = G('''
     .OlbbdO.
     .OlbbdO.
@@ -214,7 +232,15 @@ def tree_img():
     ''', dict(TK, o='t_out'))
     img.paste(trunk, 4, 24)
     img.paste(can, 0, 0)
-    fill_grass(img)
+    if overlay:
+        # a checker-dithered shadow pool around the foot of the trunk
+        for y in range(26, 32):
+            for x in range(16):
+                e = ((x + 0.5 - 8) / 7.2) ** 2 + ((y + 0.5 - 29.5) / 2.7) ** 2
+                if e <= 1.0 and img.p[y][x] is None and (x + y) % 2 == 0:
+                    img.p[y][x] = 'g_dk'
+    else:
+        fill_grass(img)
     return img
 
 
@@ -313,8 +339,22 @@ def quad_sdf(v, px, py, E, R, Rn, wob):
     raise ValueError(v)
 
 
-def autotile(color_at, E, R, Rn, wob=lambda t: 0.0):
-    """color_at(d, X, Y, c, v) -> color name. Returns quads[c][v] = Img 8x8."""
+# Ordered dither (4x4 Bayer) shared by the terrain generators: every band
+# boundary of an autotile (grass -> rim -> path, shore -> shallows -> deep)
+# is broken into a checker so transitions read soft, the GBA way.
+BAYER4 = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]
+DITHER = 1.1   # px of distance the ordered dither spreads each boundary over
+
+
+def bayer(x, y):
+    """Threshold in [-0.5, 0.5) at absolute pixel (x, y)."""
+    return (BAYER4[y & 3][x & 3] + 0.5) / 16.0 - 0.5
+
+
+def autotile(color_at, E, R, Rn, wob=lambda t: 0.0, dither=DITHER):
+    """color_at(d, X, Y, c, v) -> color name. Returns quads[c][v] = Img 8x8.
+    d is jittered by an ordered dither (dither px, 0 = hard edges); the
+    full-inside variant (v 0) is never dithered."""
     quads = []
     for c in range(4):
         row = []
@@ -327,6 +367,8 @@ def autotile(color_at, E, R, Rn, wob=lambda t: 0.0):
                     lx = x if (c & 1) == 0 else 7 - x
                     ly = y if (c >> 1) == 0 else 7 - y
                     d = quad_sdf(v, lx + 0.5, ly + 0.5, E, R, Rn, wob)
+                    if v:
+                        d += bayer(X, Y) * dither
                     img.p[y][x] = color_at(d, X, Y, c, v, lx, ly)
             row.append(img)
         quads.append(row)
@@ -358,16 +400,18 @@ def path_quads():
         return 0.0
 
     def color_at(d, X, Y, c, v, lx, ly):
-        if d < -1.0:
+        # grass, its shaded lip, a trodden sandy rim, then the path; the
+        # ordered dither mixes each pair of bands over about two pixels
+        if d < -1.5:
             return GRASS_A.p[Y][X]
-        if d < 0:
-            return 'g_base'
-        if d < 1.0:
+        if d < -0.5:
+            return 'g_mid'
+        if d < 0.5:
             return 's_mid'
-        if d < 2.0:
+        if d < 1.5:
             return 's_base'
         return PATH_TEX.p[Y][X]
-    return autotile(color_at, E=2.0, R=5.0, Rn=2.0, wob=wob)
+    return autotile(color_at, E=2.0, R=5.0, Rn=2.0, wob=wob, dither=1.9)
 
 
 WAVES = [(1, 1, 3), (12, 2, 3), (7, 5, 3), (3, 9, 2), (13, 9, 3), (10, 12, 3)]

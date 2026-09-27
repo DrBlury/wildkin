@@ -36,6 +36,7 @@ SECTIONS
     .data : AT (__data_lma) {
         __data_start = .;
         *(.data*)
+        *(.iwram*)      /* IWRAM_CODE: ARM functions copied to IWRAM with .data */
         . = ALIGN(4);
         __data_end = .;
     } > iwram

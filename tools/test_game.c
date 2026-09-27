@@ -74,9 +74,10 @@ static void fresh_game(void)
 
 static void test_data(void)
 {
-    CHECK(MOVE_COUNT == 74, "there are exactly 74 learnable moves");
-    CHECK(SP_COUNT == 32, "there are 32 species (20 new ones)");
-    CHECK(ITEM_COUNT == 17, "there are 17 different items");
+    CHECK(MOVE_COUNT == 130, "there are exactly 130 learnable moves (docs/EXPANSION.md 5)");
+    CHECK(SP_COUNT == 174, "there are 174 species (docs/EXPANSION.md 4)");
+    CHECK(ITEM_COUNT >= 100, "there are at least 100 different items");
+    CHECK(TYPE_COUNT == 18, "there are 18 types");
 
     int moves_ok = 1, names_ok = 1, anim_ok = 1;
     for (int i = 0; i < MOVE_TABLE_SIZE; i++) {
@@ -101,9 +102,11 @@ static void test_data(void)
     for (int a = 0; a < MOVE_COUNT; a++)
         for (int b = a + 1; b < MOVE_COUNT; b++)
             if (MOVES[a].anim == MOVES[b].anim && MOVES[a].fx == MOVES[b].fx &&
-                MOVES[a].col1 == MOVES[b].col1 && MOVES[a].count == MOVES[b].count)
+                MOVES[a].col1 == MOVES[b].col1 && MOVES[a].count == MOVES[b].count) {
                 distinct = 0;
-    CHECK(distinct, "all 60 moves have their own animation recipe");
+                printf("     %s and %s look alike\n", MOVES[a].name, MOVES[b].name);
+            }
+    CHECK(distinct, "every move has its own animation recipe");
 
     int learned[MOVE_COUNT] = { 0 };
     int ls_ok = 1, stab_ok = 1, species_ok = 1, text_ok = 1;
@@ -114,10 +117,15 @@ static void test_data(void)
             !renderable(sp->category) || text_width(sp->category) > 72)
             text_ok = 0;
         if (sp->type1 >= TYPE_COUNT || (sp->type2 != TYPE_NONE && sp->type2 >= TYPE_COUNT) ||
-            sp->type1 == sp->type2 || sp->catch_rate < 3 || !sp->xp_yield)
+            sp->type1 == sp->type2 || sp->catch_rate < 3 || !sp->xp_yield) {
             species_ok = 0;
+            printf("     %s: bad types / catch / xp\n", sp->name);
+        }
         for (int b = 0; b < BS_COUNT; b++)
-            if (sp->base[b] < 20 || sp->base[b] > 135) species_ok = 0;
+            if (sp->base[b] < 20 || sp->base[b] > (sp->rarity == R_LEGEND ? 160 : 150)) {
+                species_ok = 0;
+                printf("     %s: base stat %d out of range\n", sp->name, sp->base[b]);
+            }
         if (sp->learnset[0].level != 1) ls_ok = 0;
         for (const LearnEntry *e = sp->learnset; e->level; e++, n++) {
             if (e->level < prev || e->move >= MOVE_COUNT) ls_ok = 0;
@@ -126,8 +134,14 @@ static void test_data(void)
             if (MOVES[e->move].power && species_has_type(s, MOVES[e->move].type) && e->level <= 20)
                 has_stab = 1;
         }
-        if (n < 6) ls_ok = 0;
-        if (!has_stab) stab_ok = 0;
+        if (n < 6) {
+            ls_ok = 0;
+            printf("     %s: only %d moves\n", sp->name, n);
+        }
+        if (!has_stab) {
+            stab_ok = 0;
+            printf("     %s: no same-type attack by Lv20\n", sp->name);
+        }
     }
     CHECK(species_ok, "species types, base stats and catch rates are sane");
     CHECK(text_ok, "species names, categories and catalogue text fit the UI");
@@ -139,7 +153,7 @@ static void test_data(void)
             all_learned = 0;
             printf("     move %s is never learned\n", MOVES[m].name);
         }
-    CHECK(all_learned, "every one of the 60 moves can be learned by some species");
+    CHECK(all_learned, "every move can be learned by some species");
 
     int evo_ok = 1, evo_count = 0, stone_evos = 0;
     for (int s = 0; s < SP_COUNT; s++) {
@@ -157,13 +171,15 @@ static void test_data(void)
         if (species_prevo(into) != s) evo_ok = 0;
     }
     CHECK(evo_ok, "evolutions point forward, raise base stats and use stones correctly");
-    CHECK(evo_count >= 15 && stone_evos == 4, "there are level and stone evolutions");
+    CHECK(evo_count >= 50 && stone_evos >= 8, "there are level and shard growths");
 
     int items_ok = 1;
     for (int i = 0; i < ITEM_COUNT; i++)
         if (!renderable(ITEMS[i].name) || text_width(ITEMS[i].name) > 88 || !renderable(ITEMS[i].desc) ||
-            ITEMS[i].pocket >= POCKET_COUNT)
+            ITEMS[i].pocket >= POCKET_COUNT || ITEMS[i].icon >= ICON_COUNT) {
             items_ok = 0;
+            printf("     item %s does not fit (%d px)\n", ITEMS[i].name, text_width(ITEMS[i].name));
+        }
     CHECK(items_ok, "items have renderable names, descriptions and a pocket");
 
     /* type chart */
@@ -229,7 +245,8 @@ static void test_monsters(void)
           monster_item_evolution(&thornip, ITEM_FROST_SHARD) < 0 && monster_level_evolution(&thornip) < 0,
           "stone evolutions need the right stone");
 
-    /* damage math */
+    /* damage math (seeded: independent of how much the world data drew from the rng) */
+    rng_seed(7);
     Monster att = monster_make(SP_FLARIX, 30);
     Monster grass = monster_make(SP_DANDELAMB, 30), water = monster_make(SP_AQUAPO, 30);
     DamageResult se = calc_damage(&att, 0, &grass, 0, M_CINDER_FLICK, 0, 100);
@@ -518,8 +535,9 @@ static void test_save(void)
     }
     bag[ITEM_GLOW_LANTERN] = 7;
     money = 4321;
-    story_flags = FLAG_STARTER | FLAG_LEAF_STONE;
-    item_flags[0] = 5;
+    flags_story_clear(); flag_set(FLAG_STARTER); flag_set(FLAG_LEAF_STONE);
+    item_take(0);
+    item_take(2);
     field_enter_map(MAP_SHOP, 3, 5, DIR_LEFT);
 
     static u8 sram[32768];
@@ -527,14 +545,14 @@ static void test_save(void)
     CHECK(!save_load_from(sram), "blank SRAM loads nothing");
     CHECK(save_write_to(sram), "saving writes and verifies both slots");
     fresh_game();
-    CHECK(save_load_from(sram) == 3 && party_count == 6 && storage_count == 4 &&
+    CHECK(save_load_from(sram) == SAVE_VERSION && party_count == 6 && storage_count == 4 &&
           bag[ITEM_GLOW_LANTERN] == 7 && money == 4321 && cur_map == MAP_SHOP &&
           player.x == 3 && player.y == 5 && player.facing == DIR_LEFT &&
-          (story_flags & FLAG_LEAF_STONE) && item_flags[0] == 5 && party[0].species == SP_AQUAPO,
+          flag(FLAG_LEAF_STONE) && item_taken(0) && !item_taken(1) && item_taken(2) && party[0].species == SP_AQUAPO,
           "loading restores team, PC storage, bag, money, flags and position");
     sram[20] ^= 0x55;
     fresh_game();
-    CHECK(save_load_from(sram) == 3 && party_count == 6, "a damaged primary slot falls back to the backup");
+    CHECK(save_load_from(sram) == SAVE_VERSION && party_count == 6, "a damaged primary slot falls back to the backup");
     sram[SAVE_BACKUP_OFFSET + 20] ^= 0x55;
     fresh_game();
     CHECK(!save_load_from(sram), "two damaged slots are rejected");
@@ -563,7 +581,7 @@ static void test_save(void)
     fresh_game();
     CHECK(save_load_from(sram) == 1 && party_count == 2 && party[0].species == SP_FLARIX &&
           party[0].level == 12 && party[1].species == SP_GOLEMIT && bag[ITEM_TONIC] == 4 &&
-          bag[ITEM_LANTERN] == 6 && dex_caught[SP_GOLEMIT] && (story_flags & FLAG_STARTER) &&
+          bag[ITEM_LANTERN] == 6 && dex_caught[SP_GOLEMIT] && (flag(FLAG_STARTER)) &&
           party[0].hp == party[0].max_hp / 2,
           "old saves migrate: team, HP ratio, bag and catalogue carry over");
 }
@@ -760,11 +778,45 @@ static void test_traits(void)
     }
     CHECK(escaped == 20, "SLIPPERY always escapes from wild bouts");
 
+    /* no fleeing a bout with another keeper, not even when SLIPPERY */
+    duel(SP_GOLEMIT, 5, SP_VOLTUX, 40);
+    battle.kind = BK_TRAINER;
+    party[0].trait = TR_SLIPPERY;
+    battle_try_run();
+    CHECK(battle.result == BR_NONE && battle_run_chance() == 0, "keeper bouts can't be fled");
+
+    /* lantern odds: better lanterns and a weaker foe both raise them */
+    duel(SP_FLARIX, 20, SP_NIBBIT, 5);
+    foe = side_mon(SIDE_ENEMY);
+    int plain = lantern_catch_pct(ITEM_LANTERN), star = lantern_catch_pct(ITEM_STAR_LANTERN);
+    foe->hp = 1;
+    int tired = lantern_catch_pct(ITEM_LANTERN);
+    CHECK(plain >= 0 && plain <= star && plain <= tired && tired <= 100, "lantern odds rise with finesse and fatigue");
+    int got = 0;
+    rng_seed(77);
+    for (int i = 0; i < 400; i++) got += catch_shakes(foe, lantern_finesse(ITEM_LANTERN)) == 4;
+    CHECK(got / 4 >= tired - 8 && got / 4 <= tired + 8, "the shown odds match the real catch rate");
+    battle.kind = BK_TRAINER;
+    CHECK(lantern_catch_pct(ITEM_LANTERN) < 0, "no odds are shown in keeper bouts");
+
+    /* blacking out wakes you in the Hearth Hall you last rested in */
+    duel(SP_FLARIX, 20, SP_NIBBIT, 5);
+    field_enter_map(MAP_LUMEN_HEARTH, 5, 5, DIR_UP);
+    hearth_rest();
+    field_enter_map(MAP_TOWN, 6, 8, DIR_DOWN);
+    party[0].hp = 1;
+    battle.result = BR_LOSE;
+    battle_exit();
+    CHECK(cur_map == MAP_LUMEN_HEARTH && party[0].hp == party[0].max_hp, "a blackout returns you to the last Hearth Hall, healed");
+    dialog_clear();
+    game_mode = MODE_FIELD;
+
     /* KEEN EYE: perfect strikes about twice as often */
     int crit_plain = 0, crit_keen = 0;
     rng_seed(9);
     for (int i = 0; i < 400; i++) {
         duel(SP_THORNIP, 30, SP_BOULDRON, 60);
+        rng_seed(9000 + i); /* independent of how much the world data drew from the rng */
         party[0].trait = i & 1 ? TR_KEEN_EYE : TR_SPORESKIN;
         side_mon(SIDE_ENEMY)->trait = TR_BRUISER;
         use_move(SIDE_ALLY, M_SWIPE);
@@ -958,9 +1010,45 @@ static void test_wardens_and_story(void)
     fresh_game();
     give_monster(&m);
     battle_next_scene = BSCENE_STORM;
-    battle_start_wild(monster_make(SP_DRAKORA, 40));
+    battle_start_wild(monster_make(SP_PYREFOX, 40));   /* not a legend: legends refuse with their own line */
     CHECK(battle.scene == BSCENE_STORM, "battle_next_scene picks the background");
     battle_next_scene = BSCENE_MEADOW;
+
+    /* legends: their own intro, no running */
+    fresh_game();
+    give_monster(&m);
+    battle_start_legend(monster_make(SP_DRAKORA, 40), BSCENE_LAIR);
+    CHECK(battle.legend && battle.no_run && battle.scene == BSCENE_LAIR, "a legend bout sets legend, no_run and its lair");
+    battle_queue_intro();
+    CHECK(count_text("The legendary DRAKORA rises before you!") == 1 && battle.ev[1].type == EV_LEGEND,
+          "a legend rears up and rises before you");
+    battle.ev_count = 0;
+    battle.no_run = 0;
+
+    /* Hall Masters: title and banner */
+    {
+        static TrainerTeam hm;
+        hm.name = "ODESSA";
+        hm.count = 2;
+        hm.species[0] = SP_PYREFOX; hm.level[0] = 20;
+        hm.species[1] = SP_AXOLURK; hm.level[1] = 20;
+        hm.prize = 1000;
+        hm.scene = BSCENE_RING;
+        hm.lose_line = "ODESSA: Well fought.";
+        fresh_game();
+        give_monster(&m);
+        battle_start_master(&hm);
+        CHECK(battle.master && str_eq(battle.foe_title, "HALL MASTER ODESSA"), "a Hall Master is titled HALL MASTER");
+        battle_queue_intro();
+        CHECK(battle.ev[0].type == EV_BANNER && str_eq(battle.ev[0].text, "HALL MASTER ODESSA") &&
+              count_text("HALL MASTER ODESSA wants a bout!") == 1, "a Hall Master opens with the banner");
+        battle.ev_count = 0;
+        battle_settle(3000);
+        CHECK(battle.state == BST_ACTION || battle.state == BST_MOVES, "a Hall Master bout reaches the menu");
+    }
+    fresh_game();
+    give_monster(&m);
+    battle_start_wild(monster_make(SP_PYREFOX, 40));
 
     /* story bouts: no running */
     battle.no_run = 1;
@@ -1068,7 +1156,7 @@ static void test_animations_and_sound(void)
     opt.sound = 0;
     sfx_update();
     sfx_play(SFX_CONFIRM);
-    CHECK(!sfx_busy() && !(REG16(0x084) & 0x80), "sound off silences everything");
+    CHECK(!sfx_busy() && !(REG16(0x080) & 0xFF00), "sound off silences every effect (music is separate)");
     opt.sound = 1;
     int all_end = 1;
     for (int id = 1; id < SFX_COUNT; id++) {
@@ -1139,6 +1227,88 @@ static void tier_balance(const char *name, const int *tier, int n, int level, in
     CHECK(ok, msg);
 }
 
+/* ---- the whole roster, tiered by stage and rarity (docs/EXPANSION.md 3-4) ---- */
+
+static int evolves_from_something(int sp)
+{
+    for (int s = 0; s < SP_COUNT; s++)
+        if (SPECIES[s].evo_kind != EVO_NONE && SPECIES[s].evo_into == sp) return 1;
+    return 0;
+}
+
+/* Round robin: every kin meets up to `opp` evenly spaced tier-mates,
+ * `games` times from each side. Prints the kin outside [lo, hi]. */
+static int sampled_tier(const char *name, const int *tier, int n, int level, int lo, int hi, int opp, int games)
+{
+    int ok = 1, worst_lo = 100, worst_hi = 0;
+    rng_seed(0xBA1A2CEu);
+    for (int i = 0; i < n; i++) {
+        int wins = 0, played = 0;
+        int k = opp < n - 1 ? opp : n - 1;
+        for (int j = 1; j <= k; j++) {
+            int o = tier[(i + j * (n - 1) / k) % n];
+            if (o == tier[i]) continue;
+            for (int g = 0; g < games; g++) {
+                wins += sim_battle(tier[i], o, level);
+                wins += !sim_battle(o, tier[i], level);
+                played += 2;
+            }
+        }
+        int pct = played ? wins * 100 / played : 50;
+        if (pct < worst_lo) worst_lo = pct;
+        if (pct > worst_hi) worst_hi = pct;
+        if (pct < lo || pct > hi) {
+            ok = 0;
+            printf("       %-12s %3d%%  (%s tier, Lv%d)\n", SPECIES[tier[i]].name, pct, name, level);
+        }
+    }
+    printf("     %s tier: %d kin at Lv%d, win rates %d%%..%d%%\n", name, n, level, worst_lo, worst_hi);
+    return ok;
+}
+
+static void roster_balance(void)
+{
+    static int basic[SP_COUNT], final_[SP_COUNT], rare[SP_COUNT], fusion[SP_COUNT], legend[SP_COUNT];
+    int nb = 0, nf = 0, nr = 0, nu = 0, nl = 0;
+    for (int s = 0; s < SP_COUNT; s++) {
+        const Species *sp = &SPECIES[s];
+        int from = evolves_from_something(s), into = sp->evo_kind != EVO_NONE;
+        switch (sp->rarity) {
+        case R_LEGEND: legend[nl++] = s; break;
+        case R_FUSION: fusion[nu++] = s; break;
+        case R_RARE: if (!into) rare[nr++] = s; break;
+        default:
+            if (!from && into) basic[nb++] = s;
+            if (!into) final_[nf++] = s;
+            break;
+        }
+    }
+    int ok = 1;
+    ok &= sampled_tier("basic", basic, nb, 15, 20, 85, 64, 2);
+    ok &= sampled_tier("final", final_, nf, 50, 20, 85, 64, 2);
+    if (nr > 1) ok &= sampled_tier("rare", rare, nr, 50, 20, 85, 64, 2);
+    if (nu > 1) ok &= sampled_tier("fusion", fusion, nu, 50, 20, 85, 64, 2);
+    CHECK(ok, "the whole roster stays within a 20%..85% win rate in its tier");
+    /* legends beat the regular finals most of the time */
+    int weak = 0;
+    rng_seed(0x1E6E2Du);
+    for (int i = 0; i < nl; i++) {
+        int wins = 0, played = 0;
+        for (int j = 0; j < 8 && nf; j++) {
+            int o = final_[(i * 7 + j * nf / 8) % nf];
+            wins += sim_battle(legend[i], o, 50);
+            wins += !sim_battle(o, legend[i], 50);
+            played += 2;
+        }
+        if (played && wins * 100 / played < 55) {
+            weak++;
+            printf("       legend %-12s wins only %d%% against final forms\n", SPECIES[legend[i]].name,
+                   wins * 100 / played);
+        }
+    }
+    CHECK(nl > 0 && weak == 0, "every legend beats regular final forms most of the time");
+}
+
 static void test_balance(void)
 {
     fresh_game();
@@ -1156,6 +1326,7 @@ static void test_balance(void)
     int legend = 0;
     for (int i = 0; i < 20; i++) legend += sim_battle(SP_DRAKORA, SP_GNAWLORD, 50);
     CHECK(legend >= 12, "the legendary DRAKORA beats a regular final form most of the time");
+    roster_balance();
     party_count = 0;
 }
 

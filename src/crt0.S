@@ -17,14 +17,15 @@ _start:
     .endr
 
 rom_start:
-    @ IRQ stack
+    @ IRQ stack: 0x03007D00-0x03007FA0 (the music interrupt runs the
+    @ sequencer and mixer on it)
     mov r0, #0x12                 @ IRQ mode
     msr cpsr_c, r0
     ldr sp, =0x03007FA0
-    @ System stack (main runs in system mode)
+    @ System stack (main runs in system mode), grows down from below it
     mov r0, #0x1F                 @ system mode
     msr cpsr_c, r0
-    ldr sp, =0x03007F00
+    ldr sp, =0x03007D00
 
     @ Copy .data from ROM to IWRAM
     ldr r0, =__data_lma

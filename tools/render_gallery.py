@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the kin gallery (all 32 front sprites with numbers, names and
+"""Render the kin gallery (every front sprite with numbers, names and
 types) straight from the generated src/gfx_monsters.h, i.e. exactly the
 pixels the GBA shows.
 
@@ -23,10 +23,10 @@ def parse_u32_array(src, name):
 
 
 def species_info():
-    src = open(os.path.join(ROOT, 'src', 'game', 'data.h')).read()
+    src = open(os.path.join(ROOT, 'src', 'species_data.h')).read()
     body = src[src.index('static const Species SPECIES'):]
     out = []
-    for m in re.finditer(r'SPC\("(\w+)", T_(\w+), (?:T_(\w+)|TYPE_NONE)', body):
+    for m in re.finditer(r'\[SP_\w+\] = \{ "(\w+)", T_(\w+), (?:T_(\w+)|TYPE_NONE)', body):
         out.append((m.group(1), m.group(2), m.group(3)))
     return out
 
@@ -49,6 +49,8 @@ TYPE_RGB = {
     'BRAWL': (192, 64, 40), 'VENOM': (160, 64, 160), 'STONE': (200, 160, 96),
     'GALE': (152, 160, 240), 'DREAM': (248, 96, 152), 'SWARM': (160, 184, 32),
     'DUSK': (96, 72, 136), 'WYRM': (112, 64, 240),
+    'HOLLOW': (120, 112, 128), 'RELIC': (176, 136, 72), 'METAL': (136, 152, 168),
+    'ASTRAL': (72, 88, 176),
 }
 
 
@@ -60,7 +62,7 @@ def main(argv):
     pals = parse_u32_array(src, 'mon_palettes')
     info = species_info()
     n = len(info)
-    cols, cw, ch = 8, 80, 92
+    cols, cw, ch = 12, 80, 92
     rows = (n + cols - 1) // cols
     cv = Canvas(cols * cw, rows * ch, bg=(28, 30, 44))
     for i, (name, t1, t2) in enumerate(info):
@@ -71,7 +73,7 @@ def main(argv):
         words = front[i * 512:(i + 1) * 512]
         pal = pals[i * 16:(i + 1) * 16]
         blit_sprite(cv, words, pal, x0 + 8, y0 + 4, 8, 8)
-        draw_label(cv, x0 + 5, y0 + 70, '%02d %s' % (i + 1, name))
+        draw_label(cv, x0 + 5, y0 + 70, '%03d %s' % (i + 1, name))
         for k, t in enumerate([t for t in (t1, t2) if t]):
             rgb = TYPE_RGB.get(t, (200, 200, 200))
             for yy in range(y0 + 79, y0 + 86):

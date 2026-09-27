@@ -1,0 +1,10 @@
+/* world/north/script_ids.inc -- NPC script ids: SCR_X,. Owner: W-NORTH. */
+    SCR_FROST_TENDER,
+    SCR_FROST_SHOP,
+    SCR_RIME_GUIDE,
+    SCR_RIME_MASTER,
+    SCR_ICE_CARVER,
+    SCR_STARGAZER,
+    SCR_GROTTO_SCHOLAR,
+    SCR_SPRING_KEEPER,
+    SCR_ALDER_GRAN,

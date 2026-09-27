@@ -3999,19 +3999,64 @@ def drakora():
     return m
 
 
-SPECIES = [
-    ('FLARIX', flarix), ('PYREFOX', pyrefox), ('INFERNOX', infernox),
-    ('AQUAPO', aquapo), ('AXOLURK', axolurk), ('TIDALOTL', tidalotl),
-    ('DANDELAMB', dandelamb), ('PUFFLEECE', puffleece), ('ZEPHRAM', zephram),
-    ('CINDERUB', cinderub), ('MAGMAUL', magmaul), ('BUBBLIN', bubblin),
-    ('GLACIBLOB', glacibloob), ('THORNIP', thornip), ('BRAMBLOR', bramblor),
-    ('MOSSHELL', mosshell), ('TERRASHELL', terrashell), ('ZAPPET', zappet),
-    ('STORMHAWK', stormhawk), ('VOLTUX', voltux), ('VOLTLOPE', voltlope),
-    ('GOLEMIT', golemit), ('BOULDRON', bouldron), ('PUFFOWL', puffowl),
-    ('HOOTLORD', hootlord), ('SKYWISP', skywisp), ('LUMOTH', lumoth),
-    ('NIBBIT', nibbit), ('GNAWLORD', gnawlord), ('FROSTOAT', frostoat),
-    ('WISPIRE', wispire), ('DRAKORA', drakora),
-]
+# ---- placeholders for roster entries that have no art yet ----------------
+TYPE_RAMPS = {
+    'BEAST': ['#6a4a30', '#9c7248', '#c8a070', '#ecd2a4'], 'BLAZE': ['#8a2418', '#d0482a', '#f48a3c', '#ffd070'],
+    'TIDE': ['#1c3c90', '#3470d0', '#62a8f0', '#b2e2ff'], 'BLOOM': ['#2c5a1c', '#4a8a2c', '#7cc044', '#c4ec8c'],
+    'SPARK': ['#8a6a08', '#d0a818', '#f4dc40', '#fff6a8'], 'FROST': ['#3a6c90', '#68a4c8', '#a4d8ec', '#e8fbff'],
+    'BRAWL': ['#6c1c14', '#a8382a', '#d86a4c', '#f4ac8c'], 'VENOM': ['#48184c', '#7a3486', '#b060bc', '#e0a6e6'],
+    'STONE': ['#4c3c28', '#7c6644', '#a89068', '#d4c29c'], 'GALE': ['#3c4c8c', '#6478c4', '#98acec', '#d4e0ff'],
+    'DREAM': ['#8a2458', '#c84c8c', '#f082b8', '#ffc4e0'], 'SWARM': ['#48560c', '#788a1c', '#a8bc3c', '#dcec84'],
+    'DUSK': ['#1c1430', '#382a58', '#5c4a88', '#9082bc'], 'WYRM': ['#2c1870', '#4a30b0', '#7658e0', '#b4a0ff'],
+    'HOLLOW': ['#4a4640', '#8a857a', '#c4beac', '#f2eee0'], 'RELIC': ['#5a3410', '#946020', '#c89440', '#f2d488'],
+    'METAL': ['#343c48', '#5a6878', '#8c9cac', '#d0dce6'], 'ASTRAL': ['#34206c', '#6448b4', '#9c88e4', '#dcd2ff'],
+}
+
+
+def placeholder_model(spec):
+    """A plain stand-in until the real art exists: body + head in type colours."""
+    import zlib as _z
+    h = _z.crc32(spec.name.encode())
+    m = Model(spec.name)
+    m.mat('a', TYPE_RAMPS[spec.types[0]])
+    m.mat('b', TYPE_RAMPS[spec.types[-1]][1:])
+    m.outline = (32, 24, 40)
+    big = spec.rarity in 'LF'
+    m.height = 40 if big else 32
+    body_c, body_r = (0, 8, -1), (7.5 + (h % 3), 6.5, 8)
+    m.ell(body_c, body_r, 'a', 'body')
+    head_c, head_r = (0, 17 + (h >> 3) % 3, 4), (6.5, 6, 6)
+    m.ell(head_c, head_r, 'a', 'head')
+    m.paint((0, 8, 6), (5, 4.5, 3.5), 'b', ['body'])
+    for sgn in (-1, 1):
+        m.ell((sgn * 4, 2, 2), (2.2, 2.4, 2.4), 'a', 'foot%d' % sgn)
+        kind = (h >> 5) % 3
+        if kind == 0:
+            m.tube([(sgn * 3.5, 22, 3), (sgn * 5.5, 27, 2)], [2.0, 0.4], 'b', 'ear%d' % sgn)
+        elif kind == 1:
+            m.ell((sgn * 6.2, 20, 3), (1.6, 3, 2), 'b', 'ear%d' % sgn)
+    m.tube([(0, 8, -8), (0, 11, -12), (0, 14, -13)], [2.4, 1.8, 0.6], 'b', 'tail')
+    eye_pair(m, head_c, head_r, 28, 10, 3.6, 4.6, iris=('a', 0), center=(0, 17, 12))
+    return m
+
+
+def _roster():
+    """(name, build function) for every species in id order (tools/kin/)."""
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import kin
+    out = []
+    g = sys.modules[__name__]
+    for spec in kin.load():
+        if isinstance(spec.model, str):
+            out.append((spec.name, globals()[spec.model]))
+        elif callable(spec.model):
+            out.append((spec.name, (lambda f: (lambda: f(g)))(spec.model)))
+        else:
+            out.append((spec.name, (lambda sp: (lambda: placeholder_model(sp)))(spec)))
+    return out
+
+
+SPECIES = _roster()
 
 
 # --------------------------------------------------------------------------

@@ -10,14 +10,29 @@
  * chosen.
  *
  * Public hooks for the field and story scripts:
- *   battle_start_wild(Monster)              a brimming wild kin
- *   battle_start_trainer_team(&TrainerTeam) a warden with a fixed team
+ *   battle_start_wild(Monster)              a brimming wild kin. A legend
+ *                                           (R_LEGEND) gets the legend intro
+ *                                           (shake, roar) and no_run by itself
+ *   battle_start_legend(Monster, scene)     the same, with its lair's scene
+ *                                           (BSCENE_LAIR, or BSCENE_AREA)
+ *   battle_start_trainer_team(&TrainerTeam) a warden with a fixed team (1..6
+ *                                           kin); flags TT_MASTER makes it a
+ *                                           Hall Master bout (banner, finale)
+ *   battle_start_master(&TrainerTeam)       the same with TT_MASTER set
  *   battle_start_trainer()                  WARDEN MARLO's random team
  *   battle_next_scene = BSCENE_*            background for the next bout
  *   battle.no_run = 1                       story bout: running is refused
+ *   battle.on_water = 1                     the bout is on water (surfing):
+ *                                           TIDE LANTERN bonus
  *   battle_end_hook = fn                    called once when the bout ends
- * (no_run and the hook may be set before or after battle_start_*; both
- * are cleared when the bout ends.)
+ *   battle_music_hook = fn                  music cues (BCUE_*), see below
+ * (no_run, on_water and the end hook may be set before or after
+ * battle_start_*; they are cleared when the bout ends.)
+ *
+ * Meal buffs (craft.c) are read here: extra starting stages for every kin
+ * sent out, XP and lantern bonuses, and meal_bout_finished() once a bout
+ * ends. opt.battle_speed plays the event queue and the animations at double
+ * speed (battle_ui.c / anim.c).
  */
 
 enum { SIDE_ALLY, SIDE_ENEMY };
@@ -29,25 +44,63 @@ enum {
     BST_FORCED, BST_END
 };
 
-/* Battle backgrounds. The field sets battle_next_scene for its area. */
-enum { BSCENE_MEADOW, BSCENE_FOREST, BSCENE_LAKE, BSCENE_RING, BSCENE_STORM, BSCENE_COUNT };
+/* Battle backgrounds (gfx_battle.h: bbg_scenes, same order). The field
+ * sets battle_next_scene for its area (script.c set_battle_scene). */
+enum {
+    BSCENE_MEADOW, BSCENE_FOREST, BSCENE_LAKE, BSCENE_RING, BSCENE_STORM,
+    BSCENE_CITY, BSCENE_COAST, BSCENE_SEA, BSCENE_SNOW, BSCENE_CAVE, BSCENE_GRIM,
+    BSCENE_CRYPT, BSCENE_VOLCANO, BSCENE_DREAM, BSCENE_FARM, BSCENE_LAIR,
+    BSCENE_COUNT
+};
 #define BSCENE_AREA 0xFF        /* TrainerTeam.scene: use battle_next_scene */
+/* every BSCENE_* has a painted background (tools/bout_scenes.py) */
+typedef char BattleScenesPainted[BSCENE_COUNT == BBG_SCENE_COUNT ? 1 : -1];
 static int battle_next_scene = BSCENE_MEADOW;
 
 /* Called once from battle_exit (result = BR_*) before returning to the
  * field, then cleared. */
 static void (*battle_end_hook)(int result);
 
-/* A warden's team. `name` is shown as "WARDEN <name>" unless it already
- * contains a space ("KEEPER LINDEN"); lose_line is said when you win. */
+/*
+ * Music cues for the music module (it sets the pointer; bouts work without
+ * it). START_* when a bout begins, WIN / MASTER_WIN / CAUGHT / LOSE / RUN
+ * when it is decided, END when the bout closes. A Hall Master win also
+ * plays the PSG fanfare SFX_VICTORY, which ducks the music by itself.
+ */
+enum {
+    BCUE_START_WILD, BCUE_START_WARDEN, BCUE_START_MASTER, BCUE_START_LEGEND,
+    BCUE_WIN, BCUE_MASTER_WIN, BCUE_CAUGHT, BCUE_LOSE, BCUE_RUN, BCUE_END,
+};
+static void (*battle_music_hook)(int cue);
+
+static void battle_cue(int cue)
+{
+    if (battle_music_hook) battle_music_hook(cue);
+}
+
+/* Meal buffs (craft.c, later in the unity build). */
+static int meal_stat_stage(int stat);
+static int meal_xp_percent(void);
+static int meal_catch_bonus(void);
+static void meal_bout_finished(void);
+
+#define TEAM_MAX 6
+typedef char TeamMaxMatchesField[TEAM_MAX == TRAINER_TEAM_MAX ? 1 : -1];
+
+enum { TT_MASTER = 1 };   /* TrainerTeam.flags */
+
+/* A warden's team (1..6 kin). `name` is shown as "WARDEN <name>" (or "HALL
+ * MASTER <name>" with TT_MASTER) unless it already contains a space
+ * ("KEEPER LINDEN"); lose_line is said when you win. */
 typedef struct {
     const char *name;
     u8 count;
-    u8 species[3];
-    u8 level[3];
+    u8 species[TEAM_MAX];
+    u8 level[TEAM_MAX];
     u16 prize;
     u8 scene;
     const char *lose_line;
+    u8 flags;             /* TT_* */
 } TrainerTeam;
 
 enum {
@@ -69,6 +122,10 @@ enum {
     EV_TRAIT,     /* side's trait kicked in: glow + chime */
     EV_FLEE,      /* the ally scampers off */
     EV_SFX,       /* a: SFX_* */
+    EV_BANNER,    /* a Hall Master's banner slides across (text = the title) */
+    EV_LEGEND,    /* a legend rears up: roar, shockwaves, heavy shake */
+    EV_CUE,       /* a: BCUE_* for the music module */
+    EV_NAME,      /* a befriended kin may get a name: a = 0 team / 1 Shelf, b = its slot */
 };
 
 /* EV_ANIM b flags (low byte = hit index). */
@@ -89,8 +146,6 @@ typedef struct {
     char text[BEV_TEXT];
 } BEvent;
 
-#define TEAM_MAX 3
-
 static struct {
     int kind;
     Monster team[TEAM_MAX];
@@ -101,6 +156,11 @@ static struct {
     u8 participants;          /* party slots that fought the current foe */
     u8 fought;                /* party slots that took part in this bout */
     u8 no_run;                /* story bouts: running is refused */
+    u8 on_water;              /* the bout is on water (TIDE LANTERN) */
+    u8 master;                /* a Hall Master bout */
+    u8 legend;                /* a legendary encounter */
+    u8 foe_entered;           /* turn the current foe came out (AI switching) */
+    u8 foe_switches;          /* times the warden switched this bout */
     u8 move_cursor_of[6];     /* last move chosen by each party slot */
     int turn;
     int scene;                /* BSCENE_* */
@@ -121,6 +181,7 @@ static struct {
     /* what the screen shows */
     struct {
         int species, level, hp, max_hp, status, lustrous;
+        char name[KIN_NAME_LEN + 1]; /* what the HUD calls it */
         int visible, slide, drop, blink;
         int hp_from, hp_t, hp_dur;   /* eased HP drain */
         int trail, trail_hold;       /* the lighter "lost HP" chunk */
@@ -197,7 +258,7 @@ static void side_name(char *dst, int side)
 {
     dst[0] = 0;
     if (side == SIDE_ENEMY) str_copy(dst, battle.kind == BK_WILD ? "Wild " : "Foe ");
-    str_put(dst, SPECIES[side_mon(side)->species].name);
+    str_put(dst, kin_name(side_mon(side)));
 }
 
 /* "<name><rest>" in one message. */
@@ -232,7 +293,10 @@ static int has_trait(int side, int trait)
 static int status_immune(const Monster *m, int status)
 {
     if (status == STATUS_BRN) return species_has_type(m->species, T_BLAZE);
-    if (status == STATUS_PSN) return species_has_type(m->species, T_VENOM);
+    /* poison can't touch the dead or iron (docs/EXPANSION.md 2) */
+    if (status == STATUS_PSN)
+        return species_has_type(m->species, T_VENOM) || species_has_type(m->species, T_HOLLOW) ||
+               species_has_type(m->species, T_METAL);
     if (status == STATUS_FRZ) return species_has_type(m->species, T_FROST);
     if (status == STATUS_NUMB) return species_has_type(m->species, T_SPARK);
     if (status == STATUS_SLP) return m->trait == TR_WAKEFUL;
@@ -387,6 +451,11 @@ static void apply_secondary(int side, const Move *mv)
     case EF_FOE_STAT:
         if (def->hp > 0) change_stat(foe, mv->param, mv->stages);
         break;
+    case EF_FOE_STATS:
+        if (def->hp == 0) break;
+        for (int s = 0; s < STAT_COUNT; s++)
+            if (mv->param & SM(s)) change_stat(foe, s, mv->stages);
+        break;
     case EF_SELF_STAT:
     case EF_SELF_DOWN:
         if (side_mon(side)->hp == 0) break;
@@ -420,7 +489,8 @@ static int trait_absorbs(const Monster *def, int move)
 /* Does this move land on the foe at all (status moves included)? */
 static int move_targets_foe(const Move *mv)
 {
-    return mv->cat != CAT_STATUS || mv->effect == EF_STATUS || mv->effect == EF_FOE_STAT;
+    return mv->cat != CAT_STATUS || mv->effect == EF_STATUS || mv->effect == EF_FOE_STAT ||
+           mv->effect == EF_FOE_STATS;
 }
 
 /* Handles absorbing and floating traits; returns 1 if the move was stopped. */
@@ -480,6 +550,10 @@ static void use_status_move(int side, int move)
     } else if (mv->effect == EF_FOE_STAT) {
         bev_push(EV_ANIM, side, move, HITF_NODMG | HITF_LAST);
         change_stat(foe, mv->param, mv->stages);
+    } else if (mv->effect == EF_FOE_STATS) {
+        bev_push(EV_ANIM, side, move, HITF_NODMG | HITF_LAST);
+        for (int s = 0; s < STAT_COUNT; s++)
+            if (mv->param & SM(s)) change_stat(foe, s, mv->stages);
     } else if (mv->effect == EF_SELF_STAT) {
         bev_push(EV_ANIM, side, move, HITF_NODMG | HITF_LAST);
         for (int s = 0; s < STAT_COUNT; s++)
@@ -597,10 +671,18 @@ static void use_move(int side, int move)
 
 /* ---------------- AI ---------------- */
 
-static int ai_move_score(int side, int move)
+/*
+ * How good `move` is for `self` against `foe` right now (stages st_self /
+ * st_foe, 0 = none). Status moves score by what they would still change;
+ * attacks by power x effectiveness x same-type x accuracy x the stat ratio,
+ * and a hit that would knock the foe out scores double.
+ */
+static int ai_score(const Monster *self, const s8 *st_self, const Monster *foe, const s8 *st_foe, int move)
 {
     const Move *mv = &MOVES[move];
-    const Monster *self = side_mon(side), *foe = side_mon(!side);
+    static const s8 NO_STAGES[STAT_COUNT];
+    if (!st_self) st_self = NO_STAGES;
+    if (!st_foe) st_foe = NO_STAGES;
     if (move_targets_foe(mv) && trait_absorbs(foe, move)) return 1;
     if (mv->cat == CAT_STATUS) {
         if (mv->effect == EF_HEAL)
@@ -610,24 +692,95 @@ static int ai_move_score(int side, int move)
             return (foe->status || status_immune(foe, mv->param) ||
                     type_effectiveness(mv->type, foe->species) == 0) ? 0 : 55;
         if (mv->effect == EF_FOE_STAT)
-            return battle.stages[!side][mv->param] <= -2 ? 5 : 35;
-        return battle.stages[side][STAT_ATK] >= 2 || battle.stages[side][STAT_DEF] >= 2 ||
-               battle.stages[side][STAT_SPA] >= 2 ? 5 : 35;
+            return st_foe[mv->param] <= -2 ? 5 : 35;
+        if (mv->effect == EF_FOE_STATS) {
+            for (int s = 0; s < STAT_COUNT; s++)
+                if ((mv->param & SM(s)) && st_foe[s] > -2) return 40;
+            return 5;
+        }
+        /* self boosts: worth it while one of its stats is still low */
+        for (int s = 0; s < STAT_COUNT; s++)
+            if ((mv->param & SM(s)) && st_self[s] < 2) return 35;
+        return 5;
     }
     int eff = move_effectiveness(move, self, foe);
     int stab = species_has_type(self->species, mv->type) ? 3 : 2;
     int acc = mv->acc ? mv->acc : 100;
     int phys = mv->cat == CAT_PHYS;
-    int ratio = phys ? self->stat[STAT_ATK] * 10 / (foe->stat[STAT_DEF] + 1)
-                     : self->stat[STAT_SPA] * 10 / (foe->stat[STAT_SPD] + 1);
+    int as = phys ? STAT_ATK : STAT_SPA, ds = phys ? STAT_DEF : STAT_SPD;
+    int ratio = apply_stage(self->stat[as], st_self[as]) * 10 / (apply_stage(foe->stat[ds], st_foe[ds]) + 1);
     int hits = mv->effect == EF_TWICE ? 2 : mv->effect == EF_MULTI ? 3 : 1;
     int trait = 10;   /* tenths */
     if ((self->trait == TR_BRUISER && phys) || (self->trait == TR_FOCUSED && !phys)) trait = 12;
     if (trait_surging(self, move)) trait = trait * 3 / 2;
     if (foe->trait == TR_THICK_FUR && (mv->type == T_BLAZE || mv->type == T_FROST)) trait /= 2;
     if (foe->trait == TR_BEDROCK && eff > 100) trait = trait * 3 / 4;
-    return move_power(move, self, foe) * hits * eff / 100 * stab / 2 * acc / 100 * ratio / 10 *
-           trait / 10 + 1;
+    int score = move_power(move, self, foe) * hits * eff / 100 * stab / 2 * acc / 100 * ratio / 10 *
+                trait / 10 + 1;
+    /* a sure knockout (lowest damage roll) is worth twice as much */
+    if (eff > 0 && foe->hp > 0) {
+        int low = calc_damage(self, st_self, foe, st_foe, move, 0, 85).damage * (hits > 1 ? 2 : 1);
+        if (low >= foe->hp) score *= 2;
+    }
+    return score;
+}
+
+static int ai_move_score(int side, int move)
+{
+    return ai_score(side_mon(side), battle.stages[side], side_mon(!side), battle.stages[!side], move);
+}
+
+/* The best attack score `a` has against `d` (fresh stages). */
+static int ai_best_attack(const Monster *a, const Monster *d)
+{
+    int best = 0;
+    for (int i = 0; i < MAX_MOVES; i++) {
+        int mv = a->moves[i];
+        if (mv == MOVE_NONE || MOVES[mv].cat == CAT_STATUS) continue;
+        int s = ai_score(a, 0, d, 0, mv);
+        if (s > best) best = s;
+    }
+    return best;
+}
+
+/* How well warden kin `idx` would fare against your kin: its best attack
+ * against yours over yours against it (x100). */
+static int ai_matchup(int idx)
+{
+    const Monster *me = &battle.team[idx], *you = side_mon(SIDE_ALLY);
+    int hp_part = me->max_hp ? 50 + 50 * me->hp / me->max_hp : 100;
+    return ai_best_attack(me, you) * hp_part / (ai_best_attack(you, me) + 8);
+}
+
+/* A healthy warden kin other than the one out, best matchup first; -1 none. */
+static int ai_best_reserve(void)
+{
+    int best = -1, best_m = -1;
+    for (int i = 0; i < battle.team_count; i++) {
+        if (i == battle.team_idx || battle.team[i].hp == 0) continue;
+        int m = ai_matchup(i);
+        if (m > best_m) {
+            best_m = m;
+            best = i;
+        }
+    }
+    return best;
+}
+
+/* Wardens pull a kin that is badly outmatched when a clearly better one is
+ * waiting (not the turn it came out; masters a little more often). */
+static int ai_want_switch(void)
+{
+    if (battle.kind != BK_TRAINER || side_mon(SIDE_ALLY)->hp == 0) return -1;
+    if (battle.turn - battle.foe_entered < 1 || battle.foe_switches >= (battle.master ? 3 : 2)) return -1;
+    Monster *cur = side_mon(SIDE_ENEMY);
+    if (cur->hp * 4 < cur->max_hp) return -1;      /* too hurt to bother: fight on */
+    int now = ai_matchup(battle.team_idx);
+    if (now >= 60) return -1;
+    int alt = ai_best_reserve();
+    if (alt < 0 || ai_matchup(alt) < now * 2 + 20) return -1;
+    if ((int)rng_range(100) >= (battle.master ? 90 : 65)) return -1;
+    return alt;
 }
 
 static int ai_choose_move(int side)
@@ -645,7 +798,7 @@ static int ai_choose_move(int side)
         }
     }
     if (best < 0) return -1; /* LAST GASP */
-    int smart = battle.kind == BK_TRAINER ? 70 : 45;
+    int smart = battle.kind != BK_TRAINER ? (battle.legend ? 60 : 45) : battle.master ? 88 : 70;
     if ((int)rng_range(100) < smart) return best;
     int r = (int)rng_range((unsigned)total);
     for (int i = 0; i < MAX_MOVES; i++) {
@@ -677,6 +830,54 @@ static void entry_traits(int side)
     if (!has_trait(side, TR_GLOWER) || side_mon(side)->hp == 0 || side_mon(!side)->hp == 0) return;
     trait_say(side, "glared at its foe!");
     change_stat(!side, STAT_ATK, -1);
+}
+
+/* A meal buff (craft.c) gives every kin you send out extra starting stages. */
+static void apply_meal_stages(void)
+{
+    int any = 0;
+    for (int s = 0; s < STAT_COUNT; s++) {
+        int v = clampi(meal_stat_stage(s), -6, 6);
+        if (!v) continue;
+        battle.stages[SIDE_ALLY][s] = (s8)clampi(battle.stages[SIDE_ALLY][s] + v, -6, 6);
+        any = 1;
+    }
+    if (any && side_mon(SIDE_ALLY)->hp > 0) {
+        bev_push(EV_STAT, SIDE_ALLY, 1, 0);
+        bsay_side(SIDE_ALLY, " is fired up by your cooking!");
+    }
+}
+
+/* The warden's next kin comes out of its lantern. */
+static void enemy_send_out(int idx)
+{
+    char msg[BEV_TEXT];
+    battle.team_idx = idx;
+    for (int s = 0; s < STAT_COUNT; s++) battle.stages[SIDE_ENEMY][s] = 0;
+    battle.flinch[SIDE_ENEMY] = 0;
+    battle.participants = (u8)(1u << battle.ally);
+    battle.foe_entered = (u8)battle.turn;
+    str_copy(msg, battle.foe_title);
+    str_put(msg, " sent out ");
+    str_put(msg, SPECIES[battle.team[idx].species].name);
+    str_put(msg, "!");
+    bsay(msg);
+    bev_push(EV_SEND_OUT, SIDE_ENEMY, idx, 0);
+    entry_traits(SIDE_ENEMY);
+}
+
+/* A warden recalls an outmatched kin and sends out another (its action). */
+static void enemy_switch_to(int idx)
+{
+    char msg[BEV_TEXT];
+    str_copy(msg, battle.foe_title);
+    str_put(msg, " called back ");
+    str_put(msg, SPECIES[side_mon(SIDE_ENEMY)->species].name);
+    str_put(msg, "!");
+    bsay(msg);
+    bev_push(EV_WITHDRAW, SIDE_ENEMY, 0, 0);
+    battle.foe_switches++;
+    enemy_send_out(idx);
 }
 
 static void end_of_turn(void)
@@ -739,6 +940,8 @@ static void finish_turn(void)
     if (battle.result != BR_NONE) return;
     if (foe->hp == 0) {
         queue_enemy_fainted();
+        /* both dozed off at once (recoil): your next kin, too */
+        if (battle.result == BR_NONE && side_mon(SIDE_ALLY)->hp == 0) queue_ally_fainted();
         return;
     }
     if (me->hp == 0) {
@@ -776,6 +979,15 @@ static void battle_play(void);
 
 static void battle_take_turn(int ally_slot)
 {
+    int sw = ai_want_switch();
+    if (sw >= 0) {                       /* switching comes before any move */
+        enemy_switch_to(sw);
+        if (side_mon(SIDE_ALLY)->hp > 0 && can_act(SIDE_ALLY)) resolve_move_slot(SIDE_ALLY, ally_slot);
+        end_of_turn();
+        finish_turn();
+        battle_play();
+        return;
+    }
     int enemy_slot = ai_choose_move(SIDE_ENEMY);
     int first = ally_goes_first(ally_slot, enemy_slot) ? SIDE_ALLY : SIDE_ENEMY;
     for (int k = 0; k < 2; k++) {
@@ -801,6 +1013,8 @@ static int xp_share(int slot, int base)
     int xp = (battle.participants & (1u << slot)) ? base : base / 2;
     if (m->trait == TR_QUICK_STUDY) xp = xp * 6 / 5;
     if (m->bond >= 200) xp = xp * 11 / 10;
+    int meal = meal_xp_percent();                 /* a meal buff (craft.c): 100 = none */
+    if (meal > 0 && meal != 100) xp = xp * clampi(meal, 0, 400) / 100;
     if (xp < 1) xp = 1;
     return xp > 32000 ? 32000 : xp;
 }
@@ -813,7 +1027,7 @@ static void award_xp(const Monster *foe)
     Monster *me = &party[battle.ally];
     if (me->hp > 0 && me->level < MAX_LEVEL) {
         int xp = xp_share(battle.ally, base);
-        str_copy(msg, SPECIES[me->species].name);
+        str_copy(msg, kin_name(me));
         str_put(msg, " gained ");
         str_put_int(msg, xp);
         str_put(msg, " XP!");
@@ -842,7 +1056,7 @@ static void hoarder_finds(void)
         int item = FINDS[rng_range(16)];
         bag_add(item, 1);
         char msg[BEV_TEXT];
-        str_copy(msg, SPECIES[party[i].species].name);
+        str_copy(msg, kin_name(&party[i]));
         str_put(msg, " found a");
         str_put(msg, ITEMS[item].name[0] == 'I' ? "n " : " ");
         str_put(msg, ITEMS[item].name);
@@ -855,32 +1069,37 @@ static void hoarder_finds(void)
 /* Decide the bout: bond for everyone who took part, then the end event. */
 static void battle_finish(int result)
 {
+    static const u8 CUE[] = { BCUE_END, BCUE_WIN, BCUE_LOSE, BCUE_RUN, BCUE_CAUGHT };
     if (result == BR_WIN) hoarder_finds();
     for (int i = 0; i < party_count; i++)
         if (battle.fought & (1u << i)) bond_add(&party[i], 2);
     battle.result = result;
+    /* (wins and catches cued their music when they happened, under the XP,
+     * prize and lantern lines: queue_enemy_fainted, battle_use_lantern) */
+    if (result == BR_LOSE || result == BR_RUN)
+        bev_push(EV_CUE, 0, CUE[result], 0);
     bev_push(EV_END, 0, result, 0);
 }
 
 static void queue_enemy_fainted(void)
 {
+    int last = 1;              /* the foe has no one left: the win music starts now */
+    if (battle.kind == BK_TRAINER)
+        for (int i = 0; i < battle.team_count; i++)
+            if (i != battle.team_idx && battle.team[i].hp) last = 0;
+    if (last && !battle.master) bev_push(EV_CUE, 0, BCUE_WIN, 0);
     award_xp(side_mon(SIDE_ENEMY));
-    if (battle.kind == BK_TRAINER && battle.team_idx + 1 < battle.team_count) {
-        char msg[BEV_TEXT];
-        battle.team_idx++;
-        for (int s = 0; s < STAT_COUNT; s++) battle.stages[SIDE_ENEMY][s] = 0;
-        battle.participants = (u8)(1u << battle.ally);
-        str_copy(msg, battle.foe_title);
-        str_put(msg, " sent out ");
-        str_put(msg, SPECIES[battle.team[battle.team_idx].species].name);
-        str_put(msg, "!");
-        bsay(msg);
-        bev_push(EV_SEND_OUT, SIDE_ENEMY, battle.team_idx, 0);
-        entry_traits(SIDE_ENEMY);
+    int next = battle.kind == BK_TRAINER ? ai_best_reserve() : -1;
+    if (next >= 0) {
+        enemy_send_out(next);
         return;
     }
     if (battle.kind == BK_TRAINER) {
         char msg[BEV_TEXT];
+        if (battle.master) {                 /* the Hall Master's finale */
+            bev_push(EV_SFX, 0, SFX_VICTORY, 0);
+            bev_push(EV_CUE, 0, BCUE_MASTER_WIN, 0);
+        }
         str_copy(msg, "You won the bout against ");
         str_put(msg, battle.foe_title);
         str_put(msg, "!");
@@ -930,18 +1149,32 @@ static int battle_player_move(int slot)
     return 1;
 }
 
+/* Escape odds (percent) of the next RUN (0 in keeper bouts: no fleeing). The odds grow with
+ * every failed try and a faster (or SLIPPERY) kin always gets away. */
+static int battle_run_chance(void)
+{
+    if (battle.no_run || battle.kind == BK_TRAINER) return 0;
+    if (has_trait(SIDE_ALLY, TR_SLIPPERY)) return 100;
+    int a = battle_stat(side_mon(SIDE_ALLY), 0, STAT_SPE);
+    int b = battle_stat(side_mon(SIDE_ENEMY), 0, STAT_SPE);
+    if (a >= b) return 100;
+    int odds = a * 128 / (b ? b : 1) + 30 * (battle.escape_tries + 1);
+    return odds >= 256 ? 100 : odds * 100 / 256;
+}
+
 static void battle_try_run(void)
 {
     if (battle.no_run) {
-        bsay_wait("There's no running from this one!");
+        bsay_wait(battle.legend ? "The legend's presence holds you fast. There's no running!"
+                                : "There's no running from this one!");
         battle.return_state = BST_ACTION;
         battle_play();
         return;
     }
     if (battle.kind == BK_TRAINER) {
-        bsay_wait("You bowed out of the bout!");
-        bev_push(EV_FLEE, SIDE_ALLY, 0, 0);
-        battle_finish(BR_RUN);
+        /* a bout with another keeper is a promise: see it through */
+        bsay_wait("You gave your word to this bout. There's no walking away!");
+        battle.return_state = BST_ACTION;
         battle_play();
         return;
     }
@@ -956,8 +1189,8 @@ static void battle_try_run(void)
     }
     int a = battle_stat(side_mon(SIDE_ALLY), 0, STAT_SPE);
     int b = battle_stat(side_mon(SIDE_ENEMY), 0, STAT_SPE);
-    int odds = (a * 128 / (b ? b : 1) + 30 * battle.escape_tries) % 256;
-    if (a >= b || (int)rng_range(256) < odds) {
+    int odds = a * 128 / (b ? b : 1) + 30 * battle.escape_tries;
+    if (a >= b || odds >= 256 || (int)rng_range(256) < odds) {
         bev_push(EV_FLEE, SIDE_ALLY, 0, 0);
         bsay_wait("Got away safely!");
         battle_finish(BR_RUN);
@@ -972,7 +1205,7 @@ static void battle_switch_to(int slot, int forced)
 {
     char msg[BEV_TEXT];
     if (!forced) {
-        str_copy(msg, SPECIES[party[battle.ally].species].name);
+        str_copy(msg, kin_name(&party[battle.ally]));
         str_put(msg, ", back to your lantern!");
         bsay(msg);
         bev_push(EV_WITHDRAW, SIDE_ALLY, 0, 0);
@@ -983,28 +1216,100 @@ static void battle_switch_to(int slot, int forced)
     battle.fought |= (u8)(1u << slot);
     battle.move_cursor = battle.move_cursor_of[slot];
     str_copy(msg, forced ? "Out you come, " : "Your turn, ");
-    str_put(msg, SPECIES[party[slot].species].name);
+    str_put(msg, kin_name(&party[slot]));
     str_put(msg, "!");
     bsay(msg);
     bev_push(EV_SEND_OUT, SIDE_ALLY, slot, 0);
+    apply_meal_stages();
     entry_traits(SIDE_ALLY);
     if (!forced) enemy_only_turn();
     battle_play();
 }
 
-/* Best lantern in the bag (highest finesse), or -1. */
-static int battle_best_lantern(void)
-{
-    int best = -1;
-    for (int i = 0; i < ITEM_COUNT; i++)
-        if (ITEMS[i].kind == IK_LANTERN && bag[i] > 0 && (best < 0 || ITEMS[i].param > ITEMS[best].param))
-            best = i;
-    return best;
-}
+/* Thrown-lantern looks (gfx_battle.h capsule_pal order). */
+enum { LK_PLAIN, LK_PRISM, LK_STAR, LK_DUSK, LK_TIDE, LK_HEAVY, LK_QUICK, LK_BONE, LK_COUNT };
+typedef char LanternLooksMatchArt[LK_COUNT == CAPSULE_PAL_COUNT ? 1 : -1];
 
 static int battle_lantern_kind(int item)
 {
-    return item == ITEM_STAR_LANTERN ? 2 : item == ITEM_GLOW_LANTERN ? 1 : 0;
+    switch (item) {
+    case ITEM_GLOW_LANTERN: return LK_PRISM;
+    case ITEM_STAR_LANTERN: return LK_STAR;
+    case ITEM_DUSK_LANTERN: return LK_DUSK;
+    case ITEM_TIDE_LANTERN: return LK_TIDE;
+    case ITEM_HEAVY_LANTERN: return LK_HEAVY;
+    case ITEM_QUICK_LANTERN: return LK_QUICK;
+    case ITEM_BONE_LANTERN: return LK_BONE;
+    default: return LK_PLAIN;
+    }
+}
+
+/* Is it night or dark here (DUSK LANTERN)? */
+static int battle_is_dark(void)
+{
+    return time_is_night() || (MAPS[cur_map].flags & MF_DARK) || battle.scene == BSCENE_CAVE ||
+           battle.scene == BSCENE_CRYPT;
+}
+
+/* Is the bout on water (TIDE LANTERN)? */
+static int battle_is_on_water(void)
+{
+    return battle.on_water || travel.surfing || battle.scene == BSCENE_SEA;
+}
+
+/*
+ * A lantern's finesse (x10 multiplier for catch_shakes) against the wild
+ * kin out now. The crafted lanterns (param 16) double in their own
+ * situation, the QUICK LANTERN 2.5x on the first turn; a HEAVY LANTERN
+ * scales with the kin's weight (1000 hg and up). A meal can add to it.
+ */
+static int lantern_finesse(int item)
+{
+    const Monster *w = side_mon(SIDE_ENEMY);
+    const Species *s = &SPECIES[w->species];
+    int f = ITEMS[item].param, on = 0;
+    switch (item) {
+    case ITEM_DUSK_LANTERN: on = battle_is_dark(); break;
+    case ITEM_TIDE_LANTERN: on = species_has_type(w->species, T_TIDE) || battle_is_on_water(); break;
+    case ITEM_BONE_LANTERN: on = species_has_type(w->species, T_HOLLOW); break;
+    case ITEM_QUICK_LANTERN:
+        if (battle.turn == 0) f = f * 5 / 2;
+        break;
+    case ITEM_HEAVY_LANTERN: {
+        int kg10 = size_scale(s->weight_hg, w->size);    /* hectograms */
+        if (kg10 >= 2000) f = f * 5 / 2;
+        else if (kg10 >= 1000) on = 1;
+        break;
+    }
+    default: break;
+    }
+    if (on) f *= 2;
+    return clampi(f + meal_catch_bonus(), 1, 255);
+}
+
+/* The chance (percent) that this lantern befriends the wild foe right now,
+ * or -1 where lanterns do nothing (keeper bouts, fused kin). */
+static int lantern_catch_pct(int item)
+{
+    if (battle.kind != BK_WILD || ITEMS[item].kind != IK_LANTERN) return -1;
+    const Monster *w = side_mon(SIDE_ENEMY);
+    if (SPECIES[w->species].rarity == R_FUSION) return -1;
+    return catch_chance_pct(w, lantern_finesse(item));
+}
+
+/* The lantern that suits this wild kin best (L quick-throw), or -1. */
+static int battle_best_lantern(void)
+{
+    int best = -1, best_f = 0;
+    for (int i = 0; i < ITEM_COUNT; i++) {
+        if (ITEMS[i].kind != IK_LANTERN || bag[i] <= 0) continue;
+        int f = battle.kind == BK_WILD ? lantern_finesse(i) : ITEMS[i].param;
+        if (best < 0 || f > best_f) {
+            best = i;
+            best_f = f;
+        }
+    }
+    return best;
 }
 
 static void battle_throw_lantern(int item)
@@ -1012,21 +1317,36 @@ static void battle_throw_lantern(int item)
     const Item *it = &ITEMS[item];
     char msg[BEV_TEXT];
     if (battle.kind == BK_TRAINER) {
-        bsay_wait("A warden's kin is already bonded. Lanterns won't work!");
+        str_copy(msg, SPECIES[side_mon(SIDE_ENEMY)->species].name);
+        str_put(msg, " is bonded to ");
+        str_put(msg, battle.foe_title);
+        str_put(msg, ". It can't be befriended!");
+        bsay_wait(msg);
+        battle.return_state = BST_ACTION;
+        battle_play();
+        return;
+    }
+    Monster *wild = side_mon(SIDE_ENEMY);
+    if (SPECIES[wild->species].rarity == R_FUSION) {   /* woven kin only come from the Loom */
+        str_copy(msg, SPECIES[wild->species].name);
+        str_put(msg, "'s woven kernel won't settle in a lantern!");
+        bsay_wait(msg);
         battle.return_state = BST_ACTION;
         battle_play();
         return;
     }
     bag[item]--;
-    str_copy(msg, "You threw a ");
+    str_copy(msg, "You threw a");
+    str_put(msg, it->name[0] == 'A' || it->name[0] == 'E' || it->name[0] == 'I' || it->name[0] == 'O' ||
+                  it->name[0] == 'U' ? "n " : " ");
     str_put(msg, it->name);
     str_put(msg, "!");
     bsay(msg);
-    Monster *wild = side_mon(SIDE_ENEMY);
-    int shakes = catch_shakes(wild, it->param);
+    int shakes = catch_shakes(wild, lantern_finesse(item));
     bev_push(EV_LANTERN, SIDE_ENEMY, shakes, battle_lantern_kind(item));
     if (shakes >= 4) {
         const char *name = SPECIES[wild->species].name;
+        bev_push(EV_CUE, 0, BCUE_CAUGHT, 0);
         str_copy(msg, "Yes! ");
         str_put(msg, name);
         str_put(msg, " settled into the lantern!");
@@ -1040,10 +1360,11 @@ static void battle_throw_lantern(int item)
         m.met_level = m.level;
         award_xp(wild);
         int where = give_monster(&m);
-        if (where != 0) {
+        if (where >= 0) {   /* "Give it a name?" (then where it went) */
+            bev_push(EV_NAME, 0, where, where ? storage_newest() : party_count - 1);
+        } else {
             str_copy(msg, name);
-            str_put(msg, where > 0 ? " was sent to the LANTERN SHELF." :
-                                     " went home: the LANTERN SHELF is full!");
+            str_put(msg, " went home: the LANTERN SHELF is full!");
             bsay_wait(msg);
         }
         battle_finish(BR_CAUGHT);
@@ -1058,18 +1379,28 @@ static void battle_throw_lantern(int item)
     battle_play();
 }
 
+/* Item kinds that work in a bout (the bag's BOUT pocket view can ask). */
+MAYBE_UNUSED static int battle_item_kind_usable(int kind)
+{
+    return kind == IK_HEAL || kind == IK_FULL_HEAL || kind == IK_WAKE || kind == IK_TEA ||
+           kind == IK_XSTAT || kind == IK_LANTERN || kind == IK_HEAL_CURE || kind == IK_TEA_ALL ||
+           kind == IK_REVIVE;
+}
+
 /* Use a bag item in battle on party slot `target`. Returns 0 if refused. */
 static int battle_use_item(int item, int target)
 {
+    if (item < 0 || item >= ITEM_COUNT || bag[item] <= 0) return 0;
     const Item *it = &ITEMS[item];
     char msg[BEV_TEXT];
-    if (bag[item] <= 0) return 0;
     if (it->kind == IK_LANTERN) {
         battle_throw_lantern(item);
         return 1;
     }
+    if (target < 0 || target >= party_count) return 0;
     Monster *m = &party[target];
     if (it->kind == IK_XSTAT) {
+        if (it->param >= STAT_COUNT || battle.stages[SIDE_ALLY][it->param] >= 6) return 0;
         bag[item]--;
         str_copy(msg, "You used ");
         str_put(msg, it->name);
@@ -1083,8 +1414,9 @@ static int battle_use_item(int item, int target)
     int ok = 0;
     if (it->kind == IK_HEAL) ok = m->hp > 0 && m->hp < m->max_hp;
     else if (it->kind == IK_FULL_HEAL) ok = m->hp > 0 && m->status != STATUS_NONE;
-    else if (it->kind == IK_WAKE) ok = m->hp == 0;
-    else if (it->kind == IK_TEA) {
+    else if (it->kind == IK_HEAL_CURE) ok = m->hp > 0 && (m->hp < m->max_hp || m->status != STATUS_NONE);
+    else if (it->kind == IK_WAKE || it->kind == IK_REVIVE) ok = m->hp == 0;
+    else if (it->kind == IK_TEA || it->kind == IK_TEA_ALL) {
         for (int i = 0; i < MAX_MOVES; i++)
             if (m->moves[i] != MOVE_NONE && m->pp[i] < MOVES[m->moves[i]].pp) ok = 1;
     }
@@ -1094,28 +1426,40 @@ static int battle_use_item(int item, int target)
     str_put(msg, it->name);
     str_put(msg, "!");
     bsay(msg);
-    if (it->kind == IK_HEAL || it->kind == IK_WAKE) {
-        int amount = it->kind == IK_WAKE ? m->max_hp / 2 : it->param;
-        int hp = m->hp + amount;
+    if (it->kind == IK_HEAL || it->kind == IK_WAKE || it->kind == IK_REVIVE || it->kind == IK_HEAL_CURE) {
+        int amount = it->kind == IK_WAKE ? m->max_hp / 2 : it->kind == IK_REVIVE ? m->max_hp : it->param;
+        int hp = m->hp + (amount > 0 ? amount : 1);
+        int cured = it->kind == IK_HEAL_CURE && m->status != STATUS_NONE;
         m->hp = (u16)(hp > m->max_hp ? m->max_hp : hp);
-        if (target == battle.ally) bev_push(EV_HP, SIDE_ALLY, m->hp, 0);
-        else bev_push(EV_SFX, 0, SFX_SPARKLE, 0);
-        str_copy(msg, SPECIES[m->species].name);
-        str_put(msg, it->kind == IK_WAKE ? " woke up, bright and ready!" : "'s HP was restored.");
+        if (it->kind != IK_HEAL) {
+            m->status = STATUS_NONE;
+            m->sleep_turns = 0;
+        }
+        if (target == battle.ally) {
+            bev_push(EV_HP, SIDE_ALLY, m->hp, 0);
+            if (cured) bev_push(EV_STATUS, SIDE_ALLY, STATUS_NONE, 0);
+        } else {
+            bev_push(EV_SFX, 0, SFX_SPARKLE, 0);
+        }
+        str_copy(msg, kin_name(m));
+        str_put(msg, it->kind == IK_WAKE ? " woke up, bright and ready!" :
+                     it->kind == IK_REVIVE ? " woke up at full strength!" :
+                     cured ? "'s HP was restored and it was cured!" : "'s HP was restored.");
         bsay(msg);
     } else if (it->kind == IK_FULL_HEAL) {
         m->status = STATUS_NONE;
         if (target == battle.ally) bev_push(EV_STATUS, SIDE_ALLY, STATUS_NONE, 0);
         bev_push(EV_SFX, 0, SFX_SPARKLE, 0);
-        str_copy(msg, SPECIES[m->species].name);
+        str_copy(msg, kin_name(m));
         str_put(msg, "'s field rang true again. It was cured!");
         bsay(msg);
     } else {
         for (int i = 0; i < MAX_MOVES; i++)
             if (m->moves[i] != MOVE_NONE)
-                m->pp[i] = (u8)clampi(m->pp[i] + it->param, 0, MOVES[m->moves[i]].pp);
+                m->pp[i] = (u8)(it->kind == IK_TEA_ALL ? MOVES[m->moves[i]].pp :
+                                clampi(m->pp[i] + it->param, 0, MOVES[m->moves[i]].pp));
         bev_push(EV_SFX, 0, SFX_SPARKLE, 0);
-        str_copy(msg, SPECIES[m->species].name);
+        str_copy(msg, kin_name(m));
         str_put(msg, "'s moves got their uses back.");
         bsay(msg);
     }

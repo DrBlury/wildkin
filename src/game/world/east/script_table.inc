@@ -1,0 +1,10 @@
+/* world/east/script_table.inc -- Script dispatch: [SCR_X] = scr_x,. Owner: W-EAST. */
+    [SCR_MINER] = scr_miner,
+    [SCR_LUMEN_SHOP] = scr_lumen_shop,
+    [SCR_BIKE_OTTO] = scr_bike_otto,
+    [SCR_TINKER] = scr_tinker,
+    [SCR_INNKEEPER] = scr_innkeeper,
+    [SCR_VOLT_GUIDE] = scr_volt_guide,
+    [SCR_FARA] = scr_fara,
+    [SCR_GROVE] = scr_grove,
+    [SCR_CLOCKMAKER] = scr_clockmaker,

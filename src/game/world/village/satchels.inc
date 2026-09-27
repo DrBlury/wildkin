@@ -1,0 +1,20 @@
+/* world/village/satchels.inc -- Satchels on the ground: { MAP_X, x, y, ITEM_X, qty },. Owner: core (the original Maple Village area). */
+    { MAP_TOWN, 37, 5, ITEM_TONIC, 2 },    /* tucked behind the knoll */
+    { MAP_TOWN, 2, 21, ITEM_BIG_TONIC, 1 },
+    { MAP_TOWN, 36, 32, ITEM_SUNSEED, 1 },    /* behind the hidden gap in the thicket */
+    { MAP_MEADOW, 4, 29, ITEM_TONIC, 2 },
+    { MAP_MEADOW, 37, 33, ITEM_LANTERN, 3 },
+    { MAP_MEADOW, 33, 2, ITEM_MINT_TEA, 1 },
+    { MAP_MEADOW, 17, 40, ITEM_HUSH_BELL, 1 },
+    { MAP_MEADOW, 3, 11, ITEM_BRAVE_CHILI, 1 },
+    { MAP_RISE, 20, 3, ITEM_STAR_LANTERN, 1 },
+    { MAP_RISE, 3, 3, ITEM_GRAND_TONIC, 1 },
+    { MAP_WOOD, 40, 33, ITEM_DUSK_SHARD, 1 },
+    { MAP_WOOD, 3, 19, ITEM_SUNSEED, 1 },
+    { MAP_WOOD, 39, 2, ITEM_SOOTHE_BALM, 1 },
+    { MAP_WOOD, 20, 22, ITEM_GLOW_LANTERN, 2 },
+    { MAP_WOOD, 12, 2, ITEM_WAKE_BELL, 1 },
+    { MAP_LAKE, 3, 33, ITEM_WAKE_BELL, 1 },
+    { MAP_LAKE, 36, 33, ITEM_GLOW_LANTERN, 3 },
+    { MAP_LAKE, 3, 3, ITEM_IRONBARK, 1 },
+    { MAP_LAKE, 36, 6, ITEM_BIG_TONIC, 2 },

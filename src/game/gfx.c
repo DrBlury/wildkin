@@ -193,6 +193,16 @@ static void canvas_window(int cx, int cy, int cw, int ch, int style)
     canvas_set_banks(cx, cy, cw, ch, style == WIN_BATTLE ? BANK_UI_BATTLE : BANK_UI_STD);
 }
 
+/* Selection glow: a lantern-amber bar with softened ends and a pale top
+ * rim (colour 7, rim 14 in banks 15 and 14); replaces a flat highlight. */
+static void canvas_glow(int x, int y, int w, int h)
+{
+    canvas_fill(x + 1, y, w - 2, h, 7);
+    canvas_fill(x, y + 1, 1, h - 2, 7);
+    canvas_fill(x + w - 1, y + 1, 1, h - 2, 7);
+    canvas_fill(x + 2, y, w - 4, 1, 14);
+}
+
 /* Paper-fill the inside of a window (cells), keeping the frame. */
 static void canvas_window_clear(int cx, int cy, int cw, int ch)
 {
@@ -220,6 +230,8 @@ static void canvas_backdrop(int pattern)
 #define INK_GREEN  12
 #define INK_GREEN_SH 13
 #define LINE_H     16
+/* The '{' cursor glyph is drawn as a crimson rune rather than in ink. */
+#define CURSOR_CH  '{'
 
 static void glyph_rows(int x, int y, const u8 *bits, int rows, int ink, int shadow)
 {
@@ -280,7 +292,10 @@ static int text_draw_col(int x, int y, const char *s, int ink, int shadow)
             continue;
         }
         int g = glyph_index(*s);
-        if (*s != ' ') glyph_rows(x, y, font_bits[g], FONT_HEIGHT, ink, shadow);
+        if (*s == CURSOR_CH && ink == INK_DARK)
+            glyph_rows(x, y, font_bits[g], FONT_HEIGHT, INK_RED, INK_SHADOW);
+        else if (*s != ' ')
+            glyph_rows(x, y, font_bits[g], FONT_HEIGHT, ink, shadow);
         x += font_width[g];
     }
     canvas_mark_px(top, y + FONT_HEIGHT + 1);
@@ -386,7 +401,14 @@ static void text_wrap(char *dst, const char *src, int max_w)
 
 /* ---------------- bars, badges, icons ---------------- */
 
-/* HP bar: 3 px tall, colors from the HUD palette by remaining fraction. */
+/* Notches every 8 px split a vitality bar into segments. */
+static void bar_segments(int x, int y, int w, int h)
+{
+    for (int i = 7; i < w - 1; i += 8) canvas_fill(x + i, y, 1, h, 15);
+}
+
+/* Vitality bar: 3 px tall and segmented; colours from the HUD palette by
+ * the remaining fraction (teal, amber, crimson). */
 static void draw_hp_bar(int x, int y, int w, int cur, int max)
 {
     int px = max > 0 ? (cur * w + max - 1) / max : 0;
@@ -400,6 +422,7 @@ static void draw_hp_bar(int x, int y, int w, int cur, int max)
         canvas_fill(x, y, px, 1, shade);
         canvas_fill(x, y + 1, px, 2, light);
     }
+    bar_segments(x, y, w, 3);
 }
 
 /* HP bar inside a standard window: its cells switch to the bar palette. */
@@ -429,10 +452,20 @@ static void draw_status_badge(int cx, int cy, int status)
     canvas_image(cx, cy, 3, 1, status_badge_gfx[status - 1], 0, status_badge_bank[status - 1]);
 }
 
+/* ICON_* art of an item (0 for anything out of range). */
+static int item_icon_index(int item)
+{
+    if (item < 0 || item >= ITEM_COUNT) return 0;
+    int icon = ITEMS[item].icon;
+    return icon < ITEM_ICON_COUNT ? icon : 0;
+}
+
 static void draw_item_icon(int cx, int cy, int item)
 {
-    for (int i = 0; i < 16; i++) bg_palette[BANK_ITEM_ICON * 16 + i] = item_icon_pal[item][i];
-    canvas_image(cx, cy, 3, 3, item_icon_gfx[item], 1, BANK_ITEM_ICON);
+    int icon = item_icon_index(item);
+    for (int i = 0; i < 16; i++) bg_palette[BANK_ITEM_ICON * 16 + i] = item_icon_pal[icon][i];
+    bg_palette[BANK_ITEM_ICON * 16 + 1] = ui_pal_std[1]; /* sit on the page */
+    canvas_image(cx, cy, 3, 3, item_icon_gfx[icon], 1, BANK_ITEM_ICON);
 }
 
 /* ---------------- present ---------------- */
@@ -450,7 +483,7 @@ static void canvas_present(void)
         u16 *map = VRAM_MAP(SB_UI);
         for (int y = 0; y < CANVAS_ROWS; y++)
             for (int x = 0; x < CANVAS_COLS; x++)
-                map[y * 32 + x] = (u16)((y * CANVAS_COLS + x) |
+                map[y * 32 + x] = (u16)((UI_TILE_BASE + y * CANVAS_COLS + x) |
                                         (canvas_banks[y * CANVAS_COLS + x] << 12));
         canvas_banks_dirty = 0;
     }
@@ -587,6 +620,8 @@ static void oam_begin(void)
     oam_affine_count = 0;
 }
 
+static void oam_line_prepare(void);
+
 static void oam_end(void)
 {
     for (int i = oam_count; i < 128; i++) {
@@ -594,37 +629,67 @@ static void oam_end(void)
         oam_shadow[i * 4 + 1] = 0;
         oam_shadow[i * 4 + 2] = 0;
     }
+    oam_line_prepare();
 }
 
 /*
  * Optional per-scanline register tables (HBlank DMA), re-armed together
- * with OAM every vblank. Each points at 160 entries (one per line); set a
- * pointer to 0 to stop the channel (its register is then reset to 0).
- *   oam_line_win0h  u16 REG_WIN0H per line (window iris)       DMA0
- *   oam_line_bg0    u32 BG0HOFS | BG0VOFS << 16 per line        DMA1
- *   oam_line_bg1    u32 BG1HOFS | BG1VOFS << 16 per line        DMA2
+ * with OAM every vblank. Each points at LINE_COPIES * 160 + 1 entries (one
+ * per line, repeated so a frame that misses its re-arm reads the same
+ * lines again); set a pointer to 0 to stop it (the register is reset to 0).
+ *   oam_line_win0h  u16 REG_WIN0H per line (window iris)          DMA0
+ *   oam_line_bg0    u32 BG0HOFS | BG0VOFS << 16 per line           DMA2
+ *   oam_line_bg1    u32 BG1HOFS | BG1VOFS << 16 per line           DMA2
+ * DMA1 belongs to the music (sound FIFO A, music.c) and is never touched
+ * here. When both BG tables are set, oam_end() interleaves them (after the
+ * frame is drawn, outside vblank), so one HBlank transfer of two words
+ * writes BG0HOFS..BG1VOFS. The tables must hold LINE_COPIES repeats.
  */
+#ifndef LINE_COPIES
+#define LINE_COPIES 3
+#endif
+#define OAM_LINES (SCREEN_HEIGHT * LINE_COPIES + 1)
+
 static const u16 *oam_line_win0h;
 static const u32 *oam_line_bg0, *oam_line_bg1;
-static u8 oam_line_active;
+static u8 oam_line_active;          /* registers driven: 1 WIN0H, 2 BG0, 4 BG1 */
+static u32 oam_line_pairs[2][OAM_LINES * 2] EWRAM_BSS;
+static u8 oam_line_pair_buf;
+static const u32 *oam_line_pair;    /* both BG tables interleaved, or 0 */
 
-static void oam_line_arm(int ch, const void *table, unsigned reg, int wide)
+static void oam_line_prepare(void)
+{
+    oam_line_pair = 0;
+    if (!oam_line_bg0 || !oam_line_bg1) return;
+    u32 *p = oam_line_pairs[oam_line_pair_buf ^= 1];
+    const u32 *a = oam_line_bg0, *b = oam_line_bg1;
+    for (int y = 0; y < SCREEN_HEIGHT; y++) {
+        p[y * 2] = a[y];
+        p[y * 2 + 1] = b[y];
+    }
+    for (int k = 1; k < LINE_COPIES; k++) copy32(p + k * SCREEN_HEIGHT * 2, p, SCREEN_HEIGHT * 2);
+    p[OAM_LINES * 2 - 2] = a[OAM_LINES - 1];
+    p[OAM_LINES * 2 - 1] = b[OAM_LINES - 1];
+    oam_line_pair = p;
+}
+
+/* Arm DMA `ch` to copy `units` entries per HBlank from `table` to `reg`
+ * (`mask`: the registers that drives), or stop it when table is 0. */
+static void oam_line_arm(int ch, const void *table, unsigned reg, int wide, int units, int mask)
 {
     volatile u32 *cnt = (volatile u32 *)(MEM_IO + 0x0B8 + ch * 12);
     *cnt = 0;
-    if (!table) {
-        if (oam_line_active & (1u << ch)) {
-            if (wide) REG32(reg) = 0;
-            else REG16(reg) = 0;
-            oam_line_active &= (u8)~(1u << ch);
-        }
-        return;
-    }
-    oam_line_active |= (u8)(1u << ch);
+    int stop = (ch == 0 ? 1 : 6) & oam_line_active & ~(table ? mask : 0);
+    if (stop & 1) REG16(0x040) = 0;
+    if (stop & 2) REG32(0x010) = 0;
+    if (stop & 4) REG32(0x014) = 0;
+    oam_line_active &= (u8)~stop;
+    if (!table) return;
+    oam_line_active |= (u8)mask;
     if (wide) {
         const u32 *t = table;
-        REG32(reg) = t[0];
-        REG32(0x0B0 + ch * 12) = (u32)(unsigned long)(t + 1);
+        for (int u = 0; u < units; u++) REG32(reg + u * 4) = t[u];
+        REG32(0x0B0 + ch * 12) = (u32)(unsigned long)(t + units);
     } else {
         const u16 *t = table;
         REG16(reg) = t[0];
@@ -632,17 +697,24 @@ static void oam_line_arm(int ch, const void *table, unsigned reg, int wide)
     }
 #ifdef GBA
     REG32(0x0B4 + ch * 12) = MEM_IO + reg;
-    /* enable, HBlank start, repeat, fixed destination, 16/32-bit; 1 unit */
-    *cnt = 1u | ((u32)(0xA240 | (wide ? 0x0400 : 0)) << 16);
+    /* enable, HBlank start, repeat, 16/32-bit, destination fixed (one
+     * unit) or incremented and reloaded (several) */
+    u32 ctl = 0xA200 | (wide ? 0x0400 : 0) | (units > 1 ? 0x0060 : 0x0040);
+    *cnt = (u32)units | (ctl << 16);
 #endif
 }
 
 static void oam_commit(void)
 {
     for (int i = 0; i < 128 * 4; i++) oam[i] = oam_shadow[i];
-    oam_line_arm(0, oam_line_win0h, 0x040, 0);
-    oam_line_arm(1, oam_line_bg0, 0x010, 1);
-    oam_line_arm(2, oam_line_bg1, 0x014, 1);
+    oam_line_arm(0, oam_line_win0h, 0x040, 0, 1, 1);
+    if (oam_line_pair && oam_line_bg0 && oam_line_bg1)
+        oam_line_arm(2, oam_line_pair, 0x010, 1, 2, 6);
+    else if (oam_line_bg1) {
+        oam_line_arm(2, oam_line_bg1, 0x014, 1, 1, 4);
+    } else {
+        oam_line_arm(2, oam_line_bg0, 0x010, 1, 1, 2);
+    }
 }
 
 /* ---------------- palettes & loaders ---------------- */
@@ -750,4 +822,22 @@ static void set_brightness(int level)
         REG_BLDCNT = (u16)(0x3F | (level > 0 ? 0x80 : 0xC0));
         REG_BLDY = (u16)clampi(absi(level), 0, 16);
     }
+}
+
+/* ---------------- rarity gems (8x8 OBJ sprites) ---------------- */
+
+#define OT_GEM          120   /* GEM_COUNT tiles; NPC slots 14+ are never used in menus */
+#define OBANK_GEM         7
+
+/* Menus call this once when they open (the field reuses the bank). */
+static void gems_load(void)
+{
+    copy32(VRAM_OBJ_TILES + OT_GEM * 8, gem_obj_gfx, GEM_COUNT * 8);
+    load_pal(obj_palette + OBANK_GEM * 16, gem_obj_pal);
+}
+
+static void gem_push(int x, int y, int rarity)
+{
+    if (rarity < 0 || rarity >= GEM_COUNT) return;
+    spr_push(x, y, OT_GEM + rarity, SQ8, OBANK_GEM, 0, 0);
 }

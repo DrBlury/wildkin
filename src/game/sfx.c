@@ -9,7 +9,8 @@
  * starts each note (restart bit) and slides its pitch. An effect only
  * takes a channel that is idle or playing something of equal or lower
  * priority, so a text blip never cuts a level-up jingle short.
- * Everything is silent while opt.sound is 0.
+ * The effects are silent while opt.sound is 0. Music plays on Direct Sound
+ * (music.c) and ducks while a fanfare (priority 5) is sounding here.
  *
  * Host builds map the I/O registers to plain memory, so the tests run the
  * sequencer too.
@@ -50,6 +51,8 @@ enum {
     SFX_CHARGE, SFX_THUNDER, SFX_ROAR, SFX_DRAIN, SFX_SPARKLE, SFX_STAT_UP,
     SFX_STAT_DOWN, SFX_STATUS, SFX_DOZE, SFX_THROW, SFX_WOBBLE, SFX_BEFRIEND,
     SFX_RUN, SFX_SEND_OUT, SFX_TRAIT, SFX_WIPE, SFX_BREAK_FREE,
+    /* battle: the four newer types, halls and legends */
+    SFX_HOLLOW, SFX_RELIC, SFX_METAL, SFX_ASTRAL, SFX_KNELL, SFX_BANNER, SFX_VICTORY,
     SFX_COUNT
 };
 
@@ -236,6 +239,30 @@ static const SfxNote sfxn_wipe_s[] = {
 static const SfxNote sfxn_break_n[] = { NZ(2, 0x10, 0xC1), NZ(10, 0x42, 0xA2), SEND };
 static const SfxNote sfxn_break_s[] = { SQS(10, SN_G5, 0xA2, 2, -24), SEND };
 
+static const SfxNote sfxn_hollow_w[] = { WV(10, SN_E4, 2, SWAVE_SINE, -4), WV(16, SN_B3, 1, SWAVE_SINE, -3), SEND };
+static const SfxNote sfxn_hollow_n[] = { REST(4), NZ(18, 0x76, 0x52), SEND };
+static const SfxNote sfxn_relic_s[] = { SQ(3, SN_A5, 0x91, 2), SQ(3, SN_E5, 0x81, 2), SQ(12, SN_A4, 0x83, 2), SEND };
+static const SfxNote sfxn_relic_n[] = { NZ(10, 0x55, 0x62), SEND };
+static const SfxNote sfxn_metal_s[] = { SQ(2, SN_E7, 0xE1, 0), SQ(16, SN_B6, 0xB4, 0), SEND };
+static const SfxNote sfxn_metal_n[] = { NZ(2, 0x01, 0xD1), NZ(8, 0x22, 0x82), SEND };
+static const SfxNote sfxn_astral[] = {
+    SQ(3, SN_E6, 0x91, 2), SQ(3, SN_B6, 0x91, 2), SQ(3, SN_G6, 0x81, 2), SQ(3, SN_D7, 0x81, 2),
+    SQ(12, SN_B6, 0x73, 2), SEND };
+static const SfxNote sfxn_knell_w[] = { WV(40, SN_C3, 1, SWAVE_TRI, 0), SEND };
+static const SfxNote sfxn_knell_s[] = { SQ(3, SN_C5, 0xB1, 2), SQ(34, SN_G4, 0x96, 2), SEND };
+static const SfxNote sfxn_banner_a[] = {
+    SQ(4, SN_G4, 0xC1, 2), SQ(4, SN_C5, 0xC1, 2), SQ(20, SN_G5, 0xC4, 2), SEND };
+static const SfxNote sfxn_banner_n[] = { NZ(2, 0x01, 0xF1), NZ(12, 0x33, 0xB2), SEND };
+static const SfxNote sfxn_vict_a[] = {
+    SQ(6, SN_G5, 0xC1, 2), SQ(6, SN_G5, 0xC1, 2), SQ(6, SN_G5, 0xC1, 2), SQ(14, SN_E5, 0xC2, 2),
+    SQ(6, SN_F5, 0xC1, 2), SQ(6, SN_A5, 0xC1, 2), SQ(32, SN_C6, 0xC6, 2), SEND };
+static const SfxNote sfxn_vict_b[] = {
+    SQ(6, SN_E5, 0x81, 1), SQ(6, SN_E5, 0x81, 1), SQ(6, SN_E5, 0x81, 1), SQ(14, SN_C5, 0x82, 1),
+    SQ(6, SN_D5, 0x81, 1), SQ(6, SN_F5, 0x81, 1), SQ(32, SN_G5, 0x86, 1), SEND };
+static const SfxNote sfxn_vict_w[] = {
+    WV(18, SN_C3, 1, SWAVE_TRI, 0), WV(14, SN_C3, 1, SWAVE_TRI, 0), WV(12, SN_F3, 1, SWAVE_TRI, 0),
+    WV(32, SN_C3, 2, SWAVE_TRI, 0), SEND };
+
 #define T1(c, p, n)                { { { c, p, n }, { 0, 0, 0 }, { 0, 0, 0 } } }
 #define T2(c1, p1, n1, c2, p2, n2) { { { c1, p1, n1 }, { c2, p2, n2 }, { 0, 0, 0 } } }
 #define T3(c1, p1, n1, c2, p2, n2, c3, p3, n3) { { { c1, p1, n1 }, { c2, p2, n2 }, { c3, p3, n3 } } }
@@ -292,6 +319,13 @@ static const SfxDef SFX_DEFS[SFX_COUNT] = {
     [SFX_THROW]      = T2(4, 2, sfxn_throw_n, 2, 2, sfxn_throw_s),
     [SFX_WOBBLE]     = T2(4, 2, sfxn_wobble_n, 2, 2, sfxn_wobble_s),
     [SFX_BEFRIEND]   = T3(1, 5, sfxn_befr_a, 2, 5, sfxn_befr_b, 3, 5, sfxn_befr_w),
+    [SFX_HOLLOW]     = T2(3, 2, sfxn_hollow_w, 4, 2, sfxn_hollow_n),
+    [SFX_RELIC]      = T2(1, 2, sfxn_relic_s, 4, 2, sfxn_relic_n),
+    [SFX_METAL]      = T2(1, 2, sfxn_metal_s, 4, 2, sfxn_metal_n),
+    [SFX_ASTRAL]     = T1(2, 2, sfxn_astral),
+    [SFX_KNELL]      = T2(3, 3, sfxn_knell_w, 1, 3, sfxn_knell_s),
+    [SFX_BANNER]     = T2(1, 4, sfxn_banner_a, 4, 4, sfxn_banner_n),
+    [SFX_VICTORY]    = T3(1, 5, sfxn_vict_a, 2, 5, sfxn_vict_b, 3, 5, sfxn_vict_w),
     [SFX_RUN]        = T1(4, 2, sfxn_run),
     [SFX_SEND_OUT]   = T2(4, 2, sfxn_sendout_n, 2, 2, sfxn_sendout_s),
     [SFX_TRAIT]      = T1(2, 3, sfxn_trait),
@@ -319,8 +353,23 @@ static struct {
     s16 freq;          /* current frequency register value (slides) */
 } sfx_ch[4];
 
-static u8 sfx_on;      /* master enable has been written */
+static u8 snd_on;      /* master enable and mixer routing written */
+static u8 sfx_on;      /* PSG channels routed to the speakers */
 static s8 sfx_wave_loaded = -1;
+static volatile u8 sfx_fanfare;   /* a priority-5 jingle is playing (music ducks) */
+
+/* PSG at 100%, Direct Sound A (music) at 50% on both sides, timer 0: a
+ * full-scale music mix fills half the DAC and leaves the rest to the PSG. */
+#define SNDCNT_H_MIX 0x0302
+
+static void snd_power_on(void)
+{
+    if (snd_on) return;
+    SREG_SNDCNT_X = 0x0080;      /* master enable (other registers need it first) */
+    SREG_SNDCNT_L = 0x0077;      /* PSG volume 7 both sides; channels off until needed */
+    SREG_SNDCNT_H = SNDCNT_H_MIX;
+    snd_on = 1;
+}
 
 static void sfx_load_wave(int w)
 {
@@ -407,23 +456,25 @@ static void sfx_slide(int c)
     else SREG_SND3_FREQ = (u16)f;
 }
 
+/* Silence every effect and take the PSG off the speakers (music keeps playing). */
 static void sfx_stop_all(void)
 {
     for (int c = 0; c < 4; c++) {
         sfx_ch[c].n = 0;
         sfx_ch[c].prio = 0;
+        if (snd_on) sfx_silence(c);
     }
-    SREG_SNDCNT_X = 0;
+    if (snd_on) SREG_SNDCNT_L = 0x0077;
     sfx_on = 0;
+    sfx_fanfare = 0;
     sfx_wave_loaded = -1;
 }
 
 static void sfx_power_on(void)
 {
     if (sfx_on) return;
-    SREG_SNDCNT_X = 0x0080;      /* master enable */
+    snd_power_on();
     SREG_SNDCNT_L = 0xFF77;      /* all PSG channels, full volume, both sides */
-    SREG_SNDCNT_H = 0x0002;      /* PSG at 100% */
     sfx_on = 1;
     sfx_wave_loaded = -1;
     for (int c = 0; c < 4; c++) sfx_silence(c);
@@ -462,6 +513,10 @@ static void sfx_update(void)
         if (sfx_on) sfx_stop_all();
         return;
     }
+    int fanfare = 0;
+    for (int c = 0; c < 4; c++)
+        if (sfx_ch[c].n && sfx_ch[c].prio >= 5) fanfare = 1;
+    sfx_fanfare = (u8)fanfare;
     for (int c = 0; c < 4; c++) {
         if (!sfx_ch[c].n) continue;
         if (sfx_ch[c].left > 1) {

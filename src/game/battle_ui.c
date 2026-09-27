@@ -18,6 +18,8 @@ static void party_screen_open(int ctx, int item);
 static void bag_screen_open(int ctx);
 static void field_return(void);
 static void evolve_start_next(void);
+static void catch_name_begin(BEvent *e);        /* naming.c */
+static int catch_name_update(BEvent *e);
 
 enum {
     MODE_FIELD, MODE_START_MENU, MODE_PARTY, MODE_SUMMARY, MODE_BAG, MODE_DEX,
@@ -89,14 +91,16 @@ static void hud_load_palettes(void)
         p[HUDC_TRAIL_S] = RGB15(29, 17, 12);
     }
     load_pal(bg_palette + BANK_LABELS * 16, bl_pal);
+    bg_palette[BANK_LABELS * 16 + 1] = ui_pal_std[1]; /* labels sit on the page */
 }
 
-/* HP fill colour: green, easing through yellow into red as HP drops. */
+/* Vitality colour: lantern teal, easing through amber into crimson as HP
+ * drops (the leaf glyph on the plaque shares it). */
 static void hud_bar_colors(int side)
 {
-    static const u16 G[2] = { RGB15(14, 31, 21), RGB15(11, 25, 15) };
-    static const u16 Y[2] = { RGB15(31, 28, 7), RGB15(25, 20, 1) };
-    static const u16 R[2] = { RGB15(31, 11, 7), RGB15(21, 7, 8) };
+    static const u16 G[2] = { RGB15(9, 27, 23), RGB15(3, 17, 16) };
+    static const u16 Y[2] = { RGB15(31, 22, 6), RGB15(23, 13, 2) };
+    static const u16 R[2] = { RGB15(30, 7, 9), RGB15(18, 2, 6) };
     int max = battle.disp[side].max_hp;
     int f = max > 0 ? battle.disp[side].hp * 256 / max : 0;
     u16 *p = bg_palette + hud_bank(side) * 16;
@@ -130,6 +134,7 @@ static void hud_draw_bar(int side)
         canvas_fill(x, y, fill, 1, HUDC_FILL_S);
         canvas_fill(x, y + 1, fill, 2, HUDC_FILL);
     }
+    bar_segments(x, y, w, 3);
     if (side == SIDE_ALLY) {
         char buf[16];
         canvas_fill(px + HUD_ALLY_HPNUM_X - 40, py + HUD_ALLY_HPNUM_Y, 40, FONT_SMALL_HEIGHT, 1);
@@ -161,7 +166,7 @@ static void hud_draw(int side)
     char buf[24];
     int nx = side == SIDE_ENEMY ? HUD_ENEMY_NAME_X : HUD_ALLY_NAME_X;
     int ny = side == SIDE_ENEMY ? HUD_ENEMY_NAME_Y : HUD_ALLY_NAME_Y;
-    text_draw(px + nx, py + ny, SPECIES[battle.disp[side].species].name);
+    text_draw(px + nx, py + ny, battle.disp[side].name);
     str_copy(buf, "Lv");
     str_put_int(buf, battle.disp[side].level);
     small_text_draw(px + (side == SIDE_ENEMY ? HUD_ENEMY_LV_X : HUD_ALLY_LV_X),
@@ -184,6 +189,7 @@ static void disp_sync(int side)
 {
     Monster *m = side_mon(side);
     battle.disp[side].species = m->species;
+    str_copy(battle.disp[side].name, kin_name(m));
     battle.disp[side].level = m->level;
     battle.disp[side].hp = m->hp;
     battle.disp[side].trail = m->hp;
@@ -206,27 +212,48 @@ static void battle_load_mon_gfx(int side)
 
 /* ---------------- bottom boxes ---------------- */
 
-static const char *const ACTION_LABELS[4] = { "FIGHT", "BAG", "TEAM", "RUN" };
+/* The command page: a narrow parchment card on the right, one command per
+ * row (cursor index 0 fight, 1 bag, 2 team, 3 run). */
+static const char *const ACTION_LABELS[4] = { "MOVES", "PACK", "KIN", "FLEE" };
+#define CMD_CX     21
+#define CMD_CY     13
+#define CMD_Y0     107   /* first row's glyph top */
+#define CMD_PITCH  12
 
+/* Row 13 on the right: the move-effect tab, or the top of the command page. */
 static void clear_tab(void)
 {
-    canvas_clear_cells(22, 13, 8, 1);
+    canvas_clear_cells(CMD_CX, 13, CANVAS_COLS - CMD_CX, 1);
 }
 
 static void draw_action_box(void)
 {
     char buf[48];
     clear_tab();
-    canvas_window(0, 14, CANVAS_COLS, 6, WIN_BATTLE);
-    str_copy(buf, "What will\n");
-    str_put(buf, SPECIES[side_mon(SIDE_ALLY)->species].name);
-    str_put(buf, " do?");
+    canvas_window(0, 14, CMD_CX, 6, WIN_BATTLE);
+    str_copy(buf, kin_name(side_mon(SIDE_ALLY)));
+    str_put(buf, " awaits\nyour call.");
     text_draw_col(16, 120, buf, INK_DARK, INK_SHADOW);
-    canvas_window(15, 14, 15, 6, WIN_STD);
+    canvas_window(CMD_CX, CMD_CY, CANVAS_COLS - CMD_CX, 20 - CMD_CY, WIN_MENU);
     for (int i = 0; i < 4; i++) {
-        int x = 15 * 8 + 18 + (i & 1) * 48, y = 120 + (i >> 1) * LINE_H;
-        text_draw(x, y, ACTION_LABELS[i]);
-        if (i == battle.cursor) text_draw(x - 10, y, "{");
+        int x = CMD_CX * 8 + 16, y = CMD_Y0 + i * CMD_PITCH;
+        if (i == battle.cursor) {
+            canvas_glow(CMD_CX * 8 + 3, y, (CANVAS_COLS - CMD_CX) * 8 - 6, CMD_PITCH);
+            text_draw(x - 9, y, "{");
+        }
+        if (i == 3 && battle_run_chance() == 0 && (battle.kind == BK_TRAINER || battle.no_run))
+            text_draw_col(x, y, ACTION_LABELS[i], INK_SHADOW, INK_SHADOW);   /* no fleeing here */
+        else
+            text_draw(x, y, ACTION_LABELS[i]);
+    }
+    /* on FLEE in a wild bout: the escape odds when they are not certain */
+    int pct = battle.kind == BK_WILD && battle.cursor == 3 ? battle_run_chance() : 100;
+    if (pct > 0 && pct < 100) {
+        char odds[16];
+        str_copy(odds, "Escape ");
+        str_put_int(odds, pct);
+        str_put(odds, "%");
+        text_draw_col(CMD_CX * 8 - 12 - text_width(odds), 120 + LINE_H, odds, INK_BLUE, INK_BLUE_SH);
     }
 }
 
@@ -236,7 +263,8 @@ static int move_tab(int move)
     const Move *mv = &MOVES[move];
     int eff = type_effectiveness(mv->type, side_mon(SIDE_ENEMY)->species);
     if (mv->cat == CAT_STATUS) {
-        if ((mv->effect == EF_STATUS || mv->effect == EF_FOE_STAT) && eff == 0) return BL_NONE;
+        if ((mv->effect == EF_STATUS || mv->effect == EF_FOE_STAT || mv->effect == EF_FOE_STATS) && eff == 0)
+            return BL_NONE;
         return -1;
     }
     if (eff == 0) return BL_NONE;
@@ -252,8 +280,11 @@ static void draw_move_box(void)
     canvas_window(22, 14, 8, 6, WIN_STD);
     for (int i = 0; i < MAX_MOVES; i++) {
         int x = 16 + (i & 1) * 80, y = 120 + (i >> 1) * LINE_H;
+        if (i == battle.move_cursor) {
+            canvas_glow(x - 11, y - 1, 80, 14);
+            text_draw(x - 10, y, "{");
+        }
         text_draw_fit(x, y, m->moves[i] == MOVE_NONE ? "-" : MOVES[m->moves[i]].name, 72);
-        if (i == battle.move_cursor) text_draw(x - 10, y, "{");
     }
     clear_tab();
     int mv = m->moves[battle.move_cursor];
@@ -364,6 +395,96 @@ static int lantern_done(const BEvent *e)
     return battle.ev_timer >= LANTERN_ARC + LANTERN_OPEN + LANTERN_DROP + shown * LANTERN_WOBBLE + 34;
 }
 
+/* ---------------- the Hall Master's banner ---------------- */
+
+/*
+ * A band across the middle of the screen with the master's title, wiped in
+ * from the left by WIN0 (per-scanline, like the intro iris), held, then
+ * wiped out to the right. Sparkles ride the wipe's edge.
+ */
+#define BANNER_ROW   6
+#define BANNER_ROWS  3
+#define BANNER_Y0    (BANNER_ROW * 8)
+#define BANNER_Y1    ((BANNER_ROW + BANNER_ROWS) * 8)
+#define BANNER_IN    14
+#define BANNER_HOLD  74
+#define BANNER_OUT   14
+
+static int banner_on, banner_l, banner_r;
+
+static void banner_begin(const char *title)
+{
+    canvas_window(0, BANNER_ROW, CANVAS_COLS, BANNER_ROWS, WIN_BATTLE);
+    text_draw_col(120 - text_width(title) / 2, BANNER_Y0 + 6, title, INK_RED, INK_RED_SH);
+    banner_on = 1;
+    banner_l = banner_r = 0;
+    REG_WIN0V = SCREEN_HEIGHT;
+    REG_WININ = 0x003F;           /* inside: everything */
+    REG_WINOUT = 0x003D;          /* outside: all but the canvas (BG1) */
+    REG_DISPCNT = (u16)(REG_DISPCNT | DCNT_WIN0);
+    sfx_play(SFX_BANNER);
+    feel.bright = 3;
+}
+
+static void banner_end(void)
+{
+    banner_on = 0;
+    oam_line_win0h = 0;
+    REG_DISPCNT = (u16)(REG_DISPCNT & ~DCNT_WIN0);
+    canvas_clear_cells(0, BANNER_ROW, CANVAS_COLS, BANNER_ROWS);
+}
+
+/* Returns 1 when the banner is gone. */
+static int banner_update(int t)
+{
+    if (t < BANNER_IN) {
+        banner_l = 0;
+        banner_r = 240 * ease_out(t + 1, BANNER_IN) / 256;
+    } else if (t < BANNER_IN + BANNER_HOLD) {
+        banner_l = 0;
+        banner_r = 240;
+    } else if (t < BANNER_IN + BANNER_HOLD + BANNER_OUT) {
+        banner_l = 240 * ease_in(t - BANNER_IN - BANNER_HOLD + 1, BANNER_OUT) / 256;
+        banner_r = 240;
+    } else {
+        banner_end();
+        return 1;
+    }
+    return 0;
+}
+
+/* Sparkles along the wipe's moving edge (drawn with the other sprites). */
+static void banner_draw(void)
+{
+    if (!banner_on) return;
+    int edge = banner_r < 240 ? banner_r : banner_l > 0 ? banner_l : -1;
+    for (int k = 0; k < 4; k++) {
+        int y = BANNER_Y0 - 4 + ((k * 11 + (int)frame_count * 3) % (BANNER_Y1 - BANNER_Y0 + 8));
+        if (edge >= 0) fx_spr_aff(edge + ((k & 1) ? 3 : -3), y, FX_SPARKLE, OBANK_LIGHT, 192 + k * 24, k * 40);
+    }
+    if (edge < 0 && (frame_count & 7) < 4)          /* held: two twinkles at the ends */
+        for (int k = 0; k < 2; k++)
+            fx_spr_aff(k ? 228 : 12, BANNER_Y0 + 12, FX_SPARKLE, OBANK_LIGHT, 256, (int)frame_count * 6);
+}
+
+/* ---------------- the warden's team row ---------------- */
+
+/* A lantern per warden kin under the foe's HUD: lit = ready, dark = dozing. */
+static int disp_foe_idx;   /* the warden kin the screen shows (set as it is sent out) */
+
+static void team_row_draw(void)
+{
+    if (battle.kind != BK_TRAINER || battle.team_count < 1) return;
+    if (!battle.disp[SIDE_ENEMY].visible && battle.state != BST_EVENTS) return;
+    int x0 = HUD_ENEMY_CX * 8 + 6, y = HUD_ENEMY_CY * 8 + 33;
+    for (int i = 0; i < battle.team_count; i++) {
+        int awake = battle.team[i].hp > 0;
+        /* the one on screen goes dark when its bar empties, not before */
+        if (i == disp_foe_idx && battle.disp[SIDE_ENEMY].visible) awake = battle.disp[SIDE_ENEMY].hp > 0;
+        spr_push(x0 + i * 9, y, OT_LANTERN_MINI + (awake ? 0 : 1), SQ8, OBANK_CAPSULE, 0, 0);
+    }
+}
+
 /* ---------------- event playback ---------------- */
 
 static void bev_pop(void)
@@ -381,7 +502,7 @@ static void xp_level_up(int slot, int remaining)
     monster_level_up(m);
     battle_leveled |= (u8)(1u << slot);
     int off = 0;
-    str_copy(msg, SPECIES[m->species].name);
+    str_copy(msg, kin_name(m));
     str_put(msg, " reached Lv. ");
     str_put_int(msg, m->level);
     str_put(msg, "!");
@@ -418,8 +539,20 @@ static int bev_run(BEvent *e)
         case EV_TEXT:
             battle.impacted = 0;
             msg_start(e->text, WIN_BATTLE, e->a);
-            if (battle.ev_count > 1 && battle.ev[1].type == EV_ANIM) msg.hold = 8;
-            else msg.hold = 30;
+            if (battle.ev_count > 1 && battle.ev[1].type == EV_ANIM) msg.hold = opt.battle_speed ? 4 : 8;
+            else msg.hold = opt.battle_speed ? 15 : 30;
+            break;
+        case EV_BANNER:
+            banner_begin(e->text);
+            break;
+        case EV_LEGEND:
+            anim_start_legend(side);
+            break;
+        case EV_CUE:
+            battle_cue(e->a);
+            return 1;
+        case EV_NAME:
+            catch_name_begin(e);
             break;
         case EV_ANIM:
             anim_start(e->a, side, e->b);
@@ -459,7 +592,7 @@ static int bev_run(BEvent *e)
         }
         case EV_SEND_OUT:
             if (side == SIDE_ALLY) battle.ally = e->a;
-            else battle.team_idx = e->a;
+            else battle.team_idx = disp_foe_idx = e->a;
             battle_load_mon_gfx(side);
             if (side == SIDE_ENEMY) dex_seen[battle.team[e->a].species] = 1;
             disp_sync(side);
@@ -517,7 +650,7 @@ static int bev_run(BEvent *e)
             if (monster_knows(m, e->b)) return 1;
             if (monster_add_move(m, e->b)) {
                 BEvent *t = bev_insert_next(EV_TEXT, 0, MSGM_WAIT, 0, 0);
-                str_copy(t->text, SPECIES[m->species].name);
+                str_copy(t->text, kin_name(m));
                 str_put(t->text, " learned ");
                 str_put(t->text, MOVES[e->b].name);
                 str_put(t->text, "!");
@@ -556,7 +689,10 @@ static int bev_run(BEvent *e)
     case EV_STATUS:
     case EV_TRAIT:
     case EV_HIT:
+    case EV_LEGEND:
         return !anim_busy();
+    case EV_BANNER:
+        return banner_update(t);
     case EV_HP: {
         int *hp = &battle.disp[side].hp;
         battle.disp[side].hp_t++;
@@ -654,6 +790,8 @@ static int bev_run(BEvent *e)
         return 0;
     case EV_LEARN:
         return !dialog_update();
+    case EV_NAME:
+        return catch_name_update(e);
     case EV_XP: {
         Monster *m = &party[e->a];
         if (m->level >= MAX_LEVEL || e->b <= 0) return 1;
@@ -696,7 +834,13 @@ static void battle_events_update(void)
         }
         BEvent *e = &battle.ev[0];
         int was_started = battle.ev_started;
-        if (!bev_run(e)) return;
+        if (!bev_run(e)) {
+            /* fast bouts: a timed event (not text, not a question) runs a
+             * second step this frame */
+            if (!opt.battle_speed || !battle.ev_started || e->type == EV_TEXT || e->type == EV_LEARN ||
+                e->type == EV_NAME) return;
+            if (!bev_run(e)) return;
+        }
         if (battle.state != BST_EVENTS) {
             bev_pop();
             return;
@@ -709,6 +853,7 @@ static void battle_events_update(void)
 
 static void battle_play(void)
 {
+    clear_tab(); /* the command page reaches up into row 13 */
     battle.state = BST_EVENTS;
     battle.ev_started = 0;
 }
@@ -744,7 +889,7 @@ static void battle_load_scene(void)
     REG_DISPCNT = DCNT_MODE0 | DCNT_BG0 | DCNT_BG1 | DCNT_OBJ | DCNT_OBJ_1D;
     copy32(VRAM_OBJ_TILES + OT_FX * 8, fx_gfx, FX_COUNT * 4 * 8);
     copy32(VRAM_OBJ_TILES + OT_FX_BIG * 8, fx_big_gfx, FXB_COUNT * 16 * 8);
-    copy32(VRAM_OBJ_TILES + OT_LANTERN_MINI * 8, lantern_mini_gfx, 8);
+    copy32(VRAM_OBJ_TILES + OT_LANTERN_MINI * 8, lantern_mini_gfx, 16);
     copy32(VRAM_OBJ_TILES + OT_CAPSULE * 8, capsule_gfx, 4 * 4 * 8);
     build_fx_palette(OBANK_LIGHT, RGB15(31, 22, 8), RGB15(31, 31, 24));
 }
@@ -768,6 +913,11 @@ static void battle_reset(int kind)
     battle.scene = clampi(battle_next_scene, 0, BSCENE_COUNT - 1);
     battle.foe_title[0] = 0;
     battle.lose_line = 0;
+    battle.master = 0;
+    battle.legend = 0;
+    battle.foe_entered = 0;
+    battle.foe_switches = 0;
+    disp_foe_idx = 0;
     battle_leveled = 0;
     for (int i = 0; i < 6; i++) battle.move_cursor_of[i] = 0;
     for (int s = 0; s < 2; s++) {
@@ -796,13 +946,21 @@ static void battle_reset(int kind)
 static void battle_queue_intro(void)
 {
     char msg[BEV_TEXT];
-    if (battle.kind == BK_WILD) {
+    if (battle.kind == BK_WILD && battle.legend) {
+        bev_push(EV_SEND_OUT, SIDE_ENEMY, 0, 1);
+        bev_push(EV_LEGEND, SIDE_ENEMY, 0, 0);
+        str_copy(msg, "The legendary ");
+        str_put(msg, SPECIES[battle.team[0].species].name);
+        str_put(msg, " rises before you!");
+        bsay_wait(msg);
+    } else if (battle.kind == BK_WILD) {
         bev_push(EV_SEND_OUT, SIDE_ENEMY, 0, 1);
         str_copy(msg, "A brimming ");
         str_put(msg, SPECIES[battle.team[0].species].name);
         str_put(msg, " wants a bout!");
         bsay_wait(msg);
     } else {
+        if (battle.master) str_copy(bev_push(EV_BANNER, SIDE_ENEMY, 0, 0)->text, battle.foe_title);
         str_copy(msg, battle.foe_title);
         str_put(msg, " wants a bout!");
         bsay_wait(msg);
@@ -814,10 +972,11 @@ static void battle_queue_intro(void)
         bev_push(EV_SEND_OUT, SIDE_ENEMY, 0, 0);
     }
     str_copy(msg, "Out you come, ");
-    str_put(msg, SPECIES[party[battle.ally].species].name);
+    str_put(msg, kin_name(&party[battle.ally]));
     str_put(msg, "!");
     bsay(msg);
     bev_push(EV_SEND_OUT, SIDE_ALLY, battle.ally, 0);
+    apply_meal_stages();
     entry_traits(SIDE_ENEMY);
     entry_traits(SIDE_ALLY);
 }
@@ -829,15 +988,29 @@ static void battle_start_wild(Monster wild)
     battle.team_count = 1;
     battle.prize = 0;
     dex_seen[wild.species] = 1;
+    if (SPECIES[wild.species].rarity == R_LEGEND) {
+        battle.legend = 1;
+        battle.no_run = 1;
+        battle_cue(BCUE_START_LEGEND);
+    } else {
+        battle_cue(BCUE_START_WILD);
+    }
 }
 
-static void battle_set_title(const char *name)
+/* A legend in its lair: the wild bout with the lair's scene. */
+MAYBE_UNUSED static void battle_start_legend(Monster m, int scene)
+{
+    battle_start_wild(m);
+    battle.scene = clampi(scene, 0, BSCENE_COUNT - 1);
+}
+
+static void battle_set_title(const char *name, int master)
 {
     int spaced = 0;
     for (const char *c = name; *c; c++)
         if (*c == ' ') spaced = 1;
     battle.foe_title[0] = 0;
-    if (!spaced) str_copy(battle.foe_title, "WARDEN ");
+    if (!spaced) str_copy(battle.foe_title, master ? "HALL MASTER " : "WARDEN ");
     if (str_len(battle.foe_title) + str_len(name) < sizeof(battle.foe_title))
         str_put(battle.foe_title, name);
 }
@@ -849,10 +1022,20 @@ static void battle_start_trainer_team(const TrainerTeam *t)
     for (int i = 0; i < n; i++) battle.team[i] = monster_make(t->species[i], t->level[i]);
     battle.team_count = n;
     battle.prize = t->prize;
-    battle_set_title(t->name ? t->name : "WARDEN");
+    battle.master = (t->flags & TT_MASTER) != 0;
+    battle_set_title(t->name ? t->name : "WARDEN", battle.master);
     battle.lose_line = t->lose_line;
     battle.scene = t->scene == BSCENE_AREA ? clampi(battle_next_scene, 0, BSCENE_COUNT - 1) :
                    clampi(t->scene, 0, BSCENE_COUNT - 1);
+    battle_cue(battle.master ? BCUE_START_MASTER : BCUE_START_WARDEN);
+}
+
+/* A Hall Master: the warden bout with TT_MASTER set. */
+MAYBE_UNUSED static void battle_start_master(const TrainerTeam *t)
+{
+    TrainerTeam m = *t;
+    m.flags |= TT_MASTER;
+    battle_start_trainer_team(&m);
 }
 
 static const u8 TRAINER_POOL[] = {
@@ -912,9 +1095,18 @@ static void battle_exit(void)
     battle_lines_off();
     copy16(obj_palette + OBANK_LIGHT * 16, saved_light_bank, 16);
     battle.lantern_visible = 0;
+    battle.on_water = 0;
+    meal_bout_finished();
+    battle_cue(BCUE_END);
     if (battle.result == BR_LOSE) {
+        /* back to the Hearth Hall where the party last rested */
+        int hx = 5, hy = 4, hmap = MAP_REST;
+        if (hearth_spot(&hx, &hy)) hmap = travel.last_hearth;
+        travel.surfing = 0;
+        travel.biking = 0;
         party_heal_all();
-        field_enter_map(MAP_REST, 5, 4, DIR_UP);
+        field_enter_map(hmap, hx, hy, DIR_UP);
+        dlg_say("Everything went dark... You woke by the hearth where you last rested, your kin tended and whole again.");
     }
     for (int i = 0; i < party_count; i++) {
         if (!(battle_leveled & (1u << i))) continue;
@@ -933,10 +1125,9 @@ static void battle_exit(void)
 static void battle_action_input(void)
 {
     int old = battle.cursor;
-    if (key_hit(KEY_LEFT) && (battle.cursor & 1)) battle.cursor--;
-    if (key_hit(KEY_RIGHT) && !(battle.cursor & 1)) battle.cursor++;
-    if (key_hit(KEY_UP) && (battle.cursor & 2)) battle.cursor -= 2;
-    if (key_hit(KEY_DOWN) && !(battle.cursor & 2)) battle.cursor += 2;
+    /* one command per row: UP/DOWN walk the list and wrap around */
+    if (key_hit(KEY_UP)) battle.cursor = (battle.cursor + 3) & 3;
+    if (key_hit(KEY_DOWN)) battle.cursor = (battle.cursor + 1) & 3;
     if (old != battle.cursor) {
         battle.ui_dirty = 1;
         sfx_play(SFX_CURSOR);
@@ -1014,7 +1205,7 @@ static void battle_reload_gfx(void)
     battle_load_mon_gfx(SIDE_ENEMY);
     battle_load_mon_gfx(SIDE_ALLY);
     copy32(VRAM_OBJ_TILES + OT_FX_BIG * 8, fx_big_gfx, FXB_COUNT * 16 * 8);
-    copy32(VRAM_OBJ_TILES + OT_LANTERN_MINI * 8, lantern_mini_gfx, 8);
+    copy32(VRAM_OBJ_TILES + OT_LANTERN_MINI * 8, lantern_mini_gfx, 16);
     hud_load_palettes();
     battle_apply_scene_tint(0, 0);
     build_fx_palette(OBANK_LIGHT, RGB15(31, 22, 8), RGB15(31, 31, 24));
@@ -1115,6 +1306,7 @@ static void battle_update(void)
     switch (battle.state) {
     case BST_INTRO:
         intro_update();
+        if (opt.battle_speed && battle.state == BST_INTRO) intro_update();
         break;
     case BST_EVENTS:
         battle_events_update();
@@ -1175,6 +1367,7 @@ static void battle_draw_lines(void)
     int w = anim.wobble;
     for (int y = 0; y < SCREEN_HEIGHT; y++) {
         int hx = -shake_x, vy = -shake_y;
+        a3_cam_line(y, &hx, &vy);
         if (w) hx += soft_sin(y * 6 + (int)frame_count * 10) * w / 64;
         b0[y] = (u32)(hx & 0x1FF) | ((u32)(vy & 0x1FF) << 16);
     }
@@ -1206,6 +1399,13 @@ static void battle_draw_lines(void)
             int l = clampi(cx - h, 0, 240), rr = clampi(cx + h, 0, 240);
             wl[y] = (u16)((l << 8) | rr);
         }
+        lines_repeat16(wl);
+        oam_line_win0h = wl;
+    } else if (banner_on) {
+        /* the Hall Master banner: WIN0 spans the band's wipe, full width elsewhere */
+        u16 *wl = line_win[line_buf];
+        for (int y = 0; y < SCREEN_HEIGHT; y++)
+            wl[y] = (y >= BANNER_Y0 && y < BANNER_Y1) ? (u16)((banner_l << 8) | banner_r) : (u16)240;
         lines_repeat16(wl);
         oam_line_win0h = wl;
     }
@@ -1265,7 +1465,8 @@ static void battle_draw_battlers(void)
             sx = sx * (256 - f * 5) / 256;
             sy = sy * (256 - f * 7) / 256;
         }
-        if (sx < 4 || sy < 4) continue;
+        a3_cam_battler(side, &x, &y, &sx, &sy);
+        if (absi(sx) < 4 || sy < 4) continue;   /* (a negative x scale: turned round) */
         /* keep the feet planted: scale about the bottom of the sprite */
         int anchor = side == SIDE_ENEMY ? 26 : 32;
         y += anchor * (256 - sy) / 256;
@@ -1324,6 +1525,14 @@ static void battle_draw(void)
         spr_push(HUD_ENEMY_CX * 8 + 98 + jx, HUD_ENEMY_CY * 8 - 3, OT_LANTERN_MINI, SQ8, OBANK_CAPSULE, 0, 0);
     }
 
+    team_row_draw();
+    banner_draw();
+    a3_defer_back = 1;              /* particles behind the battlers go out after them */
+    if (opt.battle_speed) {         /* fast bouts: a hidden step, then the shown one */
+        anim_nodraw = 1;
+        anim_update();
+        anim_nodraw = 0;
+    }
     anim_update();
 
     /* the rim of the intro's lantern light glitters */
@@ -1346,6 +1555,8 @@ static void battle_draw(void)
     load_pal(obj_palette + OBANK_CAPSULE * 16, capsule_pal[battle.lantern_kind]);
 
     battle_draw_battlers();
+    a3_flush_back();
+    a3_defer_back = 0;
     battle_draw_palettes();
 
     /* background tint eases toward what the animation wants */

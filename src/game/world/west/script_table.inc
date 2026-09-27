@@ -1,0 +1,11 @@
+/* world/west/script_table.inc -- Script dispatch: [SCR_X] = scr_x,. Owner: W-WEST. */
+    [SCR_SALT_RAKER] = scr_salt_raker,
+    [SCR_FERRY] = scr_ferry,
+    [SCR_LIGHTKEEPER] = scr_lightkeeper,
+    [SCR_BRINE_SHOP] = scr_brine_shop,
+    [SCR_HARBORMASTER] = scr_harbormaster,
+    [SCR_BRINE_INNKEEPER] = scr_brine_innkeeper,
+    [SCR_SKIPPER] = scr_skipper,
+    [SCR_HALL_GUIDE] = scr_hall_guide,
+    [SCR_MAREN] = scr_maren,
+    [SCR_ODA] = scr_oda,

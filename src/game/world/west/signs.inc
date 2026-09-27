@@ -1,0 +1,11 @@
+/* world/west/signs.inc -- Signs: { MAP_X, x, y, "text" },. Each sits on a SIGNPOST decor. Owner: W-WEST. */
+    { MAP_SALTWIND, 44, 30, "SALTWIND TRAIL\fWEST: PORT BRINE. EAST: MIRROR LAKE.\fMind the dune ledges: they only go one way." },
+    { MAP_SALTWIND, 4, 18, "SALTWIND SALT PANS\fThe sun and the wind do the work. Please don't walk in the brine." },
+    { MAP_PORT_BRINE, 23, 7, "CURRENT HALL\fHALL MASTER MAREN. The water only flows one way. So should you." },
+    { MAP_PORT_BRINE, 45, 21, "PORT BRINE\fWhere the Vale meets the sea. Mind the gulls." },
+    { MAP_PORT_BRINE, 18, 25, "HARBOR OFFICE\fFerry to GULL ISLE: 500c, or show your FERRY PASS." },
+    { MAP_PORT_BRINE, 15, 16, "BRINE HEARTH HALL\fRest your kin by the hearth. Free, as it has always been." },
+    { MAP_PORT_BRINE, 9, 4, "SAILORS' GARDEN\fOne flower for every boat the tide kept.\fThe gulls are asked not to eat them." },
+    { MAP_SEA_ROUTE, 17, 4, "SEA ROUTE\fOpen water to GULL ISLE. A strong TIDE kin can carry you (SURF).\fNo SURF? The ferry sails from the HARBOR OFFICE." },
+    { MAP_GULL_ISLE, 18, 3, "GULL ISLE\fPopulation: eleven people, one lighthouse, too many gulls." },
+    { MAP_GULL_ISLE, 28, 25, "SEA CAVE\fThe fishers call it the DROWNED BELL. Listen at night." },

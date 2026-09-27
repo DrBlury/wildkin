@@ -5,6 +5,8 @@
  * each with one of the kin it mentions, before you wake up at home.
  */
 
+static void debug_open(void);
+
 static struct { int state, timer, has_save, page_species; } title;
 static const char *const TITLE_CONTINUE[] = { "CONTINUE", "NEW GAME" };
 static const char *const TITLE_NEW[] = { "NEW GAME" };
@@ -55,6 +57,7 @@ static void title_open(int has_save)
     title.timer = 0;
     game_mode = MODE_TITLE;
     title_draw();
+    music_play(SONG_TITLE);
 }
 
 static void title_enter_field(void)
@@ -66,6 +69,7 @@ static void title_enter_field(void)
     field_setup_bg();
     field_load_tileset();
     field_update_camera();
+    music_map_changed(cur_map);
 }
 
 /* ---------------- storybook ---------------- */
@@ -113,6 +117,11 @@ static void title_update(void)
         int on = (title.timer >> 5) & 1;
         canvas_fill(0, 132, SCREEN_WIDTH, 16, 1);
         if (on) text_draw_center(SCREEN_WIDTH / 2, 134, "PRESS START");
+        if (key_hit(KEY_START) && key_down(KEY_SELECT)) {   /* developer tools */
+            sfx_play(SFX_CONFIRM);
+            debug_open();
+            return;
+        }
         if (key_hit(KEY_START) || key_hit(KEY_A)) {
             sfx_play(SFX_CONFIRM);
             canvas_fill(0, 132, SCREEN_WIDTH, 16, 1);
@@ -150,7 +159,7 @@ static void title_update(void)
         return;
     }
     dialog_style = WIN_STD;
-    story_flags |= FLAG_INTRO;
+    flag_set(FLAG_INTRO);
     title_enter_field();
     set_brightness(0);
     dlg_say("...It's morning. Sunlight on the floorboards, and Gran humming downstairs. Today is your KINDLING!");

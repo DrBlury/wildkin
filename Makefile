@@ -5,6 +5,9 @@
 #   make run    build and open in mGBA
 #   make test   host-side unit tests (rules, battles, maps, menus)
 #   make art    regenerate the art headers from tools/gen_*.py
+#               (and src/music_data.h from tools/music/*.py)
+#   make songs  render every song to build/music/*.wav (host synth)
+#   make audio  build the headless audio recorder (needs libmgba)
 #   make maps   render every map to build/maps/*.png
 #   make shot   build the headless screenshot harness (needs libmgba)
 #   make clean  remove build artifacts
@@ -29,15 +32,17 @@ MGBA_PREFIX ?= /opt/homebrew
 
 # The GBA's ARM7TDMI: ARMv4T. Thumb + interwork calls is the usual setup.
 ARCH     := -mcpu=arm7tdmi -mthumb -mthumb-interwork
-CFLAGS   := -g -O2 -Wall -Wextra $(ARCH) -fomit-frame-pointer -ffreestanding -DGBA
+CFLAGS   := -g -O2 -Wall -Wextra -Wno-missing-field-initializers $(ARCH) -fomit-frame-pointer -ffreestanding -DGBA
 ASFLAGS  := -g -mcpu=arm7tdmi -marm
-LDFLAGS  := $(ARCH) -nostartfiles -T gba.ld -Wl,-Map,$(BUILD)/$(TARGET).map
+# (IWRAM holds ARM code copied from ROM -- the music mixer -- so its segment is RWX by design)
+LDFLAGS  := $(ARCH) -nostartfiles -T gba.ld -Wl,-Map,$(BUILD)/$(TARGET).map -Wl,--no-warn-rwx-segments
 
 OBJS     := $(SOURCES:%.c=$(BUILD)/%.o)
 OBJS     += $(BUILD)/src/crt0.o
 
 # Generated art headers and the scripts that write them.
-ART      := src/gfx_ui.h src/gfx_monsters.h src/gfx_field.h src/gfx_battle.h
+ART      := src/gfx_ui.h src/gfx_monsters.h src/gfx_field.h src/gfx_battle.h src/species_data.h \
+            src/gfx_travel.h src/gfx_craft.h src/gfx_fusion.h src/gfx_rune.h
 
 all: $(TARGET).gba
 
@@ -50,16 +55,27 @@ run: $(TARGET).gba
 # test_game.c also runs a tiered round-robin balance simulation.
 test:
 	@mkdir -p $(BUILD)
-	$(HOSTCC) -std=c11 -Wall -Wextra -Wno-unused-function -o $(BUILD)/test_field tools/test_field.c
+	$(HOSTCC) -std=c11 -Wall -Wextra -Wno-missing-field-initializers -Wno-unused-function -o $(BUILD)/test_field tools/test_field.c
 	$(BUILD)/test_field
-	$(HOSTCC) -std=c11 -Wall -Wextra -Wno-unused-function -o $(BUILD)/test_game tools/test_game.c
+	$(HOSTCC) -std=c11 -Wall -Wextra -Wno-missing-field-initializers -Wno-unused-function -o $(BUILD)/test_game tools/test_game.c
 	$(BUILD)/test_game
+	@for t in tools/tests/test_*.c; do \
+		n=$$(basename $$t .c); \
+		$(HOSTCC) -std=c11 -Wall -Wextra -Wno-missing-field-initializers -Wno-unused-function -o $(BUILD)/$$n $$t || exit 1; \
+		$(BUILD)/$$n || exit 1; \
+	done
 
 art:
 	python3 tools/gen_ui_gfx.py
+	python3 tools/gen_species.py
 	python3 tools/gen_monsters.py
 	python3 tools/gen_field_gfx.py
 	python3 tools/gen_battle_gfx.py
+	python3 tools/gen_travel_gfx.py
+	python3 tools/gen_craft_gfx.py
+	python3 tools/gen_fusion_gfx.py
+	python3 tools/gen_rune_gfx.py
+	python3 tools/gen_music.py
 
 maps:
 	python3 tools/render_maps.py build/maps
@@ -68,6 +84,17 @@ maps:
 shot:
 	@mkdir -p $(BUILD)
 	$(HOSTCC) -O2 -I$(MGBA_PREFIX)/include -o $(BUILD)/shot tools/shot.c -L$(MGBA_PREFIX)/lib -lmgba -lz
+
+# build/render_music [-s SECONDS] [SONG...] -- the game's synth on the host
+songs:
+	@mkdir -p $(BUILD)/music
+	$(HOSTCC) -std=c11 -O2 -Wall -Wextra -Wno-missing-field-initializers -Wno-unused-function -o $(BUILD)/render_music tools/render_music.c -lm
+	$(BUILD)/render_music -o $(BUILD)/music
+
+# build/record_audio game.gba script.txt [save.sav] -- the ROM's audio to WAV
+audio:
+	@mkdir -p $(BUILD)
+	$(HOSTCC) -O2 -I$(MGBA_PREFIX)/include -o $(BUILD)/record_audio tools/record_audio.c -L$(MGBA_PREFIX)/lib -lmgba -lz
 
 clean:
 	rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba
@@ -81,7 +108,8 @@ $(TARGET).gba: $(TARGET).elf
 $(TARGET).elf: $(OBJS) gba.ld
 	$(CC) $(LDFLAGS) $(OBJS) -o $@ -nostdlib -lgcc
 
-$(BUILD)/src/main.o: $(ART) $(wildcard src/*.h) $(wildcard src/game/*.c) $(wildcard src/game/*.h)
+$(BUILD)/src/main.o: $(ART) src/music_data.h $(wildcard src/*.h) $(wildcard src/game/*.c) $(wildcard src/game/*.h) \
+                    $(wildcard src/game/world/*.h src/game/world/*.inc src/game/world/*.c src/game/world/*/*)
 
 $(BUILD)/%.o: %.c
 	@mkdir -p $(dir $@)
@@ -91,4 +119,4 @@ $(BUILD)/%.o: %.S
 	@mkdir -p $(dir $@)
 	$(CC) $(ASFLAGS) -c $< -o $@
 
-.PHONY: all run test art maps shot clean
+.PHONY: all run test art maps shot songs audio clean

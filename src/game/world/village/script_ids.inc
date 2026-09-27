@@ -1,0 +1,13 @@
+/* world/village/script_ids.inc -- NPC script ids: SCR_X,. Owner: core (the original Maple Village area). */
+    SCR_KEEPER,
+    SCR_AIDE,
+    SCR_GRAN,
+    SCR_BAKER,
+    SCR_GARDENER,
+    SCR_MARLO,
+    SCR_SHOP,
+    SCR_TENDER,
+    SCR_HERMIT,
+    SCR_VASS,
+    SCR_WOODWARD,
+    SCR_KID,

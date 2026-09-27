@@ -8,7 +8,8 @@
  * the TWIN CRYSTAL and the RING SASH, and puts the player at MAP (index
  * into maps.h, default Whisper Meadow) X, Y. With "calm" the storm is
  * already over (clear skies, DRAKORA answered); with "low" the team is
- * around level 6, for even early bouts.
+ * around level 6, for even early bouts; with "beaten" every warden on MAP
+ * is already beaten (to replay a Hall's puzzle without bouts).
  */
 #define main gba_main
 #include "../src/main.c"
@@ -21,16 +22,17 @@
 int main(int argc, char **argv)
 {
     if (argc < 2) {
-        fprintf(stderr, "usage: %s OUT.sav [MAP X Y]\n", argv[0]);
+        fprintf(stderr, "usage: %s OUT.sav [MAP X Y [calm] [low] [beaten]]\n", argv[0]);
         return 1;
     }
     game_init();
     rng_seed(20260926u);
     new_game();
-    int calm = 0, low = 0;
+    int calm = 0, low = 0, beaten = 0;
     for (int i = 5; i < argc; i++) {
         if (!strcmp(argv[i], "calm")) calm = 1;
         if (!strcmp(argv[i], "low")) low = 1;
+        if (!strcmp(argv[i], "beaten")) beaten = 1;
     }
     static const u8 TEAM[5] = { SP_PYREFOX, SP_AXOLURK, SP_ZAPPET, SP_DANDELAMB, SP_GOLEMIT };
     static const u8 LV[5] = { 17, 15, 14, 13, 13 };
@@ -57,15 +59,16 @@ int main(int argc, char **argv)
     bag[ITEM_BLOOM_SHARD] = 1;
     money = 4820;
     opt.text_speed = TEXT_FAST;  /* snappier clips */
-    story_flags = FLAG_STARTER | FLAG_INTRO | FLAG_TWIN_CRYSTAL | FLAG_PIP_GIFT | FLAG_GRAN_GIFT |
-                  FLAG_BAKER_GIFT | FLAG_LEAF_STONE | FLAG_SASH | FLAG_STORM_TOLD;
-    trainer_flags = 1u << TR_MARLO;
-    if (calm) story_flags |= FLAG_STORM_CALMED;
+    flags_story_clear(); flag_set(FLAG_STARTER); flag_set(FLAG_INTRO); flag_set(FLAG_TWIN_CRYSTAL); flag_set(FLAG_PIP_GIFT); flag_set(FLAG_GRAN_GIFT); flag_set(FLAG_BAKER_GIFT); flag_set(FLAG_LEAF_STONE); flag_set(FLAG_SASH); flag_set(FLAG_STORM_TOLD);
+    trainer_mark_beaten(TR_MARLO);
+    if (calm) flag_set(FLAG_STORM_CALMED);
     for (int i = 0; i < LORE_COUNT; i += 2) lore_learn(i);
     lore_learn(LORE_KINDLING);
     lore_learn(LORE_RING_SASH);
     int map = argc > 2 ? atoi(argv[2]) : MAP_MEADOW;
     int x = argc > 3 ? atoi(argv[3]) : 19, y = argc > 4 ? atoi(argv[4]) : 40;
+    for (int i = 0; beaten && i < NPC_COUNT; i++)
+        if (NPCS[i].map == map && NPCS[i].trainer != NO_TRAINER) trainer_mark_beaten(NPCS[i].trainer);
     field_enter_map(map, x, y, DIR_UP);
     static u8 sram[32768];
     for (unsigned i = 0; i < sizeof(sram); i++) sram[i] = 0xFF;

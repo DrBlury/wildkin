@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate src/gfx_ui.h: Emerald-style UI art for the GBA engine.
+"""Generate src/gfx_ui.h: the WILDKIN UI art for the GBA engine.
 
 Contents: a 14-row variable-width dialogue font, a small HUD digit font,
 9-slice window frames (standard / menu / battle), battle health boxes,
@@ -39,64 +39,70 @@ def rgb8(c):
     return ((r << 3) | (r >> 2), (g << 3) | (g >> 2), (b << 3) | (b >> 2))
 
 
-# bank 15: dialog boxes, menus, lists
+# The WILDKIN look: lantern-lit parchment pages bound in dark ink-walnut
+# with thin gold filigree and corner studs; bouts and the HUD use night
+# slate plaques with the same gold.  Menus sit on a deep rune-lattice
+# backdrop.
+
+# bank 15: dialog boxes, menus, lists (parchment page)
 PAL_STD = [
     c15(0, 0, 0),       # 0 transparent
-    c15(31, 31, 31),    # 1 paper
-    c15(12, 12, 13),    # 2 ink
-    c15(26, 26, 25),    # 3 ink shadow
-    c15(5, 8, 12),      # 4 frame dark (outline)
-    c15(10, 17, 22),    # 5 frame mid
-    c15(19, 26, 29),    # 6 frame light
-    c15(25, 29, 31),    # 7 selection highlight
-    c15(28, 6, 5),      # 8 red ink
-    c15(31, 22, 20),    # 9 red shadow
-    c15(5, 10, 27),     # 10 blue ink
-    c15(20, 24, 31),    # 11 blue shadow
-    c15(4, 18, 6),      # 12 green ink
-    c15(19, 28, 18),    # 13 green shadow
-    c15(28, 31, 31),    # 14 frame accent: highlight
-    c15(14, 22, 26),    # 15 frame accent: soft mid
+    c15(29, 27, 21),    # 1 paper: parchment
+    c15(6, 4, 4),       # 2 ink: sepia-black
+    c15(23, 20, 14),    # 3 ink shadow: parchment shade
+    c15(3, 3, 5),       # 4 frame dark (ink outline)
+    c15(9, 7, 7),       # 5 frame band (walnut-ink)
+    c15(27, 20, 8),     # 6 frame gold filigree
+    c15(31, 24, 12),    # 7 selection glow (lantern amber)
+    c15(21, 3, 4),      # 8 red ink (crimson)
+    c15(27, 18, 14),    # 9 red shadow
+    c15(2, 10, 14),     # 10 blue ink (deep teal)
+    c15(20, 21, 18),    # 11 blue shadow
+    c15(4, 13, 5),      # 12 green ink (forest)
+    c15(21, 23, 14),    # 13 green shadow
+    c15(31, 29, 19),    # 14 frame accent: pale gold / glow rim
+    c15(26, 23, 16),    # 15 frame accent: parchment edge
 ]
 
-# bank 14: battle message box
+# bank 14: battle message box, bout banner, title and growth scene
+# (night slate)
 PAL_BATTLE = [
     c15(0, 0, 0),       # 0 transparent
-    c15(5, 10, 13),     # 1 paper: dark teal
-    c15(31, 31, 31),    # 2 ink: white
-    c15(2, 4, 6),       # 3 shadow: deep blue-gray
-    c15(2, 3, 5),       # 4 outer outline
-    c15(28, 29, 29),    # 5 bezel highlight
-    c15(20, 22, 23),    # 6 bezel mid
-    c15(12, 14, 16),    # 7 bezel dark
-    c15(30, 18, 5),     # 8 accent orange
-    c15(20, 9, 3),      # 9 accent dark orange
-    c15(9, 16, 19),     # 10 paper rim (lighter teal)
-    c15(3, 7, 9),       # 11 paper rim dark
-    c15(31, 26, 12),    # 12 accent light
-    c15(16, 18, 20),    # 13 spare gray
-    c15(24, 26, 27),    # 14 spare light gray
-    c15(7, 8, 10),      # 15 spare dark
+    c15(4, 5, 8),       # 1 paper: night slate
+    c15(29, 28, 23),    # 2 ink: parchment white
+    c15(1, 1, 3),       # 3 shadow
+    c15(1, 1, 2),       # 4 outer outline
+    c15(27, 20, 8),     # 5 gold filigree
+    c15(15, 10, 5),     # 6 bronze
+    c15(9, 10, 15),     # 7 glow (selection on slate)
+    c15(31, 17, 14),    # 8 red ink (rose ember)
+    c15(12, 4, 3),      # 9 red shadow / logo shadow
+    c15(14, 27, 27),    # 10 blue ink (lantern teal)
+    c15(1, 5, 7),       # 11 blue shadow
+    c15(31, 26, 11),    # 12 bright gold (logo, green ink on slate)
+    c15(8, 6, 3),       # 13 gold shadow
+    c15(31, 30, 21),    # 14 pale gold highlight
+    c15(7, 8, 12),      # 15 slate rim
 ]
 
-# bank 13: battle health boxes
+# bank 13: battle plaques (night slate banners)
 PAL_HUD = [
     c15(0, 0, 0),       # 0 transparent
-    c15(31, 31, 27),    # 1 paper (cream)
-    c15(8, 8, 8),       # 2 ink
-    c15(26, 25, 20),    # 3 ink shadow
-    c15(6, 7, 8),       # 4 outline
-    c15(24, 24, 18),    # 5 paper shade / bevel
-    c15(11, 11, 12),    # 6 capsule dark gray
-    c15(31, 22, 3),     # 7 "HP" letters (orange-yellow)
-    c15(14, 31, 21),    # 8 HP green
-    c15(11, 25, 15),    # 9 HP green shade
-    c15(31, 28, 7),     # 10 HP yellow
-    c15(25, 20, 1),     # 11 HP yellow shade
-    c15(31, 11, 7),     # 12 HP red
-    c15(21, 7, 8),      # 13 HP red shade
-    c15(8, 25, 31),     # 14 EXP blue
-    c15(6, 7, 8),       # 15 empty bar track
+    c15(4, 5, 8),       # 1 plaque: night slate
+    c15(29, 28, 23),    # 2 ink: parchment white
+    c15(1, 1, 3),       # 3 ink shadow
+    c15(1, 1, 2),       # 4 outline
+    c15(27, 20, 8),     # 5 gold trim
+    c15(14, 9, 4),      # 6 bronze
+    c15(31, 29, 19),    # 7 pale gold
+    c15(9, 27, 23),     # 8 vitality teal
+    c15(3, 17, 16),     # 9 vitality teal shade
+    c15(31, 22, 6),     # 10 vitality amber
+    c15(23, 13, 2),     # 11 vitality amber shade
+    c15(30, 7, 9),      # 12 vitality crimson
+    c15(18, 2, 6),      # 13 vitality crimson shade
+    c15(16, 22, 31),    # 14 EXP: arcane blue
+    c15(1, 2, 4),       # 15 empty bar trough
 ]
 
 
@@ -308,10 +314,10 @@ GLYPHS = {
     "y": (4, "X...X X...X X...X X...X X...X X...X .XXXX ....X X...X .XXX.", None),
     "z": (4, "XXXXX ....X ...X. ..X.. .X... X.... XXXXX", None),
     # remaps
-    "{": (3, "X... XX.. XXX. XXXX XXX. XX.. X...", 7),        # right cursor
+    "{": (2, "..X.. ..X.. .XXX. XX.XX .XXX. ..X.. ..X..", 7),  # rune cursor
     "|": (4, "X...X .X.X. ..X.. .X.X. X...X", None),          # multiplication
-    "}": (6, "XXXXXXX .XXXXX. ..XXX.. ...X...", 8),           # continue arrow
-    "~": (5, ".XX. XXXX XXXX .XX.", None),                    # bullet
+    "}": (6, "XX.XX .XXX. ..X..", 8),                          # continue mark
+    "~": (5, ".X. XXX .X.", None),                            # bullet
 }
 
 FONT_FIRST, FONT_COUNT = 32, 95
@@ -344,7 +350,7 @@ FONT_W, FONT_BITS = build_font()
 # small font (HUD digits, level, HP): rows 0..6
 # ---------------------------------------------------------------------------
 
-SMALL_CHARS = "0123456789/LvHP"
+SMALL_CHARS = "0123456789/LvHP%x.<"
 SMALL_GLYPHS = {
     "0": ".XX. X..X X..X X..X X..X X..X .XX.",
     "1": ".X.. XX.. .X.. .X.. .X.. .X.. XXX.",
@@ -361,6 +367,10 @@ SMALL_GLYPHS = {
     "v": "... ... ... X.X X.X X.X .X.",
     "H": "X..X X..X X..X XXXX X..X X..X X..X",
     "P": "XXX. X..X X..X XXX. X... X... X...",
+    "%": "XX..X XX..X ...X. ..X.. .X... X..XX X..XX",
+    "x": "... ... X.X .X. .X. X.X ...",
+    ".": ". . . . . . X",
+    "<": "... ..X .X. X.. .X. ..X ...",
 }
 FONT_SMALL_HEIGHT = 8
 
@@ -467,44 +477,46 @@ def frame_from_corner(rows, cmap):
     return img
 
 
-# standard dialog frame: dark outline, light rim, 2px steel band, dark
-# inner line (bank 15 indices 4/6/5)
+# standard page frame: an ink outline, a dark walnut band carrying one gold
+# filigree line, and a gold stud with a dark rivet at every corner; the
+# parchment starts 5 px in (bank 15: 4 outline, 5 band, 6 gold, 14 glint)
 std_img = frame_from_corner([
-    "...OOOOO",
-    ".OOhhhhh",
-    ".Ohhmmmm",
-    "Ohhmmmmm",
-    "Ohmmmddd",
-    "Ohmmdppp",
-    "Ohmmdppp",
-    "Ohmmdppp",
-], {".": 0, "O": 4, "h": 6, "m": 5, "d": 4, "p": 1})
+    ".OOOOOOO",
+    "OHGGGOWW",
+    "OGOOGOGG",
+    "OGOOGOWW",
+    "OGGGGOOO",
+    "OOOOOOpp",
+    "OWGWOppp",
+    "OWGWOppp",
+], {".": 0, "O": 4, "W": 5, "G": 6, "H": 14, "p": 1})
 FRAME_STD = frame_tiles(std_img)
 
-# menu frame: thinner and lighter -- outline, soft blue, pale rim
+# menu / card frame: a thin gold rule between ink lines, corners cut at
+# 45 degrees
 menu_img = frame_from_corner([
     "...OOOOO",
-    ".OOaaaaa",
-    ".Oaabbbb",
-    "Oaabpppp",
-    "Oabppppp",
-    "Oabppppp",
-    "Oabppppp",
-    "Oabppppp",
-], {".": 0, "O": 4, "a": 15, "b": 14, "p": 1})
+    "..OGGGGG",
+    ".OGOOOOO",
+    "OGOppppp",
+    "OGOppppp",
+    "OGOppppp",
+    "OGOppppp",
+    "OGOppppp",
+], {".": 0, "O": 4, "G": 6, "p": 1})
 FRAME_MENU = frame_tiles(menu_img)
 
-# battle frame (bank 14): outline, metallic bezel, orange trim, dark rim
+# bout frame (bank 14): night slate with the same studded gold binding
 battle_img = frame_from_corner([
-    "...OOOOO",
-    ".OOHHHHH",
-    ".OHHMMMM",
-    "OHHMAAAA",
-    "OHMAArrr",
-    "OHMArppp",
-    "OHMArppp",
-    "OHMArppp",
-], {".": 0, "O": 4, "H": 5, "M": 6, "A": 8, "r": 11, "p": 1})
+    ".OOOOOOO",
+    "OHGGGOBB",
+    "OGOOGOGG",
+    "OGOOGOBB",
+    "OGGGGOOO",
+    "OOOOOOrr",
+    "OBGBOrpp",
+    "OBGBOrpp",
+], {".": 0, "O": 4, "B": 6, "G": 5, "H": 14, "r": 15, "p": 1})
 FRAME_BATTLE = frame_tiles(battle_img)
 
 
@@ -526,24 +538,21 @@ def assemble_box(tiles9, wc, hc):
 # battle health boxes (bank 13)
 # ---------------------------------------------------------------------------
 
-HUD_STYLE = dict(ring=1, keel_fill=5, cap_fill=4)
+LEAF = [             # vitality glyph: a leaf, drawn in the live HP colour
+    "....OOO",
+    "..OO88O",
+    ".O8889O",
+    "O8898O.",
+    "O898O..",
+    "O9OO...",
+    "O......",
+]
 
 
-def hp_capsule(img, x0, y0, bar_x, bar_y):
-    """Dark capsule with orange 'HP' + empty 48x3 track at (bar_x, bar_y).
-    Capsule spans rows y0..y0+6; the track sits inside a 1px light ring."""
-    x1 = bar_x + 48 + 1 + 1      # ring col + one dark col
-    sp = rounded_spans(x0, y0, x1, y0 + 6, [2, 1], [2, 1])
-    for y, (a, b) in sp.items():
-        for x in range(a, b + 1):
-            img.set(x, y, HUD_STYLE["cap_fill"])
-    tiny_draw(img, x0 + 3, y0 + 1, "HP", 7)
-    if HUD_STYLE["ring"] is not None:
-        img.rect(bar_x - 1, bar_y - 1, bar_x + 48, bar_y + 3, HUD_STYLE["ring"])
-    img.rect(bar_x, bar_y, bar_x + 47, bar_y + 2, 15)
-
-
-def draw_panel(img, spans, bevel_rows=2):
+def plaque(img, left, right, y0, y1):
+    """Night-slate banner: ink outline, gold trim, slate fill.
+    left/right(y) give the inclusive span of each row."""
+    spans = {y: (left(y), right(y)) for y in range(y0, y1 + 1)}
     mask = span_mask(img.w, img.h, spans)
     depth = layer_map(mask)
     for y in range(img.h):
@@ -551,56 +560,76 @@ def draw_panel(img, spans, bevel_rows=2):
             d = depth[y][x]
             if d == 0:
                 img.p[y][x] = 4
-            elif d > 0:
-                img.p[y][x] = 1
-    ys = sorted(spans)
-    bottom = ys[-1]
-    for y in range(bottom - bevel_rows, bottom):
-        for x in range(img.w):
-            if depth[y][x] > 0:
+            elif d == 1:
                 img.p[y][x] = 5
+            elif d > 1:
+                img.p[y][x] = 1
     return depth
 
 
-def keel(img, y0, rows, left, right, fill):
-    """Parallelogram band: rows[i] = (x0, x1); outline 4, interior fill."""
-    for i, (x0, x1) in enumerate(rows):
-        y = y0 + i
-        for x in range(x0, x1 + 1):
-            img.set(x, y, 4)
-        if 0 < i < len(rows) - 1:
-            for x in range(x0 + 2 if left else x0 + 1, x1 - (1 if right else 0)):
-                img.set(x, y, fill)
+def swallowtail(y, y0, y1, depth):
+    """Inset of a V notch: 0 at the tips, `depth` at the middle row."""
+    mid = (y0 + y1) / 2.0
+    half = (y1 - y0) / 2.0
+    return int(round(depth * (1 - abs(y - mid) / half)))
+
+
+def chamfer(y, y0, y1, n=2):
+    return max(0, n - (y - y0), n - (y1 - y))
+
+
+def vitality_track(img, bar_x, bar_y):
+    """48x3 trough in an ink ring with gold end studs and the leaf."""
+    img.rect(bar_x - 1, bar_y - 1, bar_x + 48, bar_y + 3, 4)
+    img.rect(bar_x, bar_y, bar_x + 47, bar_y + 2, 15)
+    for x in (bar_x - 2, bar_x + 49):
+        img.set(x, bar_y + 1, 5)
+    img.blit(from_rows(LEAF, {".": 0, "O": 4, "8": 8, "9": 9}), bar_x - 10, bar_y - 3)
+
+
+def divider(img, x0, x1, y):
+    """A bronze rule that fades out at both ends."""
+    for x in range(x0, x1 + 1):
+        if x - x0 < 3 or x1 - x < 3:
+            if (x - x0) % 2 == 0:
+                img.set(x, y, 6)
+        else:
+            img.set(x, y, 6)
 
 
 def make_enemy_hud():
     W, H = 104, 32
     img = Img(W, H)
-    # keel first (panel overlaps its top row): slants out to the right
-    keel(img, 25, [(3 + i, 98 + i) for i in range(6)], True, True,
-         HUD_STYLE["keel_fill"])
-    sp = rounded_spans(0, 0, 100, 25, [3, 1, 1], [1])
-    draw_panel(img, sp, bevel_rows=1)
-    anchors = dict(NAME_X=6, NAME_Y=2, LV_X=76, LV_Y=6,
-                   BAR_X=48, BAR_Y=19, STATUS_X=8, STATUS_Y=16)
-    hp_capsule(img, 33, 17, anchors["BAR_X"], anchors["BAR_Y"])
+    y0, y1 = 0, 27
+    plaque(img, lambda y: chamfer(y, y0, y1),
+           lambda y: 103 - swallowtail(y, y0, y1, 6), y0, y1)
+    anchors = dict(NAME_X=7, NAME_Y=1, LV_X=74, LV_Y=5,
+                   BAR_X=44, BAR_Y=19, STATUS_X=8, STATUS_Y=16)
+    divider(img, 6, 88, 15)
+    vitality_track(img, anchors["BAR_X"], anchors["BAR_Y"])
     return img, anchors
 
 
 def make_ally_hud():
     W, H = 104, 40
     img = Img(W, H)
-    anchors = dict(NAME_X=10, NAME_Y=2, LV_X=76, LV_Y=6,
+    y0, y1 = 0, 39
+    plaque(img, lambda y: swallowtail(y, y0, y1, 5),
+           lambda y: 103 - chamfer(y, y0, y1), y0, y1)
+    anchors = dict(NAME_X=12, NAME_Y=1, LV_X=76, LV_Y=5,
                    BAR_X=48, BAR_Y=19, STATUS_X=8, STATUS_Y=16,
-                   HPNUM_X=97, HPNUM_Y=24, EXP_X=36, EXP_Y=35)
-    # EXP strip: dark keel slanting out to the left
-    keel(img, 32, [(7 - i, 103) for i in range(8)], True, False, 6)
-    sp = rounded_spans(2, 0, 103, 33, [3, 1, 1], [1])
-    draw_panel(img, sp, bevel_rows=1)
-    hp_capsule(img, 33, 17, anchors["BAR_X"], anchors["BAR_Y"])
+                   HPNUM_X=97, HPNUM_Y=24, EXP_X=33, EXP_Y=34)
+    divider(img, 14, 96, 15)
+    vitality_track(img, anchors["BAR_X"], anchors["BAR_Y"])
     ex, ey = anchors["EXP_X"], anchors["EXP_Y"]
-    tiny_draw(img, ex - 15, 34, "EXP", 7)
+    img.rect(ex - 1, ey - 1, ex + 64, ey + 2, 4)
     img.rect(ex, ey, ex + 63, ey + 1, 15)
+    # a small gold diamond: the rune of growth
+    for dy in range(-2, 3):
+        for dx in range(-2, 3):
+            if abs(dx) + abs(dy) <= 2:
+                img.set(ex - 5 + dx, ey + dy, 7 if abs(dx) + abs(dy) == 0 else
+                        (5 if abs(dx) + abs(dy) == 1 else 4))
     return img, anchors
 
 
@@ -614,7 +643,12 @@ HUD_ALLY, ANCH_ALLY = make_ally_hud()
 
 # WILDKIN types in data.h order (docs/WORLD.md section 5).
 TYPES = ["BEAST", "BLAZE", "TIDE", "BLOOM", "SPARK", "FROST", "BRAWL",
-         "VENOM", "STONE", "GALE", "DREAM", "SWARM", "DUSK", "WYRM"]
+         "VENOM", "STONE", "GALE", "DREAM", "SWARM", "DUSK", "WYRM",
+         "HOLLOW", "RELIC", "METAL", "ASTRAL"]
+# The first 14 fill banks 12 and 11; the expansion types live in spare
+# slots 5..12 of the menu-backdrop bank (9), with white at 13.
+BANK9_TYPES = ["HOLLOW", "RELIC", "METAL", "ASTRAL"]
+BANK9_FIRST, BANK9_WHITE = 5, 13
 LABELS = TYPES
 TYPE_COLORS = {            # (fill, dark)
     "BEAST":  ((21, 19, 13), (11, 9, 6)),
@@ -631,18 +665,30 @@ TYPE_COLORS = {            # (fill, dark)
     "SWARM":  ((20, 23, 4), (10, 12, 1)),
     "DUSK":   ((12, 9, 17), (5, 3, 8)),
     "WYRM":   ((14, 8, 30), (6, 2, 17)),
+    "HOLLOW": ((23, 22, 18), (9, 8, 10)),
+    "RELIC":  ((27, 19, 8), (13, 7, 3)),
+    "METAL":  ((18, 21, 24), (7, 8, 12)),
+    "ASTRAL": ((26, 21, 31), (11, 7, 22)),
 }
 
 TYPE_BANK = []      # 12 or 11
 TYPE_IDX = {}       # type -> (fill idx, dark idx)
-BADGE_PAL = [[c15(0, 0, 0), c15(31, 31, 31)] for _ in range(2)]
+BADGE_PAL = [[c15(0, 0, 0), PAL_STD[1]] for _ in range(2)]   # 1 = page parchment
+BANK9_EXTRA = [c15(0, 0, 0)] * 16   # merged into both menu backdrop palettes
 for t in TYPES:
-    b = 0 if len(BADGE_PAL[0]) < 16 else 1
     fill, dark = TYPE_COLORS[t]
+    if t in BANK9_TYPES:
+        fi = BANK9_FIRST + 2 * BANK9_TYPES.index(t)
+        BANK9_EXTRA[fi], BANK9_EXTRA[fi + 1] = c15(*fill), c15(*dark)
+        TYPE_IDX[t] = (fi, fi + 1)
+        TYPE_BANK.append(9)
+        continue
+    b = 0 if len(BADGE_PAL[0]) < 16 else 1
     fi = len(BADGE_PAL[b])
     BADGE_PAL[b] += [c15(*fill), c15(*dark)]
     TYPE_IDX[t] = (fi, fi + 1)
     TYPE_BANK.append(12 if b == 0 else 11)
+BANK9_EXTRA[BANK9_WHITE] = PAL_STD[1]
 assert all(len(p) == 16 for p in BADGE_PAL)
 
 
@@ -663,7 +709,8 @@ def make_type_badge(t, label):
         if depth[12][x] > 0:
             img.p[12][x] = di
     w = tiny_width(label) + 1
-    tiny_draw(img, (32 - w + 1) // 2, 5, label, 1, di)
+    white = BANK9_WHITE if t in BANK9_TYPES else 1
+    tiny_draw(img, (32 - w + 1) // 2, 5, label, white, di)
     return img
 
 
@@ -696,31 +743,34 @@ STATUS_BANK = [TYPE_BANK[TYPES.index(t)] for _, t in STATUS]
 # ---------------------------------------------------------------------------
 
 MENU_PAL = [
-    # soft teal: 1 base, 2 alt tone, 3 lattice light, 4 sparkle
-    [c15(0, 0, 0), c15(13, 22, 23), c15(15, 24, 25), c15(18, 27, 27),
-     c15(24, 30, 30)] + [c15(0, 0, 0)] * 11,
-    # catalogue red/gray: 1 red, 2 dark red, 3 gray lattice, 4 light gray
-    [c15(0, 0, 0), c15(22, 7, 7), c15(19, 5, 6), c15(20, 18, 19),
-     c15(26, 25, 25)] + [c15(0, 0, 0)] * 11,
+    # night moss: 1 base, 2 inner tone, 3 lattice line, 4 gold knot
+    [c15(0, 0, 0), c15(3, 6, 7), c15(4, 8, 9), c15(7, 12, 12),
+     c15(20, 15, 6)] + BANK9_EXTRA[5:],
+    # catalogue oxblood: 1 base, 2 inner tone, 3 lattice line, 4 gold knot
+    [c15(0, 0, 0), c15(8, 3, 4), c15(10, 4, 5), c15(15, 6, 6),
+     c15(22, 15, 6)] + BANK9_EXTRA[5:],
 ]
 
 
 def make_menu_bg(kind):
-    """16x16 seamless pattern: soft 45-degree bands with a 2px light line
-    and a small dot pattern in the darker band."""
+    """16x16 seamless rune lattice: a diamond net of fine lines with a gold
+    knot where they cross and a small lighter rune-diamond in each cell."""
     img = Img(16, 16, 1)
     for y in range(16):
         for x in range(16):
-            a = (x + y) % 16
-            v = 1 if a < 8 else 2
-            if a in (0, 1) if kind == 0 else a in (0,):
-                v = 3
-            if kind == 1 and a == 1:
-                v = 4
-            img.p[y][x] = v
-    # dots in the middle of the darker band
-    for (x, y) in ((4, 8), (12, 0)):
-        img.p[y][x] = 4 if kind == 0 else 3
+            a, b = (x + y) % 16, (x - y) % 16
+            if a == 0 or b == 0:
+                img.p[y][x] = 3
+            # a softer inner diamond around each cell centre (8, 0)/(0, 8)
+            elif abs(((x + 8) % 16) - 8) + abs(y - 8) <= 2 if kind == 0 else \
+                    abs(((x + 8) % 16) - 8) + abs(y - 8) == 2:
+                img.p[y][x] = 2
+    # knots where the lines cross
+    for (x, y) in ((0, 0), (8, 8)):
+        img.p[y][x] = 4
+    # cell centres get a dim dot
+    for (x, y) in ((8, 0), (0, 8)):
+        img.p[y][x] = 2
     return img
 
 
@@ -748,6 +798,204 @@ ICON_EMPTY = from_rows([
     ".3....3.",
     "..3333..",
 ], {".": 0, "3": 3})
+
+
+# ---------------------------------------------------------------------------
+# rarity gems (8x8 OBJ tiles, one shared OBJ palette): the Almanac, the
+# LANTERN SHELF and the summary show a kin's rarity as a coloured gem --
+# grey common, green uncommon, blue rare, gold legend, purple spiral fusion
+# (docs/EXPANSION.md 3).
+# ---------------------------------------------------------------------------
+
+GEM_PAL = [
+    c15(0, 0, 0),       # 0 transparent
+    c15(4, 4, 9),       # 1 outline
+    c15(31, 31, 31),    # 2 sparkle
+    c15(25, 25, 27),    # 3 grey light
+    c15(14, 15, 18),    # 4 grey dark
+    c15(15, 30, 13),    # 5 green light
+    c15(3, 17, 6),      # 6 green dark
+    c15(14, 23, 31),    # 7 blue light
+    c15(3, 8, 25),      # 8 blue dark
+    c15(31, 30, 14),    # 9 gold light
+    c15(30, 20, 2),     # 10 gold mid
+    c15(19, 10, 1),     # 11 gold dark
+    c15(28, 20, 31),    # 12 purple light
+    c15(19, 7, 27),     # 13 purple mid
+    c15(10, 3, 17),     # 14 purple dark
+    c15(0, 0, 0),       # 15 spare
+]
+
+GEM_CUT = [          # L light, M mid, D dark, W sparkle, O outline
+    "........",
+    ".OOOOOO.",
+    "OLWLLMMO",
+    "OLLMMMDO",
+    ".OMMMDO.",
+    "..OMDO..",
+    "...OO...",
+    "........",
+]
+GEM_STAR = [         # legend: a gold star-cut gem
+    "...OO...",
+    "..OLWO..",
+    "OOOLLMOO",
+    "OLWLMMDO",
+    ".OLMMDO.",
+    ".OMMODDO",
+    "OMDO.ODO",
+    "OOO...OO",
+]
+GEM_SPIRAL = [       # fusion: a purple spiral
+    "..OOOO..",
+    ".OLLLLO.",
+    "OLDDDDLO",
+    "ODLLLDLO",
+    "ODLDWDLO",
+    "ODLDDDLO",
+    ".OLLLLO.",
+    "..OOOO..",
+]
+
+
+def make_gem(rows, light, mid, dark):
+    cmap = {".": 0, "O": 1, "W": 2, "L": light, "M": mid, "D": dark}
+    return from_rows(rows, cmap)
+
+
+GEMS = [
+    make_gem(GEM_CUT, 3, 3, 4),        # R_COMMON
+    make_gem(GEM_CUT, 5, 5, 6),        # R_UNCOMMON
+    make_gem(GEM_CUT, 7, 7, 8),        # R_RARE
+    make_gem(GEM_STAR, 9, 10, 11),     # R_LEGEND
+    make_gem(GEM_SPIRAL, 12, 13, 14),  # R_FUSION
+]
+
+
+# ---------------------------------------------------------------------------
+# Hall crests (16x16 medallions, drawn in the badge bank of their Hall's
+# type so no extra palette is needed) and an empty crest slot (bank 15)
+# ---------------------------------------------------------------------------
+
+CREST_TYPES = [("VOLT", "SPARK"), ("TIDE", "TIDE"), ("ANVIL", "METAL"),
+               ("RIME", "FROST"), ("LANTERN", "BLAZE"), ("DREAM", "DREAM")]
+
+CREST_SYMBOLS = {
+    "VOLT": [
+        ".....WW..",
+        "....WW...",
+        "...WW....",
+        "..WWWWW..",
+        "....WW...",
+        "...WW....",
+        "..WW.....",
+        "..W......",
+        ".........",
+    ],
+    "TIDE": [
+        ".........",
+        ".WW...WW.",
+        "W..W.W..W",
+        "....W....",
+        ".........",
+        ".WW...WW.",
+        "W..W.W..W",
+        "....W....",
+        ".........",
+    ],
+    "ANVIL": [
+        ".........",
+        "WWWWWWWW.",
+        ".WWWWWWWW",
+        "...WWWW..",
+        "....WW...",
+        "....WW...",
+        "..WWWWWW.",
+        "..WWWWWW.",
+        ".........",
+    ],
+    "RIME": [
+        "....W....",
+        ".W..W..W.",
+        "..W.W.W..",
+        "...WWW...",
+        "WWWWWWWWW",
+        "...WWW...",
+        "..W.W.W..",
+        ".W..W..W.",
+        "....W....",
+    ],
+    "LANTERN": [
+        "...WWW...",
+        "...W.W...",
+        "..WWWWW..",
+        ".WW...WW.",
+        ".W..W..W.",
+        ".W.WW..W.",
+        ".W.WWW.W.",
+        ".WW...WW.",
+        "..WWWWW..",
+    ],
+    "DREAM": [
+        "....WWW..",
+        "..WWW....",
+        ".WWW...W.",
+        ".WW.....W",
+        ".WW....W.",
+        ".WWW.....",
+        "..WWW....",
+        "....WWW..",
+        ".........",
+    ],
+}
+
+
+def crest_disc(fill, dark, white, rim_only=False):
+    """16x16 medallion: dark rim, fill inside, a white glint top-left."""
+    img = Img(16, 16)
+    cx = cy = 7.5
+    inside = [[(x - cx) ** 2 + (y - cy) ** 2 <= 7.6 ** 2 for x in range(16)] for y in range(16)]
+    for y in range(16):
+        for x in range(16):
+            if not inside[y][x]:
+                continue
+            edge = any(not (0 <= x + dx < 16 and 0 <= y + dy < 16 and inside[y + dy][x + dx])
+                       for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+            if edge:
+                img.p[y][x] = dark
+            elif not rim_only:
+                img.p[y][x] = fill
+    if not rim_only:
+        for (x, y) in ((4, 2), (3, 3), (2, 4)):
+            img.p[y][x] = white
+    return img
+
+
+def make_crest(name, t):
+    fi, di = TYPE_IDX[t]
+    white = BANK9_WHITE if t in BANK9_TYPES else 1
+    img = crest_disc(fi, di, white)
+    for yy, row in enumerate(CREST_SYMBOLS[name]):
+        for xx, ch in enumerate(row):
+            if ch == "W":
+                img.set(4 + xx, 3 + yy, white)
+    return img, TYPE_BANK[TYPES.index(t)], white
+
+
+CRESTS = [make_crest(n, t) for n, t in CREST_TYPES]
+
+
+def make_crest_empty():
+    """An unearned crest: a dotted grey ring (bank 15: 3 shadow, 6 frame light)."""
+    ring = crest_disc(0, 3, 0, rim_only=True)
+    for y in range(16):
+        for x in range(16):
+            if ring.p[y][x] == 3 and (x + y) % 3 == 0:
+                ring.p[y][x] = 6
+    return ring
+
+
+CREST_EMPTY = make_crest_empty()
 
 
 # ---------------------------------------------------------------------------
@@ -791,7 +1039,7 @@ def write_header():
     A = L.append
     A("/* Generated by tools/gen_ui_gfx.py -- do not edit by hand. */")
     A("/*")
-    A(" * Emerald-style UI art. Include after the u8/u16/u32 typedefs.")
+    A(" * WILDKIN UI art (parchment, night slate, gold). Include after the u8/u16/u32 typedefs.")
     A(" * Palette convention for every UI bank: 0 transparent, 1 paper, 2 ink,")
     A(" * 3 ink shadow (drawn +1 right, +1 down, +1 diagonal where no ink).")
     A(" * Tiles are 4bpp, 8 u32 per tile (one per row, pixel x at bits 4x..4x+3),")
@@ -812,7 +1060,7 @@ def write_header():
     A("/* Caps on rows 1..10 (baseline = bottom of row 10), x-height rows 4..10,")
     A(" * descenders to row 13. Use a 16 px line pitch. bit 7 = leftmost pixel.")
     A(" * font_width = advance incl. 1 px spacing (shadow overlaps the spacing).")
-    A(" * Remaps: '{' = right cursor, '}' = down 'continue' arrow,")
+    A(" * Remaps: '{' = rune cursor, '}' = down 'continue' mark,")
     A(" *         '|' = multiplication sign, '~' = bullet. */")
     A("#define FONT_FIRST 32")
     A("#define FONT_COUNT 95")
@@ -834,23 +1082,25 @@ def write_header():
     A("/* ---- small HUD font (rows 0..6) -------------------------------------- */")
     A('static const char font_small_chars[] = "%s";' % SMALL_CHARS)
     A("#define FONT_SMALL_HEIGHT 8")
-    A("static const u8 font_small_width[15] = { " + ", ".join(str(w) for w in SMALL_W) + " };")
-    A("static const u8 font_small_bits[15][FONT_SMALL_HEIGHT] = {")
+    A("static const u8 font_small_width[%d]" % len(SMALL_CHARS) + " = { " + ", ".join(str(w) for w in SMALL_W) + " };")
+    A("static const u8 font_small_bits[%d][FONT_SMALL_HEIGHT]" % len(SMALL_CHARS) + " = {")
     for ch, g in zip(SMALL_CHARS, SMALL_BITS):
         A("    { " + ", ".join("0x%02X" % v for v in g) + " }, /* %s */" % ch)
     A("};")
     A("")
     # --- palettes
     A("/* ---- palettes (RGB15) ------------------------------------------------ */")
-    A("/* bank 15 STD: 0 -, 1 paper, 2 ink, 3 shadow, 4/5/6 frame dark/mid/light,")
-    A(" * 7 selection fill, 8/9 red ink/shadow, 10/11 blue, 12/13 green,")
-    A(" * 14/15 frame accents */")
+    A("/* bank 15 STD (parchment page): 0 -, 1 paper, 2 ink, 3 shadow,")
+    A(" * 4/5/6 frame outline/band/gold, 7 selection glow, 8/9 red ink/shadow,")
+    A(" * 10/11 blue (teal), 12/13 green, 14 pale gold, 15 parchment edge */")
     A("static const u16 ui_pal_std[16] = { %s };" % fmt_u16(PAL_STD))
-    A("/* bank 14 BATTLE: 1 dark teal paper, 2 white ink, 3 shadow, 4..15 frame */")
+    A("/* bank 14 BATTLE (night slate): 1 paper, 2 light ink, 3 shadow, 4 outline,")
+    A(" * 5 gold, 6 bronze, 7 glow, 8/9 red ink, 10/11 teal ink, 12/13 gold ink,")
+    A(" * 14 pale gold, 15 slate rim */")
     A("static const u16 ui_pal_battle[16] = { %s };" % fmt_u16(PAL_BATTLE))
-    A("/* bank 13 HUD: 1 cream, 2 ink, 3 shadow, 4-7 box art, 8/9 HP green/shade,")
-    A(" * 10/11 yellow, 12/13 red, 14 EXP blue, 15 empty track.")
-    A(" * HP fill: bar row 0 = shade (9/11/13), rows 1-2 = light (8/10/12). */")
+    A("/* bank 13 HUD (slate plaques): 1 slate, 2 light ink, 3 shadow, 4-7 plaque")
+    A(" * art, 8/9 vitality teal/shade, 10/11 amber, 12/13 crimson, 14 EXP,")
+    A(" * 15 empty trough. Fill: bar row 0 = shade (9/11/13), rows 1-2 = light. */")
     A("static const u16 ui_pal_hud[16] = { %s };" % fmt_u16(PAL_HUD))
     A("")
     # --- frames
@@ -860,7 +1110,7 @@ def write_header():
     A(c_tiles_2d("ui_frame_battle", FRAME_BATTLE, "bank 14: battle message box"))
     A("")
     # --- HUD
-    A("/* ---- battle health boxes (bank 13) ----------------------------------- */")
+    A("/* ---- battle plaques (bank 13) --------------------------------------------- */")
     A("/* Anchors are pixel offsets from the box's top-left. HP fill area 48x3 at")
     A(" * (BAR_X, BAR_Y); EXP fill area 64x2 at (EXP_X, EXP_Y). Name: main font")
     A(" * glyph box top-left. Level: small font top-left. STATUS: 24x8 badge")
@@ -882,15 +1132,15 @@ def write_header():
     # --- badges
     A("/* ---- type badges (32x16, 4x2 tiles) and status badges (24x8) --------- */")
     A("/* order: " + " ".join(TYPES) + " */")
-    A("#define TYPE_BADGE_COUNT 14")
-    A("static const u32 type_badge_gfx[14][8 * 8] = {")
+    A("#define TYPE_BADGE_COUNT %d" % len(TYPES))
+    A("static const u32 type_badge_gfx[%d][8 * 8] = {" % len(TYPES))
     for t, img in zip(TYPES, TYPE_BADGES):
         A("    { /* %s */" % t)
         A(fmt_u32_rows([v for tl in img.tiles() for v in tl], "        ", 8))
         A("    },")
     A("};")
-    A("static const u8 type_badge_bank[14] = { " + ", ".join(str(b) for b in TYPE_BANK) + " };")
-    A("/* [0] -> bank 12, [1] -> bank 11; index 1 = pure white */")
+    A("static const u8 type_badge_bank[%d] = { " % len(TYPES) + ", ".join(str(b) for b in TYPE_BANK) + " };")
+    A("/* [0] -> bank 12, [1] -> bank 11; index 1 = the page parchment (label text and paper) */")
     A("static const u16 type_badge_pal[2][16] = {")
     for p in BADGE_PAL:
         A("    { %s }," % fmt_u16(p))
@@ -921,6 +1171,34 @@ def write_header():
       ", ".join("0x%08X" % v for v in ICON_CAUGHT.tile(0, 0)))
     A("static const u32 ui_icon_empty[8] = { %s };" %
       ", ".join("0x%08X" % v for v in ICON_EMPTY.tile(0, 0)))
+    A("")
+    # --- rarity gems
+    A("/* ---- rarity gems: 8x8 OBJ tiles in R_* order (common, uncommon, rare,")
+    A(" * legend, fusion) sharing one OBJ palette ------------------------------ */")
+    A("#define GEM_COUNT %d" % len(GEMS))
+    A("static const u32 gem_obj_gfx[%d][8] = {" % len(GEMS))
+    for img in GEMS:
+        A("    { " + ", ".join("0x%08X" % v for v in img.tile(0, 0)) + " },")
+    A("};")
+    A("static const u16 gem_obj_pal[16] = { %s };" % fmt_u16(GEM_PAL))
+    A("")
+    # --- crests
+    A("/* ---- Hall crests: 16x16 (2x2 tiles) medallions drawn in their Hall")
+    A(" * type's badge bank (crest_bank); crest_paper = that bank's white, used")
+    A(" * to fill the transparent corners. Order: " + " ".join(n for n, _ in CREST_TYPES) + ".")
+    A(" * crest_empty_gfx: an unearned slot, bank 15 (fill with paper, 1). */")
+    A("#define CREST_ART_COUNT %d" % len(CRESTS))
+    A("static const u32 crest_gfx[%d][4 * 8] = {" % len(CRESTS))
+    for (n, _), (img, _, _) in zip(CREST_TYPES, CRESTS):
+        A("    { /* %s */" % n)
+        A(fmt_u32_rows([v for tl in img.tiles() for v in tl], "        ", 8))
+        A("    },")
+    A("};")
+    A("static const u8 crest_bank[%d] = { " % len(CRESTS) + ", ".join(str(b) for _, b, _ in CRESTS) + " };")
+    A("static const u8 crest_paper[%d] = { " % len(CRESTS) + ", ".join(str(w) for _, _, w in CRESTS) + " };")
+    A("static const u32 crest_empty_gfx[4 * 8] = {")
+    A(fmt_u32_rows([v for tl in CREST_EMPTY.tiles() for v in tl], "    ", 8))
+    A("};")
     A("")
     A("#endif /* GFX_UI_H */")
     text = "\n".join(L) + "\n"
@@ -1092,7 +1370,7 @@ def preview_font(path):
 def draw_hp(cv, x, y, frac, pal=PAL_HUD):
     n = int(round(48 * frac))
     if frac > 0.5:
-        lt, sh = 8, 9
+        lt, sh = 8, 9   # teal
     elif frac > 0.2:
         lt, sh = 10, 11
     else:
@@ -1148,7 +1426,7 @@ def preview_battle(path):
     cv.blit(sb, BADGE_PAL[0 if STATUS_BANK[1] == 12 else 1],
             ex + a["STATUS_X"], ey + a["STATUS_Y"])
     # ally HUD
-    axx, ayy = 136, 72
+    axx, ayy = 128, 64
     cv.blit(HUD_ALLY, PAL_HUD, axx, ayy)
     a = ANCH_ALLY
     cv.text(axx + a["NAME_X"], ayy + a["NAME_Y"], "FLARIX", PAL_HUD)
@@ -1159,16 +1437,17 @@ def preview_battle(path):
     for i in range(int(64 * 0.45)):
         cv.set(axx + a["EXP_X"] + i, ayy + a["EXP_Y"], rgb8(PAL_HUD[14]))
         cv.set(axx + a["EXP_X"] + i, ayy + a["EXP_Y"] + 1, rgb8(PAL_HUD[14]))
-    # battle box + action menu
-    cv.blit(assemble_box(FRAME_BATTLE, 30, 6), PAL_BATTLE, 0, 112)
-    cv.text(16, 120, "What will", PAL_BATTLE)
-    cv.text(16, 136, "FLARIX do?", PAL_BATTLE)
-    cv.blit(assemble_box(FRAME_STD, 15, 6), PAL_STD, 120, 112)
-    cv.text(136, 121, "{", PAL_STD)
-    cv.text(146, 121, "FIGHT", PAL_STD)
-    cv.text(194, 121, "BAG", PAL_STD)
-    cv.text(146, 137, "TEAM", PAL_STD)
-    cv.text(194, 137, "RUN", PAL_STD)
+    # message plate + command card (battle_ui.c draw_action_box)
+    cv.blit(assemble_box(FRAME_BATTLE, 21, 6), PAL_BATTLE, 0, 112)
+    cv.text(16, 120, "FLARIX awaits", PAL_BATTLE)
+    cv.text(16, 136, "your call.", PAL_BATTLE)
+    cv.blit(assemble_box(FRAME_MENU, 9, 7), PAL_STD, 168, 104)
+    cv.rect(172, 119, 235, 130, rgb8(PAL_STD[7]))
+    for i, label in enumerate(("MOVES", "PACK", "KIN", "FLEE")):
+        y = 107 + i * 12
+        if i == 1:
+            cv.text(175, y, "{", PAL_STD, 8, 3)
+        cv.text(184, y, label, PAL_STD)
     cv.save(path)
 
 
@@ -1200,6 +1479,20 @@ def preview_badges(path):
     cv.save(path)
 
 
+def preview_gems_crests(path):
+    cv = Canvas(160, 64, rgb8(PAL_STD[1]))
+    for i, img in enumerate(GEMS):
+        cv.blit(img, GEM_PAL, 8 + i * 14, 6)
+        cv.rect(8 + i * 14, 18, 15 + i * 14, 29, rgb8(PAL_STD[7]))
+        cv.blit(img, GEM_PAL, 8 + i * 14, 20)
+    menu9 = MENU_PAL[0][:5] + BANK9_EXTRA[5:]
+    for i, (img, bank, white) in enumerate(CRESTS):
+        pal = menu9 if bank == 9 else BADGE_PAL[0 if bank == 12 else 1]
+        cv.blit(img, pal, 8 + i * 20, 40, skip0=False, fill0=white)
+    cv.blit(CREST_EMPTY, PAL_STD, 128, 40, skip0=False, fill0=1)
+    cv.save(path, 4)
+
+
 def preview_frames(path):
     cv = Canvas(240, 120, (96, 176, 72))
     cv.blit(assemble_box(FRAME_STD, 10, 5), PAL_STD, 8, 8)
@@ -1219,6 +1512,7 @@ def main():
         preview_battle(os.path.join(d, "battle.png"))
         preview_badges(os.path.join(d, "badges.png"))
         preview_frames(os.path.join(d, "frames.png"))
+        preview_gems_crests(os.path.join(d, "gems_crests.png"))
     print("wrote", OUT_H)
 
 

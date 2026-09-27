@@ -1,0 +1,10 @@
+/* world/north/script_table.inc -- Script dispatch: [SCR_X] = scr_x,. Owner: W-NORTH. */
+    [SCR_FROST_TENDER] = scr_frost_tender,
+    [SCR_FROST_SHOP] = scr_frost_shop,
+    [SCR_RIME_GUIDE] = scr_rime_guide,
+    [SCR_RIME_MASTER] = scr_rime_master,
+    [SCR_ICE_CARVER] = scr_ice_carver,
+    [SCR_STARGAZER] = scr_stargazer,
+    [SCR_GROTTO_SCHOLAR] = scr_grotto_scholar,
+    [SCR_SPRING_KEEPER] = scr_spring_keeper,
+    [SCR_ALDER_GRAN] = scr_alder_gran,

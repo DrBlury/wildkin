@@ -1,0 +1,8 @@
+/* world/north/zones.inc -- Wild zones: [ZONE_X] = { WILD_X_SLOTS, NSLOT(WILD_X_SLOTS), max_active, "NAME" },. Owner: W-NORTH.
+ * Slots live in data.h; WildSlot.when marks day-only / night-only kin.
+ * ZONE_GLIMMER_LAKE is the caves' water_zone (kin met while surfing). */
+    [ZONE_FROSTPINE] = { WILD_FROSTPINE, NSLOT(WILD_FROSTPINE), 4, "FROSTPINE PASS" },
+    [ZONE_WHITECROWN] = { WILD_WHITECROWN, NSLOT(WILD_WHITECROWN), 4, "WHITECROWN PEAK" },
+    [ZONE_GLIMMER] = { WILD_GLIMMER, NSLOT(WILD_GLIMMER), 3, "GLIMMER CAVERNS" },
+    [ZONE_GLIMMER_DEEP] = { WILD_GLIMMER_DEEP, NSLOT(WILD_GLIMMER_DEEP), 3, "GLIMMER DEPTHS" },
+    [ZONE_GLIMMER_LAKE] = { WILD_GLIMMER_LAKE, NSLOT(WILD_GLIMMER_LAKE), 2, "GLIMMER LAKE" },

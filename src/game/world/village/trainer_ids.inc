@@ -1,0 +1,11 @@
+/* world/village/trainer_ids.inc -- Warden ids: TR_X,. Owner: core (the original Maple Village area). */
+    TR_LUCA,
+    TR_MAE,
+    TR_IDA,
+    TR_FERN,
+    TR_KAI,
+    TR_ORLA,
+    TR_BRIN,
+    TR_SELA,
+    TR_TOMAS,
+    TR_MARLO,

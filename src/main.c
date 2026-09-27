@@ -13,13 +13,18 @@
  *   game/msg.c        typewriter message box, choices, dialog queue
  *   game/party.c      team, PC storage, bag, money, catalogue flags
  *   game/field.c      metatile maps, streaming renderer, movement, NPCs
+ *   game/grass.c      tall grass: front blades over actors, rustles, wind
  *   game/battle.c     turn rules that queue presentation events
  *   game/anim.c       move animations
  *   game/battle_ui.c  event playback, HUD, battle menus, transitions
  *   game/menu.c       START menu, team, summary, bag, shop, PC
  *   game/dex.c        monster catalogue with scrolling detail pages
+ *   game/naming.c     the name slate (kin nicknames)
  *   game/evolve.c     evolution scene
  *   game/script.c     people, signs, items and field glue
+ *   game/sfx.c        sound effects on the PSG channels
+ *   game/music.c      background music: synth + sequencer on Direct Sound A
+ *   game/music_map.c  which song plays on each map, in bouts, on the title
  *   save_game.h       checked SRAM save slots (+ v1 migration)
  *
  * Build with `make`, run with `make run`, test with `make test`.
@@ -28,10 +33,15 @@
 #include "game/gba.h"
 #include "game/options.h"
 #include "game/sfx.c"
+#include "game/music.c"
 #include "gfx_ui.h"
 #include "gfx_monsters.h"
 #include "gfx_field.h"
 #include "gfx_battle.h"
+#include "gfx_travel.h"
+#include "gfx_craft.h"
+#include "gfx_fusion.h"
+#include "gfx_rune.h"
 #include "game/data.h"
 #include "game/lore.h"
 #include "game/monster.c"
@@ -39,15 +49,28 @@
 #include "game/msg.c"
 #include "game/party.c"
 #include "game/field.c"
+#include "game/grass.c"
+#include "game/time.c"
+#include "game/travel.c"
 #include "game/battle.c"
+#include "game/anim3d.c"
 #include "game/anim.c"
+#include "game/anim_rune.c"
 #include "game/battle_ui.c"
 #include "game/menu.c"
 #include "game/dex.c"
 #include "game/lorebook.c"
+#include "game/naming.c"
 #include "game/evolve.c"
+#include "game/craft.c"
+#include "game/fusion.c"
+#include "game/quest.c"
+#include "game/farm.c"
+#include "game/modules.c"
 #include "game/script.c"
+#include "game/music_map.c"
 #include "game/title.c"
+#include "game/debug.c"
 #include "save_game.h"
 
 /* VRAM uploads prepared during the previous frame; runs in vblank. */
@@ -61,6 +84,7 @@ static void present(void)
     }
     if ((game_mode == MODE_DEX && dex.state == 1) || (game_mode == MODE_LORE && lb.state == 2))
         panel_present();
+    if (game_mode == MODE_EXT && ext.present) ext.present();
 }
 
 static void game_update(void)
@@ -79,6 +103,7 @@ static void game_update(void)
     case MODE_TITLE: title_update(); break;
     case MODE_LORE: lorebook_update(); break;
     case MODE_OPTIONS: options_update(); break;
+    case MODE_EXT: if (ext.update) ext.update(); break;
     }
 }
 
@@ -94,12 +119,15 @@ static void game_draw(void)
     case MODE_BATTLE: battle_draw(); break;
     case MODE_EVOLVE: evolve_draw(); break;
     case MODE_TITLE: title_draw_sprites(); break;
+    case MODE_EXT: if (ext.draw) ext.draw(); break;
     default: break;
     }
 }
 
 static void game_init(void)
 {
+    music_init();
+    music_map_init();
     gfx_init_tables();
     load_ui_palettes();
     copy32(VRAM_OBJ_TILES + OT_FX * 8, fx_gfx, FX_COUNT * 4 * 8);
@@ -135,6 +163,9 @@ static void game_frame(void)
     game_draw();
     oam_end();
     sfx_update();
+#ifndef GBA
+    music_host_frame();      /* the GBA runs the music in its interrupt */
+#endif
 }
 
 int main(void)

@@ -1,0 +1,3 @@
+/* world/farm/lore_ids.inc -- Lorebook entries: LORE_X,. Owner: FARM system. */
+    LORE_WILLOW_ACRE, LORE_SOIL_WATER, LORE_SHIPPING, LORE_FERTILISER, LORE_FARMHANDS, LORE_FRUIT_TREES,
+    LORE_DAY_NIGHT,

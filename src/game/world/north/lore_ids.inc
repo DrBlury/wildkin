@@ -1,0 +1,5 @@
+/* world/north/lore_ids.inc -- Lorebook entries: LORE_X,. Owner: W-NORTH.
+ * LORE_RIME_CREST is a story entry (lore_story after beating Master Sigrun). */
+    LORE_FROSTPINE, LORE_FROSTHOLLOW, LORE_GLIMMER, LORE_HOT_SPRINGS, LORE_RIME_HALL,
+    LORE_RIME_CREST, LORE_HOARFANG, LORE_SELENOTH, LORE_SKYLORN, LORE_AURORA,
+    LORE_SNOWFLAKES, LORE_WINTER_COATS, LORE_FROST_GOODS,

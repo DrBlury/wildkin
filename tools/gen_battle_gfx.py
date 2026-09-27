@@ -624,7 +624,40 @@ LAN_VARIANTS = {
         "k0": (255, 200, 48), "k1": (255, 252, 208), "h0": (255, 216, 96), "h1": (255, 244, 184),
         "w": (255, 255, 255),
     },
+    # the crafted lanterns (docs/EXPANSION.md 6): thrown-sprite palettes only
+    "DUSK LANTERN": {   # smoked glass and blackened iron, a violet core
+        "o": (16, 8, 32), "c0": (40, 32, 64), "c1": (72, 56, 104), "c2": (120, 104, 152),
+        "t0": (56, 40, 88), "t1": (144, 120, 184), "g0": (88, 72, 128), "g1": (160, 144, 200),
+        "k0": (184, 96, 255), "k1": (240, 216, 255), "h0": (160, 112, 232), "h1": (224, 200, 255),
+        "w": (255, 255, 255),
+    },
+    "TIDE LANTERN": {   # sealed sea-green brass, an aqua core
+        "o": (8, 40, 48), "c0": (24, 112, 112), "c1": (48, 168, 152), "c2": (144, 224, 200),
+        "t0": (16, 88, 96), "t1": (120, 216, 208), "g0": (96, 176, 216), "g1": (192, 240, 255),
+        "k0": (40, 200, 255), "k1": (216, 252, 255), "h0": (96, 216, 248), "h1": (200, 248, 255),
+        "w": (255, 255, 255),
+    },
+    "HEAVY LANTERN": {  # iron-bound, a deep forge-orange core
+        "o": (24, 24, 32), "c0": (72, 72, 88), "c1": (112, 112, 128), "c2": (168, 168, 184),
+        "t0": (48, 48, 64), "t1": (144, 144, 160), "g0": (176, 136, 112), "g1": (232, 200, 176),
+        "k0": (255, 120, 24), "k1": (255, 232, 176), "h0": (255, 160, 72), "h1": (255, 216, 152),
+        "w": (255, 255, 255),
+    },
+    "QUICK LANTERN": {  # lacquer red and bright gold, a lemon core
+        "o": (64, 8, 16), "c0": (176, 32, 40), "c1": (224, 64, 56), "c2": (255, 144, 120),
+        "t0": (176, 120, 16), "t1": (255, 216, 64), "g0": (248, 200, 144), "g1": (255, 240, 200),
+        "k0": (255, 232, 48), "k1": (255, 255, 224), "h0": (255, 232, 112), "h1": (255, 248, 192),
+        "w": (255, 255, 255),
+    },
+    "BONE LANTERN": {   # bone-meal frosting, a pale ghost-green core
+        "o": (56, 48, 40), "c0": (168, 152, 128), "c1": (216, 204, 176), "c2": (248, 240, 224),
+        "t0": (128, 112, 96), "t1": (232, 224, 200), "g0": (200, 216, 192), "g1": (240, 248, 232),
+        "k0": (136, 240, 176), "k1": (232, 255, 240), "h0": (168, 240, 200), "h1": (224, 255, 236),
+        "w": (255, 255, 255),
+    },
 }
+CAPSULE_VARIANTS = ("LANTERN", "PRISM LANTERN", "STAR LANTERN", "DUSK LANTERN", "TIDE LANTERN",
+                    "HEAVY LANTERN", "QUICK LANTERN", "BONE LANTERN")
 
 
 def lantern_fn(scale=1.0, lid=0.0, glow=0.0, core=1.0):
@@ -732,10 +765,17 @@ def lantern_icon(variant):
     return out
 
 
-def lantern_mini():
-    """8x8 lantern mark for the wild HUD (befriended species)."""
+def lantern_mini(lit=True):
+    """8x8 lantern mark for the wild HUD (befriended species) and the
+    warden's team row; unlit = a dozing kin's lantern (no glowing core)."""
     cv = rotated_render(8, 8, 3.5, 4.3, 0.0, lantern_fn(scale=0.52), ss=5)
     outline(cv, "o", skip=("h0", "h1"))
+    if not lit:
+        dim = {"k0": "c0", "k1": "t0", "g1": "c0", "g0": "t0", "w": "c1", "c2": "c1", "t1": "c0"}
+        for row in cv.p:
+            for i, r in enumerate(row):
+                if r in dim:
+                    row[i] = dim[r]
     return cv
 
 
@@ -2847,6 +2887,12 @@ def main():
     # ---- items
     items = build_items()
     item_tiles, item_pals, item_imgs = [], [], []
+    import icons as icon_registry
+    import bout_icons
+    extra = bout_icons.icons(sys.modules[__name__]) + icon_registry.collect(sys.modules[__name__])
+    names = [n.replace(' ', '_') for n in ITEM_NAMES] + [n for (n, _) in extra]
+    items = list(items) + [cv for (_, cv) in extra]
+    all_names = list(ITEM_NAMES) + [n for (n, _) in extra]
     for cv in items:
         img, pal = index_image(cv)
         assert pal[1] == WHITE
@@ -2855,15 +2901,16 @@ def main():
         item_pals.append(pal)
     w("/* Bag icons, 24x24 (3x3 tiles), own palette each; index 0 transparent,")
     w(" * index 1 pure white. Order: " + ", ".join(ITEM_NAMES) + ". */")
+    w("enum { " + ", ".join("ICON_%s" % n for n in names) + ", ICON_COUNT };")
     w("#define ITEM_ICON_COUNT %d" % len(items))
     w("static const u32 item_icon_gfx[%d][9 * 8] = {" % len(items))
-    for n, t in zip(ITEM_NAMES, item_tiles):
+    for n, t in zip(all_names, item_tiles):
         w("    { /* %s */" % n)
         w(c_array_rows([t[i:i + 8] for i in range(0, len(t), 8)], "        "))
         w("    },")
     w("};")
     w("static const u16 item_icon_pal[%d][16] = {" % len(items))
-    for n, pal in zip(ITEM_NAMES, item_pals):
+    for n, pal in zip(all_names, item_pals):
         w("    {" + ",".join(hexs(rgb15(c)) for c in pal) + "}, /* %s */" % n)
     w("};")
     w("")
@@ -2872,7 +2919,7 @@ def main():
     frames = lantern_frames()
     w("/* Thrown lantern, 16x16 OBJ frames (2x2 tiles): 0 closed, 1 wobble left,")
     w(" * 2 wobble right, 3 open with light spilling out. Palettes: LANTERN,")
-    w(" * PRISM LANTERN, STAR LANTERN. (Kept under the old capsule_* names.) */")
+    w(" * PRISM LANTERN, STAR LANTERN and the crafted ones. (Kept under the old capsule_* names.) */")
     w("#define LANTERN_FRAMES 4")
     w("static const u32 capsule_gfx[4][4 * 8] = {")
     cap_imgs = []
@@ -2885,20 +2932,23 @@ def main():
         w("    },")
     w("};")
     cap_pals = []
-    for var in ("LANTERN", "PRISM LANTERN", "STAR LANTERN"):
+    for var in CAPSULE_VARIANTS:
         pal = [(0, 0, 0)] * 16
         for role, idx in LAN_INDEX.items():
             pal[idx] = C(*LAN_VARIANTS[var][role])
         cap_pals.append(pal)
-    w("static const u16 capsule_pal[3][16] = {")
-    for var, pal in zip(("LANTERN", "PRISM LANTERN", "STAR LANTERN"), cap_pals):
+    w("/* Thrown-lantern palettes in LK_* order: " + ", ".join(CAPSULE_VARIANTS) + ". */")
+    w("#define CAPSULE_PAL_COUNT %d" % len(CAPSULE_VARIANTS))
+    w("static const u16 capsule_pal[CAPSULE_PAL_COUNT][16] = {")
+    for var, pal in zip(CAPSULE_VARIANTS, cap_pals):
         w("    {" + ",".join(hexs(rgb15(c)) for c in pal) + "}, /* %s */" % var)
     w("};")
-    mini = lantern_mini()
-    mimg = [[0 if r is None else LAN_INDEX[r] for r in row] for row in mini.p]
-    w("/* 8x8 lantern mark (one tile, lantern palette) for the wild HUD. */")
-    w("static const u32 lantern_mini_gfx[8] = {")
-    w(c_array_rows([tiles_from_indices(mimg, 1, 1)[0]]))
+    w("/* 8x8 lantern marks (lantern palette): 0 lit (wild HUD, a warden's")
+    w(" * ready kin), 1 unlit (a warden's dozing kin). */")
+    w("static const u32 lantern_mini_gfx[2 * 8] = {")
+    for lit in (True, False):
+        mimg = [[0 if r is None else LAN_INDEX[r] for r in row] for row in lantern_mini(lit).p]
+        w(c_array_rows([tiles_from_indices(mimg, 1, 1)[0]]))
     w("};")
     w("")
 
@@ -2907,16 +2957,20 @@ def main():
     w(" * 1 darkest/outline, 2 dark, 3 mid (main colour), 4 light, 5 highlight,")
     w(" * 6 white-hot core, 7/8/9 secondary dark/mid/light. 10-15 unused.")
     w(" * FX_BOLT tiles vertically, FX_BEAM and FX_THREAD tile horizontally. */")
+    import bout_fx
+    import bout_fx3d
+    gmod = sys.modules[__name__]
+    fx_list = [(n, FX_BUILDERS[n]()) for n in FX_NAMES] + bout_fx.fx(gmod) + bout_fx3d.fx(gmod)
+    fxb_list = [(n, fn()) for n, fn in FX_BIG] + bout_fx.fx_big(gmod) + bout_fx3d.fx_big(gmod)
     w("enum {")
-    names = ["FX_" + n for n in FX_NAMES]
+    names = ["FX_" + n for n, _ in fx_list]
     for i in range(0, len(names), 6):
         w("    " + ", ".join(names[i:i + 6]) + ",")
     w("    FX_COUNT")
     w("};")
     w("static const u32 fx_gfx[FX_COUNT][4 * 8] = {")
     fx_imgs = []
-    for n in FX_NAMES:
-        cv = FX_BUILDERS[n]()
+    for n, cv in fx_list:
         img = canvas_to_idx(cv)
         for row in img:
             for v in row:
@@ -2931,11 +2985,14 @@ def main():
 
     # ---- big particles
     w("/* Big 32x32 particles (4x4 tiles), same value ramp as the small ones. */")
-    w("enum { " + ", ".join("FXB_" + n for n, _ in FX_BIG) + ", FXB_COUNT };")
+    w("enum { " + ", ".join("FXB_" + n for n, _ in fxb_list) + ", FXB_COUNT };")
     w("static const u32 fx_big_gfx[FXB_COUNT][16 * 8] = {")
     fxb_imgs = []
-    for n, fn in FX_BIG:
-        img = canvas_to_idx(fn())
+    for n, cv in fxb_list:
+        img = canvas_to_idx(cv)
+        for row in img:
+            for v in row:
+                assert 0 <= v <= 9, (n, v)
         fxb_imgs.append(img)
         t = [v for tt in tiles_from_indices(img, 4, 4) for v in tt]
         w("    { /* %s */" % n)
@@ -2967,8 +3024,9 @@ def main():
 
     # ---- backgrounds
     scenes = {}
+    import bout_scenes
     SCENES = (("meadow", paint_grass), ("forest", paint_forest), ("lake", paint_lake),
-              ("ring", paint_arena), ("storm", paint_storm))
+              ("ring", paint_arena), ("storm", paint_storm)) + tuple(bout_scenes.scenes(sys.modules[__name__]))
     for key, painter in SCENES:
         S = painter()
         tiles, mp, pals = pack_scene(S, key)
@@ -2992,7 +3050,7 @@ def main():
             w("    {" + ",".join(hexs(rgb15(c)) for c in pal) + "},")
         w("};")
         w("")
-    w("/* Scenes in BSCENE_* order: MEADOW, FOREST, LAKE, RING, STORM. */")
+    w("/* Scenes in BSCENE_* order: " + ", ".join(k.upper() for k, _ in SCENES) + ". */")
     w("typedef struct { const u32 *tiles; int tile_count; const u16 *map; const u16 (*pal)[16]; } BattleSceneArt;")
     w("#define BBG_SCENE_COUNT %d" % len(SCENES))
     w("static const BattleSceneArt bbg_scenes[BBG_SCENE_COUNT] = {")
@@ -3038,7 +3096,7 @@ def write_previews(d, item_imgs, cap_imgs, cap_pals, fx_imgs, scenes, fxb_imgs=(
     sh.save(os.path.join(d, "lanterns.png"))
 
     S = 4
-    sh = Sheet(2 * 32 * S + 30, 32 * S + 20, bg=(56, 64, 88))
+    sh = Sheet(max(2, len(fxb_imgs)) * (32 * S + 10) + 10, 32 * S + 20, bg=(56, 64, 88))
     pal = fx_palette((255, 200, 64), (255, 240, 176))
     for i, img in enumerate(fxb_imgs):
         sh.blit(img, 10 + i * (32 * S + 10), 10, S, pal=pal)
