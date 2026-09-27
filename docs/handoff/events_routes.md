@@ -1,5 +1,7 @@
 # Plan 09 EVENTS — completion branch handoff
 
+> **Integrated follow-up:** Brookmill Trail now attaches the two-cell WASHOUT patch, with event-on/off collision and main-road checks in `test_events.c`. Beaten route wardens selected for a daily rematch now challenge on sight or talk with upgraded teams; losses keep readiness, wins consume it without replaying first-win bits. Board rematches remain available. The branch-specific notes below describe the state before these cross-owner hooks landed. Special weather/festival visuals and weekly Hall Master rematches remain open.
+
 Branch: `plan-routes-events-complete`. This branch owns only `src/game/events.c`, `src/game/world/events/`, `tools/tests/test_events.c`, and this handoff. Existing `EV_*` (0–11; `EV_COUNT` = 12), caravan stop IDs (32–43), festival Kindling ID (44), event state prefix, and the first ten rematch indices have not moved. The event save module remains in slot 6 (`SaveData.events`, 64 bytes); new fields are appended. The old save without an event module re-rolls its saved day; shorter event blobs preserve their saved prefix.
 
 ## Playable now

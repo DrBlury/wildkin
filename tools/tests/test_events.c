@@ -259,6 +259,48 @@ static void gameplay_checks(void)
     dialog_clear();
 }
 
+static void route_rematch_checks(void)
+{
+    fresh_game();
+    give_starter();
+    gtime.day = 9;
+    events_new_day_impl();
+    int rematch = -1, npc = -1;
+    for (int r = 0; r < REMATCH_COUNT && npc < 0; r++)
+        for (int i = 0; i < NPC_COUNT; i++)
+            if (NPCS[i].trainer == REMATCHES[r].trainer && NPCS[i].script == SCR_WARDEN) {
+                rematch = r;
+                npc = i;
+                break;
+            }
+    CHECK(npc >= 0, "a listed route rematch has a live warden NPC");
+    if (npc < 0) return;
+    int trainer = REMATCHES[rematch].trainer;
+    trainer_mark_beaten(trainer);
+    events.rematch_bits[rematch / 8] |= (u8)(1u << (rematch % 8));
+    map_load(NPCS[npc].map);
+    int upgraded = events_rematch_level(trainer, 0);
+    script_warden(npc);
+    CHECK(dialog_count >= 2 && dialog_q[(dialog_head + 1) % DIALOG_QUEUE].kind == DQ_CALL,
+          "a beaten, ready route warden queues another challenge");
+    dialog_clear();
+    warden_battle(npc);
+    CHECK(game_mode == MODE_BATTLE && battle.team[0].level == upgraded,
+          "route rematch starts with the upgraded team");
+    game_mode = MODE_FIELD;
+    battle_end_hook = 0;
+    warden_end(BR_LOSE);
+    CHECK(events_rematch_ready(trainer) && trainer_beaten(trainer),
+          "losing the route rematch keeps its first-win and daily-ready bits");
+    warden_battle(npc);
+    game_mode = MODE_FIELD;
+    battle_end_hook = 0;
+    warden_end(BR_WIN);
+    CHECK(!events_rematch_ready(trainer) && trainer_beaten(trainer),
+          "winning the route rematch consumes readiness without resetting the first win");
+    dialog_clear();
+}
+
 static void budget_checks(void)
 {
     int max_people = 0, event_people = 0;
@@ -293,6 +335,18 @@ static void budget_checks(void)
           BROOK_TRAIL_ROWS[17][wash[0].x] == '=' &&
           BROOK_TRAIL_ROWS[25][wash[0].x] == 'R',
           "washout descriptor modifies only optional reeds below the route spine");
+    events.rolled_day = gtime.day;
+    events.active[2] = EV_NONE;
+    map_load(MAP_BROOKMILL_TRAIL);
+    CHECK(!(cell_attr(45, 25) & A_WATER), "optional reed crossing is dry without washout");
+    events.active[2] = EV_WASHOUT;
+    map_load(MAP_BROOKMILL_TRAIL);
+    CHECK((cell_attr(45, 25) & A_WATER) && (cell_attr(45, 26) & A_WATER) &&
+          !(cell_attr(45, 17) & (A_WATER | A_SOLID)),
+          "washout floods only the side reeds and leaves the main road open");
+    events.active[2] = EV_NONE;
+    map_load(MAP_BROOKMILL_TRAIL);
+    CHECK(!(cell_attr(45, 25) & A_WATER), "side reeds recover when the event ends");
 }
 
 int main(void)
@@ -364,6 +418,7 @@ int main(void)
     CHECK(save_load_from(event_sram) == SAVE_VERSION &&
           !memcmp(&events, &saved, sizeof saved), "daily roll and caravan survive save and load");
     gameplay_checks();
+    route_rematch_checks();
     budget_checks();
     if (failures) printf("%d event check(s) FAILED\n", failures);
     else printf("all event checks passed\n");

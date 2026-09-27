@@ -550,6 +550,9 @@ static void warden_battle(int npc)
     int t = NPCS[npc].trainer;
     static TrainerTeam team;
     team = team_from(&TRAINERS[t], BSCENE_AREA);
+    if (trainer_beaten(t) && events_rematch_ready(t))
+        for (int i = 0; i < team.count; i++)
+            team.level[i] = (u8)events_rematch_level(t, i);
     set_battle_scene(MAPS[cur_map].scene);
     warden_battling = t;
     battle_end_hook = warden_end;
@@ -563,14 +566,17 @@ static void warden_battle_call(int npc)
 
 static void warden_end(int result)
 {
-    if (result == BR_WIN && warden_battling >= 0) trainer_mark_beaten(warden_battling);
+    if (result == BR_WIN && warden_battling >= 0) {
+        if (trainer_beaten(warden_battling)) events_rematch_used(warden_battling);
+        else trainer_mark_beaten(warden_battling);
+    }
     warden_battling = -1;
 }
 
 static void script_warden(int npc)
 {
     int t = NPCS[npc].trainer;
-    if (trainer_beaten(t)) {
+    if (trainer_beaten(t) && !events_rematch_ready(t)) {
         dlg_say(NPCS[npc].text ? NPCS[npc].text : "Good bout, warden.");
         return;
     }
@@ -606,7 +612,8 @@ static void check_spotting(void)
     if (!party_count || party_first_healthy() < 0) return;
     for (int i = 0; i < NPC_COUNT; i++) {
         if (!npc_visible[i] || NPCS[i].trainer == NO_TRAINER) continue;
-        if (trainer_beaten(NPCS[i].trainer) || npc_state[i].moving) continue;
+        if ((trainer_beaten(NPCS[i].trainer) && !events_rematch_ready(NPCS[i].trainer)) ||
+            npc_state[i].moving) continue;
         if (!warden_sees(i)) continue;
         spot.active = 1;
         spot.npc = i;
