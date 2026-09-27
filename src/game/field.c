@@ -1261,7 +1261,8 @@ static void field_draw_sprites(void)
 {
     int world_cam_x = cam_x;
     cam_x -= seam_origin_x * 16; /* sprite and travel positions remain map-local */
-    FieldSprite list[96];
+    /* The sprite and kin scratch together exceed the field frame's IWRAM stack margin. */
+    EWRAM_BSS static FieldSprite list[96];
     int n = 0;
     int lift = actor_lift(&player) + travel_player_lift();
     if (travel_player_entry(&list[n], lift)) {
@@ -1295,7 +1296,7 @@ static void field_draw_sprites(void)
         }
     }
     /* kin: follower, people's companions, wild kin, farm workers */
-    const KinActor *kins[1 + NPC_COUNT + WILD_MAX + 8 + 4];
+    EWRAM_BSS static const KinActor *kins[1 + NPC_COUNT + WILD_MAX + 8 + 4];
     int nk = 0;
     if (follower_active() && starter_preview < 0) kins[nk++] = &follower;
     nk += travel_kin_actors(kins + nk, 8);
