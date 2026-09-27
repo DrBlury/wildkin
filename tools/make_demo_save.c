@@ -114,7 +114,7 @@ int main(int argc, char **argv)
         return 0;
     }
     if (argc < 2) {
-        fprintf(stderr, "usage: %s OUT.sav [MAP X Y [calm] [low] [beaten] [night] [rain] [farm] [travel] [fusion] [evolve] [runestone] [bridge-built] [mist-lifted] [front-west] [front-dream] [caravan-brookmill] [move=NAME]]\n", argv[0]);
+        fprintf(stderr, "usage: %s OUT.sav [MAP X Y [calm] [low] [beaten] [night] [rain] [farm] [travel] [fusion] [evolve] [runestone] [bridge-built] [mist-lifted] [front-west] [front-dream] [front-clear] [caravan-brookmill] [caravan-eve] [move=NAME]]\n", argv[0]);
         return 1;
     }
     game_init();
@@ -122,7 +122,7 @@ int main(int argc, char **argv)
     new_game();
     int calm = 0, low = 0, beaten = 0, night = 0, rain = 0, farm_on = 0;
     int travel_on = 0, fusion_on = 0, evolve_on = 0, rune_on = 0;
-    int bridge = 0, mist = 0, front = -1, caravan = 0;
+    int bridge = 0, mist = 0, front = -1, caravan = 0, caravan_eve = 0;
     const char *move_name = 0;
     for (int i = 5; i < argc; i++) {
         if (!strcmp(argv[i], "calm")) calm = 1;
@@ -139,7 +139,9 @@ int main(int argc, char **argv)
         if (!strcmp(argv[i], "mist-lifted")) mist = 1;
         if (!strcmp(argv[i], "front-west")) front = ER_WEST;
         if (!strcmp(argv[i], "front-dream")) front = ER_DREAM;
+        if (!strcmp(argv[i], "front-clear")) front = ER_HOME;
         if (!strcmp(argv[i], "caravan-brookmill")) caravan = 1;
+        if (!strcmp(argv[i], "caravan-eve")) caravan_eve = 1;
         if (!strncmp(argv[i], "move=", 5)) move_name = argv[i] + 5;
     }
     static const u8 TEAM[5] = { SP_PYREFOX, SP_AXOLURK, SP_ZAPPET, SP_DANDELAMB, SP_GOLEMIT };
@@ -172,14 +174,22 @@ int main(int argc, char **argv)
     if (calm) flag_set(FLAG_STORM_CALMED);
     if (bridge) flag_set(FLAG_PROJECT_CINDER_BRIDGE);
     if (mist) flag_set(FLAG_LANTERN_CREST);
-    if (front >= 0 || caravan) {
+    if (front >= 0 || caravan || caravan_eve) {
         flag_set(FLAG_VOLT_CREST);
-        if (front == ER_DREAM) flag_set(FLAG_LANTERN_CREST);
         events_new_day_impl();
         if (front >= 0) {
             events.front_region = (u8)front;
-            events.front_kind = WX_FOG;
+            events.front_kind = front == ER_HOME ? WX_CLEAR : WX_FOG;
             events.front_days = 1;
+        }
+        if (caravan_eve) {
+            gtime.day = 2;
+            gtime.minute = 5 * 60 + 59;
+            gtime.frames = 0;
+            events_new_day_impl();
+            events.caravan_map = 5;
+            events.active[1] = EV_CARAVAN;
+            events.arg[1] = 5;
         }
         if (caravan) {
             events.caravan_map = 6;

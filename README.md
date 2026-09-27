@@ -174,7 +174,13 @@ Each picture below is a **labeled full-map render from the game renderer**, not 
 
 <img src="docs/images/routes/cinder-bridge.gif" width="480" alt="Cinder Crossing's broken span, then the repaired bridge crossed in a recorded ROM run">
 
-<sub>Cinder bridge: unbuilt and built project saves, recorded as consecutive game frames. Fog-front and caravan-arrival clips await visible in-game effects.</sub>
+<sub>Cinder bridge: unbuilt and built project saves, recorded as consecutive game frames.</sub>
+
+| Heron Fen fog front | Mistfen fog lifting |
+| --- | --- |
+| <img src="docs/images/routes/heron-fog.gif" width="320" alt="Clear Heron Fen followed by an animated regional fog front in the ROM"> | <img src="docs/images/routes/mistfen-fog.gif" width="320" alt="Mistfen fog wisps clearing, followed by a walk through the lantern-opened passage"> |
+
+<sub>Both fog clips join consecutive ROM captures from deterministic clear and fog saves. Merriweather currently appears instantly at dawn rather than travelling into view; the caravan arrival clip is held back until the game has an actual arrival animation.</sub>
 
 **Events and quests.** The Vale Gazette in Hearth houses reports daily happenings; the caravan has route-specific stops, and regional fronts and outbreaks can change a day's conditions. The quest log follows Elspeth's cross-region courier chain and surveys, plus local ring, lamp, chalk and cairn threads. Town project offers include the Brookmill tram, Cinder bridge, Timberline lift, Reedwick punt and Maple market; construction completes after dawn when requirements are met. Event presentation and some project visuals remain incomplete—see [integration status](docs/HANDOFF.md).
 
@@ -706,7 +712,7 @@ That writes `game.gba`. Other targets:
 | `make maps` | Render every map to `build/maps/*.png` |
 | `make shot` | Build the headless screenshot harness (needs libmgba: `brew install mgba`) |
 | `python3 tools/make_media.py` | Re-record the README media (requires the ROM and `make shot` for clips; Pillow for route renders) |
-| `python3 tools/make_media.py world routes mill-wheel cinder-bridge` | Regenerate the map, route stills, Brookmill wheel and repaired Cinder bridge clips |
+| `python3 tools/make_media.py world routes mill-wheel cinder-bridge heron-fog mistfen-fog` | Regenerate the map, route stills, wheel, bridge and in-game fog clips |
 | `make clean` | Remove build output |
 
 ### How it is made

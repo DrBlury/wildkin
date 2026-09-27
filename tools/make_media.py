@@ -8,10 +8,10 @@ always shows the current game:
     python3 tools/make_media.py            # everything
     python3 tools/make_media.py routes     # labeled route renders (needs Pillow)
     python3 tools/make_media.py world      # stitched outdoor layout (needs Pillow)
-    python3 tools/make_media.py mill-wheel cinder-bridge  # ROM project clips
+    python3 tools/make_media.py mill-wheel cinder-bridge heron-fog mistfen-fog
 
-Fog-front and caravan-arrival commands capture diagnostic ROM frames but fail
-closed until their visual presentation is integrated; no placeholder GIFs.
+Weather clips require visible ROM frame differences. The caravan command captures
+a dawn event diagnostic but refuses a GIF while arrival is only a stationary NPC pop-in.
 """
 
 import glob
@@ -338,6 +338,8 @@ def clip_mill_wheel():
 def record_route(name, map_name, x, y, extra=(), travel=None):
     """Capture consecutive, unaltered ROM frames on a deterministic demo save."""
     save = demo_save(name, map_name, x, y, calm=True, extra=('beaten',) + extra)
+    for stale in route_frames(name):
+        os.remove(stale)
     script = Script().boot().wait(32).rec(name, 4).wait(18)
     if travel:
         script.tap(travel).hold(travel, 80).wait(22)
@@ -351,7 +353,7 @@ def route_frames(prefix):
     return sorted(glob.glob(os.path.join(WORK, prefix + '_[0-9][0-9][0-9][0-9].png')))
 
 
-def assert_route_change(first, second):
+def assert_route_change(first, second, min_pixels=500):
     """A state transition must alter the game image, not just repeat a still."""
     from PIL import Image, ImageChops
     a, b = route_frames(first), route_frames(second)
@@ -360,7 +362,7 @@ def assert_route_change(first, second):
     # Identical camera/player coordinates before movement; skip the title/boot.
     before, after = Image.open(a[1]).convert('RGB'), Image.open(b[1]).convert('RGB')
     changed = sum(1 for p in ImageChops.difference(before, after).getdata() if p != (0, 0, 0))
-    if changed < 100:
+    if changed < min_pixels:
         raise RuntimeError('route states do not differ visibly (%d pixels)' % changed)
     frames = b[1:]
     unique = len({Image.open(f).convert('RGB').tobytes() for f in frames})
@@ -380,35 +382,50 @@ def clip_cinder_bridge():
 
 
 def require_fog_visuals():
-    with open(os.path.join(ROOT, 'src', 'game', 'field.c')) as field:
-        if 'WX_FOG' not in field.read():
+    with open(os.path.join(ROOT, 'src', 'game', 'farm.c')) as field:
+        if 'case WX_FOG:' not in field.read():
             raise RuntimeError('WX_FOG has no field renderer yet; defer fog GIF until weather visuals merge')
 
 
 def clip_heron_fog():
     # When the weather branch draws WX_FOG, compare this against the clear save.
-    record_route('heron_clear', 'HERON_FEN', 22, 19)
+    record_route('heron_clear', 'HERON_FEN', 22, 19, extra=('front-clear',))
     record_route('heron_fog', 'HERON_FEN', 22, 19, extra=('front-west',))
     require_fog_visuals()
-    assert_route_change('heron_clear', 'heron_fog')
+    assert_route_change('heron_clear', 'heron_fog', min_pixels=4000)
     gif(['heron_clear', 'heron_fog'], 'routes/heron-fog.gif')
 
 
 def clip_mistfen_fog():
     # The lantern crest opens a path; fog lifting also requires field visuals.
-    record_route('mist_fog', 'MISTFEN', 23, 52, extra=('front-dream',))
-    record_route('mist_clear', 'MISTFEN', 23, 52, extra=('mist-lifted',))
+    record_route('mist_fog', 'MISTFEN', 23, 52, extra=('front-dream',), travel='RIGHT')
+    record_route('mist_clear', 'MISTFEN', 23, 52, extra=('front-clear', 'mist-lifted'), travel='RIGHT')
     require_fog_visuals()
-    assert_route_change('mist_fog', 'mist_clear')
+    assert_route_change('mist_fog', 'mist_clear', min_pixels=4000)
     gif(['mist_fog', 'mist_clear'], 'routes/mistfen-fog.gif')
 
 
 def clip_caravan_arriving():
-    # Currently the event NPC is stationary; only publish on visible arrival.
-    record_route('caravan_away', 'BROOKMILL', 11, 13)
-    record_route('caravan_here', 'BROOKMILL', 11, 13, extra=('caravan-brookmill',))
-    raise RuntimeError('caravan is a stationary event NPC; an in-game arrival animation is required before GIF encoding')
-    # Once integrated, verify arrival movement, then encode the captured sequence.
+    """Record the actual day rollover: caravan stop 5 -> Brookmill stop 6."""
+    save = demo_save('caravan_eve', 'BROOKMILL', 11, 13, calm=True,
+                     extra=('beaten', 'caravan-eve'))
+    for stale in route_frames('caravan_arrive'):
+        os.remove(stale)
+    run(Script().boot().rec('caravan_arrive', 3).wait(125).stop(), save)
+    frames = route_frames('caravan_arrive')
+    if len(frames) < 35:
+        raise RuntimeError('not enough frames to show the daily caravan arrival')
+    from PIL import Image, ImageChops
+    # Ignore daybreak's screen-wide palette change; the NPC spawn must change
+    # the same small area where Merriweather stands and remain visible.
+    def npc_area(path):
+        return Image.open(path).convert('RGB').crop((120, 40, 150, 80))
+    before, after = npc_area(frames[2]), npc_area(frames[-3])
+    changed = sum(c != (0, 0, 0) for c in ImageChops.difference(before, after).getdata())
+    if changed < 120:
+        raise RuntimeError('no visible in-game caravan arrival at day rollover (%d pixels)' % changed)
+    print('verified dawn spawn: %d NPC-area pixels changed' % changed)
+    raise RuntimeError('Merriweather spawns instantly at dawn; no moving caravan/arrival animation exists in this ROM')
 
 
 def clip_regions():
@@ -661,7 +678,7 @@ CLIPS = {
 def main(argv):
     os.makedirs(OUT, exist_ok=True)
     os.makedirs(WORK, exist_ok=True)
-    for name in (argv or [n for n in CLIPS if n not in ('heron-fog', 'mistfen-fog', 'caravan-arriving')]):
+    for name in (argv or [n for n in CLIPS if n != 'caravan-arriving']):
         print('--', name)
         CLIPS[name]()
     if not argv:
