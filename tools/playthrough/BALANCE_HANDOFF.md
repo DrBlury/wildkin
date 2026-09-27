@@ -1,0 +1,31 @@
+# Plan 12 balance handoff (isolated `plan-routes-balance`)
+
+Run `cc -std=c11 -Wall -Wextra -Wno-missing-field-initializers -Wno-unused-function -o /tmp/test_game tools/test_game.c && /tmp/test_game` for the full live-table trace. The command exits 1 on **seven real arrival failures**; do not change the ±2 target to green the build.
+
+The model starts with FLARIX Lv5 and catches the first zone species until the team reaches four during Act I. The four kin persist, with XP carried into the next act. One round-robin active kin receives full XP per foe; the other three each receive half. It uses `monster_xp_yield`, the production cubic `xp_for_level`, no QUICK STUDY, bond or meal bonus, six weighted encounters per accessible route at weighted zone mean level, and every mapped path warden once (trainer ID deduplicated). Master XP is granted **after** that Master's arrival measurement. It excludes optional Ember Tunnel, Glimmer Caverns and Dust Library from arrivals: their entrances are branches from Cindermoor, Frosthollow and Dreamspire respectively, not the Hall access path. It does not count town wild zones, inaccessible Reedwick SURF encounters, or quest/legend/loop rematches. The four hamlets currently have `ZONE_NONE` for walkable grass; Reedwick only has a water zone available after MAREN gives SURF. Thus the planned three hamlet wild bouts do not yet exist on the critical path. The model assumes all wardens placed on a listed map are met; coordinate-level pathfinding, survival/healing, time-specific NPC visibility and catches remain to be verified in a scripted playthrough. Satchel/money estimates remain optimistic (all mapped pickups sold).
+
+## Direct Hall-path trace
+
+Each map entry is the mean before→after that map, with warden/bout counts. Mean is integer-truncated. Target is the **lowest** actual Master kin, not the plan's desired levels.
+
+| Act | Per-map team mean (wardens / wild bouts) | Arrival / Master minimum / delta | Zero-wild arrival |
+| --- | --- | --- | --- |
+| I | Meadow 5→8 (2/6); Wood 8→12 (3/6); Lake 12→14 (3/6); Rise 14→15 (1/6) | 15 / 12 / **+3** | 13 |
+| II | Brookmill Trail 16→19 (5/6); Brookmill 19→19 (1/0); Copperline 19→23 (4/6); Lumen 23→23 (1/0); Volt Hall 23→25 (4/0) | 25 / 21 / **+4** | 23 |
+| III | Heron Fen 27→28 (6/6); Reedwick 28→29 (2/0); Saltwind 29→30 (4/6); Port Brine 30→30 (0/0); Current Hall 30→31 (3/0) | 31 / 25 / **+6** | 30 |
+| IV | Cinder Crossing 33→35 (6/6); Railhead 35→35 (2/0); Cinder Road 35→37 (3/6); Cindermoor 37→37 (0/0); Anvil Hall 37→38 (3/0) | 38 / 31 / **+7** | 37 |
+| V | Foothills 40→44 (7/6); Timberline 44→44 (2/0); Frostpine 44→46 (3/6); Frosthollow 46→46 (0/0); Rime Hall 46→49 (4/0) | 49 / 34 / **+15** | 46 |
+| VI | Hollow Downs 50→51 (6/6); Ashen Fields 51→53 (3/6); Gravewood 53→54 (3/6); Duskmere 54→54 (0/0); Lantern Crypt 54→56 (3/0) | 56 / 38 / **+18** | 53 |
+| VII | Mistfen 57→59 (6/6); Moonveil 59→60 (3/6); Dreamspire 60→60 (0/0); Mirror Hall 60→61 (3/0) | 61 / 42 / **+19** | 58 |
+| VIII | Ossuary 62→64 (2/6); Deeps 64→66 (2/6); Bone Throne 66→66 (0/0) | 66 / dynamic OSSUREX (not checked) | 62 |
+
+Zero-wild is only a stress diagnostic. The no-grind assertion means **zero extra bouts beyond six per route and three per accessible hamlet** and passes at every Master. The seven ±2 checks still fail; notably even zero-wild arrival is +5 by Act III and +12 at Act V, so removing wild bouts alone cannot fix this curve. Neither duplicate warden IDs nor a second XP grant was found: IDs are deduplicated across acts, and `qa_gain` awards once per defeated species using the same full/half team sharing as production battle code. Four-kin carryover is deliberate, but the current party may be unrealistically strong because no KO, replacement, or catching cost is modeled.
+
+## Region/content handoff (no region data changed here)
+
+1. **Village / East / West:** Verify MARLO timing against the Rise and Lake branches; if MARLO can be fought earlier, move those encounters to their actual post-MARLO act instead of rewarding them before arrival. For direct arrival, trim the early per-warden *team sizes* on Meadow/Wood/Lake (8 wardens total; Rise adds one) and Brookmill Trail/Copperline/Volt Hall (5+4+4 wardens) while retaining mandatory warden placements and contract level ranges; rerun the sim to reduce I from 15 to at most 14, II from 25 to at most 23 and III from 31 to at most 27. Investigate Heron Fen's six, Saltwind's four and Current Hall's three warden teams specifically. Do not raise Masters merely to close the gap.
+2. **Forge / North:** Reduce pre-Hall kin counts/XP in Cinder Crossing (6 wardens), Cinder Road (3) and Anvil Hall (3), then Foothills (7), Frostpine (3) and Rime Hall (4). Measure after each act: IV must arrive at ≤33, V at ≤36. The large V jump includes +2 XP levels from the BRONWEN Master team carried forward, plus +4 from Foothills and +3 from Rime Hall; merely deleting optional Glimmer gives 49, still 15 levels high. Preserve 5–8 wardens per two-segment new route; reduce opposing team sizes or XP yield species composition before removing necessary route trainers.
+3. **Grim / Dream:** With the earlier acts corrected, retune Hollow Downs (6), Ashen Fields (3), Gravewood (3), Lantern Crypt (3), Mistfen (6), Moonveil (3) and Mirror Hall (3) **against the recalculated carryover**, not today's inflated Lv50+ starting team. VI must arrive ≤40 and VII ≤44. Any adjustments to trainer counts, teams, species yield or mandatory side paths belong to the region owners; avoid changing the production XP curve globally without rechecking save compatibility and all other battle tests.
+4. **Hamlet content:** If the plan's k=3 is intended to be observable, add accessible non-SURF encounter patches/zones on Brookmill, Railhead and Timberline, and an accessible pre-MAREN zone at Reedwick, then rerun. This adds XP and can worsen the excess; settle the regional route XP budget first. Alternatively explicitly revise the contract with coordinator approval, not the sim assumption.
+
+The test intentionally remains red until actual content supports the ±2 target. The trace is a deterministic balance estimate, not proof a human can win every bout with no healing/KO, nor proof every placed NPC lies on the walkable direct path. Money assertions are unchanged and optimistic.

@@ -1,15 +1,14 @@
-/* Host-only diagnostic against live world tables and the shipped XP curve.
- * Treat all mapped wardens and satchels as accessible: this is an upper
- * bound on encounters and sellable loot until the critical path is gated. */
+/* Host-only route model against shipped world and XP tables.
+ * Hall arrival excludes optional lairs and quest branches. */
 typedef struct { const char *name; int master; int maps[10]; } QaAct;
 static const QaAct QA_ACTS[] = {
     {"I Home", TR_MARLO, {MAP_MEADOW, MAP_WOOD, MAP_LAKE, MAP_RISE, MAP_NONE}},
     {"II East", TR_FARA, {MAP_BROOKMILL_TRAIL, MAP_BROOKMILL, MAP_COPPERLINE, MAP_LUMEN, MAP_VOLT_HALL, MAP_NONE}},
     {"III West", TR_MAREN, {MAP_HERON_FEN, MAP_REEDWICK, MAP_SALTWIND, MAP_PORT_BRINE, MAP_CURRENT_HALL, MAP_NONE}},
-    {"IV Forge", TR_MASTER_BRONWEN, {MAP_CINDER_CROSSING, MAP_RAILHEAD, MAP_CINDER_ROAD, MAP_CINDERMOOR, MAP_EMBER_TUNNEL, MAP_ANVIL_HALL, MAP_NONE}},
-    {"V North", TR_N_SIGRUN, {MAP_FOOTHILLS, MAP_TIMBERLINE, MAP_FROSTPINE, MAP_FROSTHOLLOW, MAP_GLIMMER_1, MAP_GLIMMER_2, MAP_RIME_HALL, MAP_NONE}},
+    {"IV Forge", TR_MASTER_BRONWEN, {MAP_CINDER_CROSSING, MAP_RAILHEAD, MAP_CINDER_ROAD, MAP_CINDERMOOR, MAP_ANVIL_HALL, MAP_NONE}},
+    {"V North", TR_N_SIGRUN, {MAP_FOOTHILLS, MAP_TIMBERLINE, MAP_FROSTPINE, MAP_FROSTHOLLOW, MAP_RIME_HALL, MAP_NONE}},
     {"VI Ash", TR_MORWEN, {MAP_HOLLOW_DOWNS, MAP_ASHEN_FIELDS, MAP_GRAVEWOOD, MAP_DUSKMERE, MAP_LANTERN_CRYPT, MAP_NONE}},
-    {"VII Dream", TR_MASTER_VESPER, {MAP_MISTFEN, MAP_MOONVEIL, MAP_DREAMSPIRE, MAP_DUST_LIBRARY, MAP_MIRROR_HALL, MAP_NONE}},
+    {"VII Dream", TR_MASTER_VESPER, {MAP_MISTFEN, MAP_MOONVEIL, MAP_DREAMSPIRE, MAP_MIRROR_HALL, MAP_NONE}},
     {"VIII Finale", -1, {MAP_OSSUARY_1, MAP_OSSUARY_2, MAP_BONE_THRONE, MAP_NONE}}
 };
 #define QA_ACT_COUNT ((int)(sizeof(QA_ACTS) / sizeof(QA_ACTS[0])))
@@ -31,24 +30,32 @@ static void qa_gain(int species, int level, int trainer)
 static int qa_zone_bouts(int map)
 {
     int zone = MAPS[map].zone;
+    /* Reedwick's only encounters require SURF, earned after MAREN. All four
+     * hamlets currently lack an accessible grass zone on the Hall path. */
+    if (map == MAP_BROOKMILL || map == MAP_REEDWICK || map == MAP_RAILHEAD || map == MAP_TIMBERLINE)
+        return zone > ZONE_EMPTY && zone < ZONE_COUNT && WILD_ZONES[zone].count ? 3 : 0;
     if (zone <= ZONE_EMPTY || zone >= ZONE_COUNT || !WILD_ZONES[zone].count) return 0;
-    if (map == MAP_BROOKMILL || map == MAP_REEDWICK || map == MAP_RAILHEAD || map == MAP_TIMBERLINE) return 3;
-    return 6;
+    /* A populated town zone is not six route encounters. */
+    return (MAPS[map].flags & MF_TOWN) ? 0 : 6;
 }
 
 static void qa_wild(int map, int bouts)
 {
     const WildZone *z = &WILD_ZONES[MAPS[map].zone];
-    int weight = 0;
-    for (int i = 0; i < z->count; i++) weight += z->slots[i].weight;
+    int weight = 0, weighted_level = 0;
+    for (int i = 0; i < z->count; i++) {
+        weight += z->slots[i].weight;
+        weighted_level += z->slots[i].weight * (z->slots[i].min_level + z->slots[i].max_level) / 2;
+    }
     if (!weight) return;
+    int mean_level = weighted_level / weight;
     /* Fixed weighted quantiles across slots, including day/night variants. */
     for (int b = 0; b < bouts; b++) {
         int pick = (2 * b + 1) * weight / (2 * bouts);
         int i = 0;
         while (i + 1 < z->count && pick >= z->slots[i].weight) pick -= z->slots[i++].weight;
         const WildSlot *slot = &z->slots[i];
-        qa_gain(slot->species, (slot->min_level + slot->max_level) / 2, 0);
+        qa_gain(slot->species, mean_level, 0);
     }
 }
 
@@ -59,6 +66,13 @@ static void qa_team_join(int map)
     Monster m = monster_make(slot->species, (slot->min_level + slot->max_level) / 2);
     m.trait = TR_SURGE; m.bond = 0; /* neutral XP traits and bond */
     give_monster(&m);
+}
+
+static int qa_team_mean(void)
+{
+    int levels = 0;
+    for (int p = 0; p < party_count; p++) levels += party[p].level;
+    return levels / party_count;
 }
 
 static void qa_act_pass(int include_wild)
@@ -74,6 +88,7 @@ static void qa_act_pass(int include_wild)
         int wardens = 0, wilds = 0, satchels = 0;
         for (int j = 0; j < 10 && act->maps[j] != MAP_NONE; j++) {
             int map = act->maps[j], bouts = qa_zone_bouts(map);
+            int before = qa_team_mean(), map_wardens = 0;
             qa_team_join(map);
             if (include_wild && bouts) { qa_wild(map, bouts); wilds += bouts; }
             for (int n = 0; n < NPC_COUNT; n++) {
@@ -84,11 +99,14 @@ static void qa_act_pass(int include_wild)
                 seen[t] = 1;
                 const TrainerDef *tr = &TRAINERS[t];
                 for (int k = 0; k < tr->count; k++) qa_gain(tr->species[k], tr->level[k], 1);
-                coins += tr->prize; wardens++;
+                coins += tr->prize; wardens++; map_wardens++;
             }
             for (int n = 0; n < ITEM_BALL_COUNT; n++)
                 if (ITEM_BALLS[n].map == map)
                     satchels += ITEM_BALLS[n].qty * item_sell_price(ITEM_BALLS[n].item);
+            printf("  %s: %s mean %d -> %d wardens %d wild %d\n", act->name,
+                   MAPS[map].name, before, qa_team_mean(), map_wardens,
+                   include_wild ? bouts : 0);
         }
         /* One mature Glowberry plot sold per act, when in season; no seed costs. */
         int harvest = CROPS[CROP_GLOWBERRY].yield * CROPS[CROP_GLOWBERRY].value;
@@ -99,9 +117,7 @@ static void qa_act_pass(int include_wild)
             lowest = 100;
             for (int k = 0; k < tr->count; k++) if (tr->level[k] < lowest) lowest = tr->level[k];
         }
-        int levels = 0;
-        for (int p = 0; p < party_count; p++) levels += party[p].level;
-        int mean = levels / party_count;
+        int mean = qa_team_mean();
         printf("QA %s: team-mean %d levels %d/%d/%d/%d master-min %d delta %+d wardens %d wild %d coins %d (satchels %d harvest %d)\n",
                act->name, mean, party[0].level, party_count > 1 ? party[1].level : 0,
                party_count > 2 ? party[2].level : 0, party_count > 3 ? party[3].level : 0,
@@ -110,7 +126,7 @@ static void qa_act_pass(int include_wild)
             char label[120];
             snprintf(label, sizeof(label), "%s arrival team mean within 2 levels of lowest Master kin", act->name);
             CHECK(mean >= lowest - 2 && mean <= lowest + 2, label);
-            snprintf(label, sizeof(label), "%s team needs no grinding (at least Master minus 4)", act->name);
+            snprintf(label, sizeof(label), "%s no extra wild bouts needed (at least Master minus 4)", act->name);
             CHECK(mean >= lowest - 4, label);
         }
         if (include_wild) {
@@ -137,9 +153,12 @@ static void test_act_balance(void)
 {
     CHECK(QA_ACT_COUNT == 8 && TRAINERS[TR_FARA].count > 0 && qa_zone_bouts(MAP_BROOKMILL_TRAIL) == 6,
           "act diagnostic reads shipped Master and route zone tables");
-    puts("QA diagnostic: all mapped wardens including optional; weighted wild quantiles; no survival, purchase, catch or quest simulation");
+    CHECK(qa_zone_bouts(MAP_BROOKMILL) == 0 && qa_zone_bouts(MAP_REEDWICK) == 0 &&
+          qa_zone_bouts(MAP_LUMEN) == 0 && qa_zone_bouts(MAP_MEADOW) == 6,
+          "route bouts exclude towns and SURF-only hamlet encounters");
+    puts("QA direct Hall path: wardens once; route 6 / accessible hamlet 3 wild bouts; no optional lairs, buffs or survival simulation");
     qa_act_pass(1);
-    puts("QA zero-wild stress diagnostic (stricter than no extra grinding):");
+    puts("QA zero-wild stress diagnostic (normal-rate pass tests no extra grinding):");
     qa_act_pass(0);
     party_count = 0;
 }
