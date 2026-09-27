@@ -41,6 +41,7 @@ typedef struct {
     u8 pad[2];
     u8 secrets[8];      /* hidden passages found (elev.c), bit per EF_HIDDEN in map order;
                            added at the end, so older saves load with none found */
+    u8 visited_hi[16];  /* maps 128..255; append to keep earlier module saves compatible */
 } TravelState;
 
 enum { CREST_VOLT, CREST_TIDE, CREST_ANVIL, CREST_RIME, CREST_LANTERN, CREST_DREAM, CREST_COUNT };
@@ -56,6 +57,19 @@ static const u8 AB_LEVEL[AB_COUNT] = { 0, 20, 20, 30, 0 };
 static const char *const AB_NAMES[AB_COUNT] = { "LIGHT", "SURF", "STRENGTH", "FLY", "TELEPORT" };
 
 static TravelState travel;
+
+static int travel_visited_get(int map)
+{
+    if (map < 0 || map >= MAP_COUNT || map >= 256) return 0;
+    return map < 128 ? bit_get(travel.visited, map) : bit_get(travel.visited_hi, map - 128);
+}
+
+static void travel_visited_set(int map)
+{
+    if (map < 0 || map >= MAP_COUNT || map >= 256) return;
+    if (map < 128) bit_set(travel.visited, map);
+    else bit_set(travel.visited_hi, map - 128);
+}
 
 #define OT_TT(i)    (256 + (i) * 8)     /* 16x32 objects (TT_*) */
 #define OT_BANNER   336
@@ -1200,7 +1214,7 @@ static void travel_dark_off(void)
 /* field_enter_map(): the player is on the new map. */
 static void travel_map_entered(int map)
 {
-    bit_set(travel.visited, map);
+    travel_visited_set(map);
     travel.surfing = (cell_attr(player.x, player.y) & A_WATER) != 0;
     if (travel.surfing) {
         travel.biking = 0;
@@ -1659,7 +1673,7 @@ static int map_spot(int m)
 static int fly_point_open(int i)
 {
     int m = FLY_POINTS[i].map;
-    return bit_get(travel.visited, m) || m == MAP_SKY_ISLE;
+    return travel_visited_get(m) || m == MAP_SKY_ISLE;
 }
 
 #define WM_PTS 32
@@ -1723,7 +1737,7 @@ static void wm_draw(void)
     static u8 seen[WM_COUNT];
     for (int s = 0; s < WM_COUNT; s++) seen[s] = 0;
     for (int m = 0; m < MAP_COUNT; m++)
-        if (bit_get(travel.visited, m)) {
+        if (travel_visited_get(m)) {
             int s = map_spot(m);
             if (s >= 0) seen[s] = 1;
         }

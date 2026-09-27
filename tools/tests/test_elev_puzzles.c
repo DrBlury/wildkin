@@ -502,10 +502,10 @@ static void test_secrets(void)
     static SaveData old;
     travel.crests = 5;
     save_capture(&old);
-    CHECK(old.mod_size[4] == sizeof(TravelState) && sizeof(TravelState) == 41 + 8, "the travel blob grew by 8 bytes");
+    CHECK(old.mod_size[4] == sizeof(TravelState) && sizeof(TravelState) == 41 + 8 + 16, "the travel blob grew for secrets and high map visits");
     old.mod_size[4] = 41;
     for (int i = 41; i < MOD_TRAVEL_MAX; i++) old.travel[i] = 0;
-    old.checksum = save_checksum(&old);
+    old.checksum_v6 = save_checksum(&old);
     travel.crests = 0;
     CHECK(save_valid(&old), "a save from before the secrets is valid");
     save_apply(&old);
@@ -514,7 +514,7 @@ static void test_secrets(void)
     old.map = MAP_EV_TEST;
     old.player_x = 22;
     old.player_y = 19;
-    old.checksum = save_checksum(&old);
+    old.checksum_v6 = save_checksum(&old);
     save_apply(&old);
     go(DIR_RIGHT);
     go(DIR_RIGHT);

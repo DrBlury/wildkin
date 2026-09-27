@@ -101,7 +101,7 @@ int main(void)
     CHECK(pads_ok, "every teleport pad has exactly one partner");
     CHECK(ferry_ok, "every ferry has a ferry back on its destination map");
     CHECK(travel_pbit_total() <= 128, "gates, chests and legends fit the 128 puzzle bits");
-    CHECK(sizeof(TravelState) == 49, "the travel save blob keeps its size (41 + 8 secret bytes at the end)");
+    CHECK(sizeof(TravelState) == 65, "the travel save blob retains secrets and appends 16 high-map visit bytes");
 
     /* ---- attributes ---- */
     enter(MAP_TT_HALL, 9, 14, DIR_UP);

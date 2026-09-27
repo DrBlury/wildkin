@@ -44,6 +44,12 @@ OBJS     += $(BUILD)/src/crt0.o
 ART      := src/gfx_ui.h src/gfx_monsters.h src/gfx_field.h src/gfx_battle.h src/species_data.h \
             src/gfx_travel.h src/gfx_craft.h src/gfx_fusion.h src/gfx_rune.h src/gfx_keepers.h
 
+.PHONY: save-layout
+save-layout:
+	python3 tools/gen_save_layout.py
+
+$(BUILD)/src/main.o: save-layout
+
 all: $(TARGET).gba
 
 run: $(TARGET).gba
@@ -53,7 +59,7 @@ run: $(TARGET).gba
 # src/main.c (hardware registers become plain memory on the host), so the
 # rules, battles, maps and every menu screen are exercised frame by frame.
 # test_game.c also runs a tiered round-robin balance simulation.
-test:
+test: save-layout
 	@mkdir -p $(BUILD)
 	$(HOSTCC) -std=c11 -Wall -Wextra -Wno-missing-field-initializers -Wno-unused-function -o $(BUILD)/test_field tools/test_field.c
 	$(BUILD)/test_field

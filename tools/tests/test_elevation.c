@@ -379,16 +379,16 @@ int main(void)
     old.player_x = 13;
     old.player_y = 9;
     old.facing = DIR_LEFT;
-    old.checksum = save_checksum(&old);
+    old.checksum_v6 = save_checksum(&old);
     save_apply(&old);
     CHECK(at(13, 9, 1), "an old save on a bridge cell derives the level from the facing (along the deck: on top)");
     old.facing = DIR_UP;
-    old.checksum = save_checksum(&old);
+    old.checksum_v6 = save_checksum(&old);
     save_apply(&old);
     CHECK(at(13, 9, 0), "(across it: underneath)");
     old.player_x = 7;
     old.player_y = 8;
-    old.checksum = save_checksum(&old);
+    old.checksum_v6 = save_checksum(&old);
     save_apply(&old);
     CHECK(at(7, 8, 1), "and from the cell elsewhere");
 

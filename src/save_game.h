@@ -17,7 +17,7 @@
  * keeps the team, the shelf, the bag and the Almanac (each kin gets rolled
  * individuality and wakes up at home); version 1 keeps team, bag, Almanac.
  */
-#define SAVE_VERSION 5u
+#define SAVE_VERSION 6u
 #define SAVE_MAGIC 0x4D515354u
 #define SAVE_SLOT_SIZE 16384u
 #define SAVE_BACKUP_OFFSET SAVE_SLOT_SIZE
@@ -33,6 +33,23 @@ typedef struct { u16 code, count; } BagEntry;
 #define MOD_FUSION_MAX 256
 #define MOD_TRAVEL_MAX 256
 #define MOD_QUEST_MAX 128
+
+#include "game/world/save_layout.inc"
+#define SAVE_LAYOUT_REGIONS 24
+#define SAVE_LAYOUT_MAPS 256
+#define SAVE_KINDS 6
+enum { SAVE_MAP, SAVE_FLAG, SAVE_SATCHEL, SAVE_WARDEN, SAVE_QUEST, SAVE_LORE };
+typedef struct {
+    u32 key;
+    u16 base[SAVE_KINDS], count[SAVE_KINDS];
+} SaveRegion;
+typedef struct {
+    u16 regions, maps;
+    SaveRegion region[SAVE_LAYOUT_REGIONS];
+    u8 map_bits[SAVE_LAYOUT_MAPS][2]; /* puzzle, hidden passage counts per map */
+} SaveLayout;
+typedef char SaveRegionsFit[SAVE_REGION_COUNT <= SAVE_LAYOUT_REGIONS ? 1 : -1];
+typedef char SaveMapsFit[MAP_COUNT < SAVE_LAYOUT_MAPS ? 1 : -1];
 
 typedef struct {
     u32 magic, version;
@@ -56,7 +73,9 @@ typedef struct {
     u8 fusion[MOD_FUSION_MAX];
     u8 travel[MOD_TRAVEL_MAX];
     u8 quest[MOD_QUEST_MAX];
-    u32 checksum;
+    u32 checksum;                    /* v5 checksum at its original offset */
+    SaveLayout layout;
+    u32 checksum_v6;
 } SaveData;
 
 typedef char SaveFitsSlot[sizeof(SaveData) <= SAVE_SLOT_SIZE ? 1 : -1];
@@ -281,7 +300,7 @@ static u32 fnv_bytes(const void *p, unsigned n)
 
 static u32 save_checksum(const SaveData *data)
 {
-    return fnv_bytes(data, sizeof(*data) - sizeof(data->checksum));
+    return fnv_bytes(data, sizeof(*data) - sizeof(data->checksum_v6));
 }
 
 /* Stable code for an item: a hash of its name (ids may move between builds). */
@@ -353,6 +372,170 @@ static int mod_load(void *dst, const u8 *src, u16 size, unsigned n)
     return 1;
 }
 
+#define SAVE_V5_SIZE 14164u
+typedef char SaveV5PrefixMatches[__builtin_offsetof(SaveData, layout) == SAVE_V5_SIZE ? 1 : -1];
+
+static void save_layout_fill(SaveLayout *layout, int regions, const u32 *keys,
+                             const u16 counts[][SAVE_KINDS], int maps, const u8 map_bits[][2])
+{
+    u8 *bytes = (u8 *)layout;
+    for (unsigned i = 0; i < sizeof(*layout); i++) bytes[i] = 0;
+    layout->regions = (u16)regions;
+    layout->maps = (u16)maps;
+    u16 base[SAVE_KINDS] = { 0 };
+    for (int r = 0; r < regions; r++) {
+        SaveRegion *region = &layout->region[r];
+        region->key = keys[r];
+        for (int k = 0; k < SAVE_KINDS; k++) {
+            region->base[k] = base[k];
+            region->count[k] = counts[r][k];
+            base[k] += counts[r][k];
+        }
+    }
+    if (map_bits)
+        for (int m = 0; m < maps; m++)
+            for (int k = 0; k < 2; k++) layout->map_bits[m][k] = map_bits[m][k];
+    else for (int m = 0; m < maps; m++) {
+        const MapDef *map = &MAPS[m];
+        for (int i = 0; i < map->obj_count; i++)
+            layout->map_bits[m][0] += (u8)obj_persists(map->objs[i].kind);
+        for (int i = 0; i < map->feat_count; i++)
+            layout->map_bits[m][1] += (u8)(map->feats[i].kind == EF_HIDDEN);
+    }
+}
+
+static void save_layout_current(SaveLayout *layout)
+{
+    save_layout_fill(layout, SAVE_REGION_COUNT, SAVE_REGION_KEYS, SAVE_CURRENT_COUNTS,
+                     MAP_COUNT, 0);
+}
+
+static void save_layout_v5(SaveLayout *layout)
+{
+    save_layout_fill(layout, SAVE_V5_REGION_COUNT, SAVE_V5_KEYS, SAVE_V5_COUNTS,
+                     SAVE_V5_MAP_COUNT, SAVE_V5_MAP_BITS);
+}
+
+static int save_layout_valid(const SaveLayout *layout)
+{
+    if (!layout->regions || layout->regions > SAVE_LAYOUT_REGIONS ||
+        !layout->maps || layout->maps >= SAVE_LAYOUT_MAPS) return 0;
+    u16 base[SAVE_KINDS] = { 0 };
+    for (int r = 0; r < layout->regions; r++) {
+        const SaveRegion *region = &layout->region[r];
+        if (!region->key) return 0;
+        for (int k = 0; k < SAVE_KINDS; k++) {
+            if (region->base[k] != base[k]) return 0;
+            base[k] += region->count[k];
+            if (base[k] > 512) return 0;
+        }
+    }
+    return base[SAVE_MAP] == layout->maps;
+}
+
+static int save_id_map(const SaveLayout *old, const SaveLayout *now, int kind, int id)
+{
+    for (int r = 0; r < old->regions; r++) {
+        const SaveRegion *from = &old->region[r];
+        int offset = id - from->base[kind];
+        if (offset < 0 || offset >= from->count[kind]) continue;
+        for (int n = 0; n < now->regions; n++)
+            if (now->region[n].key == from->key && offset < now->region[n].count[kind])
+                return now->region[n].base[kind] + offset;
+        return -1;
+    }
+    return -1;
+}
+
+static void save_bits_map(u8 *dst, int dst_bytes, const u8 *src, int src_bytes,
+                          const SaveLayout *old, const SaveLayout *now, int kind)
+{
+    u8 tmp[64] = { 0 };
+    for (int i = 0; i < src_bytes * 8; i++)
+        if (src[i >> 3] & (1u << (i & 7))) {
+            int mapped = save_id_map(old, now, kind, i);
+            if (mapped >= 0 && mapped < dst_bytes * 8)
+                tmp[mapped >> 3] |= (u8)(1u << (mapped & 7));
+        }
+    for (int i = 0; i < dst_bytes; i++) dst[i] = tmp[i];
+}
+
+static void save_map_puzzle_bits(u8 *dst, const u8 *src, int bytes, int bit_kind,
+                                 const SaveLayout *old, const SaveLayout *now)
+{
+    u8 tmp[32] = { 0 };
+    int old_base = 0;
+    for (int m = 0; m < old->maps; m++) {
+        int next = save_id_map(old, now, SAVE_MAP, m);
+        if (next >= 0) {
+            int new_base = 0;
+            for (int j = 0; j < next; j++) new_base += now->map_bits[j][bit_kind];
+            int n = old->map_bits[m][bit_kind];
+            if (n > now->map_bits[next][bit_kind]) n = now->map_bits[next][bit_kind];
+            for (int j = 0; j < n; j++)
+                if (old_base + j < bytes * 8 && new_base + j < bytes * 8 &&
+                    (src[(old_base + j) >> 3] & (1u << ((old_base + j) & 7))))
+                    tmp[(new_base + j) >> 3] |= (u8)(1u << ((new_base + j) & 7));
+        }
+        old_base += old->map_bits[m][bit_kind];
+    }
+    for (int i = 0; i < bytes; i++) dst[i] = tmp[i];
+}
+
+static int save_rebase(SaveData *data)
+{
+    EWRAM_BSS static SaveLayout current;
+    save_layout_current(&current);
+    const SaveLayout *old = &data->layout;
+    if (!save_layout_valid(old)) return 0;
+    int map = save_id_map(old, &current, SAVE_MAP, data->map);
+    if (map < 0 || map >= MAP_COUNT || data->player_x >= MAPS[map].w ||
+        data->player_y >= MAPS[map].h) return 0;
+    for (int i = 0; i < data->party_count; i++) {
+        int m = save_id_map(old, &current, SAVE_MAP, data->party[i].met_map);
+        data->party[i].met_map = (u8)(data->party[i].met_map == MAP_NONE ? MAP_NONE : (m < 0 ? MAP_REST : m));
+    }
+    for (int i = 0; i < data->storage_count; i++) {
+        int m = save_id_map(old, &current, SAVE_MAP, data->storage[i].met_map);
+        data->storage[i].met_map = (u8)(data->storage[i].met_map == MAP_NONE ? MAP_NONE : (m < 0 ? MAP_REST : m));
+    }
+    save_bits_map(data->flags, FLAG_BYTES, data->flags, FLAG_BYTES, old, &current, SAVE_FLAG);
+    save_bits_map(data->satchels, ITEM_FLAG_BYTES, data->satchels, ITEM_FLAG_BYTES, old, &current, SAVE_SATCHEL);
+    save_bits_map(data->wardens, TRAINER_FLAG_BYTES, data->wardens, TRAINER_FLAG_BYTES, old, &current, SAVE_WARDEN);
+    save_bits_map(data->lore_known, 32, data->lore_known, 32, old, &current, SAVE_LORE);
+    save_bits_map(data->lore_unread, 32, data->lore_unread, 32, old, &current, SAVE_LORE);
+    TravelState old_travel = { 0 };
+    unsigned saved = data->mod_size[4];
+    if (saved > sizeof(old_travel)) saved = sizeof(old_travel);
+    for (unsigned i = 0; i < saved; i++) ((u8 *)&old_travel)[i] = data->travel[i];
+    TravelState new_travel = old_travel;
+    for (int i = 0; i < 16; i++) new_travel.visited[i] = new_travel.visited_hi[i] = 0;
+    for (int i = 0; i < old->maps; i++) {
+        int marked = i < 128 ? bit_get(old_travel.visited, i) : bit_get(old_travel.visited_hi, i - 128);
+        int next = save_id_map(old, &current, SAVE_MAP, i);
+        if (marked && next >= 0 && next < MAP_COUNT) {
+            if (next < 128) bit_set(new_travel.visited, next);
+            else bit_set(new_travel.visited_hi, next - 128);
+        }
+    }
+    int hearth = save_id_map(old, &current, SAVE_MAP, old_travel.last_hearth);
+    new_travel.last_hearth = (u8)(hearth < 0 ? MAP_REST : hearth);
+    save_map_puzzle_bits(new_travel.puzzle, old_travel.puzzle, 16, 0, old, &current);
+    save_map_puzzle_bits(new_travel.secrets, old_travel.secrets, 8, 1, old, &current);
+    for (unsigned i = 0; i < sizeof(new_travel); i++) data->travel[i] = ((u8 *)&new_travel)[i];
+    if (data->mod_size[4]) data->mod_size[4] = sizeof(new_travel);
+    u8 stages[QUEST_MAX] = { 0 };
+    for (int i = 0; i < QUEST_MAX && i < data->mod_size[5]; i++) {
+        int next = save_id_map(old, &current, SAVE_QUEST, i);
+        if (next >= 0 && next < QUEST_MAX) stages[next] = data->quest[i];
+    }
+    if (data->mod_size[5])
+        for (int i = 0; i < QUEST_MAX; i++) data->quest[i] = stages[i];
+    data->map = (u8)map;
+    data->layout = current;
+    return 1;
+}
+
 static void save_capture(SaveData *data)
 {
     u8 *raw = (u8 *)data;
@@ -399,13 +582,15 @@ static void save_capture(SaveData *data)
     mod_store(data->fusion, &data->mod_size[3], &fusion, sizeof(fusion));
     mod_store(data->travel, &data->mod_size[4], &travel, sizeof(travel));
     mod_store(data->quest, &data->mod_size[5], &quest, sizeof(quest));
-    data->checksum = save_checksum(data);
+    save_layout_current(&data->layout);
+    data->checksum_v6 = save_checksum(data);
 }
 
 static int save_valid(const SaveData *data)
 {
     if (data->magic != SAVE_MAGIC || data->version != SAVE_VERSION || data->size != sizeof(*data) ||
-        data->checksum != save_checksum(data) ||
+        data->checksum_v6 != save_checksum(data) ||
+        !save_layout_valid(&data->layout) ||
         data->party_count > PARTY_MAX || data->storage_count > STORAGE_MAX ||
         data->bag_count > BAG_SAVE_MAX || data->money > 9999999u ||
         data->map >= MAP_COUNT || data->facing > 3 ||
@@ -522,7 +707,9 @@ static int save_from_v4(const SaveDataV4 *d, SaveData *out)
     for (int i = 0; i < 256 && i < MOD_FUSION_MAX; i++) out->fusion[i] = d->fusion[i];
     for (int i = 0; i < 256 && i < MOD_TRAVEL_MAX; i++) out->travel[i] = d->travel[i];
     for (int i = 0; i < 128 && i < MOD_QUEST_MAX; i++) out->quest[i] = d->quest[i];
-    out->checksum = save_checksum(out);
+    save_layout_v5(&out->layout);
+    if (!save_rebase(out)) return 0;
+    out->checksum_v6 = save_checksum(out);
     return save_valid(out);
 }
 
@@ -734,10 +921,28 @@ static int save_load_from(volatile u8 *sram)
     for (int slot = 0; slot < 2; slot++) {
         volatile u8 *base = sram + (slot ? SAVE_BACKUP_OFFSET : 0);
         sram_read(&data, base, sizeof(data));
-        if (save_valid(&data)) {
+        if (save_valid(&data) && save_rebase(&data)) {
             save_apply(&data);
             return SAVE_VERSION;
         }
+    }
+    /* v5 has the same prefix through checksum, before the appended v6 layout. */
+    for (int slot = 0; slot < 2; slot++) {
+        volatile u8 *base = sram + (slot ? SAVE_BACKUP_OFFSET : 0);
+        sram_read(&data, base, SAVE_V5_SIZE);
+        if (data.magic != SAVE_MAGIC || data.version != 5u ||
+            data.size != SAVE_V5_SIZE ||
+            data.checksum != fnv_bytes(&data, SAVE_V5_SIZE - sizeof(data.checksum)) ||
+            data.party_count > PARTY_MAX || data.storage_count > STORAGE_MAX ||
+            data.bag_count > BAG_SAVE_MAX || data.map >= SAVE_V5_MAP_COUNT) continue;
+        save_layout_v5(&data.layout);
+        data.version = SAVE_VERSION;
+        data.size = sizeof(data);
+        if (!save_rebase(&data)) continue;
+        data.checksum_v6 = save_checksum(&data);
+        if (!save_valid(&data)) continue;
+        save_apply(&data);
+        return 5;
     }
     /* version 4: the same slots, kin without nicknames */
     for (int slot = 0; slot < 2; slot++) {
