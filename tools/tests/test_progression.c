@@ -114,10 +114,12 @@ static void solve_from(int map, int x, int y)
             if (s.map == MAP_AURORA_RIDGE_2 && beside(50, 18))
                 enqueue(MAP_DREAMSPIRE, 4, 29, head);
         }
-        /* Sky Isle is a FLY landing available without a prior visit. */
+        /* Only offer destinations permitted by the actual FLY-point rules. */
         if (flag(FLAG_RIME_CREST) && (MAPS[s.map].flags & MF_OUTDOOR) &&
             !(MAPS[s.map].flags & MF_NOFLY)) {
-            enqueue(MAP_SKY_ISLE, 17, 21, head);
+            for (int i = 0; i < FLY_POINT_COUNT; i++)
+                if (FLY_POINTS[i].map == MAP_SKY_ISLE && fly_point_open(i))
+                    enqueue(MAP_SKY_ISLE, FLY_POINTS[i].x, FLY_POINTS[i].y, head);
             enqueue(MAP_TOWN, 23, 17, head); /* visited Maple fly point */
         }
         for (int i = 0; i < MAPS[s.map].obj_count; i++) {

@@ -311,6 +311,15 @@ int main(void)
     travel_award_crest(CREST_RIME);
     for (int i = 0; i < field_menu_build(); i++) has_fly |= fm_ids[i] == FM_FLY;
     CHECK(has_fly, "with it, the FIELD menu offers FLY");
+    int sky_point = -1;
+    for (int i = 0; i < FLY_POINT_COUNT; i++)
+        if (FLY_POINTS[i].map == MAP_SKY_ISLE) sky_point = i;
+    CHECK(sky_point >= 0 && !fly_point_open(sky_point),
+          "Sky Isle stays closed after Rime until the finale");
+    flag_set(FLAG_OSSUREX_ANSWERED);
+    CHECK(sky_point >= 0 && fly_point_open(sky_point),
+          "Sky Isle opens for FLY after the finale");
+    flag_clear(FLAG_OSSUREX_ANSWERED);
     travel_field_menu_open();
     for (int f = 0; f < 200 && dialog_active(); f++) {
         if (choice.active) choice.cursor = 0;

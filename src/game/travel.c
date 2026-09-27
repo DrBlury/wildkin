@@ -1669,13 +1669,14 @@ static int fly_map_y(int i)
     return spot >= 0 ? WM_SPOTS[spot][1] : FLY_POINTS[i].map_y;
 }
 
-/* A fly point you may fly to: visited (the Sky Isle only needs the wings). */
+/* A fly point you may fly to: visited, with the Sky Isle reserved for postgame. */
 static int fly_point_open(int i)
 {
     int m = FLY_POINTS[i].map;
     /* A hamlet without a Hearth is a map marker, not a landing point. */
     if (m == MAP_WAYCHAPEL) return 0;
-    return travel_visited_get(m) || m == MAP_SKY_ISLE;
+    if (m == MAP_SKY_ISLE) return flag(FLAG_OSSUREX_ANSWERED);
+    return travel_visited_get(m);
 }
 
 #define WM_PTS 32
