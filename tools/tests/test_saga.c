@@ -45,6 +45,8 @@ static void test_notes(void)
         }
         if (!near) { printf("  note %s has no walkable approach\n", n->name); failures++; }
     }
+    CHECK(!saga_note_bit(NOTE_WOOD_LOG, 0) && !saga_note_bit(NOTE_LAKE_ISLET, 0),
+          "unvisited note locations stay hidden");
     saga_entered(MAP_WOOD);
     CHECK(saga_note_bit(NOTE_WOOD_LOG, 0) && saga_note_bit(NOTE_WOOD_FOG, 0),
           "entering an old map records its ability-secret hints");
@@ -57,11 +59,59 @@ static void test_notes(void)
     CHECK(!saga_note_bit(NOTE_WOOD_LOG, 0), "legacy zero-initialized notes are empty");
     quest = persisted;
     CHECK(saga_note_bit(NOTE_WOOD_LOG, 0) && saga_note_bit(NOTE_WOOD_LOG, 3), "note bits survive save state copy");
+    CHECK(!saga_note_bit(NOTE_LAKE_ISLET, 0), "other regions remain hidden after discovery");
     give_starter();
     CHECK(save_write(), "save stores saga notes in quest module");
     new_game();
     CHECK(save_load() == SAVE_VERSION && saga_note_bit(NOTE_WOOD_LOG, 3),
           "saved saga notes load with current layout");
+}
+
+static void test_notes_ui(void)
+{
+    fresh_game();
+    quest_log_open();
+    CHECK(game_mode == MODE_EXT && qlog.state == 0 && qlog.count == 0,
+          "empty quest log opens without auto-starting notes");
+    tap(KEY_SELECT);
+    CHECK(qlog.state == 2 && qlog.note_ability == SAGA_LIGHT &&
+          qlog_note_count(SAGA_LIGHT) == 0, "SELECT opens an empty FIELD NOTES page");
+    tap(KEY_RIGHT);
+    CHECK(qlog.note_ability == SAGA_SURF, "right moves to the SURF group");
+    tap(KEY_LEFT);
+    CHECK(qlog.note_ability == SAGA_LIGHT, "left returns to the LIGHT group");
+    tap(KEY_B);
+    CHECK(qlog.state == 0, "B returns from notes to the quest list");
+    tap(KEY_B);
+    CHECK(game_mode == MODE_FIELD, "B closes the quest log as before");
+
+    saga_entered(MAP_COPPER_MINE);
+    CHECK(qlog_note_count(SAGA_LIGHT) == 1 &&
+          !strcmp(qlog_note_status(NOTE_MINE_LIGHT), "LOCKED"),
+          "visited mine note is visible but locked without the crest");
+    int spot = map_spot(MAP_COPPER_MINE);
+    CHECK(spot >= 0 && !wm_note_marker(spot), "locked note has no town-map marker");
+    flag_set(FLAG_VOLT_CREST);
+    CHECK(!strcmp(qlog_note_status(NOTE_MINE_LIGHT), "READY") && wm_note_marker(spot),
+          "crest makes a recorded unfinished note READY with a map marker");
+    CHECK(!saga_note_bit(NOTE_LAKE_ISLET, 0) &&
+          !wm_note_marker(map_spot(MAP_LAKE)), "hidden notes have no marker");
+    quest_log_open();
+    CHECK(qlog.count && qlog.ids[qlog.cursor] == QUEST_FIELD_NOTES,
+          "discovery registers FIELD NOTES in ordinary quest state");
+    tap(KEY_A);
+    CHECK(qlog.state == 2 && qlog_note_count(SAGA_LIGHT) == 1,
+          "A on FIELD NOTES opens its grouped page");
+    flag_set(FLAG_MINE_LIGHT_CACHE);
+    saga_notes_sync();
+    CHECK(!strcmp(qlog_note_status(NOTE_MINE_LIGHT), "DONE") && !wm_note_marker(spot),
+          "existing regional solved flag completes the note and clears its marker");
+    give_starter();
+    CHECK(save_write(), "completed field note saves");
+    new_game();
+    CHECK(save_load() == SAVE_VERSION && saga_note_bit(NOTE_MINE_LIGHT, 3) &&
+          !strcmp(qlog_note_status(NOTE_MINE_LIGHT), "DONE"),
+          "FIELD NOTES completion reloads from the save");
 }
 
 static void test_projects(void)
@@ -197,7 +247,7 @@ static void test_people(void)
 
 int main(void)
 {
-    test_quests(); test_notes(); test_projects(); test_courier(); test_survey_and_legends(); test_shortcuts(); test_people();
+    test_quests(); test_notes(); test_notes_ui(); test_projects(); test_courier(); test_survey_and_legends(); test_shortcuts(); test_people();
     printf("saga: %d failure(s)\n", failures);
     return failures ? 1 : 0;
 }

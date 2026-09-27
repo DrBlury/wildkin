@@ -8,7 +8,6 @@ static const SagaProject saga_projects[] = {
     { QUEST_PROJECT_MARKET, FLAG_PROJECT_MARKET, 0, ITEM_SAGA_FLOUR, 5, ITEM_SAGA_HONEY, 5, 6000 },
 };
 
-enum { SAGA_LIGHT, SAGA_SURF, SAGA_STRENGTH, SAGA_FLY, SAGA_WARD, SAGA_TELEPORT };
 typedef struct { u8 map, x, y, ability; int solved_flag; const char *name; } SagaNote;
 static const SagaNote saga_notes[] = {
 #define SAGA_NOTE(ID, MAP, X, Y, ABILITY, SOLVED) { MAP, X, Y, SAGA_##ABILITY, SOLVED, #ID },
@@ -16,6 +15,10 @@ static const SagaNote saga_notes[] = {
 #undef SAGA_NOTE
 };
 typedef char SagaNotesFit[(NOTE_COUNT <= 32 && sizeof(saga_notes) / sizeof(saga_notes[0]) == NOTE_COUNT) ? 1 : -1];
+static int saga_note_map(int id) { return saga_notes[id].map; }
+static int saga_note_x(int id) { return saga_notes[id].x; }
+static int saga_note_y(int id) { return saga_notes[id].y; }
+static int saga_note_ability(int id) { return saga_notes[id].ability; }
 
 /* QuestState.pad is save-backed: observed [0..2], solved [3..5], paid day [6..15].
  * These bytes are zero in old saves; no non-save static progression is required. */
@@ -40,6 +43,12 @@ static int saga_note_ready(int ability)
     case SAGA_WARD: return flag(FLAG_LANTERN_CREST);
     default: return flag(FLAG_CREST_DREAM);
     }
+}
+static void saga_notes_sync(void)
+{
+    for (int i = 0; i < NOTE_COUNT; i++)
+        if (saga_notes[i].solved_flag && flag(saga_notes[i].solved_flag))
+            saga_note(i, 1);
 }
 static void saga_notes_here(int map)
 {
@@ -69,12 +78,14 @@ static void saga_entered(int map)
 {
     saga_project_new_day();
     saga_notes_here(map);
+    saga_notes_sync();
 }
 static void saga_bind(void)
 {
     daily_extra_hook = saga_project_new_day;
     saga_map_entered = saga_entered;
     saga_project_new_day();
+    saga_notes_sync();
 }
 static int saga_market_unlocked(void)
 {
