@@ -433,8 +433,39 @@ static void test_routes(void)
           "Sigrun's Hall Master team follows the Act V target");
 }
 
+static void test_project_visuals(void)
+{
+    fresh_game();
+    map_load(MAP_FOOTHILLS);
+    u16 bare_low = map_cells[49 * map_w + 8];
+    CHECK(MAPS[MAP_FOOTHILLS].patch_count == 1 &&
+          !cell_walkable(11, 56), "unbuilt lift leaves G4's boulder gate closed");
+    flag_set(FLAG_PROJECT_LIFT);
+    map_load(MAP_FOOTHILLS);
+    CHECK(map_cells[49 * map_w + 8] != bare_low && cell_walkable(11, 52) &&
+          !cell_walkable(11, 56), "lower lift apron appears but never opens G4");
+    flood(11, 52);
+    CHECK(reached(11, 50) && reached(12, 52), "lower lift landing reaches the occupied guide approach");
+    field_load_tileset();
+    CHECK(decor_tiles_wanted <= SCENE_TILE_MAX, "completed lower lift fits the scene budget");
+    flag_clear(FLAG_PROJECT_LIFT);
+    map_load(MAP_TIMBERLINE);
+    u16 bare_high = map_cells[28 * map_w + 8];
+    flag_set(FLAG_PROJECT_LIFT);
+    map_load(MAP_TIMBERLINE);
+    CHECK(MAPS[MAP_TIMBERLINE].patch_count == 1 &&
+          map_cells[28 * map_w + 8] != bare_high && cell_walkable(11, 30),
+          "upper lift apron appears without blocking the return landing");
+    flood(11, 30);
+    CHECK(reached(11, 28) && reached(20, 35), "upper landing reaches the guide approach and Foothills edge");
+    field_load_tileset();
+    CHECK(decor_tiles_wanted <= SCENE_TILE_MAX, "completed upper lift fits the scene budget");
+    flag_clear(FLAG_PROJECT_LIFT);
+}
+
 int main(void)
 {
+    test_project_visuals();
     test_edges();
     test_routes();
     test_frosthollow();

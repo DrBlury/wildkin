@@ -221,11 +221,48 @@ static int anvil_hall_solvable(int tx, int ty)
 
 /* ---------------- main ---------------- */
 
+static void test_project_visuals(void)
+{
+    fresh_game();
+    map_load(MAP_CINDER_CROSSING);
+    CHECK(MAPS[MAP_CINDER_CROSSING].patch_count == 1 &&
+          MAPS[MAP_CINDER_CROSSING].patches[0].flag == FLAG_PROJECT_CINDER_BRIDGE &&
+          (cell_attr(6, 20) & A_WATER), "unbuilt Cinder bridge is water despite its registered patch");
+    flood_ex(2, 20, FLOOD_WALK);
+    CHECK(!reached(58, 20), "before repair the west bank cannot walk east");
+    flood_ex(2, 20, FLOOD_SURF);
+    CHECK(reached(58, 20), "before repair SURF still reaches Railhead");
+    flag_set(FLAG_PROJECT_CINDER_BRIDGE);
+    map_load(MAP_CINDER_CROSSING);
+    CHECK(!(cell_attr(6, 20) & (A_WATER | A_SOLID)) &&
+          !(cell_attr(9, 21) & (A_WATER | A_SOLID)), "bridge deck covers both river lanes after repair");
+    flood_ex(2, 20, FLOOD_WALK);
+    CHECK(reached(58, 20), "repaired bridge walks east to Railhead");
+    flood_ex(58, 20, FLOOD_WALK);
+    CHECK(reached(0, 20), "repaired bridge returns west to Lumen");
+    field_load_tileset();
+    CHECK(decor_tiles_wanted <= SCENE_TILE_MAX, "completed Cinder bridge fits the scene budget");
+    flag_clear(FLAG_PROJECT_CINDER_BRIDGE);
+    map_load(MAP_RAILHEAD);
+    u16 bare_apron = map_cells[18 * map_w + 24];
+    flag_set(FLAG_PROJECT_CINDER_BRIDGE);
+    map_load(MAP_RAILHEAD);
+    CHECK(MAPS[MAP_RAILHEAD].patch_count == 1 &&
+          map_cells[18 * map_w + 24] != bare_apron && cell_walkable(19, 20),
+          "Railhead's finished setts appear without blocking the return road");
+    flood(19, 20);
+    CHECK(reached(0, 20) && reached(39, 20), "Railhead keeps both return paths after repair");
+    field_load_tileset();
+    CHECK(decor_tiles_wanted <= SCENE_TILE_MAX, "completed Railhead fits the scene budget");
+    flag_clear(FLAG_PROJECT_CINDER_BRIDGE);
+}
+
 int main(void)
 {
     setvbuf(stdout, NULL, _IONBF, 0);
     game_init();
     fresh_game();
+    test_project_visuals();
     give_starter();
 
     /* edge contracts (docs/EXPANSION.md 9) */

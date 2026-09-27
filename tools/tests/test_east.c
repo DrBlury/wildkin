@@ -556,11 +556,45 @@ static void test_routes(void)
     CHECK(timed == 1, "the millpond fiddler comes out at night");
 }
 
+static void test_project_visuals(void)
+{
+    fresh_game();
+    map_load(MAP_BROOKMILL);
+    u16 bare_depot = map_cells[29 * map_w + 33];
+    CHECK(MAPS[MAP_BROOKMILL].patch_count == 1 &&
+          MAPS[MAP_BROOKMILL].patches[0].flag == FLAG_PROJECT_TRAM &&
+          cell_walkable(31, 29), "Brookmill depot is absent before construction; tram arrival stays walkable");
+    flag_set(FLAG_PROJECT_TRAM);
+    map_load(MAP_BROOKMILL);
+    CHECK(map_cells[29 * map_w + 33] != bare_depot && cell_walkable(31, 29),
+          "Brookmill depot apron appears after tram project without blocking its arrival");
+    flood(31, 29);
+    CHECK(reached(0, 17) && reached(39, 17) && reached(5, 14),
+          "tram arrival can return west/east or reach the Brookmill Hearth approach");
+    field_load_tileset();
+    CHECK(decor_tiles_wanted <= SCENE_TILE_MAX, "completed Brookmill depot fits the scene budget");
+    map_load(MAP_LUMEN);
+    CHECK(MAPS[MAP_LUMEN].patch_count == 3 && cell_walkable(36, 20) &&
+          !walk_ok(55, 20) && !walk_ok(24, 0),
+          "Lumen tram does not bypass the Tide or Lantern gates");
+    field_load_tileset();
+    CHECK(decor_tiles_wanted <= SCENE_TILE_MAX, "completed Lumen stop fits the scene budget");
+    flag_clear(FLAG_PROJECT_TRAM);
+    map_load(MAP_LUMEN);
+    u16 bare_stop = map_cells[22 * map_w + 33];
+    flag_set(FLAG_PROJECT_TRAM);
+    map_load(MAP_LUMEN);
+    CHECK(map_cells[22 * map_w + 33] != bare_stop && cell_walkable(36, 20),
+          "Lumen buffer stop appears only after tram completion; return landing stays open");
+    flag_clear(FLAG_PROJECT_TRAM);
+}
+
 int main(void)
 {
     setvbuf(stdout, NULL, _IONBF, 0);
     game_init();
     test_routes();
+    test_project_visuals();
     test_lumen_heights();
     test_edges();
     test_doors();

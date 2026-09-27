@@ -102,10 +102,33 @@ static void finish(void)
     settle();
 }
 
+static void test_project_visuals(void)
+{
+    fresh_game();
+    map_load(MAP_REEDWICK);
+    CHECK(MAPS[MAP_REEDWICK].patch_count == 1 &&
+          MAPS[MAP_REEDWICK].patches[0].flag == FLAG_PROJECT_REED_FERRY &&
+          (cell_attr(25, 25) & A_WATER), "unfunded Reedwick punt leaves the waterline intact");
+    flag_set(FLAG_PROJECT_REED_FERRY);
+    map_load(MAP_REEDWICK);
+    CHECK(!(cell_attr(25, 25) & (A_WATER | A_SOLID)) && cell_walkable(25, 20),
+          "finished punt has a walkable pier and an open return landing");
+    flood(25, 20);
+    CHECK(reached(25, 25) && reached(39, 19) && reached(0, 31),
+          "punt landing returns to both the Fen and Saltwind edges");
+    field_load_tileset();
+    CHECK(decor_tiles_wanted <= SCENE_TILE_MAX, "completed Reedwick pier fits the scene budget");
+    flag_clear(FLAG_PROJECT_REED_FERRY);
+    map_load(MAP_REEDWICK);
+    CHECK(cell_attr(25, 25) & A_WATER, "punt landing reverts when its flag is clear");
+}
+
 int main(void)
 {
     setvbuf(stdout, NULL, _IONBF, 0);
     game_init();
+
+    test_project_visuals();
 
     /* the outdoor art + tall grass + the elevation art; the Current Hall and the
      * Drowned Bell are the 'tide' tileset, so the towns keep ~100 tiles for props */
