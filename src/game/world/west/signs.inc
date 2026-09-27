@@ -1,5 +1,5 @@
 /* world/west/signs.inc -- Signs: { MAP_X, x, y, "text" },. Each sits on a SIGNPOST decor. Owner: W-WEST. */
-    { MAP_SALTWIND, 44, 30, "SALTWIND TRAIL\fWEST: PORT BRINE. EAST: MIRROR LAKE.\fMind the dune ledges: they only go one way." },
+    { MAP_SALTWIND, 44, 30, "SALTWIND TRAIL\fWEST: PORT BRINE. EAST: REEDWICK.\fMind the dune ledges: they only go one way." },
     { MAP_SALTWIND, 4, 18, "SALTWIND SALT PANS\fThe sun and the wind do the work. Please don't walk in the brine." },
     { MAP_PORT_BRINE, 23, 7, "CURRENT HALL\fHALL MASTER MAREN. The water only flows one way. So should you." },
     { MAP_PORT_BRINE, 45, 21, "PORT BRINE\fWhere the Vale meets the sea. Mind the gulls." },
@@ -9,3 +9,9 @@
     { MAP_SEA_ROUTE, 17, 4, "SEA ROUTE\fOpen water to GULL ISLE. A strong TIDE kin can carry you (SURF).\fNo SURF? The ferry sails from the HARBOR OFFICE." },
     { MAP_GULL_ISLE, 18, 3, "GULL ISLE\fPopulation: eleven people, one lighthouse, too many gulls." },
     { MAP_GULL_ISLE, 28, 25, "SEA CAVE\fThe fishers call it the DROWNED BELL. Listen at night." },
+    { MAP_HERON_FEN, 37, 18, "BOARDWALK CLOSED - AWAITING LUMEN RIVETS.\fLumen's lamps went out west; the fen needs new planks." },
+    { MAP_HERON_FEN, 56, 29, "HERON FEN\fEast: MIRROR LAKE. West: REEDWICK.\fThe rookery stands above the reeds." },
+    { MAP_REEDWICK, 35, 18, "REEDWICK\fEast: HERON FEN. West: SALTWIND TRAIL." },
+    { MAP_REEDWICK, 2, 29, "BOATBUILDER'S SLIP\fA wreck rests beyond the channel. Only SURF can reach it." },
+    { MAP_PORT_BRINE, 4, 11, "NORTHERN WATERS - SURF ONLY\fGreywater Fjord lies beyond the buoy line." },
+    { MAP_SALTWIND, 34, 13, "CLIFF CACHE\fA boulder fell across the old lighthouse path. STRENGTH could shift it." },

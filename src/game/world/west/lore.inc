@@ -123,3 +123,17 @@
         "The star whale? Oh, it's real. My husband saw its back once, all speckled like the sky.\f"
         "Its song goes all the way round the sea. If it's brimming, the tides will go wrong. Somebody "
         "should answer it." },
+    [LORE_REEDWICK] = { LCH_PLACES, LSRC_REEDWICK, "REEDWICK",
+        "Reedwick stands on stilts above the fen. Rope bridges keep the hearth and smokehouse above "
+        "the high water. The boatbuilders know every hidden channel.\n\n"
+        "REAL SCIENCE: wetlands filter sediment and shelter young fish among their roots.",
+        "The roofs need reeds every season. Bring me TIDEBERRIES while you're here." },
+    [LORE_FEN_WISPS] = { LCH_BIOLOGY, LSRC_FEN_WISPS, "FEN WISPS",
+        "At night DUSK kin gather where the herons sleep. They pump from the dim light reflected "
+        "off still water, and vanish when the lamps come on.\n\n"
+        "REAL SCIENCE: marsh lights can come from gases released as plants decay.",
+        "Those little lights aren't lamps. Look again when it gets dark." },
+    [LORE_SALT_CACHE] = { LCH_PLACES, LSRC_SALT_CACHE, "THE CLIFF CACHE",
+        "The old lighthouse stored its supplies above the salt road. A thunderclap loosened a "
+        "boulder over the only path; STRENGTH can move it aside.",
+        "The old cache is behind this rock. Mind the climb." },

@@ -7,3 +7,7 @@
     { MAP_PORT_BRINE, 14, 24, MAP_HARBOR_OFFICE, 6, 8 },   /* west quay (0) */
     { MAP_GULL_ISLE, 11, 11, MAP_GULL_HOUSE, 5, 8 },     /* the Green (level 1) */
     { MAP_GULL_ISLE, 31, 23, MAP_DROWNED_BELL, 9, 17 },  /* the sea cave: a tunnel mouth in the stack (0) */
+    { MAP_REEDWICK, 9, 10, MAP_REED_HEARTH, 5, 8 },
+    { MAP_REEDWICK, 15, 10, MAP_REED_SHOP, 5, 8 },
+    { MAP_HERON_FEN, 12, 8, MAP_REED_TUNNEL, 2, 10 },
+    { MAP_HERON_FEN, 41, 33, MAP_FEN_HERMIT, 5, 8 }, /* SURF-only island */
