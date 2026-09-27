@@ -174,7 +174,7 @@ across a cliff or from under a deck.
 | BG0 (prio 3) | the ground from the rows, as always (also under faces and decks) |
 | BG2 (prio 2) | cliff faces, ledges, stairs, tunnel mouths, plateau rims, cast shadows. **Decor and tree trunks on a cell win over rims** — keep decor off rim cells where you want a clean edge (it looks fine on the inner cells). |
 | BG3 (prio 1) | bridge decks, tunnel tops (the tileset's ground), hidden cells' art |
-| OBJ | people and kin: priority 2 normally (under BG3), **1 on a deck or tunnel top** (over it) **and just south of one** (in front of it). Under a deck they are hidden by it; inside a hidden passage the trees are drawn over them. Grass blades and ground shadows follow the actor's priority (no blades over someone on a deck). |
+| OBJ | people and kin: priority 2 normally (under BG3), **1 on a deck or tunnel top** (over it) **and just south of one** (in front of it). Under a deck they are hidden by it; inside a hidden passage the trees are drawn over them. Grass blades and ground shadows follow the actor's priority (no blades over someone on a deck). The priority is decided from the **cells** the actor stands on (both cells mid-step) and its level, never from pixels: a step between the cell in front of a deck and the cell under it is drawn at 2 the whole way (the deck edge clips it). 32-wide sprites (kin, the bike, the surf mount and its rider) count half a cell to each side. OAM is ordered by priority every frame (`oam_end`), so a transparent priority-1 sprite (rain, a kin's empty corner) can never lift a priority-2 one through the deck. |
 
 Autotiling is per 8x8 quadrant like the paths: rims know inner and outer
 corners, faces round off their ends (caps) where the face stops, so
@@ -357,7 +357,7 @@ a ledge can never come back up, so give it room below.
 - `elev_enter(x, y, level, dir, &level_out)` → `ELEV_BLOCK`, `ELEV_FLOOR`
   (terrain applies) or `ELEV_TOP` (a deck: terrain below ignored).
 - `elev_level_at(x, y, hint, facing)`: the level to stand on.
-- `elev_obj_prio(actor)`: OBJ priority 1 or 2.
+- `elev_obj_prio(actor)` / `elev_obj_prio_w(actor, wide)`: OBJ priority 1 or 2 (people / 32-wide sprites); tested frame by frame in `tools/tests/test_elev_sprites.c`.
 - `elev_render_base()` / `elev_render_cover()`: called by `render_cell`
   before and after decor.
 - Actors have `Actor.level`; `cell_walkable_lv()`, `npc_at_lv()`,

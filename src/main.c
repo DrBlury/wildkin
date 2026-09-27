@@ -21,6 +21,7 @@
  *   game/dex.c        monster catalogue with scrolling detail pages
  *   game/naming.c     the name slate (kin nicknames)
  *   game/evolve.c     evolution scene
+ *   game/admin.c      ADMIN menu: coins, any item, any kin with any moves
  *   game/script.c     people, signs, items and field glue
  *   game/sfx.c        sound effects on the PSG channels
  *   game/music.c      background music: synth + sequencer on Direct Sound A
@@ -71,6 +72,7 @@
 #include "game/music_map.c"
 #include "game/title.c"
 #include "game/debug.c"
+#include "game/admin.c"
 #include "save_game.h"
 
 /* VRAM uploads prepared during the previous frame; runs in vblank. */

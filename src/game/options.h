@@ -2,7 +2,9 @@
  * Player options (stored in the save file as 16 raw bytes, changed in
  * START > OPTIONS). Kept in their own header so every module can read them.
  * The last bytes also keep two small UI preferences that travel with the
- * save: the key item registered to SELECT and the Shelf box last used.
+ * save: the key item registered to SELECT and the Shelf box last used,
+ * and the ADMIN MODE switch (admin.c). Saves written before a byte was
+ * used carry 0 there, so old saves load with everything new switched off.
  */
 
 enum { TEXT_SLOW, TEXT_MID, TEXT_FAST, TEXT_INSTANT, TEXT_SPEED_COUNT };
@@ -20,8 +22,9 @@ static struct {
     u8 bike_auto;     /* 1 = hold R not needed: the bike stays on outdoors */
     u8 registered;    /* bag item registered to SELECT, as item id + 1 (0 = none) */
     u8 shelf_box;     /* LANTERN SHELF box last viewed (new kin go there first) */
-    u8 pad[4];
-} opt = { TEXT_MID, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, { 0 } };
+    u8 admin;         /* 1 = the ADMIN entry shows in the START menu (debug.c toggles it) */
+    u8 pad[3];
+} opt = { TEXT_MID, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, { 0 } };
 typedef char OptionsFit16[sizeof(opt) == 16 ? 1 : -1];
 
 static void options_reset(void)
@@ -38,4 +41,5 @@ static void options_reset(void)
     opt.bike_auto = 0;
     opt.registered = 0;
     opt.shelf_box = 0;
+    opt.admin = 0;
 }

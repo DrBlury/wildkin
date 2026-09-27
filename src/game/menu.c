@@ -67,9 +67,10 @@ static int menu_bob(int selected)
 /* ================================================================ */
 
 enum { SM_ALMANAC, SM_LORE, SM_KIN, SM_BAG, SM_SHELF, SM_MAP, SM_FIELD, SM_QUESTS, SM_CARD, SM_OPTIONS,
-       SM_SAVE, SM_EXIT, SM_COUNT };
+       SM_ADMIN, SM_SAVE, SM_EXIT, SM_COUNT };
 static const char *const START_NAMES[SM_COUNT] = {
-    "ALMANAC", "LOREBOOK", "KIN", "BAG", "SHELF", "MAP", "FIELD", "QUESTS", "CARD", "OPTIONS", "SAVE", "EXIT",
+    "ALMANAC", "LOREBOOK", "KIN", "BAG", "SHELF", "MAP", "FIELD", "QUESTS", "CARD", "OPTIONS", "ADMIN", "SAVE",
+    "EXIT",
 };
 #define START_ROWS 8   /* visible entries; the list scrolls past that */
 static u8 start_items[SM_COUNT];
@@ -77,6 +78,7 @@ static int start_count, start_cursor, start_scroll, start_card, start_dialog;
 
 static void quest_log_open(void);
 static void start_menu_open(void);
+static void admin_open(void);   /* admin.c */
 
 static void start_menu_build(void)
 {
@@ -86,6 +88,7 @@ static void start_menu_build(void)
         if (i == SM_KIN && !party_count) continue;
         if (i == SM_FIELD && !(party_count && (travel.crests || bag[ITEM_BIKE] > 0))) continue;   /* travel.c */
         if (i == SM_MAP && bag[ITEM_TOWN_MAP] <= 0) continue;
+        if (i == SM_ADMIN && !opt.admin) continue;   /* switched on in the title's debug menu */
         start_items[start_count++] = (u8)i;
     }
     if (start_cursor >= start_count) start_cursor = 0;
@@ -103,7 +106,8 @@ static void start_menu_draw(void)
     canvas_window(20, 0, 10, rows * 2 + 2, WIN_STD);
     for (int r = 0; r < rows; r++) {
         int i = start_scroll + r, y = 8 + r * LINE_H;
-        text_draw(172, y, START_NAMES[start_items[i]]);
+        if (start_items[i] == SM_ADMIN) text_draw_col(172, y, START_NAMES[SM_ADMIN], INK_RED, INK_RED_SH);
+        else text_draw(172, y, START_NAMES[start_items[i]]);
         if (start_items[i] == SM_LORE && lore_unread_count())
             text_draw_col(226, y, "*", INK_RED, INK_RED_SH);
         if (i == start_cursor) text_draw(163, y, "{");
@@ -340,6 +344,7 @@ static void start_menu_update(void)
         start_card_draw();
         break;
     case SM_OPTIONS: options_open(); break;
+    case SM_ADMIN: admin_open(); break;
     case SM_SAVE:
         start_menu_close();
         save_prompt();
@@ -958,7 +963,7 @@ static void summary_redraw(void)
             text_draw(16, 140, wrapped);
         }
     }
-    load_monster_gfx(0, m->species, 0);
+    load_monster_gfx_ex(0, m->species, 0, (m->flags & MF_LUSTROUS) != 0);   /* lustrous kin show their colours */
 }
 
 static void summary_open(int slot, int return_mode)

@@ -622,8 +622,45 @@ static void oam_begin(void)
 
 static void oam_line_prepare(void);
 
+/*
+ * Order the frame's sprites by priority (0 first), keeping the pushed order
+ * within a priority. The hardware (and mGBA) builds each line's OBJ pixels
+ * in OAM order, and a later sprite of a higher priority lowers the priority
+ * of the pixels already there even through its TRANSPARENT pixels: a rain
+ * streak or a kin's empty 32x32 corner (prio 1) pushed after someone
+ * walking under a bridge deck (prio 2) punched them up through the deck,
+ * the "flicker under the bridge" (docs/handoff/elevation.md). With every
+ * higher-priority sprite first that can't happen; between priorities OAM
+ * order is otherwise invisible (a higher priority is always on top).
+ * attr3 (the affine matrices) stays where it is.
+ */
+static void oam_sort_prio(void)
+{
+    static u16 tmp[128 * 3];
+    int count[4] = { 0, 0, 0, 0 }, start[4];
+    for (int i = 0; i < oam_count; i++) count[(oam_shadow[i * 4 + 2] >> 10) & 3]++;
+    int used = (count[0] > 0) + (count[1] > 0) + (count[2] > 0) + (count[3] > 0);
+    if (used < 2) return;   /* one priority: nothing to reorder */
+    start[0] = 0;
+    for (int p = 1; p < 4; p++) start[p] = start[p - 1] + count[p - 1];
+    for (int i = 0; i < oam_count; i++) {
+        const u16 *o = &oam_shadow[i * 4];
+        u16 *d = &tmp[start[(o[2] >> 10) & 3]++ * 3];
+        d[0] = o[0];
+        d[1] = o[1];
+        d[2] = o[2];
+    }
+    for (int i = 0; i < oam_count; i++) {
+        u16 *o = &oam_shadow[i * 4];
+        o[0] = tmp[i * 3];
+        o[1] = tmp[i * 3 + 1];
+        o[2] = tmp[i * 3 + 2];
+    }
+}
+
 static void oam_end(void)
 {
+    oam_sort_prio();
     for (int i = oam_count; i < 128; i++) {
         oam_shadow[i * 4] = ATTR0_HIDE;
         oam_shadow[i * 4 + 1] = 0;

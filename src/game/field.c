@@ -528,17 +528,23 @@ static void travel_dark_present(void);
 
 static void field_render_view(void)
 {
-    travel_dark_present();
-    int x0 = floor_div16(cam_x), y0 = floor_div16(cam_y);
-    for (int my = y0; my <= y0 + 10; my++)
-        for (int mx = x0; mx <= x0 + 15; mx++)
-            render_cell(mx, my);
+    /* The scroll first, right after OAM (main.c present): writing a row or
+     * column of new cells can run tens of lines past vblank, and with the
+     * scroll written after it the top of the screen showed last frame's
+     * scroll under this frame's sprites (a 1-2 px slip against the deck
+     * edge while the camera moved). The new cells are at the edges and are
+     * written top to bottom, ahead of the beam. */
     REG_BG0HOFS = (u16)cam_x;
     REG_BG0VOFS = (u16)cam_y;
     REG_BG3HOFS = (u16)cam_x;
     REG_BG3VOFS = (u16)cam_y;
     REG_BG2HOFS = (u16)cam_x;
     REG_BG2VOFS = (u16)cam_y;
+    travel_dark_present();
+    int x0 = floor_div16(cam_x), y0 = floor_div16(cam_y);
+    for (int my = y0; my <= y0 + 10; my++)
+        for (int mx = x0; mx <= x0 + 15; mx++)
+            render_cell(mx, my);
 }
 
 /* ---------------- tileset, decor & weather palettes ---------------- */
@@ -884,6 +890,7 @@ typedef struct { int y, x, kind, a, b, flip, dy, shape, prio; } FieldSprite;   /
 /* traversal (travel.c) */
 static int travel_player_entry(FieldSprite *e, int lift);
 static int travel_player_lift(void);
+static int travel_surfing(void);
 static int travel_kin_actors(const KinActor **out, int max);
 static int travel_push_sprites(FieldSprite *list, int n, int max);
 static void travel_draw_floor(void);
@@ -919,12 +926,12 @@ static void field_draw_sprites(void)
     int n = 0;
     int lift = actor_lift(&player) + travel_player_lift();
     if (travel_player_entry(&list[n], lift)) {
-        list[n++].prio = elev_obj_prio(&player);
+        list[n++].prio = elev_obj_prio_w(&player, 1);   /* the bike: 32 wide */
     } else {
         copy32(VRAM_OBJ_TILES + OT_PLAYER * 8, char_gfx[CHR_PLAYER][actor_frame(&player)], 64);
         list[n++] = (FieldSprite){ player.y * 16 + player.oy, player.x * 16 + player.ox, 0,
                                    OT_PLAYER | (lift << 16), OBANK_PLAYER, player.facing == DIR_RIGHT,
-                                   0, 0, elev_obj_prio(&player) };
+                                   0, 0, elev_obj_prio_w(&player, travel_surfing()) };   /* as its mount */
     }
     int slot = 0;
     for (int i = 0; i < NPC_COUNT && n < 40; i++) {
@@ -973,7 +980,7 @@ static void field_draw_sprites(void)
         copy32(VRAM_OBJ_TILES + OT_OWKIN(kslot) * 8, kin_frame_gfx(k->species, kin_frame(k)), 16 * 8);
         list[n++] = (FieldSprite){ wy, wx, 1, OT_OWKIN(kslot) | (actor_lift(&k->a) << 16),
                                    KIN_BANK_FIRST + bank, k->a.facing == DIR_RIGHT, 0, 0,
-                                   elev_obj_prio(&k->a) };
+                                   elev_obj_prio_w(&k->a, 1) };
         if (emote.timer > 0 && emote.npc <= -2 && k == &wild[-2 - emote.npc].k)
             list[n++] = (FieldSprite){ wy + 1, wx, 3, emote.kind, 0, 0 };
         kslot++;
