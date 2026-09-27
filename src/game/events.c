@@ -216,6 +216,19 @@ static int events_arg(int ev)
     return -1;
 }
 static int events_caravan_here(int map) { return events_active(EV_CARAVAN) && CARAVAN_ROUTE[events.caravan_map].map == map; }
+/* Visuals share the calendar and night gate with festival hosts; no saved state. */
+static int events_visual_festival(int map)
+{
+    if (events.rolled_day != gtime.day) events_new_day_impl();
+    switch (events.festival) {
+    case FEST_KINDLING: return map == MAP_TOWN ? FEST_KINDLING : FEST_NONE;
+    case FEST_MILLRACE: return map == MAP_BROOKMILL ? FEST_MILLRACE : FEST_NONE;
+    case FEST_LANTERN: return map == MAP_DUSKMERE && time_is_night() ? FEST_LANTERN : FEST_NONE;
+    case FEST_FROST: return map == MAP_FROSTHOLLOW ? FEST_FROST : FEST_NONE;
+    case FEST_STARFALL: return map == MAP_RISE && time_is_night() ? FEST_STARFALL : FEST_NONE;
+    default: return FEST_NONE;
+    }
+}
 static int events_weather_here_impl(int map)
 {
     if (map < 0 || map >= MAP_COUNT || !(MAPS[map].flags & MF_OUTDOOR)) return WX_CLEAR;
