@@ -389,13 +389,17 @@ static void scr_saga_honey(int npc)
 }
 static int saga_tram_from;
 static const char *const saga_tram_choices[] = { "MAPLE", "BROOKMILL", "LUMEN", "CANCEL" };
-static void saga_tram_answer(int choice)
+static void saga_tram_ride(int choice)
 {
-    if (choice < 0 || choice >= 3 || choice == saga_tram_from) return;
     /* Town landings have a clear return path to their stop. */
     const int maps[] = { MAP_TOWN, MAP_BROOKMILL, MAP_LUMEN };
     const int xs[] = { 12, 31, 36 }, ys[] = { 17, 29, 20 };
-    field_begin_warp(maps[choice], xs[choice], ys[choice], DIR_DOWN);
+    travel_project_ride_to(PROJECT_RIDE_TRAM, maps[choice], xs[choice], ys[choice]);
+}
+static void saga_tram_answer(int choice)
+{
+    if (choice < 0 || choice >= 3 || choice == saga_tram_from) return;
+    dlg_call(saga_tram_ride, choice);
 }
 static void saga_tram_stop(int stop)
 {
@@ -407,11 +411,15 @@ static void saga_tram_stop(int stop)
 static void scr_saga_tram_maple(int npc) { (void)npc; saga_tram_stop(0); }
 static void scr_saga_tram_brook(int npc) { (void)npc; saga_tram_stop(1); }
 static void scr_saga_tram_lumen(int npc) { (void)npc; saga_tram_stop(2); }
+static void saga_lift_ride(int from_timberline)
+{
+    if (from_timberline) travel_project_ride_to(PROJECT_RIDE_LIFT, MAP_FOOTHILLS, 11, 52);
+    else travel_project_ride_to(PROJECT_RIDE_LIFT, MAP_TIMBERLINE, 11, 30);
+}
 static void saga_lift_answer(int choice)
 {
     if (choice) return;
-    if (cur_map == MAP_TIMBERLINE) field_begin_warp(MAP_FOOTHILLS, 11, 52, DIR_DOWN);
-    else field_begin_warp(MAP_TIMBERLINE, 11, 30, DIR_UP);
+    dlg_call(saga_lift_ride, cur_map == MAP_TIMBERLINE);
 }
 static void saga_lift_stop(void)
 {

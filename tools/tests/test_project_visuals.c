@@ -103,6 +103,44 @@ static void test_punt_voyage(void)
           "return punt lands at Reedwick's guide");
 }
 
+static void project_enter_stop(int map, int x, int y)
+{
+    dialog_clear();
+    game_mode = MODE_FIELD;
+    field_enter_map(map, x, y, DIR_DOWN);
+    warp.active = 0;
+    set_brightness(0);
+}
+
+static void project_finish_ride(void)
+{
+    for (int f = 0; f < PROJECT_RIDE_END + 20 && game_mode == MODE_EXT; f++) step(0);
+    settle();
+}
+
+static void test_tram_and_lift_scenes(void)
+{
+    fresh_game();
+    flag_set(FLAG_PROJECT_TRAM);
+    project_enter_stop(MAP_TOWN, 12, 17);
+    saga_tram_ride(1);
+    CHECK(game_mode == MODE_EXT && project_ride.kind == PROJECT_RIDE_TRAM &&
+          project_ride.map == MAP_BROOKMILL,
+          "Maple tram stop starts the land tram scene");
+    project_finish_ride();
+    CHECK(cur_map == MAP_BROOKMILL && player.x == 31 && player.y == 29,
+          "tram scene lands at the Brookmill return stop");
+    flag_set(FLAG_PROJECT_LIFT);
+    project_enter_stop(MAP_FOOTHILLS, 11, 52);
+    saga_lift_ride(0);
+    CHECK(game_mode == MODE_EXT && project_ride.kind == PROJECT_RIDE_LIFT &&
+          project_ride.map == MAP_TIMBERLINE,
+          "Foothills lift stop starts the cable-platform scene");
+    project_finish_ride();
+    CHECK(cur_map == MAP_TIMBERLINE && player.x == 11 && player.y == 30,
+          "lift scene lands at the Timberline return stop");
+}
+
 int main(void)
 {
     game_init();
@@ -110,6 +148,7 @@ int main(void)
     test_cinder_bridge();
     test_projects_and_landings();
     test_punt_voyage();
+    test_tram_and_lift_scenes();
     printf("project visuals: %d failures\n", failures);
     return failures ? 1 : 0;
 }
