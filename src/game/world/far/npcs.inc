@@ -11,7 +11,7 @@
     /* cindermoor */
     PERSON(MAP_CINDERMOOR, 18, 17, ELDER, LEFT, STILL, FOUNDER, NO_LORE, "FOUNDER HALVARD", 0),
     PERSON(MAP_CINDERMOOR, 32, 17, GRAN, DOWN, LOOK, TALK, LSRC_CINDER_ELDER, "OLD SMITH ENID",
-           "My hammer arm's retired. My ears aren't. The volcano's snoring nicely today."),
+           "Our forge runs on cooled Caldera stone. I can hear when the ore is ready just by the ring."),
     PERSON(MAP_CINDERMOOR, 36, 8, GUIDE, DOWN, LOOK, TALK, LSRC_FAR_HALL_GUIDE, "HALL CRIER",
            "The ANVIL HALL is open to every warden. Mind the gates!"),
     PERSON_KIN(MAP_CINDERMOOR, 24, 7, VILLAGER, UP, LOOK, TALK, LSRC_FAR_MINER, SP_DIGGET, "MINER",
@@ -56,7 +56,7 @@
     PERSON_KIN(MAP_DREAMSPIRE, 36, 18, VILLAGER, DOWN, WANDER, TALK, NO_LORE, SP_DOZLOTH, "NAPPER",
                "My DOZLOTH and I nap in shifts. One of us is always asleep."),
     PERSON(MAP_DREAMSPIRE, 45, 6, GARDENER, DOWN, LOOK, TALK, NO_LORE, "NIGHT GARDENER",
-           "Moonflowers only open for people who aren't looking for them. You weren't, were you?"),
+           "We hang paper lanterns along the tower steps; the night garden opens when the moonflowers do."),
     PERSON(MAP_DREAM_HEARTH, 5, 2, HEALER, DOWN, STILL, DREAM_TENDER, LSRC_TENDER, "TENDER MAREN", 0),
     PERSON(MAP_DREAM_SHOP, 1, 2, SHOPKEEPER, DOWN, STILL, DREAM_CLERK, NO_LORE, "CLERK", 0),
     /* the mirror hall */
@@ -87,7 +87,7 @@
     PERSON(MAP_RAILHEAD_BUNK, 5, 3, HEALER, DOWN, STILL, RAIL_TENDER, NO_LORE, "RAIL TENDER", 0),
     PERSON(MAP_RAILHEAD, 11, 13, SHOPKEEPER, DOWN, STILL, RAIL_COOK, NO_LORE, "RAIL COOK", 0),
     PERSON(MAP_RAILHEAD, 27, 11, KID, DOWN, STILL, TALK, NO_LORE, "RAIL FAN",
-           "Ore carts turn at that table. I counted thirty-two wheels today!"),
+           "The rail yard has two shifts: iron carts by day and lantern repairs after dark."),
     WARDEN(MAP_RAILHEAD, 19, 17, WARDEN_A, DOWN, 2, TR_RH_HOB, NO_KIN, "Night shift on the turntable."),
     WARDEN(MAP_RAILHEAD, 32, 25, WARDEN_B, LEFT, 2, TR_RH_TESS, NO_KIN, "The shaft can wait for a strong kin."),
     PERSON(MAP_MISTFEN, 23, 56, VILLAGER, DOWN, STILL, TALK, NO_LORE, "LOST PILGRIM",
@@ -101,3 +101,5 @@
     WARDEN(MAP_MISTFEN, 38, 18, WARDEN_A, LEFT, 2, TR_MF_WISP, NO_KIN, "Follow the light, not the voices."),
     WARDEN(MAP_MISTFEN, 14, 9, WARDEN_B, RIGHT, 2, TR_MF_GUARD, NO_KIN, "This satchel belongs to the patient."),
     PERSON(MAP_PILGRIM_REST, 6, 3, HEALER, DOWN, STILL, PILGRIM_TENDER, NO_LORE, "INNKEEPER", 0),
+    FIXTURE(MAP_COOLING_CHAMBER, 5, 10, EMBER_INTAKE, "IRON INTAKE"),
+    FIXTURE(MAP_COOLING_CHAMBER, 14, 10, EMBER_RELEASE, "RELEASE WHEEL"),

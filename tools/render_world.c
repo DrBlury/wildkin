@@ -208,7 +208,7 @@ int main(int argc, char **argv)
                 }
             }
         for (int i = 0; i < NPC_COUNT; i++) {
-            if (NPCS[i].map != m) continue;
+            if (NPCS[i].map != m || NPCS[i].fixture) continue;
             const Actor *a = &npc_state[i];
             u8 lk, lv;
             static u16 pal[16];

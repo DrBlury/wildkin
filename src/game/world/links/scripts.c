@@ -83,3 +83,5 @@ static void scr_links_frost_return(int npc)
     dlg_say("The cave returns to GREYWATER FJORD.");
     dlg_call(links_return_frost, 0);
 }
+
+#include "biomes/scripts.c"

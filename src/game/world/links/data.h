@@ -232,7 +232,9 @@ static const DecorPlace SW2_DECOR[] = { DP(GR_BONES, 27, 12), DP(GR_SIGN, 21, 34
 static const DecorPlace AR1_DECOR[] = { DP(ICE_CRYSTAL, 24, 10), DP(CAMPFIRE, 12, 21), DP(SIGNPOST, 5, 17) };
 static const DecorPlace AR2_DECOR[] = { DP(AURORA_STONE, 25, 8), DP(SIGNPOST, 46, 17) };
 static const DecorPlace FJORD_DECOR[] = { DP(ROCK, 17, 6), DP(SIGNPOST, 12, 20) };
-static const MapObj SW1_OBJS[] = { OBJ(BERRY, 7, 30, 34) };
+static const MapObj SW1_OBJS[] = { OBJ(BERRY, 7, 30, 34),
+    OBJ(LADDER, 40, 16, 0),
+};
 static const MapObj SW2_OBJS[] = { OBJ(BERRY, 36, 31, 35) };
 static const MapObj AR1_OBJS[] = { OBJ(BERRY, 9, 10, 36) };
 static const MapObj FJORD_OBJS[] = { OBJ(CHEST, 10, 32, ITEM_ASTRAL_SHARD), OBJ(BOULDER, 19, 12, 0), OBJ(BERRY, 30, 47, 37) };
@@ -265,3 +267,7 @@ static const WildSlot WILD_FJORD_SURF[] = {
     { SP_TUXFLAKE, 22, 36, 40 }, { SP_ABYSSLURE, 15, 39, 42, WHEN_NIGHT },
     { SP_KELPYRE, 2, 40, 42, WHEN_NIGHT },
 };
+
+#include "biomes/data.h"
+
+static const MapObj BIOME_AURORA_OBJS[] = { OBJ(LADDER, 44, 14, 0) };

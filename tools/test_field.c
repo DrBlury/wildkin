@@ -81,6 +81,9 @@ static void map_entry(int map, int *ex, int *ey)
  * map's reachability is test_puzzles.c's job. */
 static int map_has_puzzle(int m)
 {
+    /* These two authored script/MapPatch puzzles are exercised through their
+     * controls in test_ember_hollows and proved per entry in test_puzzles. */
+    if (m == MAP_COOLING_CHAMBER || m == MAP_DUSK_VAULT) return 1;
     for (int i = 0; i < MAPS[m].obj_count; i++) {
         int k = MAPS[m].objs[i].kind;
         if (k == OBJ_BOULDER || k == OBJ_PLATE || k == OBJ_GATE || k == OBJ_SWITCH || k == OBJ_BARRIER || k == OBJ_PAD)

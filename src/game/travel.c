@@ -75,7 +75,7 @@ static void travel_visited_set(int map)
 #define OT_BANNER   336
 #define OT_BOAT     336
 #define OT_BIKE     384
-#define OT_TO(i)    (640 + (i) * 4)     /* 16x16 objects (TO_*) */
+#define OT_TO(i)    (552 + (i) * 4)     /* 16x16 objects: 552..603, clear of grim ash at 640 */
 #define OT_TX(i)    (692 + (i) * 4)     /* 16x16 effects (TX_*) */
 #define OT_TF(i)    (752 + (i))         /* 8x8 particles (TF_*) */
 #define OBANK_TRAVEL 8                  /* travel_misc_palette */
@@ -1781,6 +1781,10 @@ MAYBE_UNUSED static void travel_project_ride_to(int kind, int map, int x, int y)
 static int map_spot(int m)
 {
     for (int guard = 0; guard < 5 && m >= 0 && m < MAP_COUNT; guard++) {
+        if (MAPS[m].depth && MAPS[m].surface_map < MAP_COUNT && MAPS[m].surface_map != m) {
+            m = MAPS[m].surface_map;
+            continue;
+        }
         switch (m) {
 #define WORLD_POS(map, anchor, dx, dy)
 #define TOWN_SPOT(key, map, x, y, kind) case map: return WM_##key;
@@ -1829,11 +1833,20 @@ static int fly_point_open(int i)
 }
 
 #define WM_PTS 32
-static struct { u8 fly, cur, n, pt[WM_PTS]; int here, t; } wm;
+static struct { u8 fly, cur, n, pt[WM_PTS], underground; int here, t; } wm;
+#include "underworld.c"
 
 static void wm_caption(void)
 {
+    if (wm.underground) {
+        underworld_draw();
+        return;
+    }
     char buf[64];
+    if (!wm.fly) {
+        canvas_window(0, 0, CANVAS_COLS, 2, WIN_STD);
+        text_draw_fit(12, 3, "SURFACE    L/R: UNDERGROUND", 216);
+    }
     canvas_window(0, 17, CANVAS_COLS, 3, WIN_STD);
     if (wm.n) {
         const FlyPoint *f = &FLY_POINTS[wm.pt[wm.cur]];
@@ -1859,6 +1872,18 @@ static void wm_update(void)
         sfx_play(SFX_WIND);
         travel.biking = 0;
         travel_arrive(f->map, f->x, f->y, DIR_DOWN);
+        return;
+    }
+    if (!wm.fly && (key_hit(KEY_L) || key_hit(KEY_R))) {
+        wm.underground ^= 1;
+        if (wm.underground) underworld_collect();
+        canvas_clear();
+        wm_caption();
+        sfx_play(SFX_CURSOR);
+        return;
+    }
+    if (wm.underground) {
+        underworld_update();
         return;
     }
     int dx = key_hit(KEY_RIGHT) - key_hit(KEY_LEFT), dy = key_hit(KEY_DOWN) - key_hit(KEY_UP);
@@ -1896,6 +1921,7 @@ static int wm_note_marker(int spot)
 }
 static void wm_draw(void)
 {
+    if (wm.underground) return;
     static u8 seen[WM_COUNT];
     for (int s = 0; s < WM_COUNT; s++) seen[s] = 0;
     for (int m = 0; m < MAP_COUNT; m++)
@@ -1946,6 +1972,8 @@ static void worldmap_open(int fly)
     REG_BG0HOFS = REG_BG0VOFS = 0;
     REG_DISPCNT = DCNT_MODE0 | DCNT_BG0 | DCNT_BG1 | DCNT_OBJ | DCNT_OBJ_1D;
     wm.fly = (u8)(fly != 0);
+    wm.underground = (u8)(!wm.fly && MAPS[cur_map].depth != 0);
+    underworld_collect();
     wm.here = map_spot(cur_map);
     wm.n = 0;
     wm.cur = 0;

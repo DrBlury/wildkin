@@ -3,3 +3,5 @@
 { MAP_AURORA_RIDGE_1, 5, 17, "STAR CAIRN: Look for the northern lights after dusk." },
 { MAP_AURORA_RIDGE_2, 46, 17, "FROZEN FALL: Lantern and Dream crests reveal the cave beyond." },
 { MAP_GREYWATER_FJORD, 12, 20, "GREYWATER: Sail south to Port Brine. The north cave needs STRENGTH." },
+
+#include "biomes/signs.inc"

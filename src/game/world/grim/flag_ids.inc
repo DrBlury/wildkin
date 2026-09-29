@@ -17,3 +17,6 @@
     FLAG_CANDLE_A,
     FLAG_CANDLE_B,
     FLAG_CANDLE_CAIRN,
+    FLAG_DUSK_FIRST,      /* root symbol lit in the vault */
+    FLAG_DUSK_SECOND,     /* root then bell */
+    FLAG_DUSK_SHORTCUT,   /* root, bell, lantern: permanent gallery shortcut */

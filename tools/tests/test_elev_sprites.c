@@ -269,6 +269,8 @@ static void enter(int map, int x, int y, int dir)
     warp.active = 0;
     set_brightness(0);
     for (int i = 0; i < WILD_MAX; i++) wild[i].active = 0;
+    /* HUSH prevents charges, not walking into a newly spawned kin. */
+    wild_spawn_timer = 100000;
     step(0);
     step(0);
 }
@@ -318,6 +320,10 @@ static int walk_checked(int dir, int n, int nt)
         step(0);
         check_frame(tracks, nt);
     }
+    if (player.x != tx || player.y != ty)
+        printf("  crossing stopped at %d,%d toward %d,%d: mode=%d dialog=%d walking_npc=%d blocker=%d\n",
+               player.x, player.y, tx, ty, game_mode, dialog_active(), script_walking_npc(),
+               npc_at_lv(tx, ty, player.level));
     return abs(player.x - sx) + abs(player.y - sy);
 }
 
@@ -560,6 +566,9 @@ int main(void)
     fresh_game();
     give_starter();
     flag_set(FLAG_INTRO);
+    /* This suite measures sprite composition, not warden sight-line bouts.
+     * Added map/NPC data can otherwise change which way a warden is looking. */
+    for (int i = 0; i < TRAINER_COUNT; i++) trainer_mark_beaten(i);
     opt.follower = 1;
     bag[ITEM_BIKE] = 1;
 

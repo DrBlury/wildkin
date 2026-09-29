@@ -283,3 +283,5 @@ static void scr_mine_gallery(int npc)
     }
     dlg_say("FOREMAN: The side gallery's survey marks are legible again.");
 }
+
+#include "biomes/scripts.c"

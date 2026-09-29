@@ -67,6 +67,7 @@ enum { FM_SIM = -2, FM_BLOCK = -1 };
 /* ---------------- the map being solved ---------------- */
 
 static int W, H, NC, abil;
+static int cave_entry = -1; /* strict single-entry search; -1 = historical solver */
 static int elevated;            /* the map has a height layer (the fast path: plain ground only) */
 static u16 sattr[CELLS];        /* cell_attr with the movable objects taken out */
 static u8 swalk[CELLS];         /* cell_walkable, same */
@@ -483,6 +484,8 @@ static int ntgt;
 static s16 tgt_at[CELLS];
 static int tgt_edge[4], tgt_mat, tgt_home;
 static s16 tgt_warp[256];
+/* -1 keeps the historical union-of-entrances/re-entry solver unchanged. */
+
 static u8 legend_at[CELLS];     /* persist index + 1 of a legend */
 static u8 ferry_at[CELLS];
 static u8 sat_at[CELLS];        /* a satchel lies here */
@@ -643,7 +646,7 @@ static void mark_exit(u32 id, int c)
 {
     if (nodes[id].exit) return;
     nodes[id].exit = 1;
-    reenter(id, c, nodes[id].depth);
+    if (cave_entry < 0) reenter(id, c, nodes[id].depth);
 }
 
 /* Same-state targets found from one node: skip a cell whose component
@@ -931,8 +934,10 @@ static void setup_map(int m, int ability)
             ferry_at[tobj[i].y * W + tobj[i].x] = 1;
         }
     }
-    for (int i = 0; i < WARP_COUNT && i < 256; i++)
-        if (WARPS[i].map == m) tgt_warp[i] = (s16)tgt_add(T_WARP, i, -1, -1, MAPS[WARPS[i].dest].name);
+    for (int i = 0; i < WARP_COUNT && i < 256; i++) {
+        if (WARPS[i].map == m && warp_is_open(&WARPS[i]))
+            tgt_warp[i] = (s16)tgt_add(T_WARP, i, -1, -1, MAPS[WARPS[i].dest].name);
+    }
     for (int l = 0; l < 4; l++)
         if (MAPS[m].link[l] != MAP_NONE) tgt_edge[l] = tgt_add(T_EDGE, l, -1, -1, MAPS[MAPS[m].link[l]].name);
     int into = 0;
@@ -944,7 +949,7 @@ static void setup_map(int m, int ability)
     /* entrances */
     nentr = 0;
     for (int i = 0; i < WARP_COUNT; i++)
-        if (WARPS[i].dest == m) entr_add(WARPS[i].dx, WARPS[i].dy, -1);
+        if (WARPS[i].dest == m && warp_is_open(&WARPS[i])) entr_add(WARPS[i].dx, WARPS[i].dy, -1);
     for (int l = 0; l < 4; l++) {
         if (MAPS[m].link[l] == MAP_NONE) continue;
         for (int k = 0; k < (l < 2 ? W : H); k++) {
@@ -1185,6 +1190,143 @@ static void solve(int m, int ability, int need_targets, Tally *tal, int report)
     printf("%s\n", bad ? "  SOFT-LOCK" : "");
 }
 
+/* Strict connector proof: begin with unsolved objects at one real portal,
+ * never seed another entry and never re-enter through a different portal. */
+static int prove_cave_entry(int map, int entry_warp, int isolate)
+{
+    cave_entry = entry_warp;
+    u32 old_cap = ENTRY_CAP;
+    if (!getenv("PZ_CAP") && map == MAP_EMBER_TUNNEL && ENTRY_CAP < 12000000u) ENTRY_CAP = 12000000u;
+    setup_map(map, ABL_ALL);
+    const Warp *incoming = &WARPS[entry_warp];
+    int start = elev_level_at(incoming->dx, incoming->dy, -1, -1) * NC +
+                incoming->dy * W + incoming->dx;
+    nentr = 1;
+    entr[0] = (u16)start;
+    if (isolate) {
+        /* Synthetic disconnected fixture: every non-entry plain cell is a
+         * wall in the solver's own graph. A union-of-starts proof would pass. */
+        for (int c = 0; c < NC; c++) if (c != start % NC) {
+            sattr[c] |= A_SOLID;
+            swalk[c] = ssurf[c] = 0;
+        }
+    }
+    loops_found = 0;
+    u32 initial = macro_intern(key_init);
+    add_entry(initial, entr[0], NIL, entr[0], SA_START, 0, 0, 0);
+    search();
+    int targets = 0, missing = 0;
+    for (int i = 0; i < WARP_COUNT && i < 256; i++) {
+        const Warp *w = &WARPS[i];
+        if (!warp_is_open(w) || i == entry_warp) continue;
+        int t = w->map == map ? tgt_warp[i] : -1;
+        if (t < 0) continue;
+        targets++;
+        if (tgt[t].node != NIL) continue;
+        missing++;
+        if (!isolate) printf("  cave %s from %s(%d,%d): cannot reach %s via warp %d\n",
+                             MAPS[map].name, MAPS[incoming->map].name, incoming->dx,
+                             incoming->dy, MAPS[w->map == map ? w->dest : w->map].name, i);
+    }
+    if (!isolate && (overflow || loops_found || missing || !targets))
+        printf("  cave %s entry %d: targets=%d missing=%d overflow=%d loops=%d\n",
+               MAPS[map].name, entry_warp, targets, missing, overflow, loops_found);
+    cave_entry = -1;
+    ENTRY_CAP = old_cap;
+    if (isolate) return targets && missing && !overflow;
+    return targets && !missing && !overflow && !loops_found;
+}
+
+static int prove_script_controls(int map, int entry, const int *scripts, int count)
+{
+    cave_entry = entry;
+    setup_map(map, ABL_ALL);
+    const Warp *w = &WARPS[entry];
+    int pos = elev_level_at(w->dx, w->dy, -1, -1) * NC + w->dy * W + w->dx;
+    u32 initial = macro_intern(key_init);
+    add_entry(initial, pos, NIL, pos, SA_START, 0, 0, 0);
+    search();
+    int missing = overflow;
+    for (int s = 0; s < count; s++) {
+        int reached = 0;
+        for (int t = 0; t < ntgt; t++)
+            if (tgt[t].kind == T_NPC && NPCS[tgt[t].idx].script == scripts[s] && tgt[t].node != NIL)
+                reached = 1;
+        if (!reached) { printf("  cave %s: control script %d not reachable from entry %d\n",
+                               MAPS[map].name, scripts[s], entry); missing++;
+        }
+    }
+    cave_entry = -1;
+    return !missing;
+}
+
+/* The script states below are reached through the actual regional handlers;
+ * the movement solver proves all controls approachable from the first entry
+ * before staging, then each direction across the persistent solved terrain. */
+static int stage_cave_scripts(void)
+{
+    int bad = 0, cooling_entry = -1, dusk_entry = -1;
+    for (int i = 0; i < WARP_COUNT; i++) {
+        if (WARPS[i].map == MAP_EMBER_SPAN && WARPS[i].dest == MAP_COOLING_CHAMBER) cooling_entry = i;
+        if (WARPS[i].map == MAP_BARROW_B && WARPS[i].dest == MAP_DUSK_VAULT) dusk_entry = i;
+    }
+    flag_clear(FLAG_EMBER_COOLED);
+    flag_clear(FLAG_EMBER_PRIMED);
+    flag_clear(FLAG_DUSK_FIRST);
+    flag_clear(FLAG_DUSK_SECOND);
+    flag_clear(FLAG_DUSK_SHORTCUT);
+    if (cooling_entry < 0 || !prove_script_controls(MAP_COOLING_CHAMBER, cooling_entry,
+            (int[]){ SCR_EMBER_INTAKE, SCR_EMBER_RELEASE }, 2)) bad++;
+    if (dusk_entry < 0 || !prove_script_controls(MAP_DUSK_VAULT, dusk_entry,
+            (int[]){ SCR_DUSK_ROOT, SCR_DUSK_BELL, SCR_DUSK_LANTERN }, 3)) bad++;
+    if (!bad) {
+        map_load(MAP_COOLING_CHAMBER);
+        scr_ember_intake(-1);
+        scr_ember_release(-1);
+        map_load(MAP_DUSK_VAULT);
+        scr_dusk_root(-1);
+        scr_dusk_bell(-1);
+        scr_dusk_lantern(-1);
+        if (!flag(FLAG_EMBER_COOLED) || !flag(FLAG_DUSK_SHORTCUT)) bad++;
+        dialog_clear();
+    }
+    return bad;
+}
+
+static int check_cave_connectors(void)
+{
+    int checked = 0, bad = stage_cave_scripts(), negative = 0;
+    for (int m = 0; m < MAP_COUNT; m++) {
+        if (!MAPS[m].depth || (MAPS[m].flags & MF_DEBUG)) continue;
+        const char *only = getenv("PZ_MAP");
+        if (only && (only[0] >= '0' && only[0] <= '9' ? atoi(only) != m : strcmp(only, MAPS[m].name) != 0)) continue;
+        int inbound = 0, outbound = 0;
+        for (int i = 0; i < WARP_COUNT; i++) {
+            if (WARPS[i].dest == m && warp_is_open(&WARPS[i])) inbound++;
+            if (WARPS[i].map == m && warp_is_open(&WARPS[i])) outbound++;
+        }
+        /* Connector maps have explicit directional exits. Scripted finale
+         * caves and legacy one-door interiors have separate playthroughs. */
+        if (inbound < 2 || outbound < 2) continue;
+        for (int i = 0; i < WARP_COUNT; i++) {
+            if (WARPS[i].dest != m || !warp_is_open(&WARPS[i])) continue;
+            if (!negative) {
+                negative = 1;
+                if (!prove_cave_entry(m, i, 1)) bad++;
+                else puts("ok: synthetic disconnected single-entry cave is rejected");
+            }
+            checked++;
+            if (!prove_cave_entry(m, i, 0)) bad++;
+        }
+    }
+    printf("strict through-cave proof: %d entry searches, %d failures\n", checked, bad);
+    if ((!checked || !negative) && !getenv("PZ_MAP")) {
+        puts("FAIL: no multi-portal cave connector was tested");
+        bad++;
+    }
+    return bad;
+}
+
 /* Does SURF, STRENGTH or FLY change anything on this map? */
 static int abilities_matter(int m)
 {
@@ -1234,6 +1376,7 @@ int main(void)
         /* soft-locks with the other ability set too */
         if (abilities_matter(m)) solve(m, designed ? 0 : ABL_ALL, 0, &tal, 0);
     }
+    tal.unreachable += check_cave_connectors();
     printf("searched %d map/ability combinations\n", tal.maps);
     CHECK(!tal.drift, "the solver's fast path agrees with the game on every plain step");
     CHECK(!tal.overflow, "every map's state space was searched completely");

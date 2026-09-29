@@ -473,6 +473,8 @@ def deck_styled(style, vertical, rail_lo, rail_hi, end_lo, end_hi):
                 put(12, v, 'd_out')
                 put(13, v, 'd_hi' if v % 4 == 1 else 'd_base')
                 put(14, v, 'd_dk' if v % 4 != 1 else 'd_base')
+                if v % 8 in (3, 4):
+                    put(13, v, 'd_dk')  # diagonal web brace below the lit flange
                 put(15, v, 'd_out')
             else:
                 put(9, v, 'd_out')

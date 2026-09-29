@@ -202,6 +202,17 @@ static void test_doors(void)
             !((walk_ok(WARPS[i].x, WARPS[i].y + 1)) ||
               (WARPS[i].y > 0 && walk_ok(WARPS[i].x, WARPS[i].y - 1)))) ok = 0;
         map_load(dest);
+        if (WARPS[i].required_flag) {
+            /* New through-caves land beside explicit reciprocal doors, not
+             * on an inferred single-parent exit mat. */
+            int back = 0;
+            for (int j = 0; j < WARP_COUNT; j++)
+                if (WARPS[j].map == dest && WARPS[j].dest == WARPS[i].map &&
+                    WARPS[j].required_flag == WARPS[i].required_flag) back = 1;
+            if (!back || !cell_walkable(WARPS[i].dx, WARPS[i].dy) ||
+                (cell_attr(WARPS[i].dx, WARPS[i].dy) & A_DOOR)) ok = 0;
+            continue;
+        }
         if (!(cell_attr(WARPS[i].dx, WARPS[i].dy) & (A_EXIT | A_DOOR)) &&
             !(MAPS[dest].flags & MF_OUTDOOR && walk_ok(WARPS[i].dx, WARPS[i].dy))) {
             ok = 0;
@@ -216,7 +227,7 @@ static void test_doors(void)
             }
         if (best != i) ok = 0;
     }
-    CHECK(ok && count >= 15, "every east door lands on its exit mat and the mat leads back out");
+    CHECK(ok && count >= 15, "every east door has a safe landing and an explicit or legacy-mat return");
     flag_clear(FLAG_RIME_CREST);
 
     /* walk in and back out of the Volt Hall for real */
@@ -279,8 +290,13 @@ static void test_reach(void)
             }
         }
         for (int i = 0; i < WARP_COUNT; i++)
-            if (WARPS[i].map == m && reached(WARPS[i].x, WARPS[i].y + 1) && !seen[WARPS[i].dest]) {
-                int d = WARPS[i].dest;
+            if (WARPS[i].map == m && warp_is_open(&WARPS[i]) &&
+                reached(WARPS[i].x, WARPS[i].y + 1) && !seen[WARPS[i].dest]) {
+                int d = WARPS[i].dest, local = d == MAP_ACCORD_GATE;
+                for (int k = 0; k < EAST_COUNT; k++) local |= d == EAST_MAPS[k];
+                /* Cross-region SURF and script puzzles have their own real-
+                 * movement suites; this is the east's walking-only flood. */
+                if (!local) continue;
                 seen[d] = 1;
                 queue[tail] = d; qx[tail] = WARPS[i].dx; qy[tail++] = WARPS[i].dy;
             }

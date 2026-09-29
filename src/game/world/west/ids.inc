@@ -17,3 +17,6 @@
     MAP_REED_SHOP,
     MAP_REED_TUNNEL,
     MAP_FEN_HERMIT,
+    MAP_TIDAL_UNDERFLOW,
+
+#include "biomes/ids.inc"

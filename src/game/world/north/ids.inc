@@ -17,3 +17,7 @@
     MAP_TIMBER_LODGE,
     MAP_TIMBER_SAWMILL,
     MAP_STORM_CAVE,
+    MAP_KARST_CHAMBER,
+    MAP_KARST_FROST,
+
+#include "biomes/ids.inc"

@@ -21,3 +21,5 @@
     { MAP_BROOKMILL, 23, 9, ITEM_TIDE_LANTERN, 1 }, /* SURF islet */
     { MAP_LUMEN, 18, 8, ITEM_STAR_LANTERN, 1 }, /* Crown rooftop */
     { MAP_LUMEN, 44, 3, ITEM_SPARK_SHARD, 1 }, /* clock-tower rooftop */
+
+#include "biomes/satchels.inc"

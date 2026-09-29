@@ -88,6 +88,7 @@ static void solve_from(int map, int x, int y)
         }
         for (int i = 0; i < WARP_COUNT; i++) {
             const Warp *w = &WARPS[i];
+            if (!warp_is_open(w)) continue;
             if (w->map == s.map && beside(w->x, w->y) && (cell_attr(w->x, w->y) & A_DOOR))
                 enqueue(w->dest, w->dx, w->dy, head);
             if (w->dest == s.map && at(w->dx, w->dy)) {
@@ -184,7 +185,13 @@ static const u8 map_act[MAP_COUNT] = {
     [MAP_MISTFEN]=7, [MAP_MOONVEIL]=7, [MAP_DREAMSPIRE]=7,
     [MAP_DUST_LIBRARY]=7, [MAP_MIRROR_HALL]=7, [MAP_DREAM_HEARTH]=7,
     [MAP_PILGRIM_REST]=7,
-    [MAP_OSSUARY_1]=8, [MAP_OSSUARY_2]=8, [MAP_BONE_THRONE]=8
+    [MAP_OSSUARY_1]=8, [MAP_OSSUARY_2]=8, [MAP_BONE_THRONE]=8,
+    /* Cave shortcuts open only after the crest that protects their destination. */
+    [MAP_ROOTWOOD_PATH]=3, [MAP_ROOTWAYS]=3, [MAP_MILL_CELLAR]=3,
+    [MAP_TIDAL_UNDERFLOW]=4,
+    [MAP_KARST_CHAMBER]=5, [MAP_KARST_FROST]=5,
+    [MAP_EMBER_SPAN]=5, [MAP_COOLING_CHAMBER]=5,
+    [MAP_ROOT_GALLERY]=6, [MAP_DUSK_VAULT]=6
 };
 
 static void check_order(int act)
@@ -312,6 +319,36 @@ static void check_gate_cells(void)
     }
 }
 
+static void check_flagged_warp_graph(void)
+{
+    int forward = -1, reverse = -1;
+    for (int i = 0; i < WARP_COUNT; i++) {
+        if (WARPS[i].map == MAP_DUSK_VAULT && WARPS[i].dest == MAP_DUSKMERE)
+            forward = i;
+        if (WARPS[i].map == MAP_DUSKMERE && WARPS[i].dest == MAP_DUSK_VAULT)
+            reverse = i;
+    }
+    CHECK(forward >= 0 && reverse >= 0, "flagged Duskmere shortcut has two explicit directions");
+    if (forward < 0 || reverse < 0) return;
+    flag_set(FLAG_RIME_CREST);
+    flag_clear(FLAG_DUSK_SHORTCUT);
+    CHECK(!warp_is_open(&WARPS[forward]) && !warp_is_open(&WARPS[reverse]),
+          "both shortcut directions are closed before solving the sequence");
+    solve_from(MAP_DUSK_VAULT, 20, 5);
+    CHECK(!reached_maps[MAP_DUSKMERE], "closed vault door cannot leak into Duskmere");
+    solve_from(MAP_DUSKMERE, 26, 28);
+    CHECK(!visited[MAP_DUSK_VAULT][5 * MAPS[MAP_DUSK_VAULT].w + 20],
+          "closed reverse door cannot leak into the vault pocket");
+    flag_set(FLAG_DUSK_SHORTCUT);
+    solve_from(MAP_DUSK_VAULT, 20, 5);
+    CHECK(reached_maps[MAP_DUSKMERE], "opened vault door is traversable in the world graph");
+    solve_from(MAP_DUSKMERE, 26, 28);
+    CHECK(visited[MAP_DUSK_VAULT][5 * MAPS[MAP_DUSK_VAULT].w + 20],
+          "opened reverse door is traversable in the world graph");
+    flag_clear(FLAG_DUSK_SHORTCUT);
+    flag_clear(FLAG_RIME_CREST);
+}
+
 static void check_levels(void)
 {
     int bad = 0;
@@ -387,6 +424,7 @@ int main(void)
     flag_set(FLAG_STARTER);
     flag_set(FLAG_STORM_TOLD); /* story introduction is prerequisite to answering DRAKORA */
     check_gate_cells();
+    check_flagged_warp_graph();
     int party_level = 8;
     for (int act = 1; act <= 7; act++) {
         solve();

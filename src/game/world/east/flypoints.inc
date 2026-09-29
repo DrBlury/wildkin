@@ -3,3 +3,5 @@
     { MAP_LUMEN, 9, 18, 156, 88, "LUMEN CITY" },
     { MAP_BROOKMILL, 5, 14, 143, 88, "BROOKMILL" },
     { MAP_LUMEN, 25, 9, 156, 88, "LUMEN CROWN" }, /* rooftop landing after FLY */
+
+#include "biomes/flypoints.inc"

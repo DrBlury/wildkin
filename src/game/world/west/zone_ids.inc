@@ -5,3 +5,5 @@
     ZONE_SEA,       /* on the water (SURF): MapDef.water_zone of every coast map */
     ZONE_FEN_REEDS,
     ZONE_FEN_WATER,
+
+#include "biomes/zone_ids.inc"

@@ -2,3 +2,5 @@
     QUEST_GLOWCAPS,     /* the ice carver: 3 GLOWCAPS from the Glimmer Caverns */
     QUEST_STAR_CHART,   /* the stargazer's chart to Dr. Maren in the Starfall Grotto */
     QUEST_LOST_AXE,
+
+#include "biomes/quest_ids.inc"

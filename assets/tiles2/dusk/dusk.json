@@ -1,0 +1,1125 @@
+{
+ "name": "dusk",
+ "title": "Dusk - Gravewood haunted forest",
+ "doc": "DUSK - Gravewood, the haunted forest.\n\nReplaces the old `dusk` tileset (Gravewood and its views). A purple-tinged\nforest floor with fallen leaves, bog pools, gnarled trees and a dense\ntwisted-wood mass, glowing toadstools, drifting fog and wisps, old graves,\niron fences and a mausoleum.\n",
+ "cell": 16,
+ "cols": 16,
+ "rows": 43,
+ "palette": {
+  "fl0": "#100818",
+  "fl1": "#211829",
+  "fl2": "#312939",
+  "fl3": "#4a394a",
+  "fl4": "#5a4a5a",
+  "fl5": "#7b6373",
+  "lf1": "#6b3121",
+  "lf2": "#9c4a29",
+  "lf3": "#c67339",
+  "bg0": "#081008",
+  "bg1": "#102118",
+  "bg2": "#183121",
+  "bg3": "#294231",
+  "bg4": "#426339",
+  "bg5": "#7b9463",
+  "tv0": "#080810",
+  "tv1": "#181029",
+  "tv2": "#292139",
+  "tv3": "#393152",
+  "tv4": "#52426b",
+  "tv5": "#73638c",
+  "bk0": "#100810",
+  "bk1": "#291821",
+  "bk2": "#423129",
+  "bk3": "#634239",
+  "gs0": "#101021",
+  "gs1": "#292939",
+  "gs2": "#424252",
+  "gs3": "#636373",
+  "gs4": "#8c8c9c",
+  "tc0": "#4a186b",
+  "tc1": "#8c39b5",
+  "tc2": "#d68cf7",
+  "tc3": "#ffe7ff",
+  "ws0": "#39b5a5",
+  "ws1": "#c6fff7",
+  "ws2": "#6be7ce",
+  "fg0": "#6b6b84",
+  "fg1": "#9c9cb5",
+  "ln0": "#ce7329",
+  "ln1": "#ffc652"
+ },
+ "variants": {
+  "moonlit": {
+   "fl3": "#39425a",
+   "fl4": "#4a5273",
+   "fl5": "#6b7394",
+   "tv4": "#424a73",
+   "tv5": "#5a6b94"
+  }
+ },
+ "banks": [
+  [
+   "fl0",
+   "fl1",
+   "fl2",
+   "fl3",
+   "fl4",
+   "fl5",
+   "lf1",
+   "lf2",
+   "lf3",
+   "bg3",
+   "bg4",
+   "tc0",
+   "tc1",
+   "tc2",
+   "tc3"
+  ],
+  [
+   "fl0",
+   "fl1",
+   "fl2",
+   "fl3",
+   "fl4",
+   "fl5",
+   "bg0",
+   "bg1",
+   "bg2",
+   "bg3",
+   "bg4",
+   "bg5",
+   "ws0",
+   "ws1",
+   "ws2"
+  ],
+  [
+   "tv0",
+   "tv1",
+   "tv2",
+   "tv3",
+   "tv4",
+   "tv5",
+   "bk0",
+   "bk1",
+   "bk2",
+   "bk3",
+   "gs2",
+   "tc1",
+   "tc2",
+   "fg0",
+   "fg1"
+  ],
+  [
+   "fl1",
+   "fl2",
+   "fl3",
+   "fl4",
+   "fl5",
+   "bk0",
+   "bk1",
+   "bk2",
+   "gs0",
+   "gs1",
+   "gs2",
+   "gs3",
+   "gs4",
+   "ln0",
+   "ln1"
+  ],
+  [
+   "bk1",
+   "bk2",
+   "bk3",
+   "gs0",
+   "gs1",
+   "gs2",
+   "tc0",
+   "tc1",
+   "tc2",
+   "tc3",
+   "ws0",
+   "ws1",
+   "ws2",
+   "fg0",
+   "fg1"
+  ],
+  [
+   "tv1",
+   "tv2",
+   "tv3",
+   "tv4",
+   "tv5",
+   "bk0",
+   "bk1",
+   "bk2",
+   "gs0",
+   "gs1",
+   "gs2",
+   "gs3",
+   "ln0",
+   "ln1"
+  ],
+  [
+   "lf2",
+   "lf3",
+   "bg3",
+   "bg4",
+   "bk0",
+   "bk1",
+   "bk2",
+   "bk3",
+   "gs0",
+   "gs1",
+   "gs2",
+   "gs3",
+   "gs4"
+  ],
+  [
+   "fl0",
+   "fl4",
+   "fl5",
+   "lf1",
+   "lf2",
+   "lf3",
+   "gs4",
+   "ln1"
+  ]
+ ],
+ "stats": {
+  "unique_tiles8": 900,
+  "by_kind": {
+   "tile": 28,
+   "autotile": 209,
+   "patch9": 74,
+   "block": 40,
+   "object": 549
+  },
+  "entries": 55,
+  "colours": 41
+ },
+ "sections": [
+  "ground",
+  "autotiles",
+  "trees",
+  "eerie",
+  "buildings"
+ ],
+ "entries": [
+  {
+   "name": "floor",
+   "kind": "tile",
+   "section": "ground",
+   "x": 0,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "floor",
+   "weight": 9,
+   "doc": "dark forest floor",
+   "tiles8": 4
+  },
+  {
+   "name": "floor_b",
+   "kind": "tile",
+   "section": "ground",
+   "x": 1,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "floor",
+   "weight": 4,
+   "tiles8": 4
+  },
+  {
+   "name": "floor_c",
+   "kind": "tile",
+   "section": "ground",
+   "x": 2,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "floor",
+   "weight": 3,
+   "tiles8": 4
+  },
+  {
+   "name": "floor_d",
+   "kind": "tile",
+   "section": "ground",
+   "x": 3,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "floor",
+   "weight": 3,
+   "tiles8": 4
+  },
+  {
+   "name": "leaves",
+   "kind": "tile",
+   "section": "ground",
+   "x": 4,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "floor",
+   "weight": 3,
+   "doc": "fallen leaves",
+   "tiles8": 4
+  },
+  {
+   "name": "leaves_b",
+   "kind": "tile",
+   "section": "ground",
+   "x": 5,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "floor",
+   "weight": 2,
+   "tiles8": 4
+  },
+  {
+   "name": "bramble",
+   "kind": "tile",
+   "section": "ground",
+   "x": 6,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "doc": "brambles (encounters)",
+   "attrs": [
+    "GRASS"
+   ],
+   "tiles8": 4
+  },
+  {
+   "name": "trail",
+   "kind": "autotile",
+   "section": "autotiles",
+   "x": 0,
+   "y": 3,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "format": "rmxp16",
+   "over": "floor",
+   "doc": "worn trail over the floor",
+   "tiles8": 20
+  },
+  {
+   "name": "bramble_patch",
+   "kind": "autotile",
+   "section": "autotiles",
+   "x": 3,
+   "y": 3,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "format": "rmxp16",
+   "over": "floor",
+   "doc": "bramble thicket",
+   "attrs": [
+    "GRASS"
+   ],
+   "tiles8": 20
+  },
+  {
+   "name": "bog",
+   "kind": "autotile",
+   "section": "autotiles",
+   "x": 0,
+   "y": 7,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "frames": [
+    [
+     0,
+     7
+    ],
+    [
+     3,
+     7
+    ],
+    [
+     6,
+     7
+    ],
+    [
+     9,
+     7
+    ]
+   ],
+   "period": 20,
+   "format": "rmxp16",
+   "over": "floor",
+   "doc": "bog pool over the floor",
+   "attrs": [
+    "WATER"
+   ],
+   "tiles8": 77
+  },
+  {
+   "name": "deep_bog",
+   "kind": "autotile",
+   "section": "autotiles",
+   "x": 0,
+   "y": 11,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "frames": [
+    [
+     0,
+     11
+    ],
+    [
+     3,
+     11
+    ],
+    [
+     6,
+     11
+    ],
+    [
+     9,
+     11
+    ]
+   ],
+   "period": 20,
+   "format": "rmxp16",
+   "over": "bog",
+   "doc": "deep channel inside bog",
+   "attrs": [
+    "WATER",
+    "DEEP"
+   ],
+   "tiles8": 80
+  },
+  {
+   "name": "cliff_top",
+   "kind": "autotile",
+   "section": "autotiles",
+   "x": 6,
+   "y": 3,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "format": "rmxp16",
+   "doc": "upper level of a plateau; its south side flows into cliff_face",
+   "tiles8": 20
+  },
+  {
+   "name": "cliff_face",
+   "kind": "patch9",
+   "section": "autotiles",
+   "x": 9,
+   "y": 3,
+   "w": 5,
+   "h": 3,
+   "layer": "ground",
+   "format": "patch9",
+   "doc": "cliff face (>= 2 rows: top, middle..., foot)",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 37
+  },
+  {
+   "name": "cliff_face_single",
+   "kind": "block",
+   "section": "autotiles",
+   "x": 9,
+   "y": 6,
+   "w": 4,
+   "h": 1,
+   "layer": "ground",
+   "format": "strip4",
+   "doc": "one-row face (a single level of drop): [W end][mid][E end][lone]",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 12
+  },
+  {
+   "name": "ledge",
+   "kind": "block",
+   "section": "autotiles",
+   "x": 12,
+   "y": 7,
+   "w": 4,
+   "h": 3,
+   "layer": "ground",
+   "format": "ledge",
+   "doc": "one-way ledges: row 0 south [W end][mid][E end][single], row 1 east-facing [N end][mid][S end][SE corner], row 2 west-facing",
+   "attrs": [
+    "LEDGE"
+   ],
+   "tiles8": 12
+  },
+  {
+   "name": "stairs",
+   "kind": "object",
+   "section": "autotiles",
+   "x": 14,
+   "y": 3,
+   "w": 1,
+   "h": 2,
+   "layer": "ground",
+   "doc": "steps cut into a 2-row face",
+   "solid": "./.",
+   "top": "./.",
+   "tiles8": 8
+  },
+  {
+   "name": "stairs_wide",
+   "kind": "object",
+   "section": "autotiles",
+   "x": 14,
+   "y": 5,
+   "w": 2,
+   "h": 2,
+   "layer": "ground",
+   "doc": "wide steps",
+   "solid": "../..",
+   "top": "../..",
+   "tiles8": 13
+  },
+  {
+   "name": "forest",
+   "kind": "patch9",
+   "section": "autotiles",
+   "x": 0,
+   "y": 15,
+   "w": 5,
+   "h": 3,
+   "layer": "mid",
+   "format": "patch9",
+   "doc": "gnarled wood mass (trunks on the south edge)",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 37
+  },
+  {
+   "name": "twisted_tree",
+   "kind": "object",
+   "section": "trees",
+   "x": 0,
+   "y": 19,
+   "w": 2,
+   "h": 3,
+   "layer": "mid",
+   "doc": "gnarled tree 2x3",
+   "solid": "../../XX",
+   "top": "XX/XX/..",
+   "tiles8": 18
+  },
+  {
+   "name": "twisted_tree_b",
+   "kind": "object",
+   "section": "trees",
+   "x": 2,
+   "y": 19,
+   "w": 2,
+   "h": 3,
+   "layer": "mid",
+   "solid": "../../XX",
+   "top": "XX/XX/..",
+   "tiles8": 18
+  },
+  {
+   "name": "dead_tree",
+   "kind": "object",
+   "section": "trees",
+   "x": 4,
+   "y": 19,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "dead tree 2x2",
+   "solid": "../XX",
+   "top": "XX/..",
+   "tiles8": 11
+  },
+  {
+   "name": "tree",
+   "kind": "object",
+   "section": "trees",
+   "x": 6,
+   "y": 19,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "dark oak 2x2",
+   "solid": "../XX",
+   "top": "XX/..",
+   "tiles8": 14
+  },
+  {
+   "name": "stump",
+   "kind": "object",
+   "section": "trees",
+   "x": 8,
+   "y": 19,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "stump",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 3
+  },
+  {
+   "name": "log",
+   "kind": "object",
+   "section": "trees",
+   "x": 9,
+   "y": 19,
+   "w": 2,
+   "h": 1,
+   "layer": "mid",
+   "doc": "rotting log 2x1",
+   "solid": "XX",
+   "top": "..",
+   "tiles8": 8
+  },
+  {
+   "name": "shrub",
+   "kind": "object",
+   "section": "trees",
+   "x": 11,
+   "y": 19,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "dark shrub",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "toadstools",
+   "kind": "object",
+   "section": "eerie",
+   "x": 0,
+   "y": 23,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "frames": [
+    [
+     0,
+     23
+    ],
+    [
+     1,
+     23
+    ]
+   ],
+   "period": 30,
+   "doc": "glowing toadstools (pulse)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 7
+  },
+  {
+   "name": "toadstool_ring",
+   "kind": "object",
+   "section": "eerie",
+   "x": 2,
+   "y": 23,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "toadstool ring",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "wisp",
+   "kind": "object",
+   "section": "eerie",
+   "x": 3,
+   "y": 23,
+   "w": 1,
+   "h": 1,
+   "layer": "top",
+   "frames": [
+    [
+     3,
+     23
+    ],
+    [
+     4,
+     23
+    ],
+    [
+     5,
+     23
+    ],
+    [
+     6,
+     23
+    ]
+   ],
+   "period": 12,
+   "doc": "wisp (animated)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 11
+  },
+  {
+   "name": "fog",
+   "kind": "object",
+   "section": "eerie",
+   "x": 7,
+   "y": 23,
+   "w": 1,
+   "h": 1,
+   "layer": "top",
+   "frames": [
+    [
+     7,
+     23
+    ],
+    [
+     8,
+     23
+    ],
+    [
+     9,
+     23
+    ],
+    [
+     10,
+     23
+    ]
+   ],
+   "period": 16,
+   "doc": "drifting fog overlay (tile it)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 8
+  },
+  {
+   "name": "grave_round",
+   "kind": "object",
+   "section": "eerie",
+   "x": 11,
+   "y": 23,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "old grave (round)",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "grave_cross",
+   "kind": "object",
+   "section": "eerie",
+   "x": 12,
+   "y": 23,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "old grave (cross)",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "grave_slab",
+   "kind": "object",
+   "section": "eerie",
+   "x": 13,
+   "y": 23,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "old grave (slab)",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "iron_fence",
+   "kind": "block",
+   "section": "eerie",
+   "x": 0,
+   "y": 24,
+   "w": 4,
+   "h": 2,
+   "layer": "mid",
+   "format": "fence",
+   "doc": "wrought-iron fence",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 22
+  },
+  {
+   "name": "mausoleum",
+   "kind": "object",
+   "section": "eerie",
+   "x": 4,
+   "y": 24,
+   "w": 3,
+   "h": 3,
+   "layer": "mid",
+   "doc": "mausoleum 3x3",
+   "solid": ".../XXX/XXX",
+   "top": "XXX/.../...",
+   "door": [
+    1,
+    2
+   ],
+   "tiles8": 29
+  },
+  {
+   "name": "house",
+   "kind": "object",
+   "section": "buildings",
+   "x": 0,
+   "y": 28,
+   "w": 4,
+   "h": 4,
+   "layer": "mid",
+   "doc": "stone house 4x4",
+   "solid": "XXXX/XXXX/XXXX/XXXX",
+   "top": "..../..../..../....",
+   "door": [
+    2,
+    3
+   ],
+   "tiles8": 38
+  },
+  {
+   "name": "hearth_hall",
+   "kind": "object",
+   "section": "buildings",
+   "x": 4,
+   "y": 28,
+   "w": 6,
+   "h": 5,
+   "layer": "mid",
+   "doc": "Hearth Hall 6x5 (flame plate over the door)",
+   "solid": "XXXXXX/XXXXXX/XXXXXX/XXXXXX/XXXXXX",
+   "top": "....../....../....../....../......",
+   "door": [
+    3,
+    4
+   ],
+   "tiles8": 49
+  },
+  {
+   "name": "shop",
+   "kind": "object",
+   "section": "buildings",
+   "x": 10,
+   "y": 28,
+   "w": 5,
+   "h": 4,
+   "layer": "mid",
+   "doc": "provisions shop 5x4 (awning)",
+   "solid": "XXXXX/XXXXX/XXXXX/XXXXX",
+   "top": "...../...../...../.....",
+   "door": [
+    2,
+    3
+   ],
+   "tiles8": 38
+  },
+  {
+   "name": "inn",
+   "kind": "object",
+   "section": "buildings",
+   "x": 0,
+   "y": 33,
+   "w": 7,
+   "h": 5,
+   "layer": "mid",
+   "doc": "inn 7x5",
+   "solid": "XXXXXXX/XXXXXXX/XXXXXXX/XXXXXXX/XXXXXXX",
+   "top": "......./......./......./......./.......",
+   "door": [
+    2,
+    4
+   ],
+   "tiles8": 78
+  },
+  {
+   "name": "apothecary",
+   "kind": "object",
+   "section": "buildings",
+   "x": 10,
+   "y": 32,
+   "w": 4,
+   "h": 5,
+   "layer": "mid",
+   "doc": "apothecary 4x5",
+   "solid": ".XX./XXXX/XXXX/XXXX/XXXX",
+   "top": "..../..../..../..../....",
+   "door": [
+    1,
+    4
+   ],
+   "tiles8": 51
+  },
+  {
+   "name": "crypt_hall",
+   "kind": "object",
+   "section": "buildings",
+   "x": 7,
+   "y": 37,
+   "w": 6,
+   "h": 6,
+   "layer": "mid",
+   "doc": "crypt hall 6x6",
+   "solid": ".XXXX./.XXXX./XXXXXX/XXXXXX/XXXXXX/XXXXXX",
+   "top": "....../....../....../....../....../......",
+   "door": [
+    3,
+    5
+   ],
+   "tiles8": 59
+  },
+  {
+   "name": "bone_gate",
+   "kind": "object",
+   "section": "buildings",
+   "x": 7,
+   "y": 33,
+   "w": 3,
+   "h": 3,
+   "layer": "mid",
+   "doc": "bone gate 3x3",
+   "solid": ".../X.X/X.X",
+   "top": "XXX/.../...",
+   "door": [
+    1,
+    2
+   ],
+   "tiles8": 25
+  },
+  {
+   "name": "lantern",
+   "kind": "object",
+   "section": "buildings",
+   "x": 15,
+   "y": 28,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "lantern post",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "bell",
+   "kind": "object",
+   "section": "buildings",
+   "x": 14,
+   "y": 32,
+   "w": 2,
+   "h": 4,
+   "layer": "mid",
+   "doc": "bell tower 2x4",
+   "solid": "../XX/XX/XX",
+   "top": "XX/../../..",
+   "tiles8": 26
+  },
+  {
+   "name": "cart",
+   "kind": "object",
+   "section": "buildings",
+   "x": 0,
+   "y": 32,
+   "w": 2,
+   "h": 1,
+   "layer": "mid",
+   "doc": "old cart 2x1",
+   "solid": "XX",
+   "top": "..",
+   "tiles8": 8
+  },
+  {
+   "name": "memorial",
+   "kind": "object",
+   "section": "buildings",
+   "x": 15,
+   "y": 30,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "memorial lantern 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 7
+  },
+  {
+   "name": "mooring",
+   "kind": "object",
+   "section": "buildings",
+   "x": 2,
+   "y": 32,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "mooring post",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "pumpkin",
+   "kind": "object",
+   "section": "buildings",
+   "x": 3,
+   "y": 32,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "carved pumpkin",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "bones",
+   "kind": "object",
+   "section": "buildings",
+   "x": 7,
+   "y": 36,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "bones",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 3
+  },
+  {
+   "name": "signpost",
+   "kind": "object",
+   "section": "buildings",
+   "x": 8,
+   "y": 36,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "crooked sign",
+   "attrs": [
+    "SIGN"
+   ],
+   "solid": "X",
+   "top": ".",
+   "tiles8": 3
+  },
+  {
+   "name": "rock",
+   "kind": "object",
+   "section": "buildings",
+   "x": 9,
+   "y": 36,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "small rock",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "boulder",
+   "kind": "object",
+   "section": "buildings",
+   "x": 14,
+   "y": 36,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "push boulder (strength)",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "rock_cracked",
+   "kind": "object",
+   "section": "buildings",
+   "x": 15,
+   "y": 36,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "breakable rock",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "rock_big",
+   "kind": "object",
+   "section": "buildings",
+   "x": 13,
+   "y": 37,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "crag 2x2",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 16
+  },
+  {
+   "name": "pebbles",
+   "kind": "object",
+   "section": "buildings",
+   "x": 15,
+   "y": 37,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "pebbles (decor)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "standing_stone",
+   "kind": "object",
+   "section": "buildings",
+   "x": 0,
+   "y": 38,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "menhir 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  }
+ ],
+ "scenes": [
+  {
+   "key": "gravewood",
+   "title": "Gravewood (sample)",
+   "w": 36,
+   "h": 26,
+   "doc": "A winding trail through gnarled woods to a fenced graveyard and mausoleum; bog pools, glowing toadstools, wisps and fog."
+  }
+ ]
+}

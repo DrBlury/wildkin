@@ -10,7 +10,7 @@
     WARDEN(MAP_FROSTPINE, 22, 7, WARDEN_A, LEFT, 2, TR_N_TOVE, NO_KIN, "FROSTHOLLOW has a HEARTH HALL. Warm up there."),
     /* ---- Frosthollow ---- */
     PERSON(MAP_FROSTHOLLOW, 22, 12, ELDER, DOWN, LOOK, TALK, LSRC_FROST_ELDER, "ELDER HALVARD",
-           "Frosthollow keeps its hearths lit all winter. And winter here is most of the year."),
+           "Snow on the roofs, steam from the spring: we warm our hands there before setting the hearths."),
     PERSON(MAP_FROSTHOLLOW, 24, 15, HERMIT, DOWN, STILL, ICE_CARVER, LSRC_ICE_CARVER, "ICE CARVER", 0),
     PERSON(MAP_FROSTHOLLOW, 10, 35, KID_B, DOWN, WANDER, TALK, NO_LORE, "SKATER",
            "Try the pond! Push off and you slide until you bump into something. That's how the RIME HALL works too!"),
@@ -78,8 +78,10 @@
     PERSON(MAP_TIMBER_LODGE, 3, 5, VILLAGER, RIGHT, STILL, LOST_AXE, NO_LORE, "LOGGER", 0),
     PERSON(MAP_TIMBER_SAWMILL, 6, 3, SHOPKEEPER, DOWN, STILL, TIMBER_SAWYER, NO_LORE, "SAWYER", 0),
     PERSON(MAP_TIMBERLINE, 24, 20, ELDER, LEFT, STILL, TALK, LSRC_TIMBER_AURORA, "AURORA WATCHER",
-           "On a clear winter night the aurora shines over the flume."),
+           "The sawmill flume freezes at dawn. We break its skin so the wheel can turn before the loggers return."),
     WARDEN(MAP_TIMBERLINE, 13, 21, WARDEN_A, RIGHT, 2, TR_N_LOGGER_1, SP_GNAWLORD, "Timberline keeps working."),
     WARDEN(MAP_TIMBERLINE, 28, 26, WARDEN_B, LEFT, 2, TR_N_LOGGER_2, NO_KIN, "The mill wheel turns even in snow."),
     PERSON_KIN(MAP_STORM_CAVE, 13, 5, HERMIT, DOWN, STILL, STORM_GNAWLORD, NO_LORE, SP_GNAWLORD,
                "LOST LOGGER", 0),
+
+#include "biomes/npcs.inc"

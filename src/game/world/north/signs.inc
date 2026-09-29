@@ -11,3 +11,8 @@
     { MAP_FOOTHILLS, 15, 42, "STORMSTEP SHRINE\fDRAKORA's storm is calm. Beyond the ridge the snow begins." },
     { MAP_TIMBERLINE, 15, 30, "TIMBERLINE\fWarm lodge west, sawmill east. The north road leads to FROSTPINE." },
     { MAP_WHITECROWN, 20, 12, "The summit ice is sealed. Return after the Hollowing is answered." },
+    { MAP_STORM_CAVE, 15, 3, "KARST FISSURE\fOnly ANVIL wardens may pass. STRENGTH shifts loose stones." },
+    { MAP_KARST_CHAMBER, 7, 14, "KARST CHAMBER\fWest: Stormstep. North-east: sawmill cellar. South-east: Glimmer." },
+    { MAP_KARST_FROST, 6, 12, "FROST SPUR\fPush the loose stone north twice. Slide east until it stops, then turn north.\fThe lower walk always leads home." },
+
+#include "biomes/signs.inc"

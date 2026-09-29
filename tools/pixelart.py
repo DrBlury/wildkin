@@ -234,7 +234,7 @@ def shade_clumps(w, h, clumps, ramp, outline, shadow_edge=True, seed=0,
 
 # Tileset registry order: fixes the TS_* ids in gfx_field.h (docs/EXPANSION.md 10.1).
 SETS = ('town', 'wild', 'interior', 'city', 'coast', 'snow', 'cave', 'grim', 'crypt',
-        'volcanic', 'dream', 'farm', 'tide')
+        'volcanic', 'dream', 'farm', 'tide', 'dusk', 'desert', 'jungle')
 
 
 def _mask(spec, w, h, name, what):

@@ -19,3 +19,5 @@ LINK_TR(FJORD_C, "SAIL", MEDUSHOCK, EMPERICE, TUXFLAKE, 38, "The tide carries us
 LINK_TR(FJORD_D, "RIME", TUXFLAKE, EMPERICE, ABYSSLURE, 39, "Cold hands, steady line.")
 LINK_TR(FJORD_E, "LARS", EMPERICE, MEDUSHOCK, TUXFLAKE, 40, "Meet me on the islet.")
 #undef LINK_TR
+
+#include "biomes/trainers.inc"

@@ -288,3 +288,5 @@ static void scr_storm_gnawlord(int npc)
     battle_start_wild(m);
     battle.no_run = 1;
 }
+
+#include "biomes/scripts.c"

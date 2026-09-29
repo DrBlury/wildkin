@@ -6,3 +6,5 @@
     FLAG_VERSE_3,        /* ... the sleeping reader in the Dust Library */
     FLAG_FAR_MINER_GIFT,     /* the tunnel miner's HEAVY LANTERN */
     FLAG_STARGAZER_GIFT, /* the stargazer's STARDUST CHIP */
+    FLAG_EMBER_PRIMED,    /* upstream sluice opened */
+    FLAG_EMBER_COOLED,    /* permanent safe crossing */

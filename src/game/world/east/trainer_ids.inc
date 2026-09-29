@@ -13,3 +13,5 @@
     TR_BRAN,
     TR_COGSWORTH,
     TR_BESS, TR_OAK, TR_ASH, TR_TAM, TR_ROLF, TR_HOLT_EXHIBITION, TR_MINE_BOSS,
+
+#include "biomes/trainer_ids.inc"

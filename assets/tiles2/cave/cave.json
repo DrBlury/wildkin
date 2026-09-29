@@ -1,0 +1,975 @@
+{
+ "name": "cave",
+ "title": "Cave - caverns, mines, grottoes",
+ "doc": "CAVE - caverns, mines, grottoes and root tunnels.\n\nReplaces the old `cave` tileset (Glimmer Caverns 1/2, Copper Mine, Storm\nCave, Starfall, Karst Chamber, Mill Cellar, Rootways, Sporelight Hollow,\nTidal Underflow). Walls are raised rock masses (cliff_top + cliff_face\nover the floor), chasms drop into darkness, and crystals / glowcaps give\nthe dark levels points of light.\n",
+ "cell": 16,
+ "cols": 16,
+ "rows": 26,
+ "palette": {
+  "k0": "#291818",
+  "k1": "#523129",
+  "k2": "#7b5231",
+  "k3": "#ad734a",
+  "k4": "#ce9c63",
+  "cf0": "#181821",
+  "cf1": "#393139",
+  "cf2": "#524a4a",
+  "cf3": "#73635a",
+  "cf4": "#947b6b",
+  "cf5": "#b59c84",
+  "cr0": "#101021",
+  "cr1": "#292939",
+  "cr2": "#423952",
+  "cr3": "#5a5273",
+  "cr4": "#7b7394",
+  "cr5": "#a59cb5",
+  "v0": "#080808",
+  "uw0": "#082131",
+  "uw1": "#10425a",
+  "uw2": "#18637b",
+  "uw3": "#398ca5",
+  "uw4": "#84ced6",
+  "uw5": "#d6f7f7",
+  "cy0": "#29297b",
+  "cy1": "#5252ce",
+  "cy2": "#8c8cf7",
+  "cy3": "#e7e7ff",
+  "am0": "#4a185a",
+  "am1": "#8c39a5",
+  "am2": "#c67be7",
+  "am3": "#f7d6ff",
+  "gc1": "#188c8c",
+  "gc2": "#4ad6c6",
+  "gc3": "#bdfff7",
+  "co0": "#8c4221",
+  "co1": "#d67331",
+  "co2": "#ffb563",
+  "rt0": "#392921",
+  "rt1": "#5a4231",
+  "rt2": "#846b4a",
+  "ms1": "#295a4a",
+  "ms2": "#428c63",
+  "bn0": "#8c8473",
+  "bn1": "#c6bdad",
+  "bn2": "#efe7d6",
+  "fo": "#f79442",
+  "fy": "#ffd631"
+ },
+ "variants": {
+  "deep": {
+   "cf2": "#423952",
+   "cf3": "#52526b",
+   "cf4": "#6b6b8c",
+   "cf5": "#8c8cad",
+   "cr2": "#313152",
+   "cr3": "#42426b",
+   "cr4": "#5a5a8c",
+   "cr5": "#8484b5"
+  }
+ },
+ "banks": [
+  [
+   "cf0",
+   "cf1",
+   "cf2",
+   "cf3",
+   "cf4",
+   "cf5",
+   "cr0",
+   "cr1",
+   "cr2",
+   "v0",
+   "ms1",
+   "ms2",
+   "bn0",
+   "bn1",
+   "bn2"
+  ],
+  [
+   "cf1",
+   "cf2",
+   "cf3",
+   "cf4",
+   "cf5",
+   "cr0",
+   "cr1",
+   "cr2",
+   "cr3",
+   "cr4",
+   "cr5",
+   "v0",
+   "co0",
+   "co1",
+   "co2"
+  ],
+  [
+   "cf0",
+   "cf1",
+   "cf2",
+   "cf3",
+   "cf4",
+   "cf5",
+   "cr0",
+   "cr1",
+   "cr2",
+   "uw0",
+   "uw1",
+   "uw2",
+   "uw3",
+   "uw4",
+   "uw5"
+  ],
+  [
+   "cr0",
+   "cr1",
+   "cr2",
+   "cr3",
+   "cy0",
+   "cy1",
+   "cy2",
+   "cy3",
+   "am0",
+   "am1",
+   "am2",
+   "am3",
+   "gc1",
+   "gc2",
+   "gc3"
+  ],
+  [
+   "k0",
+   "k1",
+   "k2",
+   "k3",
+   "k4",
+   "cr0",
+   "cr1",
+   "cr2",
+   "cr3",
+   "cr4",
+   "co0",
+   "co1",
+   "co2",
+   "fo",
+   "fy"
+  ],
+  [
+   "k0",
+   "k1",
+   "k2",
+   "cf0",
+   "cf1",
+   "cf2",
+   "cf3",
+   "rt0",
+   "rt1",
+   "rt2",
+   "ms1",
+   "ms2",
+   "bn0",
+   "bn1",
+   "bn2"
+  ],
+  [
+   "k0",
+   "k1",
+   "k2",
+   "k3",
+   "cf0",
+   "v0",
+   "rt2"
+  ]
+ ],
+ "stats": {
+  "unique_tiles8": 499,
+  "by_kind": {
+   "tile": 24,
+   "autotile": 203,
+   "patch9": 34,
+   "block": 46,
+   "object": 192
+  },
+  "entries": 46,
+  "colours": 48
+ },
+ "sections": [
+  "ground",
+  "walls and pits",
+  "minerals and life",
+  "mine"
+ ],
+ "entries": [
+  {
+   "name": "floor",
+   "kind": "tile",
+   "section": "ground",
+   "x": 0,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "floor",
+   "weight": 6,
+   "doc": "cave floor",
+   "tiles8": 4
+  },
+  {
+   "name": "floor_b",
+   "kind": "tile",
+   "section": "ground",
+   "x": 1,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "floor",
+   "weight": 3,
+   "tiles8": 4
+  },
+  {
+   "name": "floor_c",
+   "kind": "tile",
+   "section": "ground",
+   "x": 2,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "floor",
+   "weight": 2,
+   "tiles8": 4
+  },
+  {
+   "name": "floor_d",
+   "kind": "tile",
+   "section": "ground",
+   "x": 3,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "floor",
+   "weight": 2,
+   "tiles8": 4
+  },
+  {
+   "name": "rock_top",
+   "kind": "tile",
+   "section": "ground",
+   "x": 4,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "doc": "top of a rock mass (unwalkable)",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 4
+  },
+  {
+   "name": "floor_moss",
+   "kind": "tile",
+   "section": "ground",
+   "x": 5,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "doc": "mossy floor (Sporelight / Rootways)",
+   "tiles8": 4
+  },
+  {
+   "name": "cliff_top",
+   "kind": "autotile",
+   "section": "walls and pits",
+   "x": 0,
+   "y": 3,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "format": "rmxp16",
+   "doc": "upper level of a plateau; its south side flows into cliff_face",
+   "tiles8": 20
+  },
+  {
+   "name": "cliff_face",
+   "kind": "patch9",
+   "section": "walls and pits",
+   "x": 3,
+   "y": 3,
+   "w": 5,
+   "h": 3,
+   "layer": "ground",
+   "format": "patch9",
+   "doc": "cave wall face (>= 2 rows)",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 34
+  },
+  {
+   "name": "cliff_face_single",
+   "kind": "block",
+   "section": "walls and pits",
+   "x": 8,
+   "y": 3,
+   "w": 4,
+   "h": 1,
+   "layer": "ground",
+   "format": "strip4",
+   "doc": "one-row face (a single level of drop): [W end][mid][E end][lone]",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 8
+  },
+  {
+   "name": "ledge",
+   "kind": "block",
+   "section": "walls and pits",
+   "x": 12,
+   "y": 3,
+   "w": 4,
+   "h": 3,
+   "layer": "ground",
+   "format": "ledge",
+   "doc": "one-way ledges: row 0 south [W end][mid][E end][single], row 1 east-facing [N end][mid][S end][SE corner], row 2 west-facing",
+   "attrs": [
+    "LEDGE"
+   ],
+   "tiles8": 16
+  },
+  {
+   "name": "stairs",
+   "kind": "object",
+   "section": "walls and pits",
+   "x": 8,
+   "y": 4,
+   "w": 1,
+   "h": 2,
+   "layer": "ground",
+   "doc": "steps cut into a 2-row face",
+   "solid": "./.",
+   "top": "./.",
+   "tiles8": 8
+  },
+  {
+   "name": "stairs_wide",
+   "kind": "object",
+   "section": "walls and pits",
+   "x": 9,
+   "y": 4,
+   "w": 2,
+   "h": 2,
+   "layer": "ground",
+   "doc": "wide steps",
+   "solid": "../..",
+   "top": "../..",
+   "tiles8": 13
+  },
+  {
+   "name": "chasm",
+   "kind": "autotile",
+   "section": "walls and pits",
+   "x": 3,
+   "y": 6,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "format": "rmxp16",
+   "over": "floor",
+   "doc": "drop into darkness (the far wall shows on the north side)",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 14
+  },
+  {
+   "name": "pool",
+   "kind": "autotile",
+   "section": "walls and pits",
+   "x": 0,
+   "y": 10,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "frames": [
+    [
+     0,
+     10
+    ],
+    [
+     3,
+     10
+    ],
+    [
+     6,
+     10
+    ],
+    [
+     9,
+     10
+    ]
+   ],
+   "period": 20,
+   "format": "rmxp16",
+   "over": "floor",
+   "doc": "underground pool",
+   "attrs": [
+    "WATER"
+   ],
+   "tiles8": 77
+  },
+  {
+   "name": "deep_pool",
+   "kind": "autotile",
+   "section": "walls and pits",
+   "x": 0,
+   "y": 14,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "frames": [
+    [
+     0,
+     14
+    ],
+    [
+     3,
+     14
+    ],
+    [
+     6,
+     14
+    ],
+    [
+     9,
+     14
+    ]
+   ],
+   "period": 20,
+   "format": "rmxp16",
+   "over": "pool",
+   "doc": "deep channel inside pool",
+   "attrs": [
+    "WATER",
+    "DEEP"
+   ],
+   "tiles8": 80
+  },
+  {
+   "name": "moss_patch",
+   "kind": "autotile",
+   "section": "walls and pits",
+   "x": 6,
+   "y": 6,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "format": "rmxp16",
+   "over": "floor",
+   "doc": "moss creeping over rock",
+   "tiles8": 20
+  },
+  {
+   "name": "ladder_up",
+   "kind": "object",
+   "section": "walls and pits",
+   "x": 11,
+   "y": 4,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "ladder up (exit)",
+   "attrs": [
+    "EXIT"
+   ],
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "ladder_down",
+   "kind": "object",
+   "section": "walls and pits",
+   "x": 11,
+   "y": 5,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "hole with ladder down (exit)",
+   "attrs": [
+    "EXIT"
+   ],
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "rope_bridge",
+   "kind": "object",
+   "section": "walls and pits",
+   "x": 9,
+   "y": 6,
+   "w": 3,
+   "h": 2,
+   "layer": "mid",
+   "doc": "rope bridge over a chasm 3x2",
+   "solid": ".../...",
+   "top": ".../...",
+   "floor": "XXX/XXX",
+   "tiles8": 6
+  },
+  {
+   "name": "crystal",
+   "kind": "object",
+   "section": "minerals and life",
+   "x": 0,
+   "y": 19,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "frames": [
+    [
+     0,
+     19
+    ],
+    [
+     1,
+     19
+    ],
+    [
+     2,
+     19
+    ]
+   ],
+   "period": 20,
+   "doc": "glowing crystal cluster (animated glint)",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 10
+  },
+  {
+   "name": "amethyst",
+   "kind": "object",
+   "section": "minerals and life",
+   "x": 3,
+   "y": 19,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "frames": [
+    [
+     3,
+     19
+    ],
+    [
+     4,
+     19
+    ],
+    [
+     5,
+     19
+    ]
+   ],
+   "period": 24,
+   "doc": "amethyst cluster",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 10
+  },
+  {
+   "name": "crystal_pillar",
+   "kind": "object",
+   "section": "minerals and life",
+   "x": 6,
+   "y": 19,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "crystal pillar 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "glowcaps",
+   "kind": "object",
+   "section": "minerals and life",
+   "x": 7,
+   "y": 19,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "frames": [
+    [
+     7,
+     19
+    ],
+    [
+     8,
+     19
+    ]
+   ],
+   "period": 30,
+   "doc": "glowcap mushrooms (pulse)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 7
+  },
+  {
+   "name": "stalagmite",
+   "kind": "object",
+   "section": "minerals and life",
+   "x": 9,
+   "y": 19,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "stalagmite 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "ore_copper",
+   "kind": "object",
+   "section": "minerals and life",
+   "x": 10,
+   "y": 19,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "copper ore (mine)",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "roots",
+   "kind": "object",
+   "section": "minerals and life",
+   "x": 11,
+   "y": 19,
+   "w": 1,
+   "h": 1,
+   "layer": "top",
+   "doc": "hanging roots (over a wall lip)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "bones",
+   "kind": "object",
+   "section": "minerals and life",
+   "x": 12,
+   "y": 19,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "old bones (decor)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 3
+  },
+  {
+   "name": "rock",
+   "kind": "object",
+   "section": "minerals and life",
+   "x": 13,
+   "y": 19,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "small rock",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "boulder",
+   "kind": "object",
+   "section": "minerals and life",
+   "x": 14,
+   "y": 19,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "push boulder (strength)",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "rock_cracked",
+   "kind": "object",
+   "section": "minerals and life",
+   "x": 15,
+   "y": 19,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "breakable rock",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "rock_big",
+   "kind": "object",
+   "section": "minerals and life",
+   "x": 0,
+   "y": 20,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "crag 2x2",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 16
+  },
+  {
+   "name": "pebbles",
+   "kind": "object",
+   "section": "minerals and life",
+   "x": 2,
+   "y": 20,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "pebbles (decor)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "standing_stone",
+   "kind": "object",
+   "section": "minerals and life",
+   "x": 3,
+   "y": 20,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "menhir 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "crack",
+   "kind": "object",
+   "section": "minerals and life",
+   "x": 4,
+   "y": 20,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "squeeze-through fissure 1x2 (set into a wall face)",
+   "attrs": [
+    "EXIT"
+   ],
+   "solid": "./.",
+   "top": "./.",
+   "tiles8": 8
+  },
+  {
+   "name": "stairs_down",
+   "kind": "object",
+   "section": "minerals and life",
+   "x": 5,
+   "y": 20,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "rock steps down 1x2 (exit)",
+   "attrs": [
+    "EXIT"
+   ],
+   "solid": "./.",
+   "top": "./.",
+   "tiles8": 4
+  },
+  {
+   "name": "stairs_up",
+   "kind": "object",
+   "section": "minerals and life",
+   "x": 7,
+   "y": 20,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "rock steps up 1x2 (exit)",
+   "attrs": [
+    "EXIT"
+   ],
+   "solid": "./.",
+   "top": "./.",
+   "tiles8": 1
+  },
+  {
+   "name": "moonbeam",
+   "kind": "object",
+   "section": "minerals and life",
+   "x": 8,
+   "y": 20,
+   "w": 1,
+   "h": 2,
+   "layer": "top",
+   "doc": "moonlight through a ceiling crack 1x2 (top layer)",
+   "solid": "./.",
+   "top": "./.",
+   "tiles8": 6
+  },
+  {
+   "name": "moth_dais",
+   "kind": "object",
+   "section": "minerals and life",
+   "x": 10,
+   "y": 20,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "moth dais 2x2 (Starfall)",
+   "solid": "../..",
+   "top": "../..",
+   "tiles8": 8
+  },
+  {
+   "name": "fungal_shelf",
+   "kind": "object",
+   "section": "minerals and life",
+   "x": 12,
+   "y": 20,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "bracket fungi on a wall",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "rails",
+   "kind": "block",
+   "section": "mine",
+   "x": 0,
+   "y": 23,
+   "w": 4,
+   "h": 2,
+   "layer": "mid",
+   "format": "rails",
+   "doc": "mine rails: row 0 [E-W][N-S][curve S-E][curve S-W], row 1 [curve N-E][curve N-W][buffer][cross]",
+   "tiles8": 30
+  },
+  {
+   "name": "mine_cart",
+   "kind": "object",
+   "section": "mine",
+   "x": 4,
+   "y": 23,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "ore cart",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 3
+  },
+  {
+   "name": "timber_frame",
+   "kind": "object",
+   "section": "mine",
+   "x": 5,
+   "y": 23,
+   "w": 3,
+   "h": 3,
+   "layer": "mid",
+   "doc": "tunnel support 3x3 (walk under)",
+   "solid": ".../X.X/X.X",
+   "top": "XXX/.../...",
+   "tiles8": 18
+  },
+  {
+   "name": "lantern",
+   "kind": "object",
+   "section": "mine",
+   "x": 8,
+   "y": 23,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "frames": [
+    [
+     8,
+     23
+    ],
+    [
+     9,
+     23
+    ]
+   ],
+   "period": 20,
+   "doc": "hanging lantern (flicker)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 8
+  },
+  {
+   "name": "crate",
+   "kind": "object",
+   "section": "mine",
+   "x": 10,
+   "y": 23,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "supply crate",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "barrel",
+   "kind": "object",
+   "section": "mine",
+   "x": 11,
+   "y": 23,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "barrel",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "signpost",
+   "kind": "object",
+   "section": "mine",
+   "x": 12,
+   "y": 23,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "mine sign",
+   "attrs": [
+    "SIGN"
+   ],
+   "solid": "X",
+   "top": ".",
+   "tiles8": 3
+  }
+ ],
+ "scenes": [
+  {
+   "key": "glimmer",
+   "title": "Glimmer Caverns (sample)",
+   "w": 36,
+   "h": 26,
+   "doc": "Rock masses with lit faces, a chasm crossed by a rope bridge, an underground pool, crystal and glowcap pockets and a mine gallery with rails."
+  }
+ ]
+}

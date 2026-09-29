@@ -3,3 +3,5 @@
     QUEST_VOLT_HALL,
     QUEST_GRIST_WHEEL,
     QUEST_KOIRIN_SONG,
+
+#include "biomes/quest_ids.inc"

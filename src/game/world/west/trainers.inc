@@ -59,3 +59,5 @@
         "A good boat rides any current.", "The bow needs mending." },
     [TR_REED_SMOKER] = { "WARDEN ASH", 1, { SP_JELLUME }, { 21 }, 990,
         "Eel smoke tells you which way the wind blows.", "Back to the smokehouse." },
+
+#include "biomes/trainers.inc"

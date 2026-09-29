@@ -88,7 +88,7 @@
     { .map = MAP_BROOKMILL, .x = 22, .y = 14, .chr = CHR_VILLAGER,
       .facing = DIR_DOWN, .behavior = BEH_LOOK, .script = SCR_TALK, .lore = LSRC_FIDDLER,
       .trainer = NO_TRAINER, .kin = NO_KIN, .name = "NIGHT FIDDLER",
-      .text = "The Brook sings a different song at night.", .when = WHEN_NIGHT },
+      .text = "At dusk we tune our fiddles to the mill wheel. The low note is the Brook running beneath it.", .when = WHEN_NIGHT },
     { .map = MAP_LUMEN, .x = 21, .y = 23, .chr = CHR_VILLAGER,
       .facing = DIR_DOWN, .behavior = BEH_LOOK, .script = SCR_TALK, .lore = NO_LORE,
       .trainer = NO_TRAINER, .kin = NO_KIN, .name = "MARKET TRADER",
@@ -97,3 +97,5 @@
       .facing = DIR_DOWN, .behavior = BEH_LOOK, .script = SCR_TALK, .lore = NO_LORE,
       .trainer = NO_TRAINER, .kin = NO_KIN, .name = "NIGHT WATCH",
       .text = "Watch the park at night: rare kin gather after the lamps are lit.", .when = WHEN_NIGHT },
+
+#include "biomes/npcs.inc"

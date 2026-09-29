@@ -1,0 +1,1010 @@
+{
+ "name": "jungle",
+ "title": "Jungle - rainforest, river, root villages",
+ "doc": "JUNGLE - rainforest, river gorges, root villages and overgrown ruins.\n\nReplaces the old `jungle` tileset (Rootcoil Jungle, Canopy Hearth, Canopy\nLodge approach) and serves Elderwood's deep groves. Deep green loam, mud,\na teal river, buttress giants, broad-leaf understorey, bamboo, hanging\nvines, orchids, woven stilt homes and mossy temple ruins.\n",
+ "cell": 16,
+ "cols": 16,
+ "rows": 32,
+ "palette": {
+  "k0": "#291818",
+  "k1": "#523129",
+  "k2": "#7b5231",
+  "k3": "#ad734a",
+  "k4": "#ce9c63",
+  "jg0": "#082118",
+  "jg1": "#103921",
+  "jg2": "#215a29",
+  "jg3": "#317331",
+  "jg4": "#4a9442",
+  "jg5": "#7bbd52",
+  "jl0": "#082118",
+  "jl1": "#103929",
+  "jl2": "#185231",
+  "jl3": "#297342",
+  "jl4": "#4a9c4a",
+  "jl5": "#84c663",
+  "md0": "#291810",
+  "md1": "#423118",
+  "md2": "#634229",
+  "md3": "#7b5a39",
+  "jr0": "#083131",
+  "jr1": "#105252",
+  "jr2": "#217373",
+  "jr3": "#399c8c",
+  "jr4": "#7bceb5",
+  "jr5": "#d6f7e7",
+  "ms0": "#394a39",
+  "ms1": "#5a6b52",
+  "ms2": "#7b8c6b",
+  "ms3": "#a5ad8c",
+  "wv0": "#5a3918",
+  "wv1": "#8c6331",
+  "wv2": "#bd8c4a",
+  "wv3": "#deb56b",
+  "hb": "#ef3963",
+  "hbd": "#a51842",
+  "or": "#d673e7",
+  "fy": "#ffd631"
+ },
+ "variants": {
+  "dusk": {
+   "jg3": "#294a39",
+   "jg4": "#39634a",
+   "jg5": "#528463",
+   "jl3": "#215242",
+   "jl4": "#316b52",
+   "jl5": "#4a8c6b",
+   "jr2": "#185a6b",
+   "jr3": "#297b84"
+  }
+ },
+ "banks": [
+  [
+   "jg0",
+   "jg1",
+   "jg2",
+   "jg3",
+   "jg4",
+   "jg5",
+   "md0",
+   "md1",
+   "md2",
+   "md3",
+   "hb",
+   "hbd",
+   "or",
+   "fy"
+  ],
+  [
+   "jg0",
+   "jg1",
+   "jg2",
+   "jg3",
+   "jg4",
+   "jg5",
+   "md1",
+   "md2",
+   "jr0",
+   "jr1",
+   "jr2",
+   "jr3",
+   "jr4",
+   "jr5"
+  ],
+  [
+   "jg0",
+   "jg1",
+   "jg2",
+   "jg3",
+   "jg4",
+   "jg5",
+   "md0",
+   "md1",
+   "md2",
+   "ms0",
+   "ms1",
+   "ms2",
+   "ms3"
+  ],
+  [
+   "k0",
+   "k1",
+   "k2",
+   "k3",
+   "k4",
+   "jl0",
+   "jl1",
+   "jl2",
+   "jl3",
+   "jl4",
+   "jl5",
+   "hb",
+   "hbd",
+   "or",
+   "fy"
+  ],
+  [
+   "k0",
+   "k1",
+   "k2",
+   "k3",
+   "k4",
+   "md0",
+   "md1",
+   "md2",
+   "jr0",
+   "jr2",
+   "wv0",
+   "wv1",
+   "wv2",
+   "wv3"
+  ],
+  [
+   "k0",
+   "k1",
+   "jl0",
+   "jl1",
+   "jl2",
+   "jl3",
+   "jl4",
+   "jr3",
+   "jr4",
+   "ms0",
+   "ms1",
+   "ms2",
+   "ms3",
+   "fy"
+  ]
+ ],
+ "stats": {
+  "unique_tiles8": 742,
+  "by_kind": {
+   "tile": 48,
+   "autotile": 205,
+   "patch9": 87,
+   "block": 24,
+   "object": 378
+  },
+  "entries": 51,
+  "colours": 39
+ },
+ "sections": [
+  "ground",
+  "autotiles",
+  "trees",
+  "village",
+  "ruins"
+ ],
+ "entries": [
+  {
+   "name": "loam",
+   "kind": "tile",
+   "section": "ground",
+   "x": 0,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "loam",
+   "weight": 9,
+   "doc": "jungle loam",
+   "tiles8": 4
+  },
+  {
+   "name": "loam_b",
+   "kind": "tile",
+   "section": "ground",
+   "x": 1,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "loam",
+   "weight": 4,
+   "tiles8": 4
+  },
+  {
+   "name": "loam_c",
+   "kind": "tile",
+   "section": "ground",
+   "x": 2,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "loam",
+   "weight": 3,
+   "tiles8": 4
+  },
+  {
+   "name": "loam_d",
+   "kind": "tile",
+   "section": "ground",
+   "x": 3,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "loam",
+   "weight": 3,
+   "tiles8": 4
+  },
+  {
+   "name": "mud",
+   "kind": "tile",
+   "section": "ground",
+   "x": 4,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "mud",
+   "weight": 6,
+   "doc": "wet mud",
+   "tiles8": 4
+  },
+  {
+   "name": "mud_b",
+   "kind": "tile",
+   "section": "ground",
+   "x": 5,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "mud",
+   "weight": 3,
+   "tiles8": 4
+  },
+  {
+   "name": "mud_c",
+   "kind": "tile",
+   "section": "ground",
+   "x": 6,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "mud",
+   "weight": 1,
+   "tiles8": 4
+  },
+  {
+   "name": "thicket",
+   "kind": "tile",
+   "section": "ground",
+   "x": 7,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "doc": "dense undergrowth (encounters)",
+   "attrs": [
+    "GRASS"
+   ],
+   "tiles8": 4
+  },
+  {
+   "name": "flowers_hibiscus",
+   "kind": "tile",
+   "section": "ground",
+   "x": 8,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "frames": [
+    [
+     8,
+     1
+    ],
+    [
+     9,
+     1
+    ]
+   ],
+   "period": 32,
+   "group": "flowers",
+   "doc": "jungle blossoms",
+   "tiles8": 8
+  },
+  {
+   "name": "flowers_orchid",
+   "kind": "tile",
+   "section": "ground",
+   "x": 10,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "frames": [
+    [
+     10,
+     1
+    ],
+    [
+     11,
+     1
+    ]
+   ],
+   "period": 32,
+   "group": "flowers",
+   "doc": "jungle blossoms",
+   "tiles8": 8
+  },
+  {
+   "name": "mud_path",
+   "kind": "autotile",
+   "section": "autotiles",
+   "x": 0,
+   "y": 3,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "format": "rmxp16",
+   "over": "loam",
+   "doc": "muddy trail over loam",
+   "tiles8": 24
+  },
+  {
+   "name": "thicket_patch",
+   "kind": "autotile",
+   "section": "autotiles",
+   "x": 3,
+   "y": 3,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "format": "rmxp16",
+   "over": "loam",
+   "doc": "undergrowth with soft edges",
+   "attrs": [
+    "GRASS"
+   ],
+   "tiles8": 20
+  },
+  {
+   "name": "river",
+   "kind": "autotile",
+   "section": "autotiles",
+   "x": 0,
+   "y": 7,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "frames": [
+    [
+     0,
+     7
+    ],
+    [
+     3,
+     7
+    ],
+    [
+     6,
+     7
+    ],
+    [
+     9,
+     7
+    ]
+   ],
+   "period": 20,
+   "format": "rmxp16",
+   "over": "loam",
+   "doc": "jungle river over loam",
+   "attrs": [
+    "WATER"
+   ],
+   "tiles8": 77
+  },
+  {
+   "name": "deep_river",
+   "kind": "autotile",
+   "section": "autotiles",
+   "x": 0,
+   "y": 11,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "frames": [
+    [
+     0,
+     11
+    ],
+    [
+     3,
+     11
+    ],
+    [
+     6,
+     11
+    ],
+    [
+     9,
+     11
+    ]
+   ],
+   "period": 20,
+   "format": "rmxp16",
+   "over": "river",
+   "doc": "deep channel inside river",
+   "attrs": [
+    "WATER",
+    "DEEP"
+   ],
+   "tiles8": 80
+  },
+  {
+   "name": "cliff_top",
+   "kind": "autotile",
+   "section": "autotiles",
+   "x": 6,
+   "y": 3,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "format": "rmxp16",
+   "doc": "upper level of a plateau; its south side flows into cliff_face",
+   "tiles8": 20
+  },
+  {
+   "name": "cliff_face",
+   "kind": "patch9",
+   "section": "autotiles",
+   "x": 9,
+   "y": 3,
+   "w": 5,
+   "h": 3,
+   "layer": "ground",
+   "format": "patch9",
+   "doc": "mossy rock face (>= 2 rows)",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 37
+  },
+  {
+   "name": "cliff_face_single",
+   "kind": "block",
+   "section": "autotiles",
+   "x": 9,
+   "y": 6,
+   "w": 4,
+   "h": 1,
+   "layer": "ground",
+   "format": "strip4",
+   "doc": "one-row face (a single level of drop): [W end][mid][E end][lone]",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 12
+  },
+  {
+   "name": "ledge",
+   "kind": "block",
+   "section": "autotiles",
+   "x": 12,
+   "y": 7,
+   "w": 4,
+   "h": 3,
+   "layer": "ground",
+   "format": "ledge",
+   "doc": "one-way ledges: row 0 south [W end][mid][E end][single], row 1 east-facing [N end][mid][S end][SE corner], row 2 west-facing",
+   "attrs": [
+    "LEDGE"
+   ],
+   "tiles8": 18
+  },
+  {
+   "name": "stairs",
+   "kind": "object",
+   "section": "autotiles",
+   "x": 14,
+   "y": 3,
+   "w": 1,
+   "h": 2,
+   "layer": "ground",
+   "doc": "steps cut into a 2-row face",
+   "solid": "./.",
+   "top": "./.",
+   "tiles8": 8
+  },
+  {
+   "name": "stairs_wide",
+   "kind": "object",
+   "section": "autotiles",
+   "x": 14,
+   "y": 5,
+   "w": 2,
+   "h": 2,
+   "layer": "ground",
+   "doc": "wide steps",
+   "solid": "../..",
+   "top": "../..",
+   "tiles8": 13
+  },
+  {
+   "name": "waterfall",
+   "kind": "object",
+   "section": "autotiles",
+   "x": 0,
+   "y": 15,
+   "w": 2,
+   "h": 3,
+   "layer": "ground",
+   "frames": [
+    [
+     0,
+     15
+    ],
+    [
+     2,
+     15
+    ],
+    [
+     4,
+     15
+    ],
+    [
+     6,
+     15
+    ]
+   ],
+   "period": 8,
+   "doc": "2x3 falls; the bottom row foams into the pool",
+   "attrs": [
+    "WATER"
+   ],
+   "solid": "XX/XX/XX",
+   "top": "../../..",
+   "tiles8": 48
+  },
+  {
+   "name": "buttress_tree",
+   "kind": "object",
+   "section": "trees",
+   "x": 0,
+   "y": 19,
+   "w": 3,
+   "h": 4,
+   "layer": "mid",
+   "doc": "buttress giant 3x4",
+   "solid": ".../.../XXX/XXX",
+   "top": "XXX/XXX/.../...",
+   "tiles8": 42
+  },
+  {
+   "name": "tree",
+   "kind": "object",
+   "section": "trees",
+   "x": 3,
+   "y": 19,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "rainforest tree 2x2; crown above people",
+   "solid": "../XX",
+   "top": "XX/..",
+   "tiles8": 14
+  },
+  {
+   "name": "tree_b",
+   "kind": "object",
+   "section": "trees",
+   "x": 5,
+   "y": 19,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "solid": "../XX",
+   "top": "XX/..",
+   "tiles8": 14
+  },
+  {
+   "name": "tree_small",
+   "kind": "object",
+   "section": "trees",
+   "x": 7,
+   "y": 19,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "young rainforest 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "tree_big",
+   "kind": "object",
+   "section": "trees",
+   "x": 8,
+   "y": 19,
+   "w": 3,
+   "h": 3,
+   "layer": "mid",
+   "doc": "elder rainforest 3x3",
+   "solid": ".../.../XXX",
+   "top": "XXX/XXX/...",
+   "tiles8": 29
+  },
+  {
+   "name": "forest",
+   "kind": "patch9",
+   "section": "trees",
+   "x": 11,
+   "y": 19,
+   "w": 5,
+   "h": 3,
+   "layer": "mid",
+   "format": "patch9",
+   "doc": "dense rainforest woods (mass layer; trunks on the south edge)",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 34
+  },
+  {
+   "name": "big_leaf",
+   "kind": "object",
+   "section": "trees",
+   "x": 3,
+   "y": 21,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "broad-leaf plant",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "fern",
+   "kind": "object",
+   "section": "trees",
+   "x": 4,
+   "y": 21,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "fern (walkable decor)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "bamboo",
+   "kind": "object",
+   "section": "trees",
+   "x": 5,
+   "y": 21,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "bamboo 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "vines",
+   "kind": "object",
+   "section": "trees",
+   "x": 6,
+   "y": 21,
+   "w": 1,
+   "h": 2,
+   "layer": "top",
+   "doc": "hanging vines 1x2 (top layer)",
+   "solid": "./.",
+   "top": "./.",
+   "tiles8": 8
+  },
+  {
+   "name": "orchid",
+   "kind": "object",
+   "section": "trees",
+   "x": 7,
+   "y": 21,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "orchid (decor)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "bush_flower",
+   "kind": "object",
+   "section": "trees",
+   "x": 3,
+   "y": 22,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "hibiscus bush",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "lily_pads",
+   "kind": "object",
+   "section": "trees",
+   "x": 4,
+   "y": 22,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "lily pads (river)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "log",
+   "kind": "object",
+   "section": "trees",
+   "x": 7,
+   "y": 22,
+   "w": 2,
+   "h": 1,
+   "layer": "mid",
+   "doc": "mossy log 2x1",
+   "solid": "XX",
+   "top": "..",
+   "tiles8": 8
+  },
+  {
+   "name": "woven_hut",
+   "kind": "object",
+   "section": "village",
+   "x": 0,
+   "y": 24,
+   "w": 4,
+   "h": 4,
+   "layer": "mid",
+   "doc": "woven stilt home 4x4 on a root deck",
+   "solid": "..../XXXX/XXXX/....",
+   "top": "XXXX/..../..../....",
+   "door": [
+    2,
+    2
+   ],
+   "tiles8": 48
+  },
+  {
+   "name": "stilt_hut",
+   "kind": "object",
+   "section": "village",
+   "x": 4,
+   "y": 24,
+   "w": 3,
+   "h": 3,
+   "layer": "mid",
+   "doc": "small stilt hut 3x3",
+   "solid": ".../XXX/...",
+   "top": "XXX/.../...",
+   "door": [
+    1,
+    1
+   ],
+   "tiles8": 32
+  },
+  {
+   "name": "rope_bridge",
+   "kind": "object",
+   "section": "village",
+   "x": 7,
+   "y": 24,
+   "w": 3,
+   "h": 2,
+   "layer": "mid",
+   "doc": "rope bridge 3x2 (over river / gorge)",
+   "solid": ".../...",
+   "top": ".../...",
+   "floor": "XXX/XXX",
+   "tiles8": 6
+  },
+  {
+   "name": "root_bridge",
+   "kind": "object",
+   "section": "village",
+   "x": 10,
+   "y": 24,
+   "w": 3,
+   "h": 2,
+   "layer": "mid",
+   "doc": "living root bridge 3x2",
+   "solid": ".../...",
+   "top": ".../...",
+   "floor": "XXX/XXX",
+   "tiles8": 13
+  },
+  {
+   "name": "waypost",
+   "kind": "object",
+   "section": "village",
+   "x": 13,
+   "y": 24,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "leaf-pattern waypost",
+   "attrs": [
+    "SIGN"
+   ],
+   "solid": "X",
+   "top": ".",
+   "tiles8": 3
+  },
+  {
+   "name": "jars",
+   "kind": "object",
+   "section": "village",
+   "x": 14,
+   "y": 24,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "woven basket",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "crate",
+   "kind": "object",
+   "section": "village",
+   "x": 15,
+   "y": 24,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "crate",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "ruin_block",
+   "kind": "object",
+   "section": "ruins",
+   "x": 0,
+   "y": 29,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "carved temple block 2x2",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 15
+  },
+  {
+   "name": "idol",
+   "kind": "object",
+   "section": "ruins",
+   "x": 2,
+   "y": 29,
+   "w": 2,
+   "h": 3,
+   "layer": "mid",
+   "doc": "jungle idol 2x3",
+   "solid": "../XX/XX",
+   "top": "XX/../..",
+   "tiles8": 17
+  },
+  {
+   "name": "ruin_wall",
+   "kind": "patch9",
+   "section": "ruins",
+   "x": 4,
+   "y": 29,
+   "w": 5,
+   "h": 3,
+   "layer": "mid",
+   "format": "patch9",
+   "doc": "mossy ruin wall",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 16
+  },
+  {
+   "name": "rock",
+   "kind": "object",
+   "section": "ruins",
+   "x": 9,
+   "y": 29,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "small rock",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "boulder",
+   "kind": "object",
+   "section": "ruins",
+   "x": 10,
+   "y": 29,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "push boulder (strength)",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "rock_cracked",
+   "kind": "object",
+   "section": "ruins",
+   "x": 11,
+   "y": 29,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "breakable rock",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "rock_big",
+   "kind": "object",
+   "section": "ruins",
+   "x": 12,
+   "y": 29,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "crag 2x2",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 16
+  },
+  {
+   "name": "pebbles",
+   "kind": "object",
+   "section": "ruins",
+   "x": 14,
+   "y": 29,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "pebbles (decor)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "standing_stone",
+   "kind": "object",
+   "section": "ruins",
+   "x": 15,
+   "y": 29,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "menhir 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  }
+ ],
+ "scenes": [
+  {
+   "key": "rootcoil",
+   "title": "Rootcoil Jungle and Canopy Hearth (sample)",
+   "w": 36,
+   "h": 26,
+   "doc": "A root village on a clearing beside the river: woven stilt homes, a rope bridge, buttress giants, bamboo, vines, mossy cliffs, a waterfall and temple ruins."
+  }
+ ]
+}

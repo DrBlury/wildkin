@@ -4,3 +4,5 @@
     { MAP_FROSTHOLLOW, 6, 14, 84, 38, "FROSTHOLLOW" },
     { MAP_SKY_ISLE, 17, 21, 122, 12, "SKY ISLE" },
     { MAP_TIMBERLINE, 19, 19, 87, 54, "TIMBERLINE" },
+
+#include "biomes/flypoints.inc"

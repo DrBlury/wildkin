@@ -14,3 +14,5 @@
     TR_MAREN,         /* HALL MASTER MAREN (TT_MASTER, via battle_start_master) */
     TR_FEN_TEASER, TR_FEN_BIRDER, TR_FEN_REED_A, TR_FEN_REED_B,
     TR_FEN_FISHER, TR_FEN_WISP, TR_REED_BOAT, TR_REED_SMOKER,
+
+#include "biomes/trainer_ids.inc"

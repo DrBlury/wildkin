@@ -13,3 +13,8 @@
     { MAP_CINDER_CROSSING, 3, 18, "CINDER BRIDGE — OUT. SURF OR WAIT FOR REPAIR." },
     { MAP_RAILHEAD, 3, 18, "RAILHEAD. Hearth in the bunk; foreman in the office." },
     { MAP_MISTFEN, 21, 57, "MISTFEN. The WARD LANTERN parts Moonveil mist." },
+    { MAP_RAILHEAD_SHAFT, 8, 2, "COLLAPSED SHAFT\fThe Anvil Crest steadies the deep passage." },
+    { MAP_COOLING_CHAMBER, 7, 11, "The sluice note reads: INTAKE, THEN RELEASE.\fA cooled seam holds until the mountain wakes." },
+    { MAP_EMBER_SPAN, 8, 12, "IRON SPAN\fA high deck over molten stone. Keep to the rails." },
+    { MAP_COOLING_CHAMBER, 16, 5, "An ash-root seam runs toward the old March.\fOnly Morwen's Lantern Crest parts the stone." },
+    { MAP_RAILHEAD_SHAFT, 2, 9, "A copper seam returns toward Copperline.\fThe Anvil Crest opens this old mine gate." },

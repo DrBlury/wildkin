@@ -18,3 +18,8 @@
     MAP_BROOKMILL_HOUSE,
     MAP_BROOKMILL_REST,
     MAP_COPPER_MINE,
+    MAP_ROOTWOOD_PATH,
+    MAP_ROOTWAYS,
+    MAP_MILL_CELLAR,
+
+#include "biomes/ids.inc"

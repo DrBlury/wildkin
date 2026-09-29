@@ -93,7 +93,7 @@ static void draw_layer(int which)
 static void draw_people(int prio)
 {
     for (int i = 0; i < NPC_COUNT; i++) {
-        if (NPCS[i].map != cur_map) continue;
+        if (NPCS[i].map != cur_map || NPCS[i].fixture) continue;
         const Actor *a = &npc_state[i];
         if (elev_obj_prio(a) != prio) continue;
         draw_obj(char_gfx[NPCS[i].chr][actor_frame(a)], char_palettes[NPCS[i].chr], a->x * 16,

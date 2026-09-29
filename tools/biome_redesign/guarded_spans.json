@@ -1,0 +1,1607 @@
+[
+  {
+    "path": "src/game/world/east/data.h",
+    "array": "BROOK_TRAIL_ROWS",
+    "map": "MAP_BROOKMILL_TRAIL",
+    "width": 64,
+    "height": 36,
+    "rows": [
+      {
+        "y": 2,
+        "before": "PP,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,PP",
+        "after": "PP,,,,,,,,,,,,,,,,,,PPPP,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,PP"
+      },
+      {
+        "y": 3,
+        "before": "PP,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,PP",
+        "after": "PP,,,,,,,,,,,,,,,,,,pppp,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,PP"
+      },
+      {
+        "y": 4,
+        "before": "PP,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,PP",
+        "after": "PP,,,,,,,,,,,,,,,,,,PPPP,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,PP"
+      },
+      {
+        "y": 5,
+        "before": "PP,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,PP",
+        "after": "PP,,,,,,,,,,,,,,,,,,pppp.,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,PP"
+      },
+      {
+        "y": 6,
+        "before": "PP,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,PP",
+        "after": "PP,,,,,,,,,,,,,,,,,,PPPP...,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,PP"
+      },
+      {
+        "y": 7,
+        "before": "PP,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP",
+        "after": "PP,,,,,,,,,,,,,,,,,,pppp,,,...,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP"
+      },
+      {
+        "y": 8,
+        "before": "PP,,,,,mmmmmm,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP",
+        "after": "PP,,,,,mmmmmm,,,,,,,PPPP,,,,,...,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP"
+      },
+      {
+        "y": 9,
+        "before": "PP,,,,,mmmmmm,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP",
+        "after": "PP,,,,,mmmmmm,,,,,,,pppp,,,,,,...,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP"
+      },
+      {
+        "y": 10,
+        "before": "PP,,,,,mmmmmm,,,,rrrr,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP",
+        "after": "PP,,,,,mmmmmm,,,,rrrPPPP,,,,,...,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP"
+      },
+      {
+        "y": 11,
+        "before": "PP,,,,,mmmmmm,,,,rrrr,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP",
+        "after": "PP,,,,,mmmmmm,,,,rrrpppp,,,...,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP"
+      },
+      {
+        "y": 12,
+        "before": "PP,,,,,mmmmmm,,,,rrrr,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP",
+        "after": "PP,,,,,mmmmmm,,,,rrrPPPP...,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP"
+      },
+      {
+        "y": 13,
+        "before": "PP,,,,,mmmmmm,,,,rrrr,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP",
+        "after": "PP,,,,,mmmmmm,,,,rrrpppp,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP"
+      },
+      {
+        "y": 14,
+        "before": "PP,,,,,mmmmmm,,,,rrrr,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP",
+        "after": "PP,,,,,mmmmmm,,,,rrrPPPP,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP"
+      },
+      {
+        "y": 15,
+        "before": "PP............................................................PP",
+        "after": "PP...................ppp......................................PP"
+      },
+      {
+        "y": 16,
+        "before": "PP............................................................PP",
+        "after": "PP...................PPP......................................PP"
+      },
+      {
+        "y": 17,
+        "before": "================================================================",
+        "after": "====================pppp========================================"
+      },
+      {
+        "y": 18,
+        "before": "================================================================",
+        "after": "====================PPPP========================================"
+      }
+    ],
+    "approvedCollisions": [
+      [
+        20,
+        2,
+        ",",
+        "P"
+      ],
+      [
+        21,
+        2,
+        ",",
+        "P"
+      ],
+      [
+        22,
+        2,
+        ",",
+        "P"
+      ],
+      [
+        23,
+        2,
+        ",",
+        "P"
+      ],
+      [
+        20,
+        3,
+        ",",
+        "p"
+      ],
+      [
+        21,
+        3,
+        ",",
+        "p"
+      ],
+      [
+        22,
+        3,
+        ",",
+        "p"
+      ],
+      [
+        23,
+        3,
+        ",",
+        "p"
+      ],
+      [
+        20,
+        4,
+        ",",
+        "P"
+      ],
+      [
+        21,
+        4,
+        ",",
+        "P"
+      ],
+      [
+        22,
+        4,
+        ",",
+        "P"
+      ],
+      [
+        23,
+        4,
+        ",",
+        "P"
+      ],
+      [
+        20,
+        5,
+        ",",
+        "p"
+      ],
+      [
+        21,
+        5,
+        ",",
+        "p"
+      ],
+      [
+        22,
+        5,
+        ",",
+        "p"
+      ],
+      [
+        23,
+        5,
+        ",",
+        "p"
+      ],
+      [
+        20,
+        6,
+        ",",
+        "P"
+      ],
+      [
+        21,
+        6,
+        ",",
+        "P"
+      ],
+      [
+        22,
+        6,
+        ",",
+        "P"
+      ],
+      [
+        23,
+        6,
+        ",",
+        "P"
+      ],
+      [
+        20,
+        7,
+        ",",
+        "p"
+      ],
+      [
+        21,
+        7,
+        ",",
+        "p"
+      ],
+      [
+        22,
+        7,
+        ",",
+        "p"
+      ],
+      [
+        23,
+        7,
+        ",",
+        "p"
+      ],
+      [
+        20,
+        8,
+        ",",
+        "P"
+      ],
+      [
+        21,
+        8,
+        ",",
+        "P"
+      ],
+      [
+        22,
+        8,
+        ",",
+        "P"
+      ],
+      [
+        23,
+        8,
+        ",",
+        "P"
+      ],
+      [
+        20,
+        9,
+        ",",
+        "p"
+      ],
+      [
+        21,
+        9,
+        ",",
+        "p"
+      ],
+      [
+        22,
+        9,
+        ",",
+        "p"
+      ],
+      [
+        23,
+        9,
+        ",",
+        "p"
+      ],
+      [
+        20,
+        10,
+        "r",
+        "P"
+      ],
+      [
+        21,
+        10,
+        ",",
+        "P"
+      ],
+      [
+        22,
+        10,
+        ",",
+        "P"
+      ],
+      [
+        23,
+        10,
+        ",",
+        "P"
+      ],
+      [
+        20,
+        11,
+        "r",
+        "p"
+      ],
+      [
+        21,
+        11,
+        ",",
+        "p"
+      ],
+      [
+        22,
+        11,
+        ",",
+        "p"
+      ],
+      [
+        23,
+        11,
+        ",",
+        "p"
+      ],
+      [
+        20,
+        12,
+        "r",
+        "P"
+      ],
+      [
+        21,
+        12,
+        ",",
+        "P"
+      ],
+      [
+        22,
+        12,
+        ",",
+        "P"
+      ],
+      [
+        23,
+        12,
+        ",",
+        "P"
+      ],
+      [
+        20,
+        13,
+        "r",
+        "p"
+      ],
+      [
+        21,
+        13,
+        ",",
+        "p"
+      ],
+      [
+        22,
+        13,
+        ",",
+        "p"
+      ],
+      [
+        23,
+        13,
+        ",",
+        "p"
+      ],
+      [
+        20,
+        14,
+        "r",
+        "P"
+      ],
+      [
+        21,
+        14,
+        ",",
+        "P"
+      ],
+      [
+        22,
+        14,
+        ",",
+        "P"
+      ],
+      [
+        23,
+        14,
+        ",",
+        "P"
+      ],
+      [
+        21,
+        15,
+        ".",
+        "p"
+      ],
+      [
+        22,
+        15,
+        ".",
+        "p"
+      ],
+      [
+        23,
+        15,
+        ".",
+        "p"
+      ],
+      [
+        21,
+        16,
+        ".",
+        "P"
+      ],
+      [
+        22,
+        16,
+        ".",
+        "P"
+      ],
+      [
+        23,
+        16,
+        ".",
+        "P"
+      ],
+      [
+        20,
+        17,
+        "=",
+        "p"
+      ],
+      [
+        21,
+        17,
+        "=",
+        "p"
+      ],
+      [
+        22,
+        17,
+        "=",
+        "p"
+      ],
+      [
+        23,
+        17,
+        "=",
+        "p"
+      ],
+      [
+        20,
+        18,
+        "=",
+        "P"
+      ],
+      [
+        21,
+        18,
+        "=",
+        "P"
+      ],
+      [
+        22,
+        18,
+        "=",
+        "P"
+      ],
+      [
+        23,
+        18,
+        "=",
+        "P"
+      ]
+    ],
+    "route": {
+      "start": [
+        14,
+        17
+      ],
+      "end": [
+        26,
+        17
+      ],
+      "bend": [
+        21,
+        19
+      ],
+      "wall": [
+        21,
+        17
+      ]
+    }
+  },
+  {
+    "path": "src/game/world/east/data.h",
+    "array": "BROOKMILL_ROWS",
+    "map": "MAP_BROOKMILL",
+    "width": 40,
+    "height": 36,
+    "rows": [
+      {
+        "y": 3,
+        "before": "TT.................==.................TT",
+        "after": "TT........,,,......==.................TT"
+      },
+      {
+        "y": 4,
+        "before": "TT.................==.................TT",
+        "after": "TT.........,,,.....==.................TT"
+      },
+      {
+        "y": 5,
+        "before": "TT.................==.................TT",
+        "after": "TT..........,,,....==.................TT"
+      },
+      {
+        "y": 20,
+        "before": "tt......==.....................==.....tt",
+        "after": "tt......==.....===.............==.....tt"
+      },
+      {
+        "y": 21,
+        "before": "tt......==.....................==.....tt",
+        "after": "tt......==......===............==.....tt"
+      },
+      {
+        "y": 22,
+        "before": "tt......==.....................==.....tt",
+        "after": "tt......==.......===...........==.....tt"
+      }
+    ]
+  },
+  {
+    "path": "src/game/world/west/data.h",
+    "array": "HERON_FEN_ROWS",
+    "map": "MAP_HERON_FEN",
+    "width": 64,
+    "height": 40,
+    "rows": [
+      {
+        "y": 8,
+        "before": "~.....,..ssskkss.ss.,......~~~~~~.......,.......,.......,......~",
+        "after": "~.....,..ssskkss.ss.,......~~~~~~..===..,.......,.......,......~"
+      },
+      {
+        "y": 9,
+        "before": "~....,..sss.kks.sss,......,~~~~~~....,.......,.......,.......,.~",
+        "after": "~....,..sss.kks.sss,......,~~~~~~....===.....,.......,.......,.~"
+      },
+      {
+        "y": 10,
+        "before": "~...,...ss.sss.sss.......,.~~~~~~.,.......,.......,.......,....~",
+        "after": "~...,...ss.sss.sss.......,.~~~~~~.,....===,.......,.......,....~"
+      },
+      {
+        "y": 11,
+        "before": "~..,....s.sss.sss.s.....,..~~~~~~......,.......,.......,.......~",
+        "after": "~..,....s.sss.sss.s.....,..~~~~~~......,===....,.......,.......~"
+      },
+      {
+        "y": 12,
+        "before": "~.,......sss.sss.ss....,...~~~~~~...,.......,.......,.......,..~",
+        "after": "~.,......sss.sss.ss....,...~~~~~~...,..===..,.......,.......,..~"
+      },
+      {
+        "y": 13,
+        "before": "~,......sss.sss.sss...,....~~~~~~,.......,.......,.......,.....~",
+        "after": "~,......sss.sss.sss...,....~~~~~~,...===.,.......,.......,.....~"
+      },
+      {
+        "y": 14,
+        "before": "~......,ss.sss.sss...,.....~~~~~~.....,.......,.......,.......,~",
+        "after": "~......,ss.sss.sss...,.....~~~~~~..===,.......,.......,.......,~"
+      }
+    ]
+  },
+  {
+    "path": "src/game/world/west/data.h",
+    "array": "REEDWICK_ROWS",
+    "map": "MAP_REEDWICK",
+    "width": 40,
+    "height": 36,
+    "rows": [
+      {
+        "y": 8,
+        "before": "~.sss...........sss.ssssssss.ssssssss.s~",
+        "after": "~.sss...........sss.sss===ss.ssssssss.s~"
+      },
+      {
+        "y": 9,
+        "before": "~ssss...........ss.ssssssss.ssssssss.ss~",
+        "after": "~ssss...........ss.sssss===.ssssssss.ss~"
+      },
+      {
+        "y": 10,
+        "before": "~ssss...........s.ssssssss.ssssssss.sss~",
+        "after": "~ssss...........s.sssssss===sssssss.sss~"
+      },
+      {
+        "y": 11,
+        "before": "~ssss............ssssssss.ssssssss.ssss~",
+        "after": "~ssss............ssssssss.===sssss.ssss~"
+      },
+      {
+        "y": 12,
+        "before": "~ssss...........ssssssss.ssssssss.sssss~",
+        "after": "~ssss...........ssssssss.===sssss.sssss~"
+      },
+      {
+        "y": 13,
+        "before": "~ssss...........sssssss.ssssssss.ssssss~",
+        "after": "~ssss...........sssssss.===sssss.ssssss~"
+      }
+    ]
+  },
+  {
+    "path": "src/game/world/west/data.h",
+    "array": "SALTWIND_ROWS",
+    "map": "MAP_SALTWIND",
+    "width": 50,
+    "height": 40,
+    "rows": [
+      {
+        "y": 4,
+        "before": "PP.............P.....P..........................PP",
+        "after": "PP........PPPP.P.....P..........................PP"
+      },
+      {
+        "y": 5,
+        "before": "pp..,,,,,,,,,,.p.....p..,,,,,,,,,,,,,,..,,,,,,..pp",
+        "after": "pp..,,,,,,pppp.p.....p..,...,,,,,,,,,,..,,,,,,..pp"
+      },
+      {
+        "y": 6,
+        "before": "PP..,,,,,,,,,,..........,,,,,,,,,,,,,,..,,,,,,..PP",
+        "after": "PP..,,,,,,PPPP..........,,,...,,,,,,,,..,,,,,,..PP"
+      },
+      {
+        "y": 7,
+        "before": "pp..,,,,,,,,,,..........,,,,,,,,,,,,,,..,,,,,,..pp",
+        "after": "pp..,,,,,,pppp..........,,,,,...,,,,,,..,,,,,,..pp"
+      },
+      {
+        "y": 8,
+        "before": "PP..,,,,,,,,,,...P......,,,,,,,,,,,PPPPPPPPP....PP",
+        "after": "PP..,,,,,,PPPP...P......,,,,,,...,,PPPPPPPPP....PP"
+      },
+      {
+        "y": 9,
+        "before": "pp..,,,,,,,,,,...p......,,,,,,,,,,,PP.....PP....pp",
+        "after": "pp..,,,,,,pppp...p......,,,,,...,,,PP.....PP....pp"
+      },
+      {
+        "y": 10,
+        "before": "PP.................................PP.....PP....PP",
+        "after": "PP........PPPP.....................PP.....PP....PP"
+      },
+      {
+        "y": 14,
+        "before": "PP...,,,,,,,,....................P....======....PP",
+        "after": "PP...,,,,,PPPP...................P....======....PP"
+      },
+      {
+        "y": 15,
+        "before": "pp...,,,,,,,,.............P......p....======....pp",
+        "after": "pp...,,,,,pppp............P......p....======....pp"
+      },
+      {
+        "y": 16,
+        "before": "PP...,,,,,,,,.............p...........==....P...PP",
+        "after": "PP...,,,,,PPPP............p...........==....P...PP"
+      },
+      {
+        "y": 17,
+        "before": "pp...,,,,,,,,.....==..ry.......P......==....p...pp",
+        "after": "pp...,,,,,pppp....==..ry.......P......==....p...pp"
+      },
+      {
+        "y": 18,
+        "before": "................r.==..y........p......==.yr.....PP",
+        "after": "..........PPPP..r.==..y........p......==.yr.....PP"
+      },
+      {
+        "y": 19,
+        "before": "====================.......P..........==........pp",
+        "after": "==========pppp======.......P..........==........pp"
+      },
+      {
+        "y": 20,
+        "before": "====================.......p.r........==......P.PP",
+        "after": "==========PPPP======.......p.r........==......P.PP"
+      }
+    ],
+    "approvedCollisions": [
+      [
+        10,
+        4,
+        ".",
+        "P"
+      ],
+      [
+        11,
+        4,
+        ".",
+        "P"
+      ],
+      [
+        12,
+        4,
+        ".",
+        "P"
+      ],
+      [
+        13,
+        4,
+        ".",
+        "P"
+      ],
+      [
+        10,
+        5,
+        ",",
+        "p"
+      ],
+      [
+        11,
+        5,
+        ",",
+        "p"
+      ],
+      [
+        12,
+        5,
+        ",",
+        "p"
+      ],
+      [
+        13,
+        5,
+        ",",
+        "p"
+      ],
+      [
+        10,
+        6,
+        ",",
+        "P"
+      ],
+      [
+        11,
+        6,
+        ",",
+        "P"
+      ],
+      [
+        12,
+        6,
+        ",",
+        "P"
+      ],
+      [
+        13,
+        6,
+        ",",
+        "P"
+      ],
+      [
+        10,
+        7,
+        ",",
+        "p"
+      ],
+      [
+        11,
+        7,
+        ",",
+        "p"
+      ],
+      [
+        12,
+        7,
+        ",",
+        "p"
+      ],
+      [
+        13,
+        7,
+        ",",
+        "p"
+      ],
+      [
+        10,
+        8,
+        ",",
+        "P"
+      ],
+      [
+        11,
+        8,
+        ",",
+        "P"
+      ],
+      [
+        12,
+        8,
+        ",",
+        "P"
+      ],
+      [
+        13,
+        8,
+        ",",
+        "P"
+      ],
+      [
+        10,
+        9,
+        ",",
+        "p"
+      ],
+      [
+        11,
+        9,
+        ",",
+        "p"
+      ],
+      [
+        12,
+        9,
+        ",",
+        "p"
+      ],
+      [
+        13,
+        9,
+        ",",
+        "p"
+      ],
+      [
+        10,
+        10,
+        ".",
+        "P"
+      ],
+      [
+        11,
+        10,
+        ".",
+        "P"
+      ],
+      [
+        12,
+        10,
+        ".",
+        "P"
+      ],
+      [
+        13,
+        10,
+        ".",
+        "P"
+      ],
+      [
+        10,
+        14,
+        ",",
+        "P"
+      ],
+      [
+        11,
+        14,
+        ",",
+        "P"
+      ],
+      [
+        12,
+        14,
+        ",",
+        "P"
+      ],
+      [
+        13,
+        14,
+        ".",
+        "P"
+      ],
+      [
+        10,
+        15,
+        ",",
+        "p"
+      ],
+      [
+        11,
+        15,
+        ",",
+        "p"
+      ],
+      [
+        12,
+        15,
+        ",",
+        "p"
+      ],
+      [
+        13,
+        15,
+        ".",
+        "p"
+      ],
+      [
+        10,
+        16,
+        ",",
+        "P"
+      ],
+      [
+        11,
+        16,
+        ",",
+        "P"
+      ],
+      [
+        12,
+        16,
+        ",",
+        "P"
+      ],
+      [
+        13,
+        16,
+        ".",
+        "P"
+      ],
+      [
+        10,
+        17,
+        ",",
+        "p"
+      ],
+      [
+        11,
+        17,
+        ",",
+        "p"
+      ],
+      [
+        12,
+        17,
+        ",",
+        "p"
+      ],
+      [
+        13,
+        17,
+        ".",
+        "p"
+      ],
+      [
+        10,
+        18,
+        ".",
+        "P"
+      ],
+      [
+        11,
+        18,
+        ".",
+        "P"
+      ],
+      [
+        12,
+        18,
+        ".",
+        "P"
+      ],
+      [
+        13,
+        18,
+        ".",
+        "P"
+      ],
+      [
+        10,
+        19,
+        "=",
+        "p"
+      ],
+      [
+        11,
+        19,
+        "=",
+        "p"
+      ],
+      [
+        12,
+        19,
+        "=",
+        "p"
+      ],
+      [
+        13,
+        19,
+        "=",
+        "p"
+      ],
+      [
+        10,
+        20,
+        "=",
+        "P"
+      ],
+      [
+        11,
+        20,
+        "=",
+        "P"
+      ],
+      [
+        12,
+        20,
+        "=",
+        "P"
+      ],
+      [
+        13,
+        20,
+        "=",
+        "P"
+      ]
+    ],
+    "route": {
+      "start": [
+        4,
+        19
+      ],
+      "end": [
+        19,
+        19
+      ],
+      "bend": [
+        11,
+        21
+      ],
+      "wall": [
+        11,
+        19
+      ]
+    }
+  },
+  {
+    "path": "src/game/world/west/data.h",
+    "array": "PORT_BRINE_ROWS",
+    "map": "MAP_PORT_BRINE",
+    "width": 48,
+    "height": 40,
+    "rows": [
+      {
+        "y": 24,
+        "before": "~..r.=...qqqqqqqqqqqqqq~~~qqqqqqqqqqqqqqqkkkkk~~",
+        "after": "~..r.=...qqqqqqqqqqqsss~~~qqqqqqqqqqqqqqqkkkkk~~"
+      },
+      {
+        "y": 25,
+        "before": "~~...=...qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqkkkkk~~",
+        "after": "~~...=...qqqqqqqqqqqqsssqqqqqqqqqqqqqqqqqkkkkk~~"
+      },
+      {
+        "y": 26,
+        "before": "~~...=...qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqkkokkk~",
+        "after": "~~...=...qqqqqqqqqqqsssqqqqqqqqqqqqqqqqqqkkokkk~"
+      }
+    ]
+  },
+  {
+    "path": "src/game/world/west/data.h",
+    "array": "GULL_ISLE_ROWS",
+    "map": "MAP_GULL_ISLE",
+    "width": 40,
+    "height": 34,
+    "rows": [
+      {
+        "y": 15,
+        "before": "~~~~ss.,,,,.=.......=...sss...=.....s~~~",
+        "after": "~~~~ss.,,,,.=...===.=...sss...=.....s~~~"
+      },
+      {
+        "y": 16,
+        "before": "~~~~ss.,,,,.=...,,,,=...sss...=.....s~~~",
+        "after": "~~~~ss.,,,,.=...,====...sss...=.....s~~~"
+      },
+      {
+        "y": 17,
+        "before": "~~~~As.,,,,.=.y.,,,,=...sss.,,===,,.s~~~",
+        "after": "~~~~As.,,,,.=.y.,,===...sss.,,===,,.s~~~"
+      },
+      {
+        "y": 18,
+        "before": "~~~~ass,,,,.=...,,,,=...sss.,A,,,,,.~~~~",
+        "after": "~~~~ass,,,,.=...,,,===..sss.,A,,,,,.~~~~"
+      },
+      {
+        "y": 19,
+        "before": "~~~~ssss....=...,,,,=...ssss,a,,,,A.~~~~",
+        "after": "~~~~ssss....=...,,,,===.ssss,a,,,,A.~~~~"
+      }
+    ]
+  },
+  {
+    "path": "src/game/world/north/data.h",
+    "array": "FROSTPINE_ROWS",
+    "map": "MAP_FROSTPINE",
+    "width": 40,
+    "height": 44,
+    "rows": [
+      {
+        "y": 27,
+        "before": "pp.................==.................pp",
+        "after": "pp.................pp.................pp"
+      },
+      {
+        "y": 28,
+        "before": "PP.................==.................PP",
+        "after": "PP.................PP.................PP"
+      },
+      {
+        "y": 32,
+        "before": "PP.........==.........PPPP..,,,,......PP",
+        "after": "PP.........==.........PPPP..,===......PP"
+      },
+      {
+        "y": 33,
+        "before": "pp.........==.........pppp..,,,,......pp",
+        "after": "pp.........==.........pppp..===,......pp"
+      },
+      {
+        "y": 34,
+        "before": "PP.,,,,,,..==......................PPPPP",
+        "after": "PP.,,,,,,..==..............===.....PPPPP"
+      },
+      {
+        "y": 35,
+        "before": "pp.,,,,,,..==......................ppppp",
+        "after": "pp.,,,,,,..==.............===......ppppp"
+      }
+    ],
+    "approvedCollisions": [
+      [
+        19,
+        27,
+        "=",
+        "p"
+      ],
+      [
+        20,
+        27,
+        "=",
+        "p"
+      ],
+      [
+        19,
+        28,
+        "=",
+        "P"
+      ],
+      [
+        20,
+        28,
+        "=",
+        "P"
+      ]
+    ],
+    "route": {
+      "start": [
+        19,
+        26
+      ],
+      "end": [
+        19,
+        29
+      ],
+      "bend": [
+        21,
+        28
+      ],
+      "wall": [
+        19,
+        27
+      ]
+    }
+  },
+  {
+    "path": "src/game/world/north/data.h",
+    "array": "TIMBERLINE_ROWS",
+    "map": "MAP_TIMBERLINE",
+    "width": 40,
+    "height": 36,
+    "rows": [
+      {
+        "y": 14,
+        "before": "P.......=.........===.........=........P",
+        "after": "P.......=.........===...===...=........P"
+      },
+      {
+        "y": 15,
+        "before": "p.................===..................p",
+        "after": "p.................===...===............p"
+      },
+      {
+        "y": 16,
+        "before": "P.................===..................P",
+        "after": "P.................===...===............P"
+      },
+      {
+        "y": 17,
+        "before": "p.................===..................p",
+        "after": "p.................===....===...........p"
+      },
+      {
+        "y": 18,
+        "before": "P.................===..................P",
+        "after": "P.................===.....===..........P"
+      },
+      {
+        "y": 19,
+        "before": "p.................===..................p",
+        "after": "p.................===......===.........p"
+      }
+    ]
+  },
+  {
+    "path": "src/game/world/north/data.h",
+    "array": "FROSTHOLLOW_ROWS",
+    "map": "MAP_FROSTHOLLOW",
+    "width": 44,
+    "height": 40,
+    "rows": [
+      {
+        "y": 30,
+        "before": "~~~~~~~............==......................R",
+        "after": "~~~~~~~............==.....===..............R"
+      },
+      {
+        "y": 31,
+        "before": "~~~~~~~........PP..==.....................PP",
+        "after": "~~~~~~~........PP..==......===............PP"
+      },
+      {
+        "y": 33,
+        "before": "~~~~~~~.......=....==..,,,,...==..,,,.....PP",
+        "after": "~~~~~~~.......=....==..,,,,...===.,,,.....PP"
+      }
+    ]
+  },
+  {
+    "path": "src/game/world/far/data.h",
+    "array": "EMBER_TUNNEL_ROWS",
+    "map": "MAP_EMBER_TUNNEL",
+    "width": 30,
+    "height": 26,
+    "rows": [
+      {
+        "y": 9,
+        "before": "MMMM__j__mmmmmmmmmmmm_____MMMM",
+        "after": "MMMM__j_____mmmmmmmmm_____MMMM"
+      },
+      {
+        "y": 15,
+        "before": "MMMM______________________MMMM",
+        "after": "MMMM_____:::______________MMMM"
+      }
+    ]
+  },
+  {
+    "path": "src/game/world/far/data.h",
+    "array": "CALDERA_ROWS",
+    "map": "MAP_CALDERA",
+    "width": 20,
+    "height": 17,
+    "rows": [
+      {
+        "y": 3,
+        "before": "MMyy::::::::::::::MM",
+        "after": "MMyyyyy:yyy:::::::MM"
+      }
+    ]
+  },
+  {
+    "path": "src/game/world/far/data.h",
+    "array": "CINDERMOOR_ROWS",
+    "map": "MAP_CINDERMOOR",
+    "width": 48,
+    "height": 40,
+    "rows": [
+      {
+        "y": 10,
+        "before": "T..=======........=...:j==...............4556TTT",
+        "after": "T..=======........=...:j==.===...........4556TTT"
+      },
+      {
+        "y": 11,
+        "before": "t........=........=...:j==...............4556ttt",
+        "after": "t........=........=...:j==...===.........4556ttt"
+      },
+      {
+        "y": 12,
+        "before": "..................=...:j==............=..4556TTT",
+        "after": "..................=...:j==.....===....=..4556TTT"
+      }
+    ]
+  },
+  {
+    "path": "src/game/world/far/data.h",
+    "array": "RAILHEAD_ROWS",
+    "map": "MAP_RAILHEAD",
+    "width": 40,
+    "height": 30,
+    "rows": [
+      {
+        "y": 22,
+        "before": "T......................................T",
+        "after": "T............===.......................T"
+      },
+      {
+        "y": 23,
+        "before": "t......................................t",
+        "after": "t..............===.....................t"
+      },
+      {
+        "y": 24,
+        "before": "T......................................T",
+        "after": "T................===...................T"
+      },
+      {
+        "y": 25,
+        "before": "t......................................t",
+        "after": "t..................===.................t"
+      }
+    ]
+  },
+  {
+    "path": "src/game/world/far/data.h",
+    "array": "MOONVEIL_ROWS",
+    "map": "MAP_MOONVEIL",
+    "width": 48,
+    "height": 40,
+    "rows": [
+      {
+        "y": 20,
+        "before": "TT........==..,,,,,,,,......,,,,,,,,..........TT",
+        "after": "TT........==..,,fff,,,..TT..,,,,,,,,..........TT"
+      },
+      {
+        "y": 21,
+        "before": "tt........==..,,,,,,,,......,,,,,,,,..........tt",
+        "after": "tt........==..,,,,fff,..tt..,,,,,,,,..........tt"
+      },
+      {
+        "y": 22,
+        "before": "TT.T......==..,,,,,,,,......,,,,,,,,........T.TT",
+        "after": "TT.T......==..,,,,,,fff.....,,,,,,,,........T.TT"
+      },
+      {
+        "y": 23,
+        "before": "tt.t......==..,,,,,,,,......,,,,,,,,........t.tt",
+        "after": "tt.t......==..,,,,,,,,fff...,,,,,,,,........t.tt"
+      },
+      {
+        "y": 24,
+        "before": "TT........==..,,,,,,,,......,,,,,,,,....T.....TT",
+        "after": "TT........==..,,,,,,fff.....,,,,,,,,....T.....TT"
+      }
+    ],
+    "approvedCollisions": [
+      [
+        24,
+        20,
+        ".",
+        "T"
+      ],
+      [
+        25,
+        20,
+        ".",
+        "T"
+      ],
+      [
+        24,
+        21,
+        ".",
+        "t"
+      ],
+      [
+        25,
+        21,
+        ".",
+        "t"
+      ]
+    ],
+    "route": {
+      "start": [
+        24,
+        19
+      ],
+      "end": [
+        24,
+        24
+      ],
+      "bend": [
+        23,
+        21
+      ],
+      "wall": [
+        24,
+        20
+      ]
+    }
+  },
+  {
+    "path": "src/game/world/far/data.h",
+    "array": "DREAMSPIRE_ROWS",
+    "map": "MAP_DREAMSPIRE",
+    "width": 48,
+    "height": 44,
+    "rows": [
+      {
+        "y": 24,
+        "before": "TT.....................##................=....TT",
+        "after": "TT.....................##fff.............=....TT"
+      },
+      {
+        "y": 25,
+        "before": "tt.......................................=....tt",
+        "after": "tt........................fff............=....tt"
+      },
+      {
+        "y": 26,
+        "before": "T.ffff..........=.............ffff...=...=.....T",
+        "after": "T.ffff..........=........fff..ffff...=...=.....T"
+      }
+    ]
+  },
+  {
+    "path": "src/game/world/grim/data.h",
+    "array": "HOLLOW_DOWNS_ROWS",
+    "map": "MAP_HOLLOW_DOWNS",
+    "width": 60,
+    "height": 40,
+    "rows": [
+      {
+        "y": 9,
+        "before": "c....gggggggggggg...==.......................mmmmmmmmm.....c",
+        "after": "c....gggggggggggg...==......................dddmmmmmmm.....c"
+      },
+      {
+        "y": 10,
+        "before": "C....,,,,,,,,,,,,...==..ggggg==ggggggggg.....mmmmmmmmm.....C",
+        "after": "C....,,,,,,,,,,,,...==..ggggg==ggggggggg...dddmmmmmmmm.....C"
+      },
+      {
+        "y": 11,
+        "before": "c....,,,,,,,,,,,,...==..ggggg==ggggggggg.....mmmmmmmmm.....c",
+        "after": "c....,,,,,,,,,,,,...==..ggggg==ggggggggg..dddmmmmmmmmm.....c"
+      }
+    ]
+  },
+  {
+    "path": "src/game/world/grim/data.h",
+    "array": "GRAVEWOOD_ROWS",
+    "map": "MAP_GRAVEWOOD",
+    "width": 44,
+    "height": 40,
+    "rows": [
+      {
+        "y": 5,
+        "before": "ttgggbbbbbbbTTTgggbbbbbbtbbbbbggttmmrrrrrrtt",
+        "after": "ttggggggbbbbTTTgggbbbbbbtbbbbbggttmmrrrrrrtt"
+      },
+      {
+        "y": 6,
+        "before": "TTgbbbTbbbbbtttbb.....bbbbbbbggggmrr~~~~~~TT",
+        "after": "TTgbbbTbgggbtttbb.....bbbbbbbggggmrr~~~~~~TT"
+      },
+      {
+        "y": 7,
+        "before": "ttgbbbtbbbbbbbbbbgbbbbbbbbbbbbgggmmr~~~~~~tt",
+        "after": "ttgbbbtbbbbgggbbbgbbbbbbbbbbbbgggmmr~~~~~~tt"
+      }
+    ]
+  },
+  {
+    "path": "src/game/world/grim/data.h",
+    "array": "DUSKMERE_ROWS",
+    "map": "MAP_DUSKMERE",
+    "width": 44,
+    "height": 40,
+    "rows": [
+      {
+        "y": 28,
+        "before": "~~~~~~~~~rmmmmmmmmmmmmmmmmmmmrrrrm~~~~MMMMMY",
+        "after": "~~~~~~~~~rmmmmmmmmdddmmmmmmmmrrrrm~~~~MMMMMY"
+      },
+      {
+        "y": 29,
+        "before": "~~~~~~~~~rmmmmrrrrmmmrrrrrrmmmmmmm~~~~MMMMMy",
+        "after": "~~~~~~~~~rmmmmrrrrmdddrrrrrmmmmmmm~~~~MMMMMy"
+      },
+      {
+        "y": 30,
+        "before": "~~~~~~~~~rmmmmrrrrmmmrrrrrrmmmmmmmmmYY......",
+        "after": "~~~~~~~~~rmmmmrrrrmmdddrrrrmmmmmmmmmYY......"
+      }
+    ]
+  },
+  {
+    "path": "src/game/world/east/npcs.inc",
+    "before": "The Brook sings a different song at night.",
+    "after": "At dusk we tune our fiddles to the mill wheel. The low note is the Brook running beneath it."
+  },
+  {
+    "path": "src/game/world/west/npcs.inc",
+    "before": "The DUSK kin drink starlight on this fen.",
+    "after": "We cut reeds at low water, soak them overnight, and weave the walk boards at first light."
+  },
+  {
+    "path": "src/game/world/west/npcs.inc",
+    "before": "The Hall Master MAREN was a fisher's girl. Now look at her. Still smells of the sea, though.",
+    "after": "Our nets dry beside the quay every morning. Maren still mends one when the Hall goes quiet."
+  },
+  {
+    "path": "src/game/world/west/npcs.inc",
+    "before": "Salted, dried, sold in Brine. That's island life. Could do with more SALT, mind.",
+    "after": "We plant beans in the shell grit behind Oda's house, then trade the catch for salt in Brine."
+  },
+  {
+    "path": "src/game/world/north/npcs.inc",
+    "before": "On a clear winter night the aurora shines over the flume.",
+    "after": "The sawmill flume freezes at dawn. We break its skin so the wheel can turn before the loggers return."
+  },
+  {
+    "path": "src/game/world/north/npcs.inc",
+    "before": "Frosthollow keeps its hearths lit all winter. And winter here is most of the year.",
+    "after": "Snow on the roofs, steam from the spring: we warm our hands there before setting the hearths."
+  },
+  {
+    "path": "src/game/world/far/npcs.inc",
+    "before": "Ore carts turn at that table. I counted thirty-two wheels today!",
+    "after": "The rail yard has two shifts: iron carts by day and lantern repairs after dark."
+  },
+  {
+    "path": "src/game/world/far/npcs.inc",
+    "before": "My hammer arm's retired. My ears aren't. The volcano's snoring nicely today.",
+    "after": "Our forge runs on cooled Caldera stone. I can hear when the ore is ready just by the ring."
+  },
+  {
+    "path": "src/game/world/far/npcs.inc",
+    "before": "Moonflowers only open for people who aren't looking for them. You weren't, were you?",
+    "after": "We hang paper lanterns along the tower steps; the night garden opens when the moonflowers do."
+  },
+  {
+    "path": "src/game/world/grim/npcs.inc",
+    "before": "I light every lantern in DUSKMERE at dusk and again at noon. The ash makes noon look like dusk.",
+    "after": "We light the memorial lanterns twice: once for the living at noon, once for the lost at dusk."
+  },
+  {
+    "path": "src/game/world/east/data.h",
+    "before": "static const DecorPlace BROOK_TRAIL_DECOR[] = {\n",
+    "after": "static const DecorPlace BROOK_TRAIL_DECOR[] = {\n    DP(STUMP, 18, 16), DP(STUMP, 25, 16), /* wooded trail pinch */\n",
+    "kind": "decor"
+  },
+  {
+    "path": "src/game/world/west/data.h",
+    "before": "static const DecorPlace SALTWIND_DECOR[] = {\n",
+    "after": "static const DecorPlace SALTWIND_DECOR[] = {\n    DP(ROCK, 8, 16), DP(ROCK, 16, 16), /* dune-wash shoulders */\n",
+    "kind": "decor"
+  },
+  {
+    "path": "src/game/world/north/data.h",
+    "before": "static const DecorPlace FROSTPINE_DECOR[] = {\n",
+    "after": "static const DecorPlace FROSTPINE_DECOR[] = {\n    DP(FROZEN_TREE, 23, 27), DP(FROZEN_TREE, 23, 28), /* pass switchback */\n",
+    "kind": "decor"
+  },
+  {
+    "path": "src/game/world/far/data.h",
+    "before": "static const DecorPlace MOONVEIL_DECOR[] = {\n",
+    "after": "static const DecorPlace MOONVEIL_DECOR[] = {\n    DP(MOON_LANTERN, 21, 20), DP(MOON_LANTERN, 28, 24), /* moon-grove edges */\n",
+    "kind": "decor"
+  }
+]

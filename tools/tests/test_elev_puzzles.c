@@ -11,6 +11,13 @@
  */
 #include "harness.h"
 
+/* ROM tile IDs are resolved into the current area's compact VRAM cache. */
+static int scene_entry_is(u16 actual, u16 source)
+{
+    int slot = field_tile_slot[source & 1023];
+    return slot != FIELD_TILE_MISSING && actual == ((source & 0xFC00) | slot);
+}
+
 static const u16 DIR_KEY[4] = { KEY_DOWN, KEY_UP, KEY_LEFT, KEY_RIGHT };
 
 static int objs_busy(void)
@@ -477,9 +484,9 @@ static void test_secrets(void)
     render_cell(24, 19);
     CHECK(top[idx] && !top[idx + 32] && bottom[idx + 32] != hidden_bl && hidden_tl,
           "found, it shows a worn gap at the foot of the trees (the crowns still hang over it)");
-    CHECK(bottom[idx + 32] == TILESETS[TS_TOWN].path_q[2][3] || bottom[idx + 32] == TILESETS[TS_TOWN].path_q[2][4] ||
-              bottom[idx + 32] == TILESETS[TS_TOWN].path_q[2][0] || bottom[idx + 32] == TILESETS[TS_TOWN].path_q[2][1] ||
-              bottom[idx + 32] == TILESETS[TS_TOWN].path_q[2][2],
+    CHECK(scene_entry_is(bottom[idx + 32], TILESETS[TS_TOWN].path_q[2][3]) || scene_entry_is(bottom[idx + 32], TILESETS[TS_TOWN].path_q[2][4]) ||
+              scene_entry_is(bottom[idx + 32], TILESETS[TS_TOWN].path_q[2][0]) || scene_entry_is(bottom[idx + 32], TILESETS[TS_TOWN].path_q[2][1]) ||
+              scene_entry_is(bottom[idx + 32], TILESETS[TS_TOWN].path_q[2][2]),
           "the gap is drawn with the tileset's path");
     emote.timer = 0;
     enter(MAP_EV_TEST, 22, 19, DIR_RIGHT);
@@ -541,11 +548,11 @@ static void test_secrets(void)
         int ci = (fy & 15) * 64 + (fx & 15) * 2;
         field_redraw_cell(fx, fy);
         render_cell(fx, fy);
-        int was_mouth = mid[ci] == TILESETS[MAPS[fm].tileset].elev->mouth[0];
+        int was_mouth = scene_entry_is(mid[ci], TILESETS[MAPS[fm].tileset].elev->mouth[0]);
         elev_secret_find(fx, fy);
         field_redraw_cell(fx, fy);
         render_cell(fx, fy);
-        CHECK(!was_mouth && mid[ci] == TILESETS[MAPS[fm].tileset].elev->mouth[0] && !top[ci],
+        CHECK(!was_mouth && scene_entry_is(mid[ci], TILESETS[MAPS[fm].tileset].elev->mouth[0]) && !top[ci],
               "a crack in a cliff, once found, is drawn as an open cave mouth");
         memset(travel.secrets, 0, sizeof(travel.secrets));
     }

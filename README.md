@@ -51,6 +51,22 @@ has been measured. See [current integration status](docs/HANDOFF.md) and
 [playtime evidence](docs/handoff/playtime.md) before treating the full story
 as playtested.
 
+**Connected underground routes:** Ten additional playable maps now link the
+Rootways, Tidal Underflow, Northern Karst, Ember Conduits and Dusk Hollows.
+They add a short woodland approach, water/lava spans, sluice and ice puzzles,
+and permanent cooling/lantern shortcuts. Gravewood has a dedicated dusk art
+catalog; **L/R in MAP** switches to the discovered underground atlas.
+See [the cave network and controls](docs/UNDERWORLD.md) for entry gates,
+save compatibility, authoring rules and reproducible ROM checks.
+
+**Biome journeys and villages:** Twelve more playable maps add waterfall cliffs,
+a desert oasis, jungle canopy settlements, a coral reef, tundra and a luminous
+fungal cave. Mistbell's signal bell, Canopy Hearth's woven waymarkers and Sunwell's
+irrigation each have a persistent local quest. Four existing routes gain physical
+bends; nineteen areas receive scenery and settlement-character updates.
+See [the biome routes, entrances and quests](docs/BIOMES.md), including checked
+ROM screenshots and reproduction commands.
+
 <table>
 <tr>
 <td width="50%"><img src="docs/images/village.gif" alt="Walking through Maple Village with a follower"></td>

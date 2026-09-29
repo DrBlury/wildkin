@@ -493,8 +493,7 @@ static int save_rebase(SaveData *data)
     const SaveLayout *old = &data->layout;
     if (!save_layout_valid(old)) return 0;
     int map = save_id_map(old, &current, SAVE_MAP, data->map);
-    if (map < 0 || map >= MAP_COUNT || data->player_x >= MAPS[map].w ||
-        data->player_y >= MAPS[map].h) return 0;
+    if (map < 0 || map >= MAP_COUNT) return 0;
     for (int i = 0; i < data->party_count; i++) {
         int m = save_id_map(old, &current, SAVE_MAP, data->party[i].met_map);
         data->party[i].met_map = (u8)(data->party[i].met_map == MAP_NONE ? MAP_NONE : (m < 0 ? MAP_REST : m));
@@ -599,8 +598,7 @@ static int save_valid(const SaveData *data)
         !save_layout_valid(&data->layout) ||
         data->party_count > PARTY_MAX || data->storage_count > STORAGE_MAX ||
         data->bag_count > BAG_SAVE_MAX || data->money > 9999999u ||
-        data->map >= MAP_COUNT || data->facing > 3 ||
-        data->player_x >= MAPS[data->map].w || data->player_y >= MAPS[data->map].h ||
+        data->map >= data->layout.maps || data->facing > 3 ||
         ((data->flags[FLAG_STARTER >> 3] >> (FLAG_STARTER & 7) & 1) && !data->party_count))
         return 0;
     for (int i = 0; i < data->bag_count; i++)
@@ -610,6 +608,69 @@ static int save_valid(const SaveData *data)
     for (int i = 0; i < data->storage_count; i++)
         if (!boxmon_valid(&data->storage[i])) return 0;
     return 1;
+}
+
+/* Check the decoded, flag-patched map after restoring modules. A deck is
+ * walkable independently of the wall/water underneath it. */
+static int save_position_safe(int x, int y, int level)
+{
+    if (x < 0 || y < 0 || x >= map_w || y >= map_h || level < 0 || level > 3) return 0;
+    u16 e = elev_at(x, y);
+    int top = map_elevated && ec_walkable(EV_COVER(e)) &&
+              level == EV_HI(e) && level != EV_LO(e);
+    if (elev_level_at(x, y, level, -1) != level) return 0;
+    int a = cell_attr(x, y);
+    if (!top && (a & A_WATER))
+        return travel.surfing && !(a & A_DEEP) && travel_surf_cell(x, y);
+    /* People and kin return to their home cells during reload. Their
+     * transient occupancy must not relocate an otherwise valid saved tile. */
+    return top ? !travel_top_solid(x, y, level) : !(a & (A_SOLID | A_LEDGE));
+}
+
+static int save_authored_landing(int map, int *x, int *y, int *level)
+{
+    map_load(map);
+    for (int i = 0; i < WARP_COUNT; i++) {
+        const Warp *w = &WARPS[i];
+        if (w->dest != map || !warp_is_open(w)) continue;
+        int lv = elev_level_at(w->dx, w->dy, -1, DIR_UP);
+        if (!save_position_safe(w->dx, w->dy, lv)) continue;
+        *x = w->dx;
+        *y = w->dy;
+        *level = lv;
+        return 1;
+    }
+    return 0;
+}
+
+static void save_recover_position(int *x, int *y, int *level)
+{
+    /* A single authored entry is unambiguous. Multiple portals might lie on
+     * opposite sides of a story gate, so fall back to the last Hearth. */
+    int count = 0, ax = 0, ay = 0, al = 0;
+    for (int i = 0; i < WARP_COUNT; i++) {
+        const Warp *w = &WARPS[i];
+        if (w->dest != cur_map || !warp_is_open(w)) continue;
+        int lv = elev_level_at(w->dx, w->dy, -1, DIR_UP);
+        if (!save_position_safe(w->dx, w->dy, lv)) continue;
+        if (!count) { ax = w->dx; ay = w->dy; al = lv; count = 1; }
+        else if (ax != w->dx || ay != w->dy) count = 2;
+    }
+    if (count == 1) { *x = ax; *y = ay; *level = al; return; }
+    int hearth = travel.last_hearth;
+    if (hearth >= MAP_COUNT || !(MAPS[hearth].flags & MF_HEAL)) hearth = MAP_REST;
+    travel.surfing = 0;
+    travel.biking = 0;
+    if (save_authored_landing(hearth, x, y, level) ||
+        save_authored_landing(MAP_REST, x, y, level)) return;
+    /* Even the Hearth door was reshaped: use a safe cell inside the
+     * starting Hearth, never an arbitrary cell across the old route. */
+    for (int yy = 0; yy < map_h; yy++) for (int xx = 0; xx < map_w; xx++) {
+        int lv = elev_level_at(xx, yy, -1, -1);
+        if (!save_position_safe(xx, yy, lv)) continue;
+        *x = xx; *y = yy; *level = lv;
+        return;
+    }
 }
 
 static void save_apply(const SaveData *data)
@@ -661,13 +722,16 @@ static void save_apply(const SaveData *data)
     events_validate();
     modules_validate();
     map_load(data->map);
-    player.x = (s16)data->player_x;
-    player.y = (s16)data->player_y;
+    int x = data->player_x, y = data->player_y;
+    int level = (x < map_w && y < map_h)
+        ? elev_level_at(x, y, data->level ? data->level - 1 : -1, data->facing) : -1;
+    if (!save_position_safe(x, y, level)) save_recover_position(&x, &y, &level);
+    player.x = (s16)x;
+    player.y = (s16)y;
     player.facing = data->facing;
     player.ox = player.oy = 0;
     player.moving = 0;
-    /* saves from before elevation carry 0 here: derive the level */
-    player.level = (u8)elev_level_at(player.x, player.y, data->level ? data->level - 1 : -1, player.facing);
+    player.level = (u8)level;
 }
 
 /* ---- v4 migration ---- */

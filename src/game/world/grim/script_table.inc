@@ -14,3 +14,6 @@
     [SCR_AUDRA] = scr_audra,
     [SCR_MAUD] = scr_maud,
     [SCR_ACCORD_SHOP] = scr_accord_shop,
+    [SCR_DUSK_ROOT] = scr_dusk_root,
+    [SCR_DUSK_BELL] = scr_dusk_bell,
+    [SCR_DUSK_LANTERN] = scr_dusk_lantern,

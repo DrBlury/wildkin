@@ -1,0 +1,1926 @@
+{
+ "name": "interior",
+ "title": "Interior - homes, shops, halls",
+ "doc": "INTERIOR - homes, shops, Hearth Halls, inns, workshops and studies.\n\nReplaces the old `interior` tileset (every house, shop, hall and lodge).\nPlank, checker and stone floors; back walls in four wallpapers over a\nwainscot (two rows: wall_*_top and wall_*_low); windows, doors, stairs,\ncounters; furniture drawn with a lit top and a darker front, the Hearth\nHall flame, the storage terminal, shelves of goods and workshop machines.\n",
+ "cell": 16,
+ "cols": 16,
+ "rows": 31,
+ "palette": {
+  "v0": "#080808",
+  "wt0": "#181018",
+  "wt1": "#292121",
+  "fw0": "#4a3121",
+  "fw1": "#7b5231",
+  "fw2": "#a5734a",
+  "fw3": "#ce946b",
+  "ck0": "#8c847b",
+  "ck1": "#ded6c6",
+  "ck2": "#f7efe7",
+  "sf0": "#4a4a4a",
+  "sf1": "#6b6363",
+  "sf2": "#8c8484",
+  "sf3": "#ada59c",
+  "pc0": "#b59c7b",
+  "pc1": "#efdebd",
+  "pc2": "#fff7de",
+  "pb0": "#394a7b",
+  "pb1": "#5a73b5",
+  "pb2": "#8ca5de",
+  "pg0": "#395a42",
+  "pg1": "#5a845a",
+  "pg2": "#8cb584",
+  "pr0": "#7b3931",
+  "pr1": "#a55a4a",
+  "pr2": "#ce846b",
+  "k0": "#291818",
+  "k1": "#523129",
+  "k2": "#7b5231",
+  "k3": "#ad734a",
+  "k4": "#ce9c63",
+  "rd0": "#5a1021",
+  "rd1": "#9c2931",
+  "rd2": "#d6524a",
+  "rd3": "#f7a563",
+  "bl0": "#18295a",
+  "bl1": "#31529c",
+  "bl2": "#6b8cde",
+  "lf0": "#184231",
+  "lf1": "#296b39",
+  "lf2": "#4a9c4a",
+  "lf3": "#84c663",
+  "m0": "#292939",
+  "m1": "#525a6b",
+  "m2": "#8c94a5",
+  "sk0": "#6ba5de",
+  "sk1": "#bddeff",
+  "gl": "#f7ffff",
+  "fo": "#ef6b21",
+  "fy": "#ffc642",
+  "fw": "#fff7c6",
+  "sc0": "#183929",
+  "sc1": "#39b56b",
+  "sc2": "#9cf7b5"
+ },
+ "variants": {
+  "evening": {
+   "fw2": "#946342",
+   "fw3": "#b57b5a",
+   "ck1": "#ceb59c",
+   "ck2": "#e7ceb5",
+   "pc1": "#debd94",
+   "pc2": "#efd6ad",
+   "sk0": "#394a7b",
+   "sk1": "#6b7bb5"
+  }
+ },
+ "banks": [
+  [
+   "v0",
+   "wt0",
+   "wt1",
+   "fw0",
+   "fw1",
+   "fw2",
+   "fw3",
+   "ck0",
+   "ck1",
+   "ck2",
+   "sf0",
+   "sf1",
+   "sf2",
+   "sf3",
+   "k0"
+  ],
+  [
+   "wt0",
+   "wt1",
+   "pc0",
+   "pc1",
+   "pc2",
+   "pb0",
+   "pb1",
+   "pb2",
+   "k0",
+   "k1",
+   "k2",
+   "k3",
+   "sk0",
+   "sk1",
+   "gl"
+  ],
+  [
+   "wt0",
+   "wt1",
+   "pg0",
+   "pg1",
+   "pg2",
+   "pr0",
+   "pr1",
+   "pr2",
+   "k0",
+   "k1",
+   "k2",
+   "k3",
+   "sk0",
+   "sk1",
+   "gl"
+  ],
+  [
+   "pc1",
+   "pc2",
+   "k0",
+   "k1",
+   "k2",
+   "k3",
+   "k4",
+   "rd0",
+   "rd1",
+   "rd2",
+   "rd3",
+   "bl0",
+   "bl1",
+   "bl2",
+   "fy"
+  ],
+  [
+   "pc0",
+   "pc1",
+   "pc2",
+   "k0",
+   "k1",
+   "k2",
+   "k3",
+   "rd1",
+   "rd2",
+   "bl1",
+   "lf0",
+   "lf1",
+   "lf2",
+   "lf3",
+   "fy"
+  ],
+  [
+   "sf0",
+   "sf1",
+   "sf2",
+   "sf3",
+   "k0",
+   "rd1",
+   "m0",
+   "m1",
+   "m2",
+   "fo",
+   "fy",
+   "fw",
+   "sc0",
+   "sc1",
+   "sc2"
+  ],
+  [
+   "fw0",
+   "fw1",
+   "fw2",
+   "fw3",
+   "ck2",
+   "k0",
+   "rd0",
+   "rd1",
+   "rd2",
+   "rd3",
+   "bl0",
+   "bl1",
+   "bl2",
+   "lf2",
+   "fy"
+  ],
+  [
+   "fw2",
+   "fw3",
+   "ck0",
+   "ck1",
+   "ck2",
+   "k0",
+   "k1",
+   "k2",
+   "k3",
+   "k4",
+   "bl0",
+   "bl1",
+   "bl2",
+   "m1",
+   "fy"
+  ]
+ ],
+ "stats": {
+  "unique_tiles8": 691,
+  "by_kind": {
+   "tile": 27,
+   "autotile": 34,
+   "object": 630
+  },
+  "entries": 104,
+  "colours": 54
+ },
+ "sections": [
+  "floors",
+  "walls",
+  "home",
+  "halls, shops, studies",
+  "study and workshop",
+  "keepsakes"
+ ],
+ "entries": [
+  {
+   "name": "void",
+   "kind": "tile",
+   "section": "floors",
+   "x": 0,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "doc": "outside the room",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 1
+  },
+  {
+   "name": "wall_top",
+   "kind": "tile",
+   "section": "floors",
+   "x": 1,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "doc": "top of a wall seen from above",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 2
+  },
+  {
+   "name": "floor_wood",
+   "kind": "tile",
+   "section": "floors",
+   "x": 2,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "floor_wood",
+   "weight": 3,
+   "doc": "plank floor",
+   "tiles8": 4
+  },
+  {
+   "name": "floor_wood_b",
+   "kind": "tile",
+   "section": "floors",
+   "x": 3,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "floor_wood",
+   "weight": 2,
+   "tiles8": 4
+  },
+  {
+   "name": "floor_checker",
+   "kind": "tile",
+   "section": "floors",
+   "x": 4,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "doc": "checker tiles (halls, kitchens)",
+   "tiles8": 2
+  },
+  {
+   "name": "floor_stone",
+   "kind": "tile",
+   "section": "floors",
+   "x": 5,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "doc": "flagstone floor (cellars, forges)",
+   "tiles8": 1
+  },
+  {
+   "name": "carpet",
+   "kind": "autotile",
+   "section": "floors",
+   "x": 6,
+   "y": 1,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "format": "rmxp16",
+   "over": "floor_wood",
+   "doc": "carpet over planks",
+   "tiles8": 17
+  },
+  {
+   "name": "carpet_blue",
+   "kind": "autotile",
+   "section": "floors",
+   "x": 9,
+   "y": 1,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "format": "rmxp16",
+   "over": "floor_checker",
+   "doc": "blue carpet over tiles",
+   "tiles8": 17
+  },
+  {
+   "name": "wall_cream_top",
+   "kind": "tile",
+   "section": "walls",
+   "x": 0,
+   "y": 6,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "doc": "cream striped wallpaper (upper row)",
+   "attrs": [
+    "SOLID"
+   ],
+   "pair": "wall_cream_low",
+   "tiles8": 2
+  },
+  {
+   "name": "wall_cream_low",
+   "kind": "tile",
+   "section": "walls",
+   "x": 1,
+   "y": 6,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "doc": "cream striped wallpaper (lower row, wainscot)",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 2
+  },
+  {
+   "name": "wall_blue_top",
+   "kind": "tile",
+   "section": "walls",
+   "x": 2,
+   "y": 6,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "doc": "blue dotted wallpaper (upper row)",
+   "attrs": [
+    "SOLID"
+   ],
+   "pair": "wall_blue_low",
+   "tiles8": 2
+  },
+  {
+   "name": "wall_blue_low",
+   "kind": "tile",
+   "section": "walls",
+   "x": 3,
+   "y": 6,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "doc": "blue dotted wallpaper (lower row, wainscot)",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 2
+  },
+  {
+   "name": "wall_green_top",
+   "kind": "tile",
+   "section": "walls",
+   "x": 4,
+   "y": 6,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "doc": "green diamond wallpaper (upper row)",
+   "attrs": [
+    "SOLID"
+   ],
+   "pair": "wall_green_low",
+   "tiles8": 2
+  },
+  {
+   "name": "wall_green_low",
+   "kind": "tile",
+   "section": "walls",
+   "x": 5,
+   "y": 6,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "doc": "green diamond wallpaper (lower row, wainscot)",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 2
+  },
+  {
+   "name": "wall_brick_top",
+   "kind": "tile",
+   "section": "walls",
+   "x": 6,
+   "y": 6,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "doc": "exposed brick (upper row)",
+   "attrs": [
+    "SOLID"
+   ],
+   "pair": "wall_brick_low",
+   "tiles8": 2
+  },
+  {
+   "name": "wall_brick_low",
+   "kind": "tile",
+   "section": "walls",
+   "x": 7,
+   "y": 6,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "doc": "exposed brick (lower row, wainscot)",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 2
+  },
+  {
+   "name": "window",
+   "kind": "object",
+   "section": "walls",
+   "x": 8,
+   "y": 6,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "curtained window 2x2 (on the back wall)",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 9
+  },
+  {
+   "name": "window_small",
+   "kind": "object",
+   "section": "walls",
+   "x": 10,
+   "y": 6,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "narrow window 1x2",
+   "solid": "X/X",
+   "top": "./.",
+   "tiles8": 6
+  },
+  {
+   "name": "door_mat",
+   "kind": "object",
+   "section": "walls",
+   "x": 11,
+   "y": 6,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "exit mat",
+   "attrs": [
+    "EXIT"
+   ],
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "stairs_up",
+   "kind": "object",
+   "section": "walls",
+   "x": 12,
+   "y": 6,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "stairs up 1x2",
+   "attrs": [
+    "EXIT"
+   ],
+   "solid": "./.",
+   "top": "./.",
+   "tiles8": 1
+  },
+  {
+   "name": "stairs_down",
+   "kind": "object",
+   "section": "walls",
+   "x": 13,
+   "y": 6,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "stairs down 1x2",
+   "attrs": [
+    "EXIT"
+   ],
+   "solid": "./.",
+   "top": "./.",
+   "tiles8": 4
+  },
+  {
+   "name": "counter_left",
+   "kind": "object",
+   "section": "walls",
+   "x": 14,
+   "y": 6,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "shop counter (left)",
+   "attrs": [
+    "COUNTER"
+   ],
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "counter_mid",
+   "kind": "object",
+   "section": "walls",
+   "x": 15,
+   "y": 6,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "attrs": [
+    "COUNTER"
+   ],
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "counter_right",
+   "kind": "object",
+   "section": "walls",
+   "x": 0,
+   "y": 7,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "attrs": [
+    "COUNTER"
+   ],
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "counter_end",
+   "kind": "object",
+   "section": "walls",
+   "x": 1,
+   "y": 7,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "attrs": [
+    "COUNTER"
+   ],
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "picture",
+   "kind": "object",
+   "section": "walls",
+   "x": 2,
+   "y": 7,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "framed painting (wall)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "clock_wall",
+   "kind": "object",
+   "section": "walls",
+   "x": 3,
+   "y": 7,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "wall clock (wall)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "shelf_wall",
+   "kind": "object",
+   "section": "walls",
+   "x": 4,
+   "y": 7,
+   "w": 2,
+   "h": 1,
+   "layer": "mid",
+   "doc": "wall shelf 2x1",
+   "solid": "..",
+   "top": "..",
+   "tiles8": 6
+  },
+  {
+   "name": "bed",
+   "kind": "object",
+   "section": "home",
+   "x": 0,
+   "y": 9,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "bed 1x2",
+   "solid": "X/X",
+   "top": "./.",
+   "tiles8": 8
+  },
+  {
+   "name": "bed_double",
+   "kind": "object",
+   "section": "home",
+   "x": 1,
+   "y": 9,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "double bed 2x2",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 14
+  },
+  {
+   "name": "table",
+   "kind": "object",
+   "section": "home",
+   "x": 3,
+   "y": 9,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "table 2x2",
+   "solid": "../XX",
+   "top": "XX/..",
+   "tiles8": 11
+  },
+  {
+   "name": "table_long",
+   "kind": "object",
+   "section": "home",
+   "x": 5,
+   "y": 9,
+   "w": 3,
+   "h": 2,
+   "layer": "mid",
+   "doc": "long table 3x2",
+   "solid": ".../XXX",
+   "top": "XXX/...",
+   "tiles8": 11
+  },
+  {
+   "name": "table_round",
+   "kind": "object",
+   "section": "home",
+   "x": 8,
+   "y": 9,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "round table with cloth 2x2",
+   "solid": "../XX",
+   "top": "XX/..",
+   "tiles8": 9
+  },
+  {
+   "name": "chair",
+   "kind": "object",
+   "section": "home",
+   "x": 10,
+   "y": 9,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "chair (facing down)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "chair_up",
+   "kind": "object",
+   "section": "home",
+   "x": 11,
+   "y": 9,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "chair (facing up)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "stool",
+   "kind": "object",
+   "section": "home",
+   "x": 12,
+   "y": 9,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "stool",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 2
+  },
+  {
+   "name": "bookshelf",
+   "kind": "object",
+   "section": "home",
+   "x": 13,
+   "y": 9,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "bookshelf 2x2",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 16
+  },
+  {
+   "name": "wardrobe",
+   "kind": "object",
+   "section": "home",
+   "x": 10,
+   "y": 10,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "wardrobe 2x2",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 16
+  },
+  {
+   "name": "dresser",
+   "kind": "object",
+   "section": "home",
+   "x": 0,
+   "y": 11,
+   "w": 2,
+   "h": 1,
+   "layer": "mid",
+   "doc": "dresser 2x1",
+   "solid": "XX",
+   "top": "..",
+   "tiles8": 6
+  },
+  {
+   "name": "clock",
+   "kind": "object",
+   "section": "home",
+   "x": 15,
+   "y": 9,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "grandfather clock 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "fireplace",
+   "kind": "object",
+   "section": "home",
+   "x": 2,
+   "y": 11,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "frames": [
+    [
+     2,
+     11
+    ],
+    [
+     4,
+     11
+    ],
+    [
+     6,
+     11
+    ]
+   ],
+   "period": 8,
+   "doc": "fireplace 2x2 (animated)",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 22
+  },
+  {
+   "name": "stove",
+   "kind": "object",
+   "section": "home",
+   "x": 8,
+   "y": 11,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "frames": [
+    [
+     8,
+     11
+    ],
+    [
+     9,
+     11
+    ]
+   ],
+   "period": 12,
+   "doc": "iron stove 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 12
+  },
+  {
+   "name": "sink",
+   "kind": "object",
+   "section": "home",
+   "x": 12,
+   "y": 10,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "sink counter",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "icebox",
+   "kind": "object",
+   "section": "home",
+   "x": 12,
+   "y": 11,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "icebox 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "plant",
+   "kind": "object",
+   "section": "home",
+   "x": 13,
+   "y": 11,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "potted plant",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "plant_tall",
+   "kind": "object",
+   "section": "home",
+   "x": 14,
+   "y": 11,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "tall plant 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 7
+  },
+  {
+   "name": "vase",
+   "kind": "object",
+   "section": "home",
+   "x": 15,
+   "y": 11,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "flower vase",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "lamp",
+   "kind": "object",
+   "section": "home",
+   "x": 0,
+   "y": 12,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "floor lamp 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "piano",
+   "kind": "object",
+   "section": "home",
+   "x": 10,
+   "y": 12,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "upright piano 2x2",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 12
+  },
+  {
+   "name": "rug",
+   "kind": "object",
+   "section": "home",
+   "x": 1,
+   "y": 13,
+   "w": 3,
+   "h": 2,
+   "layer": "ground",
+   "doc": "rug 3x2",
+   "solid": ".../...",
+   "top": ".../...",
+   "tiles8": 6
+  },
+  {
+   "name": "rug_blue",
+   "kind": "object",
+   "section": "home",
+   "x": 4,
+   "y": 13,
+   "w": 2,
+   "h": 2,
+   "layer": "ground",
+   "doc": "round-cornered rug 2x2",
+   "solid": "../..",
+   "top": "../..",
+   "tiles8": 5
+  },
+  {
+   "name": "barrel",
+   "kind": "object",
+   "section": "home",
+   "x": 1,
+   "y": 12,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "barrel",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "crate",
+   "kind": "object",
+   "section": "home",
+   "x": 13,
+   "y": 12,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "crate",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "sacks",
+   "kind": "object",
+   "section": "home",
+   "x": 15,
+   "y": 12,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "sacks",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "hearth_flame",
+   "kind": "object",
+   "section": "halls, shops, studies",
+   "x": 0,
+   "y": 16,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "frames": [
+    [
+     0,
+     16
+    ],
+    [
+     2,
+     16
+    ],
+    [
+     4,
+     16
+    ]
+   ],
+   "period": 8,
+   "doc": "Hearth Hall healing flame 2x2 (animated)",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 18
+  },
+  {
+   "name": "terminal",
+   "kind": "object",
+   "section": "halls, shops, studies",
+   "x": 6,
+   "y": 16,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "frames": [
+    [
+     6,
+     16
+    ],
+    [
+     7,
+     16
+    ]
+   ],
+   "period": 40,
+   "doc": "kin storage terminal 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 11
+  },
+  {
+   "name": "shop_shelf",
+   "kind": "object",
+   "section": "halls, shops, studies",
+   "x": 8,
+   "y": 16,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "shelf of goods 2x2",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 16
+  },
+  {
+   "name": "globe",
+   "kind": "object",
+   "section": "halls, shops, studies",
+   "x": 10,
+   "y": 16,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "globe",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "aquarium",
+   "kind": "object",
+   "section": "halls, shops, studies",
+   "x": 11,
+   "y": 16,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "aquarium 2x2",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 12
+  },
+  {
+   "name": "machine",
+   "kind": "object",
+   "section": "halls, shops, studies",
+   "x": 0,
+   "y": 18,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "frames": [
+    [
+     0,
+     18
+    ],
+    [
+     2,
+     18
+    ]
+   ],
+   "period": 20,
+   "doc": "workshop apparatus 2x2 (blinking)",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 17
+  },
+  {
+   "name": "display_case",
+   "kind": "object",
+   "section": "halls, shops, studies",
+   "x": 13,
+   "y": 16,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "display case 2x2",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 12
+  },
+  {
+   "name": "fusion_extractor",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 0,
+   "y": 21,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "frames": [
+    [
+     0,
+     21
+    ],
+    [
+     2,
+     21
+    ]
+   ],
+   "period": 20,
+   "doc": "fusion lab extractor 2x2",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 19
+  },
+  {
+   "name": "fusion_mixer",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 4,
+   "y": 21,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "frames": [
+    [
+     4,
+     21
+    ],
+    [
+     6,
+     21
+    ]
+   ],
+   "period": 20,
+   "doc": "fusion lab mixer 2x2",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 19
+  },
+  {
+   "name": "fusion_loom",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 8,
+   "y": 21,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "frames": [
+    [
+     8,
+     21
+    ],
+    [
+     10,
+     21
+    ]
+   ],
+   "period": 20,
+   "doc": "fusion lab loom 2x2",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 18
+  },
+  {
+   "name": "fusion_tanks",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 12,
+   "y": 21,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "frames": [
+    [
+     12,
+     21
+    ],
+    [
+     14,
+     21
+    ]
+   ],
+   "period": 20,
+   "doc": "fusion lab tanks 2x2",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 22
+  },
+  {
+   "name": "pylon",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 0,
+   "y": 23,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "frames": [
+    [
+     0,
+     23
+    ],
+    [
+     1,
+     23
+    ]
+   ],
+   "period": 24,
+   "doc": "resonance pylon 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "resonance_coil",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 2,
+   "y": 23,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "frames": [
+    [
+     2,
+     23
+    ],
+    [
+     3,
+     23
+    ]
+   ],
+   "period": 10,
+   "doc": "resonance coil 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 6
+  },
+  {
+   "name": "energy_vat",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 4,
+   "y": 23,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "frames": [
+    [
+     4,
+     23
+    ],
+    [
+     5,
+     23
+    ],
+    [
+     6,
+     23
+    ]
+   ],
+   "period": 16,
+   "doc": "energy vat 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "dynamo",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 7,
+   "y": 23,
+   "w": 2,
+   "h": 1,
+   "layer": "mid",
+   "frames": [
+    [
+     7,
+     23
+    ],
+    [
+     9,
+     23
+    ],
+    [
+     11,
+     23
+    ],
+    [
+     13,
+     23
+    ]
+   ],
+   "period": 6,
+   "doc": "dynamo 2x1 (spinning)",
+   "solid": "XX",
+   "top": "..",
+   "tiles8": 13
+  },
+  {
+   "name": "bike_display",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 7,
+   "y": 24,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "bike on a stand 2x2",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 11
+  },
+  {
+   "name": "gears",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 15,
+   "y": 23,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "gear set",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "file_cabinet",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 9,
+   "y": 24,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "file cabinet 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "volt_banner",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 10,
+   "y": 24,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "hall banner 1x2 (wall)",
+   "solid": "./.",
+   "top": "./.",
+   "tiles8": 8
+  },
+  {
+   "name": "work_board",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 11,
+   "y": 24,
+   "w": 2,
+   "h": 1,
+   "layer": "mid",
+   "doc": "job board 2x1 (wall)",
+   "solid": "..",
+   "top": "..",
+   "tiles8": 8
+  },
+  {
+   "name": "chest",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 13,
+   "y": 24,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "storage chest",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "radio",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 14,
+   "y": 24,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "wireless set",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "desk",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 0,
+   "y": 25,
+   "w": 2,
+   "h": 1,
+   "layer": "mid",
+   "doc": "writing desk 2x1",
+   "solid": "XX",
+   "top": "..",
+   "tiles8": 8
+  },
+  {
+   "name": "telescope",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 15,
+   "y": 24,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "telescope 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 7
+  },
+  {
+   "name": "specimen_shelf",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 2,
+   "y": 25,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "specimen shelf 2x2",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 16
+  },
+  {
+   "name": "microscope",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 4,
+   "y": 25,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "microscope",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "telegraph",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 5,
+   "y": 25,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "telegraph key",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "chalkboard",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 11,
+   "y": 25,
+   "w": 2,
+   "h": 1,
+   "layer": "mid",
+   "doc": "chalkboard 2x1 (wall)",
+   "solid": "..",
+   "top": "..",
+   "tiles8": 8
+  },
+  {
+   "name": "map_poster",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 6,
+   "y": 25,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "map (wall)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "calendar",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 13,
+   "y": 25,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "calendar (wall)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "pennant",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 14,
+   "y": 25,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "pennant (wall)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "cooktop",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 0,
+   "y": 26,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "cooktop",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "cauldron",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 4,
+   "y": 26,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "frames": [
+    [
+     4,
+     26
+    ],
+    [
+     5,
+     26
+    ],
+    [
+     6,
+     26
+    ]
+   ],
+   "period": 14,
+   "doc": "bubbling cauldron",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 8
+  },
+  {
+   "name": "anvil",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 1,
+   "y": 26,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "anvil",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 3
+  },
+  {
+   "name": "brick_oven",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 7,
+   "y": 26,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "frames": [
+    [
+     7,
+     26
+    ],
+    [
+     9,
+     26
+    ],
+    [
+     11,
+     26
+    ]
+   ],
+   "period": 10,
+   "doc": "bread oven 2x2 (animated)",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 18
+  },
+  {
+   "name": "bread_display",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 13,
+   "y": 26,
+   "w": 2,
+   "h": 1,
+   "layer": "mid",
+   "doc": "bread counter 2x1",
+   "solid": "XX",
+   "top": "..",
+   "tiles8": 7
+  },
+  {
+   "name": "lantern_rack",
+   "kind": "object",
+   "section": "study and workshop",
+   "x": 0,
+   "y": 27,
+   "w": 2,
+   "h": 1,
+   "layer": "mid",
+   "doc": "lantern rack 2x1",
+   "solid": "..",
+   "top": "..",
+   "tiles8": 8
+  },
+  {
+   "name": "tea_set",
+   "kind": "object",
+   "section": "keepsakes",
+   "x": 0,
+   "y": 29,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "tea set (on tables)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "cushion",
+   "kind": "object",
+   "section": "keepsakes",
+   "x": 1,
+   "y": 29,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "floor cushion",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "kin_basket",
+   "kind": "object",
+   "section": "keepsakes",
+   "x": 2,
+   "y": 29,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "kin bed basket",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "bookshelf_small",
+   "kind": "object",
+   "section": "keepsakes",
+   "x": 3,
+   "y": 29,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "narrow bookshelf 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "toy_box",
+   "kind": "object",
+   "section": "keepsakes",
+   "x": 4,
+   "y": 29,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "toy box",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "coat_rack",
+   "kind": "object",
+   "section": "keepsakes",
+   "x": 5,
+   "y": 29,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "coat rack 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "mirror",
+   "kind": "object",
+   "section": "keepsakes",
+   "x": 6,
+   "y": 29,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "standing mirror 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 6
+  },
+  {
+   "name": "cactus",
+   "kind": "object",
+   "section": "keepsakes",
+   "x": 7,
+   "y": 29,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "potted cactus",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "kin_plush",
+   "kind": "object",
+   "section": "keepsakes",
+   "x": 8,
+   "y": 29,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "kin plush toy",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "ship_wheel",
+   "kind": "object",
+   "section": "keepsakes",
+   "x": 9,
+   "y": 29,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "ship wheel (wall)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "fish_trophy",
+   "kind": "object",
+   "section": "keepsakes",
+   "x": 10,
+   "y": 29,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "fish trophy (wall)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "ship_bottle",
+   "kind": "object",
+   "section": "keepsakes",
+   "x": 11,
+   "y": 29,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "ship in a bottle",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "net_wall",
+   "kind": "object",
+   "section": "keepsakes",
+   "x": 12,
+   "y": 29,
+   "w": 2,
+   "h": 1,
+   "layer": "mid",
+   "doc": "fishing net (wall) 2x1",
+   "solid": "..",
+   "top": "..",
+   "tiles8": 7
+  }
+ ],
+ "scenes": [
+  {
+   "key": "hearth_hall",
+   "title": "Hearth Hall (sample)",
+   "w": 17,
+   "h": 13,
+   "doc": "The Hearth Hall: checker floor and blue carpet to the flame counter, the storage terminal, a hearth, plants and benches."
+  },
+  {
+   "key": "cottage",
+   "title": "Cottage interior (sample)",
+   "w": 14,
+   "h": 11,
+   "doc": "A cozy home: plank floor, rug, bed, bookshelf, stove and table, window light."
+  }
+ ]
+}

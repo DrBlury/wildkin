@@ -86,12 +86,16 @@ typedef struct {
     u8 feat_count;
     const MapPatch *patches;
     u8 patch_count;
+    u8 depth, surface_map;         /* 0 = surface/interior; cave depth and explicit surface anchor */
 } MapDef;
 
 /* Called at the end of every map load (music.c defines it; see script.c). */
 static void music_map_changed(int map);
 
-typedef struct { u8 map, x, y, dest, dx, dy; } Warp;
+typedef struct {
+    u8 map, x, y, dest, dx, dy;
+    u16 required_flag;            /* 0 = open; checked before entering either end of a passage */
+} Warp;
 
 enum { BEH_STILL, BEH_LOOK, BEH_WANDER, BEH_PACE_H, BEH_PACE_V };
 #define NO_TRAINER 0xFFFF
@@ -109,6 +113,7 @@ typedef struct {
     const char *text;   /* what they say (after the bout, for wardens) */
     u16 show_flag, hide_flag;
     u8 when, event;
+    u8 fixture;          /* scripted interaction anchor; its appearance is authored map decor */
 } NpcDef;
 
 #define TRAINER_TEAM_MAX 6
@@ -188,6 +193,23 @@ static void bit_set(u8 *bits, int i) { if (i >= 0) bits[i >> 3] |= (u8)(1u << (i
 static void bit_clear(u8 *bits, int i) { if (i >= 0) bits[i >> 3] &= (u8)~(1u << (i & 7)); }
 
 static int flag(int f) { return bit_get(story_bits, f); }
+static int warp_is_open(const Warp *w)
+{
+    return !w->required_flag || (w->required_flag < FLAG_COUNT && flag(w->required_flag));
+}
+static const char *warp_gate_name(const Warp *w)
+{
+    switch (w->required_flag) {
+    case FLAG_STORM_CALMED: return "CALM THE STORM";
+    case FLAG_VOLT_CREST: return "VOLT CREST";
+    case FLAG_TIDE_CREST: return "TIDE CREST";
+    case FLAG_CREST_ANVIL: return "ANVIL CREST";
+    case FLAG_RIME_CREST: return "RIME CREST";
+    case FLAG_LANTERN_CREST: return "LANTERN CREST";
+    case FLAG_CREST_DREAM: return "DREAM CREST";
+    default: return "SOLVE THE LOCAL PUZZLE";
+    }
+}
 static void npcs_refresh(void);
 static void map_patches_reapply(void);
 static void flag_set(int f)
@@ -445,6 +467,7 @@ static s16 ring_x[16][16], ring_y[16][16]; /* map cell cached in each ring slot 
 static int cam_x, cam_y;
 static int cam_scripted;
 static int field_anim_frame;
+#include "field_tiles.c"
 /* World-space origin keeps both maps on the same ring slots during an edge. */
 static int seam_origin_x;
 static int seam_pending = MAP_NONE;
@@ -544,8 +567,13 @@ static void blend_quads(int v, int x, int y, u16 q[4])
 /* Resolve a decor entry (local tile + 1) against the kind's VRAM block. */
 static u16 decor_entry(u16 e, int kind)
 {
-    if (!e) return 0;
-    return (u16)((e & 0xFC00) | (decor_base[kind] + (e & 1023) - 1));
+    if (!e || !decor_base[kind]) return 0;
+    int local = e & 1023;
+    if (!local || local > DECOR_DEFS[map_tileset][kind].tile_count) {
+        field_tiles_failed = 1;
+        return 0;
+    }
+    return (u16)(FIELD_DECOR_ENTRY | (e & 0xFC00) | (decor_base[kind] + local - 1));
 }
 
 /* Hook for cells whose look changes at run time (farm soil and crops,
@@ -605,7 +633,14 @@ static void render_cell(int mx, int my)
     }
     if (map_elevated) elev_render_cover(mx, my, bottom, mid, top);
     if (!seam.preview) dyn_cell(mx, my, bottom, mid, top);
+    for (int i = 0; i < 4; i++) {
+        bottom[i] = field_tile_entry(bottom[i]);
+        mid[i] = field_tile_entry(mid[i]);
+        top[i] = field_tile_entry(top[i]);
+    }
     if (seam.preview) {
+        /* A newly prepared neighbour replaces any cached boundary filler. */
+        if (ring_x[ry][rx] == wx && ring_y[ry][rx] == my) ring_x[ry][rx] = -32768;
         seam.x[ry][rx] = (s16)wx;
         seam.y[ry][rx] = (s16)my;
         for (int i = 0; i < 4; i++) {
@@ -659,11 +694,11 @@ static void field_render_view(void)
         for (int i = 0; i < dest->decor_count; i++) {
             int k = dest->decor[i].kind;
             if (decor_base[k]) continue;
-            const DecorDef *d = &DECOR_DEFS[map_tileset][k];
-            decor_base[k] = (u16)decor_tiles_used;
-            copy32(VRAM_SCENE_TILES + decor_tiles_used * 8,
-                   decor_tiles + d->tile_first * 8, (unsigned)d->tile_count * 8);
-            decor_tiles_used += d->tile_count;
+            if (!field_tiles_load_decor(k)) {
+                seam.rejected = seam_pending;
+                seam_pending = MAP_NONE;
+                seam.ready = seam.preparing = 0;
+            }
             break; /* stage a single decor block per vblank */
         }
     }
@@ -673,8 +708,8 @@ static void field_render_view(void)
             int rx = wx & 15, ry = my & 15;
             if (wx >= seam_origin_x && wx < seam_origin_x + map_w) {
                 render_cell(wx - seam_origin_x, my);
-            } else if (seam.ready && seam.x[ry][rx] == wx && seam.y[ry][rx] == my &&
-                       (ring_x[ry][rx] != wx || ring_y[ry][rx] != my)) {
+            } else if (seam.ready && seam.x[ry][rx] == wx && seam.y[ry][rx] == my) {
+                if (ring_x[ry][rx] == wx && ring_y[ry][rx] == my) continue;
                 u16 *b = VRAM_MAP(SB_FIELD_BOTTOM), *m = VRAM_MAP(SB_PANEL), *t = VRAM_MAP(SB_FIELD_TOP);
                 int idx = ry * 64 + rx * 2;
                 static const u8 off[4] = { 0, 1, 32, 33 };
@@ -685,6 +720,10 @@ static void field_render_view(void)
                 }
                 ring_x[ry][rx] = (s16)wx;
                 ring_y[ry][rx] = (s16)my;
+            } else {
+                /* Small rooms and edges without a neighbour still own every
+                 * visible ring slot: use this area's out-of-bounds terrain. */
+                render_cell(wx - seam_origin_x, my);
             }
         }
 }
@@ -755,6 +794,8 @@ static void field_load_palettes(void)
 }
 
 static void travel_load_gfx(void);
+static void field_load_objects(void);
+static void farm_load_gfx(void);
 
 /* ---- tall grass (grass.c): front blades over actors, rustles, wind ---- */
 static void grass_tileset_loaded(void);
@@ -764,28 +805,19 @@ static int grass_npc_slots(void);
 
 static void field_load_tileset(void)
 {
-    copy32(VRAM_SCENE_TILES, tset()->tiles, (unsigned)tset()->tile_count * 8);
-    decor_tiles_used = decor_tiles_wanted = tset()->tile_count;
-    /* one block per decor kind this map uses (first animation frame) */
-    for (int k = 0; k < DK_COUNT; k++) decor_base[k] = 0;
+    field_tiles_reset();
     const MapDef *m = &MAPS[cur_map];
-    for (int i = 0; i < m->decor_count; i++) {
-        int k = m->decor[i].kind;
-        if (decor_base[k]) continue;
-        const DecorDef *d = &DECOR_DEFS[map_tileset][k];
-        decor_tiles_wanted += d->tile_count;
-        if (decor_tiles_used + d->tile_count > SCENE_TILE_MAX) continue; /* the map tests catch this */
-        decor_base[k] = (u16)decor_tiles_used;
-        copy32(VRAM_SCENE_TILES + decor_tiles_used * 8, decor_tiles + d->tile_first * 8,
-               (unsigned)d->tile_count * 8);
-        decor_tiles_used += d->tile_count;
-    }
+    for (int i = 0; i < m->decor_count; i++)
+        field_tiles_load_decor(m->decor[i].kind);
     field_load_palettes();
     seam_origin_x = 0;
     seam.ready = seam.preparing = 0;
     seam.rejected = seam_pending = MAP_NONE;
     ring_invalidate();
+    /* Portraits and menus reuse the field OBJ tiles and palettes. */
+    field_load_objects();
     travel_load_gfx();
+    farm_load_gfx();
     grass_tileset_loaded();
 }
 
@@ -803,8 +835,10 @@ static int seam_can_preview(int dest, int side)
         MAPS[cur_map].link_off[side] ||
         d->link_off[side == LINK_E ? LINK_W : LINK_E] ||
         d->link[side == LINK_E ? LINK_W : LINK_E] != cur_map ||
-        decor_tiles_wanted > decor_tiles_used) return 0;
-    int wanted = decor_tiles_used;
+        field_tiles_failed) return 0;
+    /* Reserve enough for any terrain revealed after crossing, not merely
+     * the tiles seen so far. Incompatible/oversized pairs use a normal fade. */
+    int wanted = tset()->tile_count + field_decor_tiles;
     u8 seen[DK_COUNT] = { 0 };
     for (int i = 0; i < d->decor_count; i++) {
         int k = d->decor[i].kind;
@@ -904,6 +938,7 @@ static void seam_prepare(int dest, int origin, int side)
     if (seam.progress == 128) {
         seam.preparing = 0;
         seam.ready = 1;
+        ring_invalidate();
     }
 }
 
@@ -916,7 +951,7 @@ static void field_animate_tiles(void)
         const TileAnim *a = &t->anims[i];
         if (!a->period || field_anim_frame % a->period) continue;
         int f = field_anim_frame / a->period % a->frames;
-        copy32(VRAM_SCENE_TILES + a->tile * 8, a->data + (unsigned)f * a->count * 8, (unsigned)a->count * 8);
+        field_tiles_animate(a, f);
     }
     for (int k = 0; k < DK_COUNT; k++) {
         const DecorDef *d = &DECOR_DEFS[map_tileset][k];
@@ -1248,8 +1283,10 @@ static void draw_weather(void)
     if (!storm_active()) return;
     for (int i = 0; i < 10; i++) {
         int speed = 5 + (i % 3);
-        int x = (int)((cell_hash(i, 7) % 272u) + field_anim_frame * 2 - cam_x / 2) % 272 - 16;
-        int y = (int)((cell_hash(i, 3) % 192u) + field_anim_frame * speed) % 192 - 16;
+        int x = (int)((cell_hash(i, 7) + (unsigned)field_anim_frame * 2u) % 272u) - cam_x / 2 % 272;
+        int y = (int)((cell_hash(i, 3) + (unsigned)field_anim_frame * (unsigned)speed) % 192u);
+        x = (x % 272 + 272) % 272 - 16;
+        y -= 16;
         spr_push(x, y, OT_EMOTE + EMOTE_RAIN * 4, SQ16, OBANK_EMOTE, 1, 0);
     }
 }
@@ -1275,7 +1312,7 @@ static void field_draw_sprites(void)
     }
     int slot = 0;
     for (int i = 0; i < NPC_COUNT && n < 40; i++) {
-        if (!npc_visible[i]) continue;
+        if (NPCS[i].map != cur_map || !npc_visible[i] || NPCS[i].fixture) continue;
         const Actor *a = &npc_state[i];
         int wx = a->x * 16 + a->ox, wy = a->y * 16 + a->oy;
         if (wx - cam_x >= -16 && wx - cam_x <= SCREEN_WIDTH && wy - cam_y >= -16 &&
@@ -1680,6 +1717,10 @@ static int player_try_move(int dir)
     if (nx >= 0 && ny >= 0 && nx < map_w && ny < map_h && (cell_attr(nx, ny) & A_DOOR)) {
         int w = warp_at(cur_map, nx, ny);
         if (w >= 0) {
+            if (!warp_is_open(&WARPS[w])) {
+                sfx_play(SFX_BUMP);
+                return 0;
+            }
             sfx_play(SFX_DOOR);
             field_begin_warp(WARPS[w].dest, WARPS[w].dx, WARPS[w].dy, dir);
             return 1;
@@ -1697,6 +1738,10 @@ static int player_try_move(int dir)
                 }
             }
         if (best >= 0) {
+            if (!warp_is_open(&WARPS[best])) {
+                sfx_play(SFX_BUMP);
+                return 0;
+            }
             sfx_play(SFX_DOOR);
             field_begin_warp(WARPS[best].map, WARPS[best].x, WARPS[best].y + 1, DIR_DOWN);
             return 1;

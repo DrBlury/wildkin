@@ -4,3 +4,5 @@
     { MAP_PORT_BRINE, 16, 17, 30, 108, "PORT BRINE" },
     { MAP_GULL_ISLE, 11, 12, 22, 146, "GULL ISLE" },
     { MAP_REEDWICK, 9, 16, 51, 107, "REEDWICK" },
+
+#include "biomes/flypoints.inc"

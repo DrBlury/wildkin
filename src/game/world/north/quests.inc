@@ -5,3 +5,5 @@
     [QUEST_STAR_CHART] = { "THE STAR CHART",
                            "Take Ida's star chart to DR. MAREN in the STARFALL GROTTO, then report back to Ida." },
     [QUEST_LOST_AXE] = { "THE LOST AXE", "Find the logger's axe with the GNAWLORD in STORMSTEP CAVE; return to Astrid." },
+
+#include "biomes/quests.inc"

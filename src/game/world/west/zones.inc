@@ -5,3 +5,5 @@
     [ZONE_SEA] = { WILD_SEA, NSLOT(WILD_SEA), 3, "THE SEA" },
     [ZONE_FEN_REEDS] = { WILD_FEN_REEDS, NSLOT(WILD_FEN_REEDS), 4, "FEN REEDS" },
     [ZONE_FEN_WATER] = { WILD_FEN_WATER, NSLOT(WILD_FEN_WATER), 3, "FEN WATER" },
+
+#include "biomes/zones.inc"

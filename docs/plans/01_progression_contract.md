@@ -397,3 +397,23 @@ These are targets for a first run, not measurements. Plan 12 measures them.
 | Finale | 0.5 h | 1 h |
 | Critical path | ~8 h | 16–18 h |
 | With side quests, events and the post-game | — | 30 h+ |
+
+## 11. Implemented underground connections
+
+The cave expansion preserves G1–G7 and adds the following optional loops;
+[UNDERWORLD.md](../UNDERWORLD.md) is the current authoring/entrance reference.
+
+| Earliest act | New maps / connections | Requirement |
+| --- | --- | --- |
+| III | Rootwood Path, Rootways, Mill Cellar; Bramblewood ↔ Brookmill Mill ↔ Copperline Mine | Volt Crest on both ends |
+| IV | Tidal Underflow; Reed Tunnel ↔ Reedwick / Port Brine; Rootways ↔ Underflow | Tide Crest; flooded channel still needs SURF |
+| V | Karst Chamber and Frost Spur; Stormstep ↔ Glimmer / Timberline sawmill | Anvil Crest; frost stopper needs STRENGTH |
+| V | Ember Span and Cooling Chamber; Railhead shaft ↔ Ember Tunnel; Copperline Mine ↔ shaft | Anvil Crest; permanent cooling puzzle |
+| VI | Root Gallery and Dusk Vault; Chalk Barrow ↔ Gravewood / Duskmere | Rime Crest; optional symbol shortcut |
+| VII | Cooling Chamber ↔ Root Gallery | Lantern Crest |
+
+No underground route enters a Hall behind its Master or bypasses the
+six-crest Ossuary gate. New IDs append within their regions; saved regional
+layouts rebase shifted global IDs. Do not move existing IDs to make numeric
+values appear unchanged. Old-save migration and per-entrance return proofs
+are acceptance requirements for every further connection.

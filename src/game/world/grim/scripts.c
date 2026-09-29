@@ -506,3 +506,40 @@ static void scr_maud(int npc)
     lore_reveal(LSRC_MAUD, "The Kinship vow: care for every kernel, including the ones left behind.");
     dlg_ask("Rest your kin at the WAYCHAPEL?", HEARTH_MENU, 3, heal_answer);
 }
+
+/* Wrong symbols extinguish only the current sequence; the gallery route
+ * stays open, and a solved shortcut is never reset. */
+static void dusk_sequence_reset(void)
+{
+    flag_clear(FLAG_DUSK_FIRST);
+    flag_clear(FLAG_DUSK_SECOND);
+    dlg_say("The sigils fade harmlessly. Roots, bell, lantern; try again.");
+}
+
+static void scr_dusk_root(int npc)
+{
+    (void)npc;
+    if (flag(FLAG_DUSK_SHORTCUT)) { dlg_say("The roots still glow beside the opened shortcut."); return; }
+    flag_set(FLAG_DUSK_FIRST);
+    flag_clear(FLAG_DUSK_SECOND);
+    dlg_say("The root sigil wakes. A distant bell answers.");
+}
+
+static void scr_dusk_bell(int npc)
+{
+    (void)npc;
+    if (flag(FLAG_DUSK_SHORTCUT)) { dlg_say("The bell's low note still rings."); return; }
+    if (!flag(FLAG_DUSK_FIRST) || flag(FLAG_DUSK_SECOND)) { dusk_sequence_reset(); return; }
+    flag_set(FLAG_DUSK_SECOND);
+    dlg_say("The bell rings once. The lantern sigil waits.");
+}
+
+static void scr_dusk_lantern(int npc)
+{
+    (void)npc;
+    if (flag(FLAG_DUSK_SHORTCUT)) { dlg_say("The lantern lights the opened shortcut."); return; }
+    if (!flag(FLAG_DUSK_SECOND)) { dusk_sequence_reset(); return; }
+    flag_set(FLAG_DUSK_SHORTCUT);
+    map_patches_reapply();
+    dlg_say("Roots, bell, lantern. A stone gives way: a lasting path to the Duskmere well!");
+}

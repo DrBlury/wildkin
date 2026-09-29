@@ -1,0 +1,23 @@
+static const DecorPlace RIMEWIND_TUNDRA_DECOR[] = {
+    DP(SIGNPOST, 5, 13), DP(SNOW_CAIRN, 14, 9), DP(PEBBLES, 20, 12),
+    DP(SNOW_CAIRN, 27, 5), DP(ROCK, 34, 16),
+};
+static const MapObj RIMEWIND_TUNDRA_OBJS[] = {
+    OBJ(LADDER, 2, 14, 0), OBJ(CHEST, 25, 5, ITEM_FROST_SHARD),
+};
+static const DecorPlace SPORELIGHT_HOLLOW_DECOR[] = {
+    DP(SIGNPOST, 5, 13), DP(CAVE_FUNGAL_SHELF, 15, 7),
+    DP(GLOWCAP, 15, 9), DP(CAVE_CRYSTAL, 22, 5),
+    DP(STALAGMITE, 28, 15),
+};
+static const MapObj SPORELIGHT_HOLLOW_OBJS[] = {
+    OBJ(LADDER, 3, 13, 0), OBJ(CHEST, 23, 5, ITEM_ASTRAL_SHARD),
+};
+static const WildSlot WILD_RIMEWIND[] = {
+    { SP_GLACIYAK, 36, 42, 45 }, { SP_MOONHARE, 30, 42, 45 },
+    { SP_CRAGHORN, 26, 43, 46 }, { SP_WENDIGAUNT, 8, 44, 46, WHEN_NIGHT },
+};
+static const WildSlot WILD_SPORELIGHT[] = {
+    { SP_SHROOMLET, 34, 32, 35 }, { SP_TRUFFLOAR, 30, 33, 36 },
+    { SP_QUARTZLING, 26, 32, 35 }, { SP_BLINKET, 10, 33, 36, WHEN_NIGHT },
+};

@@ -4,3 +4,5 @@
     [QUEST_VOLT_HALL] = { "THE VOLT HALL", "Find the switch sequence in Lumen's VOLT HALL and beat MASTER FARA." },
     [QUEST_GRIST_WHEEL] = { "GRIST FOR THE WHEEL", "Bring MILLER ADA three CORN or three IRON ORE to mend the mill cog." },
     [QUEST_KOIRIN_SONG] = { "THE BROOK'S SONG", "Show a KOIRIN in your party to Brookmill's curious child." },
+
+#include "biomes/quests.inc"

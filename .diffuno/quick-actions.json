@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "actions": [
+    {
+      "id": "launch-newest-rom-mgba",
+      "kind": "command",
+      "title": "Launch newest ROM in mGBA",
+      "description": "Open the most recently modified .gba ROM in this repository; does not rebuild.",
+      "icon": "play",
+      "labels": [
+        "ROM",
+        "mGBA"
+      ],
+      "confirm": false,
+      "agentId": null,
+      "command": "python3 -c 'from pathlib import Path; import shutil, subprocess, sys; roms = list(Path(\".\").rglob(\"*.gba\")); rom = max(roms, key=lambda p: p.stat().st_mtime_ns) if roms else sys.exit(\"No .gba ROM found; build one first.\"); emulator = shutil.which(\"mgba\") or shutil.which(\"mGBA\"); subprocess.run([emulator, str(rom.resolve())] if emulator else [\"open\", \"-a\", \"mGBA\", str(rom.resolve())], check=True)'"
+    }
+  ]
+}

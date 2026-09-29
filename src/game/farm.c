@@ -612,7 +612,7 @@ static void plot_redraw(int pi)
 #define OT_FARM_FX (OT_FARM + 8)         /* FXT_COUNT tiles */
 #define OT_FARM_CURSOR (OT_FARM + 16)    /* 4 tiles */
 #define OT_WEATHER (OT_FARM + 20)        /* 7 x 8x8 tiles */
-#define OT_CARAVAN (OT_FARM + 32)        /* 8 tiles, below travel's 640 */
+#define OT_CARAVAN (OT_FARM + 32)        /* 8 tiles, below travel's 552 */
 enum { WFX_SNOW, WFX_FOG, WFX_HEAT, WFX_GLOW, WFX_STREAM, WFX_STAR, WFX_ASH, WFX_COUNT };
 /* Existing emote bank: 2 white, 3 warm red, 4 cyan, 5 grey, 6 pale gold. */
 static const char *const WEATHER_ART[WFX_COUNT][8] = {
@@ -1860,22 +1860,14 @@ static void decor_remove_kind(int kind)
     }
 }
 
-/* Called at the end of every map load (field.c map_load). */
-static void farm_map_loaded(void)
+/* Restore this area's extra OBJ art after shared travel palettes/tiles.
+ * Unlike map loading, this must not reset workers, particles or plot state. */
+static void farm_load_gfx(void)
 {
-    farm_geom_init();
-    for (int i = 0; i < PARTICLE_MAX; i++) particles[i].life = 0;
-    for (int i = 0; i < FARM_WORKERS; i++) farm_kin[i].shown = 0;
-    fx_freeze = 0;
     weather_load_tiles();
     caravan_load_tiles();
     if (cur_map == MAP_WILLOW_ACRE) {
         fx_load_farm();
-        if (farm.owned) {
-            decor_remove_kind(DK_FARM_GATE);
-            decor_remove_kind(DK_FOR_SALE);
-            workers_place();
-        }
         return;
     }
     const MapDef *m = &MAPS[cur_map];
@@ -1884,6 +1876,21 @@ static void farm_map_loaded(void)
             berry_sprite_load(berry_crop(m->objs[i].arg));
             break;
         }
+}
+
+/* Called at the end of every map load (field.c map_load). */
+static void farm_map_loaded(void)
+{
+    farm_geom_init();
+    for (int i = 0; i < PARTICLE_MAX; i++) particles[i].life = 0;
+    for (int i = 0; i < FARM_WORKERS; i++) farm_kin[i].shown = 0;
+    fx_freeze = 0;
+    farm_load_gfx();
+    if (cur_map == MAP_WILLOW_ACRE && farm.owned) {
+        decor_remove_kind(DK_FARM_GATE);
+        decor_remove_kind(DK_FOR_SALE);
+        workers_place();
+    }
 }
 
 /* Per field frame (time.c time_tick): the tool ring, effects, workers. */
@@ -2031,10 +2038,7 @@ static void farm_draw(void)
 {
     /* Battle FX reuse these tiles; the first field draw after another screen restores them. */
     static unsigned last_field_draw;
-    if ((unsigned)frame_count != last_field_draw + 1) {
-        weather_load_tiles();
-        caravan_load_tiles();
-    }
+    if ((unsigned)frame_count != last_field_draw + 1) farm_load_gfx();
     last_field_draw = (unsigned)frame_count;
     farm_canvas_draw();
     int wagon_x = events_caravan_wagon_x();
@@ -2069,8 +2073,10 @@ static void farm_draw(void)
     if (time_raining_here() && !storm_active()) {
         for (int i = 0; i < 12; i++) {
             int speed = 5 + (i % 3);
-            int x = (int)((cell_hash(i, 11) % 272u) + field_anim_frame * 2 - cam_x / 2) % 272 - 16;
-            int y = (int)((cell_hash(i, 5) % 192u) + field_anim_frame * speed) % 192 - 16;
+            int x = (int)((cell_hash(i, 11) + (unsigned)field_anim_frame * 2u) % 272u) - cam_x / 2 % 272;
+            int y = (int)((cell_hash(i, 5) + (unsigned)field_anim_frame * (unsigned)speed) % 192u);
+            x = (x % 272 + 272) % 272 - 16;
+            y -= 16;
             spr_push(x, y, OT_EMOTE + EMOTE_RAIN * 4, SQ16, OBANK_EMOTE, 1, 0);
         }
     }

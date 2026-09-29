@@ -54,15 +54,15 @@ static const char *const FROSTPINE_ROWS[] = {
     "PP~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~PP", /* 24 */
     "pp~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~pp", /* 25 */
     "PP.................==.................PP", /* 26 */
-    "pp.................==.................pp", /* 27 */
-    "PP.................==.................PP", /* 28 */
+    "pp.................pp.................pp", /* 27 */
+    "PP.................PP.................PP", /* 28 */
     "pp.................==.................pp", /* 29 */
     "PP.........==========.................PP", /* 30 */
     "pp.........==========.................pp", /* 31 */
-    "PP.........==.........PPPP..,,,,......PP", /* 32 */
-    "pp.........==.........pppp..,,,,......pp", /* 33 */
-    "PP.,,,,,,..==......................PPPPP", /* 34 */
-    "pp.,,,,,,..==......................ppppp", /* 35 */
+    "PP.........==.........PPPP..,===......PP", /* 32 */
+    "pp.........==.........pppp..===,......pp", /* 33 */
+    "PP.,,,,,,..==..............===.....PPPPP", /* 34 */
+    "pp.,,,,,,..==.............===......ppppp", /* 35 */
     "PP.,,,,,,..==.PPPP......,,,,,,,,,,,PPPPP", /* 36 */
     "pp.,,,,,,..==.pppp......,,,,,,,,,,,ppppp", /* 37 */
     "PP.,,,,,,..==.PPPP......,,,,,,,,,,,PPPPP", /* 38 */
@@ -73,6 +73,7 @@ static const char *const FROSTPINE_ROWS[] = {
     "ppppppppppp==ppppppppppppppppppppppppppp", /* 43 */
 };
 static const DecorPlace FROSTPINE_DECOR[] = {
+    DP(FROZEN_TREE, 23, 27), DP(FROZEN_TREE, 23, 28), /* pass switchback */
     DP(BRIDGE_V, 19, 24), DP(BRIDGE_V, 20, 24), DP(BRIDGE_V, 19, 25), DP(BRIDGE_V, 20, 25),
     DP(SIGNPOST, 13, 39), DP(SIGNPOST, 21, 3), DP(SKI_RACK, 18, 28), DP(SLED, 17, 28),
     DP(FROZEN_TREE, 2, 12), DP(FROZEN_TREE, 36, 12), DP(FROZEN_TREE, 21, 14),
@@ -129,10 +130,10 @@ static const char *const FROSTHOLLOW_ROWS[] = {
     "~~~~~........,,,,..==..78888889.......=..~~p", /* 27 */
     "~~~~~~~............==..12222223.......=..~~P", /* 28 */
     "~~~~~~~............==....................~~p", /* 29 */
-    "~~~~~~~............==......................R", /* 30 */
-    "~~~~~~~........PP..==.....................PP", /* 31 */
+    "~~~~~~~............==.....===..............R", /* 30 */
+    "~~~~~~~........PP..==......===............PP", /* 31 */
     "~~~~~~~...=====pp..=============..,,,.....pp", /* 32 */
-    "~~~~~~~.......=....==..,,,,...==..,,,.....PP", /* 33 */
+    "~~~~~~~.......=....==..,,,,...===.,,,.....PP", /* 33 */
     "~~~~~~~~788889=....==.........==..,,,.....pp", /* 34 */
     "~~~~~~~~4iiii6=....==.............,,,.....PP", /* 35 */
     "~~~~~~~~4iiii6=....==.............,=====..pp", /* 36 */
@@ -713,12 +714,12 @@ static const char *const TIMBERLINE_ROWS[] = {
     "p.ppppppppp..ppp..===..................p", /* 11 */
     "P.................===..................P", /* 12 */
     "p.................===..................p", /* 13 */
-    "P.......=.........===.........=........P", /* 14 */
-    "p.................===..................p", /* 15 */
-    "P.................===..................P", /* 16 */
-    "p.................===..................p", /* 17 */
-    "P.................===..................P", /* 18 */
-    "p.................===..................p", /* 19 */
+    "P.......=.........===...===...=........P", /* 14 */
+    "p.................===...===............p", /* 15 */
+    "P.................===...===............P", /* 16 */
+    "p.................===....===...........p", /* 17 */
+    "P.................===.....===..........P", /* 18 */
+    "p.................===......===.........p", /* 19 */
     "P.................===..................P", /* 20 */
     "p.................===..................p", /* 21 */
     "P.................===..................P", /* 22 */
@@ -788,7 +789,12 @@ static const DecorPlace TIMBERLINE_DECOR[] = {
     DP(CAMPFIRE, 19, 18), DP(SIGNPOST, 15, 30), DP(SKI_RACK, 24, 17),
 };
 static const MapObj TIMBERLINE_OBJS[] = { OBJ(BERRY, 35, 26, 26) };
-static const MapObj STORM_CAVE_OBJS[] = { OBJ(BOULDER, 10, 10, 0) };
+static const DecorPlace STORM_CAVE_DECOR[] = { DP(SIGNPOST, 15, 3) };
+static const MapObj STORM_CAVE_OBJS[] = { OBJ(BOULDER, 10, 10, 0), OBJ(LADDER, 18, 3, 0) };
+static const MapObj TIMBER_SAWMILL_OBJS[] = { OBJ(LADDER, 10, 6, 0) };
+static const MapObj GLIMMER_KARST_OBJS[] = { OBJ(LADDER, 34, 14, 0),
+    OBJ(LADDER, 11, 17, 0),
+};
 static const WildSlot WILD_FOOTHILLS_LOW[] = {
     { SP_RAMBLET, 20, 28, 32 }, { SP_CRAGHORN, 5, 30, 32 },
     { SP_PUFFOWL, 10, 28, 31, WHEN_DAY }, { SP_HOOTLORD, 5, 30, 32, WHEN_NIGHT },
@@ -800,3 +806,58 @@ static const WildSlot WILD_FOOTHILLS_SNOW[] = {
     { SP_FROSTOAT, 22, 30, 32 }, { SP_TUXFLAKE, 20, 29, 32 },
     { SP_MOONHARE, 5, 30, 32, WHEN_NIGHT },
 };
+
+/* Narrow karst connector; the loose stone can be moved with STRENGTH. */
+static const char *const KARST_CHAMBER_ROWS[] = {
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXX", /*  0 */
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXX", /*  1 */
+    "XXXXXXXXXXXXXX..........XXXX", /*  2 */
+    "XXXXXXXXXXXXX,......*...XXXX", /*  3 */
+    "XXXXXXXXXXX...............XX", /*  4 */
+    "XXXXXXXXXXX...............XX", /*  5 */
+    "XXXXXXXXXXX.......,.......XX", /*  6 */
+    "XXX....................*.XXX", /*  7 */
+    "XXX......................XXX", /*  8 */
+    "XXX..,................,..XXX", /*  9 */
+    "XXX......................XXX", /* 10 */
+    "XX......*.................XX", /* 11 */
+    "XX........................XX", /* 12 */
+    "XX........................XX", /* 13 */
+    "XX.......,..........XXXXXXXX", /* 14 */
+    "XX..................XXXXXXXX", /* 15 */
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXX", /* 16 */
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXX", /* 17 */
+};
+static const DecorPlace KARST_CHAMBER_DECOR[] = { DP(CAVE_CRYSTAL, 20, 3), DP(AMETHYST, 17, 5),
+    DP(SIGNPOST, 7, 14) };
+static const MapObj KARST_CHAMBER_OBJS[] = {
+    OBJ(LADDER, 3, 14, 0), OBJ(LADDER, 24, 5, 0), OBJ(LADDER, 24, 12, 0),
+    OBJ(BOULDER, 12, 9, 0),
+};
+
+/* The ANVIL-gated frost spur: push the stone north twice to stop the slide. */
+static const char *const KARST_FROST_ROWS[] = {
+    "RRRRRRRRRRRRRRRRRRRRRR", /*  0 */
+    "RRRRRRRRRRRRRRRRRRRRRR", /*  1 */
+    "RRRRRRRRRRRRRRRRRRRRRR", /*  2 */
+    "RRRRRRRRRRRR.....RRRRR", /*  3 */
+    "RRRRRRRRRRRR.....RRRRR", /*  4 */
+    "RRRRRRRRRRRR.....RRRRR", /*  5 */
+    "RRRRRRRRRRRR.....RRRRR", /*  6 */
+    "RRRRRRRRRRRRRR.RRRRRRR", /*  7 */
+    "RRRR.iiiiiiiiiiiiii.RR", /*  8 */
+    "RRRR.RRRRRRRRRR.RRR.RR", /*  9 */
+    "RRRR.RRRRRRRRRR.RRR.RR", /* 10 */
+    "RRR.................RR", /* 11 */
+    "RRR.................RR", /* 12 */
+    "RRR.......RRRR......RR", /* 13 */
+    "RRRRRRRRRRRRRRRRRRRRRR", /* 14 */
+    "RRRRRRRRRRRRRRRRRRRRRR", /* 15 */
+};
+static const MapObj KARST_FROST_OBJS[] = {
+    OBJ(LADDER, 3, 12, 0), OBJ(LADDER, 14, 5, 0), OBJ(BOULDER, 15, 10, 0),
+};
+static const DecorPlace KARST_FROST_DECOR[] = { DP(ICE_CRYSTAL, 12, 3), DP(ROCK, 6, 13),
+    DP(SIGNPOST, 6, 12) };
+
+#include "biomes/data.h"

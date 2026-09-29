@@ -5,3 +5,5 @@
     [SCR_LINKS_DUSK_RETURN] = scr_links_dusk_return,
     [SCR_LINKS_DREAM_RETURN] = scr_links_dream_return,
     [SCR_LINKS_FROST_RETURN] = scr_links_frost_return,
+
+#include "biomes/script_table.inc"

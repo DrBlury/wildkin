@@ -72,6 +72,10 @@ enum {
 
 #define PERSON(map, x, y, chr, face, beh, scr, lore, name, text) \
     { map, x, y, CHR_##chr, DIR_##face, BEH_##beh, SCR_##scr, lore, NO_TRAINER, 0, NO_KIN, name, text }
+#define FIXTURE(MAP, X, Y, SCRIPT, NAME) \
+    { .map = MAP, .x = X, .y = Y, .chr = CHR_SCIENTIST, .facing = DIR_DOWN, \
+      .behavior = BEH_STILL, .script = SCR_##SCRIPT, .lore = NO_LORE, \
+      .trainer = NO_TRAINER, .kin = NO_KIN, .name = NAME, .fixture = 1 }
 #define PERSON_KIN(map, x, y, chr, face, beh, scr, lore, kin, name, text) \
     { map, x, y, CHR_##chr, DIR_##face, BEH_##beh, SCR_##scr, lore, NO_TRAINER, 0, kin, name, text }
 #define WARDEN(map, x, y, chr, face, sight, tr, kin, text) \

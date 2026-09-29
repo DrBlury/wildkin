@@ -14,3 +14,5 @@
     [SCR_BROOK_SHOP] = scr_brook_shop,
     [SCR_BROOK_SECRET] = scr_brook_secret,
     [SCR_MINE_GALLERY] = scr_mine_gallery,
+
+#include "biomes/script_table.inc"

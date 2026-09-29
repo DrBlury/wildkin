@@ -1,0 +1,1 @@
+WARDEN(MAP_CORALHOOK_REEF, 28, 19, WARDEN_A, LEFT, 2, TR_CORALHOOK_WRECK, NO_KIN, "A fair bout on the sandbar."),

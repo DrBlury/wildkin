@@ -67,16 +67,16 @@ static const char *const GRAVEWOOD_ROWS[] = {
     "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
     "tttttttttttttttttttttttttttttttttttttttttttt",
     "TTgggggggggggggggggggbbbbbgggggggggmgmmgggTT",
-    "ttgggggbbbbgTbggggggbbbbbbbbgggggggmmmmmmgtt",
-    "TTgggbbbbbbbtbbggggbbbbbTbbbbggggggmrrrrmmTT",
-    "ttgggbbbbbbbbbbgggbbbbbbtbbbbbggggmmrrrrrrtt",
-    "TTgbbbTbbbbbbbbbbggbbbbbbbbbbggggmrr~~~~~~TT",
-    "ttgbbbtbbbbbbbbbbgbbbbbbbbbbbbgggmmr~~~~~~tt",
-    "TTgbbbbbbbbbbbbbbggbbbbbbbbbgggggmrr~~~~~~TT",
-    "ttgbbbbbbbbbbbbTbggggggbbbgggggggmrr~~~~~~tt",
-    "TTgbbbbbbbbbbbbtbgggggTggggggggggmrr~~~~~~TT",
-    "ttggbbbbbbbbbbbbggggggtggTgggggggmrr~~~~~~tt",
-    "TTggggbbbbbbbbgggggggggggtggggggggmrrrrrrrTT",
+    "ttggTTTTbbbgTbggggggbbTTbbbbgggggggmmmmmmgtt",
+    "TTggtttt....tbbggggbbbttTbbbbgggTTgmrrrrmmTT",
+    "ttggggggbbbbTTTgggbbbbbbtbbbbbggttmmrrrrrrtt",
+    "TTgbbbTbgggbtttbb.....bbbbbbbggggmrr~~~~~~TT",
+    "ttgbbbtbbbbgggbbbgbbbbbbbbbbbbgggmmr~~~~~~tt",
+    "TTgbbbbbbb....bbbggbbbbbbbbbgggggmrr~~~~~~TT",
+    "ttgbbTTTTbbbbbbTbggggggbbbgggggggmrr~~~~~~tt",
+    "TTgbbttttbbbbbbtbgggggTgggTTgggggmrr~~~~~~TT",
+    "ttggbbbbbbbbbbbbgg....tggTttgggggmrr~~~~~~tt",
+    "TTggggbbbbbbbbgggggggggggtggg.....mrrrrrrrTT",
     "ttgggggbbbbbbgggggggggggggggggggggMrrrrrrrtt",
     "TTggggggggggggggggggggggbbbbbgggMMMMrrrrmmTT",
     "ttgggggg========================MMMMMmmmmmtt",
@@ -103,8 +103,7 @@ static const char *const GRAVEWOOD_ROWS[] = {
     "TTgggbbbbggggggggggggggggggggggggmYmmmmmmmTT",
     "ttgggggggggggggggggggggggggggggggmymmmmmmgtt",
     "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
-    "tttttttttttttttttttttttttttttttttttttttttttt",
-};
+    "tttttttttttttttttttttttttttttttttttttttttttt",};
 
 /* DUSKMERE (44 x 40): a stilt town on peat isles in the black mere
  * (docs/ELEVATION.md). The SQUARE ISLE (height 1) at the end of the
@@ -152,9 +151,9 @@ static const char *const DUSKMERE_ROWS[] = {
     "~~~~~~~~~.MddMMMMM==MMMmmm.~mrrrrm~~~~MMMMMy", /* 25 */
     "~~~~~~~~~~.ddMMMMM==MMMMM.~~mrrrrm~~~~MMMMMY", /* 26 */
     "~~~~~~~~~mm.......mm..mm.mmmmrrrrm~~~~MMMMMy", /* 27 */
-    "~~~~~~~~~rmmmmmmmmmmmmmmmmmmmrrrrm~~~~MMMMMY", /* 28 */
-    "~~~~~~~~~rmmmmrrrrmmmrrrrrrmmmmmmm~~~~MMMMMy", /* 29 */
-    "~~~~~~~~~rmmmmrrrrmmmrrrrrrmmmmmmmmmYY......", /* 30 */
+    "~~~~~~~~~rmmmmmmmmdddmmmmmmmmrrrrm~~~~MMMMMY", /* 28 */
+    "~~~~~~~~~rmmmmrrrrmdddrrrrrmmmmmmm~~~~MMMMMy", /* 29 */
+    "~~~~~~~~~rmmmmrrrrmmdddrrrrmmmmmmmmmYY......", /* 30 */
     "~~~~MMMMMMMddMrrrrmmmrrrrrr~~mmmmmmmyyMMMMMy", /* 31 */
     "~~~MMMMMMMMddMMrrrmmmrrrrrr~~mmmmmmmYYMMMMMY", /* 32 */
     "~~~MMMMMMMMddMMrrrmmmmmmmmm~~mmmmmmmyyMMMMMy", /* 33 */
@@ -398,7 +397,7 @@ static const WildSlot WILD_ASHEN[] = {
 /* ---------------- GRAVEWOOD ---------------- */
 
 static const DecorPlace GRAVEWOOD_DECOR[] = {
-    DP(GR_SIGN, 3, 19), DP(GR_SIGN, 41, 18),
+    DP(GR_SIGN, 3, 19), DP(GR_SIGN, 41, 18), DP(GR_SIGN, 9, 10),
     /* the cemetery railing, with its gate at x 19-20 */
     DP(GR_FENCE, 13, 25), DP(GR_FENCE, 14, 25), DP(GR_FENCE, 15, 25), DP(GR_FENCE, 16, 25),
     DP(GR_FENCE, 17, 25), DP(GR_FENCE, 18, 25), DP(GR_FENCE, 21, 25), DP(GR_FENCE, 22, 25),
@@ -416,7 +415,8 @@ static const DecorPlace GRAVEWOOD_DECOR[] = {
     DP(GR_BONES, 33, 4), DP(GR_STUMP, 17, 5), DP(GR_STUMP, 28, 12),
     DP(GR_WISP, 24, 30), DP(GR_WISP, 15, 12), DP(GR_WISP, 37, 15),
 };
-static const MapObj GRAVEWOOD_OBJS[] = { OBJ(BERRY, 5, 23, 32), OBJ(BERRY, 28, 8, 33) };
+static const MapObj GRAVEWOOD_OBJS[] = { OBJ(BERRY, 5, 23, 32), OBJ(BERRY, 28, 8, 33),
+    OBJ(LADDER, 10, 12, 0) };
 
 static const WildSlot WILD_GRAVEWOOD[] = {
     { SP_SHROOMLET, 18, 35, 39, WHEN_ANY }, { SP_WEBBIT, 16, 35, 39, WHEN_ANY },
@@ -433,7 +433,7 @@ static const Stamp DUSKMERE_STAMPS[] = {
     STAMP(GR, HOUSE, 39, 23), STAMP(GR, CRYPT_HALL, 32, 4), STAMP(GR, BONE_GATE, 32, 15),
 };
 static const DecorPlace DUSKMERE_DECOR[] = {
-    DP(GR_SIGN, 8, 19), DP(GR_SIGN, 31, 8), DP(GR_SIGN, 31, 18),
+    DP(GR_SIGN, 8, 19), DP(GR_SIGN, 31, 8), DP(GR_SIGN, 31, 18), DP(GR_SIGN, 23, 29),
     DP(GR_BELL, 18, 17),
     DP(GR_LANTERN, 10, 17), DP(GR_LANTERN, 25, 17), DP(GR_LANTERN, 21, 13), DP(GR_LANTERN, 14, 24),
     DP(GR_LANTERN, 24, 23), DP(GR_LANTERN, 35, 10), DP(GR_LANTERN, 41, 18), DP(GR_LANTERN, 3, 32), DP(GR_LANTERN, 16, 2),
@@ -550,9 +550,9 @@ static const char *const HOLLOW_DOWNS_ROWS[] = {
     "C....gggggggggggg...==.....................................C",
     "c....,,,,,,,,,,,,...==.......==............................c",
     "C....,,,,,,,,,,,,...==.......==............................C",
-    "c....gggggggggggg...==.......................mmmmmmmmm.....c",
-    "C....,,,,,,,,,,,,...==..ggggg==ggggggggg.....mmmmmmmmm.....C",
-    "c....,,,,,,,,,,,,...==..ggggg==ggggggggg.....mmmmmmmmm.....c",
+    "c....gggggggggggg...==......................dddmmmmmmm.....c",
+    "C....,,,,,,,,,,,,...==..ggggg==ggggggggg...dddmmmmmmmm.....C",
+    "c....,,,,,,,,,,,,...==..ggggg==ggggggggg..dddmmmmmmmmm.....c",
     "C.ggggggggg==gggggg.==.......................mmmmmmmmm.....C",
     "c.ggggggggg==gggggg.==.......................mmmmmmmmm.....c",
     "C....,,,,,,,,,,,,...==.............bbbbbbbbbbmmmmmmmmm.....C",
@@ -610,10 +610,9 @@ static const char *const BARROW_B_ROWS[] = {
     ".............",
     ".............",
     ".............",
+    "........S....",
     ".............",
-    ".............",
-    "......D......",
-};
+    "......D......",};
 static const DecorPlace HOLLOW_DOWNS_DECOR[] = {
     DP(GR_LANTERN, 12, 29),
     DP(GR_SIGN, 19, 4), DP(GR_SIGN, 26, 19), DP(GR_GRAVE, 11, 13), DP(GR_GRAVE, 29, 10),
@@ -635,11 +634,63 @@ static const MapObj HOLLOW_DOWNS_OBJS[] = {
     OBJ(LADDER, 11, 13, 0), OBJ(LADDER, 29, 10, 0),
 };
 static const MapObj BARROW_B_OBJS[] = { OBJ(CHEST, 9, 4, 255) };
-static const DecorPlace BARROW_DECOR[] = { DP(CR_CANDLES, 4, 3), DP(CR_PLAQUE, 2, 3) };
+static const DecorPlace BARROW_DECOR[] = { DP(CR_CANDLES, 4, 3), DP(CR_PLAQUE, 2, 3), DP(CR_PLAQUE, 2, 5) };
 static const WildSlot WILD_DOWNS[] = {
     { SP_CALCIPUP, 20, 33, 36, WHEN_ANY }, { SP_DREGCROW, 20, 33, 36, WHEN_ANY },
     { SP_DIGGET, 10, 33, 35, WHEN_ANY }, { SP_SCYTHLING, 10, 34, 37, WHEN_DAY },
     { SP_STRAWSPECT, 10, 34, 37, WHEN_DAY }, { SP_JACKOGRIM, 10, 34, 37, WHEN_NIGHT },
     { SP_OSSIHOUND, 5, 35, 37, WHEN_ANY }, { SP_NOXKIT, 10, 34, 37, WHEN_NIGHT },
     { SP_RATTLEBONE, 2, 36, 37, WHEN_NIGHT },
+};
+
+static const char *const ROOT_GALLERY_ROWS[] = {
+    "WWWWWWWWWWWWWWWWWWWWWWWW", /*  0 */
+    "WWW..................WWW", /*  1 */
+    "WW..U..............U..WW", /*  2 */
+    "WW...,.........A......WW", /*  3 */
+    "WWW...............,..WWW", /*  4 */
+    "WWWWW...............WWWW", /*  5 */
+    "WWWWW..............WWWWW", /*  6 */
+    "WWWWWW............WWWWWW", /*  7 */
+    "WWWWWWW..........WWWWWWW", /*  8 */
+    "WWWWW...............WWWW", /*  9 */
+    "WWWW............,....WWW", /* 10 */
+    "WWWW...,.............WWW", /* 11 */
+    "WWWWW...............WWWW", /* 12 */
+    "WWWWWWW...........WWWWWW", /* 13 */
+    "WWWWWWWW........WWWWWWWW", /* 14 */
+    "WWWWWWWWW......WWWWWWWWW", /* 15 */
+    "WWWWWWWWWW.S..WWWWWWWWWW", /* 16 */
+    "WWWWWWWWWWWWWWWWWWWWWWWW", /* 17 */};
+static const DecorPlace ROOT_GALLERY_DECOR[] = { DP(CR_PLAQUE, 14, 5) };
+static const char *const DUSK_VAULT_ROWS[] = {
+    "WWWWWWWWWWWWWWWWWWWWWWWW", /*  0 */
+    "WWWWWWWW...S....WWWWWWWW", /*  1 */
+    "WWWWW..............WWWWW", /*  2 */
+    "WWW................W.WWW", /*  3 */
+    "WW..,..............#A.WW", /*  4 */
+    "WW..............,..W..WW", /*  5 */
+    "WW.................W..WW", /*  6 */
+    "WWW................W.WWW", /*  7 */
+    "WWWW................WWWW", /*  8 */
+    "WWWW.,..............WWWW", /*  9 */
+    "WWWWW............,.WWWWW", /* 10 */
+    "WWWWW..............WWWWW", /* 11 */
+    "WWWWWW............WWWWWW", /* 12 */
+    "WWWWWWW..........WWWWWWW", /* 13 */
+    "WWWWWWWW........WWWWWWWW", /* 14 */
+    "WWWWWWWWW..U...WWWWWWWWW", /* 15 */
+    "WWWWWWWWWWWWWWWWWWWWWWWW", /* 16 */};
+static const DecorPlace DUSK_VAULT_DECOR[] = {
+    DP(CR_COFFIN, 6, 5), DP(CR_BRAZIER, 12, 7), DP(CR_PEDESTAL, 17, 6),
+    DP(CR_CANDLES, 17, 5),
+    DP(CR_PLAQUE, 9, 10),
+};
+static const char *const DUSK_SHORTCUT_OPEN[] = { ".", "." };
+static const MapPatch DUSK_VAULT_PATCHES[] = {
+    { .flag = FLAG_DUSK_SHORTCUT, .x = 19, .y = 4, .w = 1, .h = 2, .rows = DUSK_SHORTCUT_OPEN },
+};
+
+static const MapObj DUSKMERE_WELL_OBJS[] = {
+    OBJ(LADDER, 25, 27, 0), OBJ(LADDER, 26, 27, 0),
 };

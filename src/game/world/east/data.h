@@ -32,23 +32,23 @@
 static const char *const BROOK_TRAIL_ROWS[] = {
     "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP", /*  0 */
     "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP", /*  1 */
-    "PP,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,PP", /*  2 */
-    "PP,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,PP", /*  3 */
-    "PP,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,PP", /*  4 */
-    "PP,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,PP", /*  5 */
-    "PP,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,PP", /*  6 */
-    "PP,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP", /*  7 */
-    "PP,,,,,mmmmmm,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP", /*  8 */
-    "PP,,,,,mmmmmm,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP", /*  9 */
-    "PP,,,,,mmmmmm,,,,rrrr,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP", /* 10 */
-    "PP,,,,,mmmmmm,,,,rrrr,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP", /* 11 */
-    "PP,,,,,mmmmmm,,,,rrrr,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP", /* 12 */
-    "PP,,,,,mmmmmm,,,,rrrr,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP", /* 13 */
-    "PP,,,,,mmmmmm,,,,rrrr,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP", /* 14 */
-    "PP............................................................PP", /* 15 */
-    "PP............................................................PP", /* 16 */
-    "================================================================", /* 17 */
-    "================================================================", /* 18 */
+    "PP,,,,,,,,,,,,,,,,,,PPPP,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,PP", /*  2 */
+    "PP,,,,,,,,,,,,,,,,,,pppp,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,PP", /*  3 */
+    "PP,,,,,,,,,,,,,,,,,,PPPP,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,PP", /*  4 */
+    "PP,,,,,,,,,,,,,,,,,,pppp.,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,PP", /*  5 */
+    "PP,,,,,,,,,,,,,,,,,,PPPP...,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,PP", /*  6 */
+    "PP,,,,,,,,,,,,,,,,,,pppp,,,...,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP", /*  7 */
+    "PP,,,,,mmmmmm,,,,,,,PPPP,,,,,...,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP", /*  8 */
+    "PP,,,,,mmmmmm,,,,,,,pppp,,,,,,...,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP", /*  9 */
+    "PP,,,,,mmmmmm,,,,rrrPPPP,,,,,...,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP", /* 10 */
+    "PP,,,,,mmmmmm,,,,rrrpppp,,,...,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP", /* 11 */
+    "PP,,,,,mmmmmm,,,,rrrPPPP...,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP", /* 12 */
+    "PP,,,,,mmmmmm,,,,rrrpppp,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP", /* 13 */
+    "PP,,,,,mmmmmm,,,,rrrPPPP,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,mmmmmm,,PP", /* 14 */
+    "PP...................ppp......................................PP", /* 15 */
+    "PP...................PPP......................................PP", /* 16 */
+    "====================pppp========================================", /* 17 */
+    "====================PPPP========================================", /* 18 */
     "PP............................................................PP", /* 19 */
     "PP.......==...................==................==............PP", /* 20 */
     "PPTTTTTT,==,,,,,,,,,,,,,,,,,,,==,,,,,,,,,,,,,,,,==,,,,,,,,,,,,PP", /* 21 */
@@ -112,6 +112,7 @@ static const ElevFeat BROOK_TRAIL_FEATS[] = {
     EF(HIDDEN, 32, 25, 1, 1),   /* dark hollow: revisit with LIGHT */
 };
 static const DecorPlace BROOK_TRAIL_DECOR[] = {
+    DP(STUMP, 18, 16), DP(STUMP, 25, 16), /* wooded trail pinch */
     DP(SIGNPOST, 3, 16), DP(SIGNPOST, 58, 16), DP(BRIDGE_H, 29, 17),
     DP(STUMP, 36, 27), DP(STUMP, 39, 27),
     DP(BERRY_BUSH, 52, 25), DP(BUSH, 6, 14), DP(BUSH, 55, 21),
@@ -136,9 +137,9 @@ static const char *const BROOKMILL_ROWS[] = {
     "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT", /*  0 */
     "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT", /*  1 */
     "TT.................==.................TT", /*  2 */
-    "TT.................==.................TT", /*  3 */
-    "TT.................==.................TT", /*  4 */
-    "TT.................==.................TT", /*  5 */
+    "TT........,,,......==.................TT", /*  3 */
+    "TT.........,,,.....==.................TT", /*  4 */
+    "TT..........,,,....==.................TT", /*  5 */
     "TT.................==.................TT", /*  6 */
     "TT..............~~~==~~~~~~~~~........TT", /*  7 */
     "TT..............~~~==~~~~~~~~~........TT", /*  8 */
@@ -153,9 +154,9 @@ static const char *const BROOKMILL_ROWS[] = {
     "========================================", /* 17 */
     "========================================", /* 18 */
     "tt....................................tt", /* 19 */
-    "tt......==.....................==.....tt", /* 20 */
-    "tt......==.....................==.....tt", /* 21 */
-    "tt......==.....................==.....tt", /* 22 */
+    "tt......==.....===.............==.....tt", /* 20 */
+    "tt......==......===............==.....tt", /* 21 */
+    "tt......==.......===...........==.....tt", /* 22 */
     "tt......==.....................==.....tt", /* 23 */
     "tt......==.....................==.....tt", /* 24 */
     "tt......==.....................==.....tt", /* 25 */
@@ -269,7 +270,7 @@ static const char *const COPPER_MINE_ROWS[] = {
 
 static const DecorPlace COPPER_MINE_DECOR[] = {
     DP(RAILS_H, 10, 8), DP(RAILS_H, 11, 8), DP(RAILS_V, 18, 14),
-    DP(ORE_CART, 23, 8), DP(ORE_PILE, 28, 18), DP(CRATE, 4, 8),
+    DP(ORE_CART, 23, 8), DP(ORE_PILE, 28, 18), DP(CRATE, 4, 8), DP(SIGNPOST, 8, 17),
 };
 static const WildSlot WILD_COPPER_MINE[] = {
     { SP_DIGGET, 25, 15, 18, WHEN_ANY }, { SP_QUARTZLING, 25, 16, 19, WHEN_ANY },
@@ -698,6 +699,7 @@ static const MapObj ELDERWOOD_OBJS[] = {
     OBJ(LEGEND, 18, 25, SP_SYLVARCH),   /* the great stag, before the Elder */
     OBJ(BERRY, 24, 28, 2),
     OBJ(BERRY, 35, 19, 3),
+    OBJ(LADDER, 20, 20, 0),
 };
 
 static const WildSlot WILD_ELDERWOOD[] = {
@@ -714,6 +716,78 @@ static const WildSlot WILD_ELDERWOOD[] = {
  * explode (tools/tests/test_puzzles.c proves every map). */
 static const MapObj WOOD_OBJS[] = {
     OBJ(BOULDER, 31, 33, 0),
+    OBJ(LADDER, 17, 5, 0),
+};
+
+/* A short hooked woodland approach, off the old creek crossing. */
+static const char *const ROOTWOOD_PATH_ROWS[] = {
+    "PPPPPPPPPPPPPPPPPPPP",
+    "PPppppppppppppppppPP",
+    "PPf,,,,fPPPPPfff,fPP",
+    "PPf,,,,fPPPPffffffPP",
+    "PPf,,,ffffffffff,fPP",
+    "PPf,,ffffffffff,,fPP",
+    "PPf,fffffPPPPff,,,PP",
+    "PPfffffffPPPPff,,,PP",
+    "PPfffffffPPPPfffffPP",
+    "PPPPPPPPPPPPPPPPPPPP",
+};
+static const DecorPlace ROOTWOOD_PATH_DECOR[] = {
+    DP(SIGNPOST, 4, 7), DP(STUMP, 16, 2), DP(MUSHROOMS, 11, 5),
+};
+static const MapObj ROOTWOOD_PATH_OBJS[] = {
+    OBJ(LADDER, 2, 7, 0), OBJ(LADDER, 17, 3, 0),
+};
+
+/* Uneven chambers: the gate cuts across a longer upper/lower loop.
+ * The pumice pushes east onto the plate without STRENGTH. */
+static const char *const ROOTWAYS_ROWS[] = {
+    "XXXXXXXXXXXXXXXXXXXXXXXX",
+    "XXXXXXXXXXXXXXXXXXXXXXXX",
+    "XXXXXXXXXXXXXX........XX",
+    "XXXXX.................XX",
+    "XXX...................XX",
+    "XX.........XXX........XX",
+    "XX.........XXX........XX",
+    "XX.........XXX........XX",
+    "XX....................XX",
+    "XX.........XXX........XX",
+    "XX.........XXX........XX",
+    "XX.........XXX........XX",
+    "XXX........XXX........XX",
+    "XXXXX.................XX",
+    "XXXXXXXXXXXXXX........XX",
+    "XXXXXXXXXXXXXXXX......XX",
+    "XXXXXXXXXXXXXXXXXXXXXXXX",
+};
+static const DecorPlace ROOTWAYS_DECOR[] = {
+    DP(PEBBLES, 4, 5), DP(ORE_PILE, 18, 10), DP(PEBBLES, 15, 4),
+    DP(SIGNPOST, 4, 7), DP(SIGNPOST, 8, 7), DP(SIGNPOST, 19, 4), DP(SIGNPOST, 19, 13),
+};
+static const MapObj ROOTWAYS_OBJS[] = {
+    OBJ(LADDER, 2, 8, 0), OBJ(LADDER, 21, 3, 0), OBJ(LADDER, 21, 14, 0),
+    OBJ(BOULDER, 6, 8, 1), OBJ(PLATE, 7, 8, 3), OBJ(GATE, 12, 8, 3),
+    OBJ(LADDER, 19, 11, 0),
+};
+
+static const char *const MILL_CELLAR_ROWS[] = {
+    "XXXXXXXXXXXXX",
+    "XXX.......XXX",
+    "XX.........XX",
+    "XX.........XX",
+    "XX.........XX",
+    "XXX.......XXX",
+    "XXX.......XXX",
+    "XXXX.....XXXX",
+    "XXXXXXXXXXXXX",
+};
+static const DecorPlace MILL_CELLAR_DECOR[] = { DP(SIGNPOST, 4, 5) };
+static const MapObj MILL_CELLAR_OBJS[] = {
+    OBJ(LADDER, 6, 2, 0), OBJ(LADDER, 6, 7, 0),
+};
+static const MapObj BROOKMILL_MILL_OBJS[] = { OBJ(LADDER, 6, 6, 0) };
+static const MapObj COPPER_MINE_ROOT_OBJS[] = {
+    OBJ(LADDER, 3, 18, 0), OBJ(LADDER, 8, 18, 0),
 };
 
 /* ================================================================ */
@@ -971,3 +1045,7 @@ static const MapObj CLOCKWORK_SPIRE_OBJS[] = {
     OBJ(BOULDER, 6, 9, 0),              /* seals the stair: push it aside */
     OBJ(LEGEND, 6, 3, SP_HOROLOGOS),    /* the clockwork titan */
 };
+
+#include "biomes/data.h"
+
+static const MapObj BIOME_BROOKMILL_OBJS[] = { OBJ(LADDER, 12, 30, 0) };

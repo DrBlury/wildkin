@@ -15,3 +15,9 @@
     { MAP_REEDWICK, 2, 29, "BOATBUILDER'S SLIP\fA wreck rests beyond the channel. Only SURF can reach it." },
     { MAP_PORT_BRINE, 4, 11, "NORTHERN WATERS - SURF ONLY\fGreywater Fjord lies beyond the buoy line." },
     { MAP_SALTWIND, 34, 13, "CLIFF CACHE\fA boulder fell across the old lighthouse path. STRENGTH could shift it." },
+    { MAP_REED_TUNNEL, 1, 7, "REED TUNNEL\fEAST: sluice. The arrows carry you south to safety.\fThrow the switch before the east gate." },
+    { MAP_TIDAL_UNDERFLOW, 5, 10, "TIDAL UNDERFLOW\fThe east channel needs SURF. West: fen. East: Reedwick sluice and Port Brine." },
+    { MAP_TIDAL_UNDERFLOW, 21, 10, "EAST BANK\fNorth ladder: REEDWICK. South ladder: PORT BRINE.\fThe current never shuts the west landing." },
+    { MAP_TIDAL_UNDERFLOW, 9, 4, "ROOTWAYS LADDER\fTide Crest opens the west-bank root passage. East bank still needs SURF.\fReturn by this ladder or the Fen stairs." },
+
+#include "biomes/signs.inc"

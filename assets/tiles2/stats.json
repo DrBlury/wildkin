@@ -1,0 +1,399 @@
+{
+ "verdant": {
+  "title": "Verdant - meadows, woods, lakes",
+  "replaces": "wild",
+  "entries": 111,
+  "unique_tiles8": 1245,
+  "terrain_tiles8": 517,
+  "object_tiles8": 728,
+  "banks": 8,
+  "colours": 67,
+  "variants": [
+   "autumn",
+   "spring"
+  ],
+  "scenes": [
+   {
+    "scene": "route",
+    "resident_tiles8": 631,
+    "size": [
+     40,
+     30
+    ],
+    "title": "Verdant route (sample)"
+   }
+  ]
+ },
+ "hamlet": {
+  "title": "Hamlet - villages",
+  "replaces": "town",
+  "entries": 108,
+  "unique_tiles8": 1458,
+  "terrain_tiles8": 374,
+  "object_tiles8": 1084,
+  "banks": 8,
+  "colours": 80,
+  "variants": [
+   "autumn",
+   "dusk"
+  ],
+  "scenes": [
+   {
+    "scene": "village",
+    "resident_tiles8": 728,
+    "size": [
+     36,
+     28
+    ],
+    "title": "Maple Village (sample)"
+   }
+  ]
+ },
+ "farm": {
+  "title": "Farm - Willow Acre homestead",
+  "replaces": "farm",
+  "entries": 84,
+  "unique_tiles8": 800,
+  "terrain_tiles8": 220,
+  "object_tiles8": 580,
+  "banks": 8,
+  "colours": 83,
+  "variants": [
+   "autumn",
+   "spring",
+   "winter"
+  ],
+  "scenes": [
+   {
+    "scene": "homestead",
+    "resident_tiles8": 510,
+    "size": [
+     36,
+     26
+    ],
+    "title": "Willow Acre homestead (sample)"
+   }
+  ]
+ },
+ "coast": {
+  "title": "Coast - beaches, harbours, fens, reefs",
+  "replaces": "coast",
+  "entries": 79,
+  "unique_tiles8": 1241,
+  "terrain_tiles8": 499,
+  "object_tiles8": 742,
+  "banks": 8,
+  "colours": 66,
+  "variants": [
+   "storm"
+  ],
+  "scenes": [
+   {
+    "scene": "port",
+    "resident_tiles8": 549,
+    "size": [
+     40,
+     30
+    ],
+    "title": "Port Brine (sample)"
+   }
+  ]
+ },
+ "snow": {
+  "title": "Snow - alpine, tundra, frozen villages",
+  "replaces": "snow",
+  "entries": 67,
+  "unique_tiles8": 1157,
+  "terrain_tiles8": 449,
+  "object_tiles8": 708,
+  "banks": 8,
+  "colours": 45,
+  "variants": [
+   "night"
+  ],
+  "scenes": [
+   {
+    "scene": "frosthollow",
+    "resident_tiles8": 479,
+    "size": [
+     36,
+     26
+    ],
+    "title": "Frosthollow (sample)"
+   }
+  ]
+ },
+ "cave": {
+  "title": "Cave - caverns, mines, grottoes",
+  "replaces": "cave",
+  "entries": 46,
+  "unique_tiles8": 499,
+  "terrain_tiles8": 307,
+  "object_tiles8": 192,
+  "banks": 7,
+  "colours": 48,
+  "variants": [
+   "deep"
+  ],
+  "scenes": [
+   {
+    "scene": "glimmer",
+    "resident_tiles8": 275,
+    "size": [
+     36,
+     26
+    ],
+    "title": "Glimmer Caverns (sample)"
+   }
+  ]
+ },
+ "volcanic": {
+  "title": "Volcanic - calderas, forges, railway",
+  "replaces": "volcanic",
+  "entries": 59,
+  "unique_tiles8": 1073,
+  "terrain_tiles8": 278,
+  "object_tiles8": 795,
+  "banks": 8,
+  "colours": 42,
+  "variants": [
+   "eruption"
+  ],
+  "scenes": [
+   {
+    "scene": "caldera",
+    "resident_tiles8": 462,
+    "size": [
+     38,
+     26
+    ],
+    "title": "Cinder Road and Caldera rim (sample)"
+   }
+  ]
+ },
+ "desert": {
+  "title": "Desert - dunes, mesas, oases",
+  "replaces": "desert",
+  "entries": 51,
+  "unique_tiles8": 611,
+  "terrain_tiles8": 325,
+  "object_tiles8": 286,
+  "banks": 6,
+  "colours": 47,
+  "variants": [
+   "dusk"
+  ],
+  "scenes": [
+   {
+    "scene": "sunwell",
+    "resident_tiles8": 401,
+    "size": [
+     36,
+     26
+    ],
+    "title": "Sunwell oasis (sample)"
+   }
+  ]
+ },
+ "jungle": {
+  "title": "Jungle - rainforest, river, root villages",
+  "replaces": "jungle",
+  "entries": 51,
+  "unique_tiles8": 742,
+  "terrain_tiles8": 364,
+  "object_tiles8": 378,
+  "banks": 6,
+  "colours": 39,
+  "variants": [
+   "dusk"
+  ],
+  "scenes": [
+   {
+    "scene": "rootcoil",
+    "resident_tiles8": 466,
+    "size": [
+     36,
+     26
+    ],
+    "title": "Rootcoil Jungle and Canopy Hearth (sample)"
+   }
+  ]
+ },
+ "grim": {
+  "title": "Grim - withered downs, Duskmere",
+  "replaces": "grim",
+  "entries": 60,
+  "unique_tiles8": 954,
+  "terrain_tiles8": 358,
+  "object_tiles8": 596,
+  "banks": 7,
+  "colours": 43,
+  "variants": [
+   "night"
+  ],
+  "scenes": [
+   {
+    "scene": "duskmere",
+    "resident_tiles8": 498,
+    "size": [
+     36,
+     26
+    ],
+    "title": "Duskmere (sample)"
+   }
+  ]
+ },
+ "dusk": {
+  "title": "Dusk - Gravewood haunted forest",
+  "replaces": "dusk",
+  "entries": 55,
+  "unique_tiles8": 900,
+  "terrain_tiles8": 351,
+  "object_tiles8": 549,
+  "banks": 8,
+  "colours": 41,
+  "variants": [
+   "moonlit"
+  ],
+  "scenes": [
+   {
+    "scene": "gravewood",
+    "resident_tiles8": 306,
+    "size": [
+     36,
+     26
+    ],
+    "title": "Gravewood (sample)"
+   }
+  ]
+ },
+ "dream": {
+  "title": "Dream - Mistfen, Moonveil, Dreamspire",
+  "replaces": "dream",
+  "entries": 53,
+  "unique_tiles8": 866,
+  "terrain_tiles8": 331,
+  "object_tiles8": 535,
+  "banks": 7,
+  "colours": 39,
+  "variants": [
+   "dawn"
+  ],
+  "scenes": [
+   {
+    "scene": "moonveil",
+    "resident_tiles8": 300,
+    "size": [
+     36,
+     26
+    ],
+    "title": "Moonveil to Dreamspire (sample)"
+   }
+  ]
+ },
+ "crypt": {
+  "title": "Crypt - barrows, ossuaries, vaults",
+  "replaces": "crypt",
+  "entries": 32,
+  "unique_tiles8": 265,
+  "terrain_tiles8": 108,
+  "object_tiles8": 157,
+  "banks": 6,
+  "colours": 36,
+  "variants": [
+   "lit"
+  ],
+  "scenes": [
+   {
+    "scene": "ossuary",
+    "resident_tiles8": 202,
+    "size": [
+     30,
+     22
+    ],
+    "title": "Ossuary and Bone Throne (sample)"
+   }
+  ]
+ },
+ "tide": {
+  "title": "Tide - the drowned temple",
+  "replaces": "tide",
+  "entries": 37,
+  "unique_tiles8": 435,
+  "terrain_tiles8": 254,
+  "object_tiles8": 181,
+  "banks": 5,
+  "colours": 32,
+  "variants": [
+   "biolume"
+  ],
+  "scenes": [
+   {
+    "scene": "current_hall",
+    "resident_tiles8": 205,
+    "size": [
+     30,
+     22
+    ],
+    "title": "Current Hall (sample)"
+   }
+  ]
+ },
+ "city": {
+  "title": "City - Lumen",
+  "replaces": "city",
+  "entries": 42,
+  "unique_tiles8": 979,
+  "terrain_tiles8": 162,
+  "object_tiles8": 817,
+  "banks": 8,
+  "colours": 70,
+  "variants": [
+   "night"
+  ],
+  "scenes": [
+   {
+    "scene": "lumen",
+    "resident_tiles8": 614,
+    "size": [
+     40,
+     28
+    ],
+    "title": "Lumen canal district (sample)"
+   }
+  ]
+ },
+ "interior": {
+  "title": "Interior - homes, shops, halls",
+  "replaces": "interior",
+  "entries": 104,
+  "unique_tiles8": 691,
+  "terrain_tiles8": 61,
+  "object_tiles8": 630,
+  "banks": 8,
+  "colours": 54,
+  "variants": [
+   "evening"
+  ],
+  "scenes": [
+   {
+    "scene": "hearth_hall",
+    "resident_tiles8": 127,
+    "size": [
+     17,
+     13
+    ],
+    "title": "Hearth Hall (sample)"
+   },
+   {
+    "scene": "cottage",
+    "resident_tiles8": 134,
+    "size": [
+     14,
+     11
+    ],
+    "title": "Cottage interior (sample)"
+   }
+  ]
+ }
+}

@@ -197,7 +197,16 @@
         "MAP_BROOKMILL_MILL",
         "MAP_BROOKMILL_HOUSE",
         "MAP_BROOKMILL_REST",
-        "MAP_COPPER_MINE"
+        "MAP_COPPER_MINE",
+        "MAP_ROOTWOOD_PATH",
+        "MAP_ROOTWAYS",
+        "MAP_MILL_CELLAR",
+        "MAP_MISTFALL_GORGE",
+        "MAP_MISTBELL",
+        "MAP_MISTBELL_BELLHOUSE",
+        "MAP_ROOTCOIL_JUNGLE",
+        "MAP_CANOPY_HEARTH",
+        "MAP_CANOPY_LODGE"
       ],
       [
         "FLAG_VOLT_CREST",
@@ -207,7 +216,9 @@
         "FLAG_FEN_RIVETS",
         "FLAG_BROOK_LIGHT_CACHE",
         "FLAG_MINE_LIGHT_CACHE",
-        "FLAG_RIVET_BUNDLE"
+        "FLAG_RIVET_BUNDLE",
+        "FLAG_MISTBELL_BELL",
+        "FLAG_CANOPY_MARKER"
       ],
       [
         "east:0",
@@ -231,7 +242,10 @@
         "east:18",
         "east:19",
         "east:20",
-        "east:21"
+        "east:21",
+        "east:22",
+        "east:23",
+        "east:24"
       ],
       [
         "TR_DUNN",
@@ -253,13 +267,21 @@
         "TR_TAM",
         "TR_ROLF",
         "TR_HOLT_EXHIBITION",
-        "TR_MINE_BOSS"
+        "TR_MINE_BOSS",
+        "TR_MISTFALL_CAIRN",
+        "TR_MISTFALL_BRIDGE",
+        "TR_MISTFALL_SHELTER",
+        "TR_ROOTCOIL_ROOT",
+        "TR_ROOTCOIL_BRIDGE",
+        "TR_ROOTCOIL_RUINS"
       ],
       [
         "QUEST_BIKE_ERRAND",
         "QUEST_VOLT_HALL",
         "QUEST_GRIST_WHEEL",
-        "QUEST_KOIRIN_SONG"
+        "QUEST_KOIRIN_SONG",
+        "QUEST_MISTBELL_BELL",
+        "QUEST_CANOPY_MARKER"
       ],
       [
         "LORE_COPPERLINE",
@@ -300,7 +322,9 @@
         "MAP_REED_HEARTH",
         "MAP_REED_SHOP",
         "MAP_REED_TUNNEL",
-        "MAP_FEN_HERMIT"
+        "MAP_FEN_HERMIT",
+        "MAP_TIDAL_UNDERFLOW",
+        "MAP_CORALHOOK_REEF"
       ],
       [
         "FLAG_TIDE_CREST",
@@ -332,7 +356,8 @@
         "west:18",
         "west:19",
         "west:20",
-        "west:21"
+        "west:21",
+        "west:22"
       ],
       [
         "TR_WEST_NILS",
@@ -355,7 +380,8 @@
         "TR_FEN_FISHER",
         "TR_FEN_WISP",
         "TR_REED_BOAT",
-        "TR_REED_SMOKER"
+        "TR_REED_SMOKER",
+        "TR_CORALHOOK_WRECK"
       ],
       [
         "QUEST_HARBOR_POST",
@@ -398,7 +424,11 @@
         "MAP_TIMBERLINE",
         "MAP_TIMBER_LODGE",
         "MAP_TIMBER_SAWMILL",
-        "MAP_STORM_CAVE"
+        "MAP_STORM_CAVE",
+        "MAP_KARST_CHAMBER",
+        "MAP_KARST_FROST",
+        "MAP_RIMEWIND_TUNDRA",
+        "MAP_SPORELIGHT_HOLLOW"
       ],
       [
         "FLAG_RIME_CREST",
@@ -429,7 +459,9 @@
         "north:20",
         "north:21",
         "north:22",
-        "north:23"
+        "north:23",
+        "north:24",
+        "north:25"
       ],
       [
         "TR_N_BRYN",
@@ -457,7 +489,9 @@
         "TR_N_WATCHER",
         "TR_N_SCREE",
         "TR_N_LOGGER_1",
-        "TR_N_LOGGER_2"
+        "TR_N_LOGGER_2",
+        "TR_RIMEWIND_HOLLOW",
+        "TR_SPORELIGHT_SHELF"
       ],
       [
         "QUEST_GLOWCAPS",
@@ -501,7 +535,9 @@
         "MAP_HOLLOW_DOWNS",
         "MAP_WAYCHAPEL",
         "MAP_BARROW_A",
-        "MAP_BARROW_B"
+        "MAP_BARROW_B",
+        "MAP_ROOT_GALLERY",
+        "MAP_DUSK_VAULT"
       ],
       [
         "FLAG_ASH_TOLD",
@@ -521,7 +557,10 @@
         "FLAG_CANDLES_REWARD",
         "FLAG_CANDLE_A",
         "FLAG_CANDLE_B",
-        "FLAG_CANDLE_CAIRN"
+        "FLAG_CANDLE_CAIRN",
+        "FLAG_DUSK_FIRST",
+        "FLAG_DUSK_SECOND",
+        "FLAG_DUSK_SHORTCUT"
       ],
       [
         "grim:0",
@@ -616,7 +655,9 @@
         "MAP_RAILHEAD_OFFICE",
         "MAP_RAILHEAD_SHAFT",
         "MAP_MISTFEN",
-        "MAP_PILGRIM_REST"
+        "MAP_PILGRIM_REST",
+        "MAP_EMBER_SPAN",
+        "MAP_COOLING_CHAMBER"
       ],
       [
         "FLAG_CREST_ANVIL",
@@ -625,7 +666,9 @@
         "FLAG_VERSE_2",
         "FLAG_VERSE_3",
         "FLAG_FAR_MINER_GIFT",
-        "FLAG_STARGAZER_GIFT"
+        "FLAG_STARGAZER_GIFT",
+        "FLAG_EMBER_PRIMED",
+        "FLAG_EMBER_COOLED"
       ],
       [
         "far:0",
@@ -847,9 +890,14 @@
         "MAP_SCORCHWASTE_2",
         "MAP_AURORA_RIDGE_1",
         "MAP_AURORA_RIDGE_2",
-        "MAP_GREYWATER_FJORD"
+        "MAP_GREYWATER_FJORD",
+        "MAP_SAFFRON_DUNES",
+        "MAP_SUNWELL",
+        "MAP_SUNWELL_CISTERN"
       ],
-      [],
+      [
+        "FLAG_SUNWELL_IRRIGATED"
+      ],
       [
         "links:0",
         "links:1",
@@ -863,7 +911,9 @@
         "links:9",
         "links:10",
         "links:11",
-        "links:12"
+        "links:12",
+        "links:13",
+        "links:14"
       ],
       [
         "TR_LINK_ASH_A",
@@ -882,9 +932,13 @@
         "TR_LINK_FJORD_B",
         "TR_LINK_FJORD_C",
         "TR_LINK_FJORD_D",
-        "TR_LINK_FJORD_E"
+        "TR_LINK_FJORD_E",
+        "TR_SAFFRON_CARAVAN",
+        "TR_SAFFRON_RIDGE"
       ],
-      [],
+      [
+        "QUEST_SUNWELL_IRRIGATION"
+      ],
       [
         "LORE_GLASS_DUNES",
         "LORE_STAR_CAIRN",
@@ -959,6 +1013,7 @@
         "MAP_VIEW_SNOW_3",
         "MAP_VIEW_SNOW_4",
         "MAP_VIEW_SNOW_5",
+        "MAP_VIEW_SNOW_6",
         "MAP_VIEW_CAVE_1",
         "MAP_VIEW_GRIM_1",
         "MAP_VIEW_GRIM_2",
@@ -992,7 +1047,12 @@
         "MAP_VIEW_FARM_23",
         "MAP_VIEW_FARM_24",
         "MAP_VIEW_FARM_25",
-        "MAP_VIEW_TIDE_1"
+        "MAP_VIEW_TIDE_1",
+        "MAP_VIEW_DUSK_1",
+        "MAP_VIEW_DUSK_2",
+        "MAP_VIEW_DUSK_3",
+        "MAP_VIEW_DESERT_1",
+        "MAP_VIEW_JUNGLE_1"
       ],
       [],
       [],

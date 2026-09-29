@@ -10,3 +10,8 @@
     { MAP_HOLLOW_DOWNS, 19, 4, "HOLLOW DOWNS\fNorth: Accord checkpoint. South: ASHEN FIELDS. The Waychapel stands on the chalk knoll." },
     { MAP_HOLLOW_DOWNS, 26, 19, "The chalk horse was cut before the Burning. Buried kin wake where the old candles go dark." },
     { MAP_BARROW_B, 2, 3, "Old burial customs left kernels among the bones. HOLLOW kin borrow what the living leave behind." },
+    { MAP_BARROW_B, 2, 5, "An old root passage leads below.\fOnly a bearer of the Rime Crest may follow it." },
+    { MAP_DUSK_VAULT, 9, 10, "The burial vow: roots remember, bells answer, lanterns guide.\fA wrong light quenches only this sequence." },
+    { MAP_GRAVEWOOD, 9, 10, "ROOT SINKHOLE\fThe Rime Crest keeps the old barrow passage open." },
+    { MAP_DUSKMERE, 23, 29, "OLD WELL\fRoots run toward the downs; the Accord seal asks for the Rime Crest." },
+    { MAP_ROOT_GALLERY, 14, 5, "The warm root seam meets Ember's old mine.\fThe Lantern Crest reveals its way." },

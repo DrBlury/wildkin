@@ -1,0 +1,677 @@
+{
+ "name": "crypt",
+ "title": "Crypt - barrows, ossuaries, vaults",
+ "doc": "CRYPT - barrows, ossuaries, vaults and the Bone Throne.\n\nReplaces the old `crypt` tileset (Barrow A/B, Lantern Crypt, Ossuary 1/2,\nDusk Vault, Root Gallery, Waychapel, Bone Throne). Dressed-stone walls\nwith a dark top, slab floors, a red carpet runner, candles and braziers,\nsarcophagi, coffins, urns, skull niches, banners, chains, webs, iron gates\nand the throne.\n",
+ "cell": 16,
+ "cols": 16,
+ "rows": 14,
+ "palette": {
+  "cs0": "#100810",
+  "cs1": "#212129",
+  "cs2": "#393142",
+  "cs3": "#524a5a",
+  "cs4": "#736b73",
+  "cs5": "#948c94",
+  "cf0": "#181018",
+  "cf1": "#292929",
+  "cf2": "#423939",
+  "cf3": "#5a5252",
+  "cf4": "#736b63",
+  "v0": "#000008",
+  "rd0": "#390810",
+  "rd1": "#6b1821",
+  "rd2": "#9c2931",
+  "au0": "#7b5a18",
+  "au1": "#cea539",
+  "au2": "#f7de84",
+  "bn0": "#8c8473",
+  "bn1": "#c6bdad",
+  "bn2": "#efe7d6",
+  "wx1": "#bdad8c",
+  "wx2": "#e7debd",
+  "fl0": "#ce5a18",
+  "fl1": "#ffc642",
+  "fl2": "#fff7b5",
+  "wd0": "#211818",
+  "wd1": "#423129",
+  "wd2": "#635239",
+  "rt0": "#291810",
+  "rt1": "#4a3121",
+  "rt2": "#6b5231",
+  "ws0": "#398cce",
+  "ws1": "#bdf7ff",
+  "ws2": "#6bceef",
+  "sk": "#b5b5bd"
+ },
+ "variants": {
+  "lit": {
+   "cs2": "#4a3939",
+   "cs3": "#6b524a",
+   "cs4": "#8c735a",
+   "cs5": "#b59473",
+   "cf2": "#524239",
+   "cf3": "#6b5a4a",
+   "cf4": "#8c7363"
+  }
+ },
+ "banks": [
+  [
+   "cs0",
+   "cs1",
+   "cs2",
+   "cf0",
+   "cf1",
+   "cf2",
+   "cf3",
+   "cf4",
+   "v0",
+   "bn0",
+   "bn1",
+   "bn2",
+   "sk"
+  ],
+  [
+   "cs0",
+   "cs1",
+   "cs2",
+   "cs3",
+   "cs4",
+   "cs5",
+   "cf1",
+   "cf2",
+   "cf3",
+   "cf4",
+   "v0",
+   "rt0",
+   "rt1",
+   "rt2"
+  ],
+  [
+   "cs0",
+   "cf0",
+   "cf1",
+   "cf2",
+   "cf3",
+   "cf4",
+   "rd0",
+   "rd1",
+   "rd2",
+   "au0",
+   "au1",
+   "au2"
+  ],
+  [
+   "cs0",
+   "cs1",
+   "cs2",
+   "cs3",
+   "cs4",
+   "cs5",
+   "rd0",
+   "rd1",
+   "rd2",
+   "au0",
+   "au1",
+   "au2",
+   "bn1",
+   "bn2"
+  ],
+  [
+   "cs0",
+   "cs1",
+   "cs2",
+   "cs3",
+   "wx1",
+   "wx2",
+   "fl0",
+   "fl1",
+   "fl2",
+   "wd0",
+   "wd1",
+   "wd2",
+   "ws0",
+   "ws1",
+   "ws2"
+  ],
+  [
+   "cs0",
+   "cs2",
+   "cs4",
+   "fl0",
+   "fl1",
+   "fl2"
+  ]
+ ],
+ "stats": {
+  "unique_tiles8": 265,
+  "by_kind": {
+   "tile": 19,
+   "autotile": 46,
+   "patch9": 28,
+   "block": 15,
+   "object": 157
+  },
+  "entries": 32,
+  "colours": 36
+ },
+ "sections": [
+  "floors",
+  "walls",
+  "furnishings"
+ ],
+ "entries": [
+  {
+   "name": "floor",
+   "kind": "tile",
+   "section": "floors",
+   "x": 0,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "floor",
+   "weight": 6,
+   "doc": "stone slabs",
+   "tiles8": 1
+  },
+  {
+   "name": "floor_cracked",
+   "kind": "tile",
+   "section": "floors",
+   "x": 1,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "floor",
+   "weight": 2,
+   "doc": "cracked slabs",
+   "tiles8": 3
+  },
+  {
+   "name": "floor_bones",
+   "kind": "tile",
+   "section": "floors",
+   "x": 2,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "floor",
+   "weight": 1,
+   "doc": "bone-strewn slabs",
+   "tiles8": 4
+  },
+  {
+   "name": "earth",
+   "kind": "tile",
+   "section": "floors",
+   "x": 3,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "earth",
+   "weight": 3,
+   "doc": "barrow earth",
+   "tiles8": 4
+  },
+  {
+   "name": "earth_b",
+   "kind": "tile",
+   "section": "floors",
+   "x": 4,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "earth",
+   "weight": 2,
+   "tiles8": 4
+  },
+  {
+   "name": "wall_top",
+   "kind": "tile",
+   "section": "floors",
+   "x": 5,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "doc": "top of a wall mass",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 4
+  },
+  {
+   "name": "cliff_top",
+   "kind": "autotile",
+   "section": "walls",
+   "x": 0,
+   "y": 3,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "format": "rmxp16",
+   "doc": "upper level of a plateau; its south side flows into cliff_face",
+   "tiles8": 20
+  },
+  {
+   "name": "cliff_face",
+   "kind": "patch9",
+   "section": "walls",
+   "x": 3,
+   "y": 3,
+   "w": 5,
+   "h": 3,
+   "layer": "ground",
+   "format": "patch9",
+   "doc": "dressed-stone wall face (>= 2 rows)",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 28
+  },
+  {
+   "name": "cliff_face_single",
+   "kind": "block",
+   "section": "walls",
+   "x": 8,
+   "y": 3,
+   "w": 4,
+   "h": 1,
+   "layer": "ground",
+   "format": "strip4",
+   "doc": "one-row face (a single level of drop): [W end][mid][E end][lone]",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 8
+  },
+  {
+   "name": "ledge",
+   "kind": "block",
+   "section": "walls",
+   "x": 12,
+   "y": 3,
+   "w": 4,
+   "h": 3,
+   "layer": "ground",
+   "format": "ledge",
+   "doc": "one-way ledges: row 0 south [W end][mid][E end][single], row 1 east-facing [N end][mid][S end][SE corner], row 2 west-facing",
+   "attrs": [
+    "LEDGE"
+   ],
+   "tiles8": 12
+  },
+  {
+   "name": "stairs",
+   "kind": "object",
+   "section": "walls",
+   "x": 8,
+   "y": 4,
+   "w": 1,
+   "h": 2,
+   "layer": "ground",
+   "doc": "steps cut into a 2-row face",
+   "solid": "./.",
+   "top": "./.",
+   "tiles8": 8
+  },
+  {
+   "name": "stairs_wide",
+   "kind": "object",
+   "section": "walls",
+   "x": 9,
+   "y": 4,
+   "w": 2,
+   "h": 2,
+   "layer": "ground",
+   "doc": "wide steps",
+   "solid": "../..",
+   "top": "../..",
+   "tiles8": 13
+  },
+  {
+   "name": "carpet",
+   "kind": "autotile",
+   "section": "walls",
+   "x": 3,
+   "y": 6,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "format": "rmxp16",
+   "over": "floor",
+   "doc": "red carpet runner with gold border",
+   "tiles8": 13
+  },
+  {
+   "name": "pit",
+   "kind": "autotile",
+   "section": "walls",
+   "x": 6,
+   "y": 6,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "format": "rmxp16",
+   "over": "floor",
+   "doc": "open pit / collapsed floor",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 17
+  },
+  {
+   "name": "skull_niche",
+   "kind": "object",
+   "section": "walls",
+   "x": 11,
+   "y": 4,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "skull alcove (set into a wall face)",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 3
+  },
+  {
+   "name": "banner",
+   "kind": "object",
+   "section": "walls",
+   "x": 11,
+   "y": 5,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "hanging banner 1x2 (on a wall face)",
+   "solid": "./.",
+   "top": "./.",
+   "tiles8": 8
+  },
+  {
+   "name": "chains",
+   "kind": "object",
+   "section": "walls",
+   "x": 9,
+   "y": 6,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "wall chains 1x2",
+   "solid": "./.",
+   "top": "./.",
+   "tiles8": 5
+  },
+  {
+   "name": "web",
+   "kind": "object",
+   "section": "walls",
+   "x": 10,
+   "y": 6,
+   "w": 1,
+   "h": 1,
+   "layer": "top",
+   "doc": "cobweb (corner)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "roots",
+   "kind": "object",
+   "section": "walls",
+   "x": 12,
+   "y": 6,
+   "w": 1,
+   "h": 1,
+   "layer": "top",
+   "doc": "roots through the ceiling (Root Gallery)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "iron_gate",
+   "kind": "object",
+   "section": "walls",
+   "x": 13,
+   "y": 6,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "iron gate 2x2 (locked)",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 13
+  },
+  {
+   "name": "candles",
+   "kind": "object",
+   "section": "furnishings",
+   "x": 0,
+   "y": 11,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "frames": [
+    [
+     0,
+     11
+    ],
+    [
+     1,
+     11
+    ]
+   ],
+   "period": 16,
+   "doc": "candle cluster (flicker)",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 8
+  },
+  {
+   "name": "brazier",
+   "kind": "object",
+   "section": "furnishings",
+   "x": 2,
+   "y": 11,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "frames": [
+    [
+     2,
+     11
+    ],
+    [
+     3,
+     11
+    ],
+    [
+     4,
+     11
+    ]
+   ],
+   "period": 8,
+   "doc": "brazier 1x2 (animated)",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 12
+  },
+  {
+   "name": "sarcophagus",
+   "kind": "object",
+   "section": "furnishings",
+   "x": 5,
+   "y": 11,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "sarcophagus 2x2",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 12
+  },
+  {
+   "name": "coffin",
+   "kind": "object",
+   "section": "furnishings",
+   "x": 7,
+   "y": 11,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "coffin 1x2",
+   "solid": "X/X",
+   "top": "./.",
+   "tiles8": 8
+  },
+  {
+   "name": "urn",
+   "kind": "object",
+   "section": "furnishings",
+   "x": 8,
+   "y": 11,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "funeral urn",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "bone_pile",
+   "kind": "object",
+   "section": "furnishings",
+   "x": 9,
+   "y": 11,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "bones",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 3
+  },
+  {
+   "name": "skulls",
+   "kind": "object",
+   "section": "furnishings",
+   "x": 10,
+   "y": 11,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "skull cairn",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "statue",
+   "kind": "object",
+   "section": "furnishings",
+   "x": 11,
+   "y": 11,
+   "w": 2,
+   "h": 3,
+   "layer": "mid",
+   "doc": "guardian statue 2x3",
+   "solid": "../XX/XX",
+   "top": "XX/../..",
+   "tiles8": 18
+  },
+  {
+   "name": "throne",
+   "kind": "object",
+   "section": "furnishings",
+   "x": 13,
+   "y": 11,
+   "w": 2,
+   "h": 3,
+   "layer": "mid",
+   "doc": "the Bone Throne 2x3",
+   "solid": "../XX/XX",
+   "top": "XX/../..",
+   "tiles8": 16
+  },
+  {
+   "name": "pedestal",
+   "kind": "object",
+   "section": "furnishings",
+   "x": 15,
+   "y": 11,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "relic pedestal 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "wisp",
+   "kind": "object",
+   "section": "furnishings",
+   "x": 0,
+   "y": 13,
+   "w": 1,
+   "h": 1,
+   "layer": "top",
+   "frames": [
+    [
+     0,
+     13
+    ],
+    [
+     1,
+     13
+    ],
+    [
+     2,
+     13
+    ],
+    [
+     3,
+     13
+    ]
+   ],
+   "period": 12,
+   "doc": "restless wisp",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 11
+  },
+  {
+   "name": "signpost",
+   "kind": "object",
+   "section": "furnishings",
+   "x": 0,
+   "y": 12,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "plaque",
+   "attrs": [
+    "SIGN"
+   ],
+   "solid": "X",
+   "top": ".",
+   "tiles8": 3
+  }
+ ],
+ "scenes": [
+  {
+   "key": "ossuary",
+   "title": "Ossuary and Bone Throne (sample)",
+   "w": 30,
+   "h": 22,
+   "doc": "Dressed-stone halls: a carpeted nave between sarcophagi and braziers leads to the throne; side crypts with coffins, niches and a collapsed pit."
+  }
+ ]
+}

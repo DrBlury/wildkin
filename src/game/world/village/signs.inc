@@ -15,3 +15,4 @@
     { MAP_WOOD, 33, 10, "HERMIT'S CABIN\fKnock. Wait. Knock again. Then wait longer." },
     { MAP_LAKE, 36, 16, "MIRROR LAKE\fField station: follow the path north." },
     { MAP_LAKE, 28, 7, "ALMANAC FIELD STATION\fDR. VASS. Please do not tap on the heartglass." },
+    { MAP_WOOD, 16, 5, "HOLLOW ROOT\fThe old stump hides a path. The Volt Crest opens the roots." },

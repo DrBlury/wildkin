@@ -812,3 +812,25 @@ crest-holders into the Ossuary. Along the way:
 
 The finale is the **Bone Throne**: answer OSSUREX, and the Ashen March
 begins to heal (it gets a clear-weather version, like the storm).
+
+## 12. Connected underground routes
+
+The implemented cave expansion is documented in [UNDERWORLD.md](UNDERWORLD.md).
+It adds ten playable maps, explicit guarded portal pairs, independent cave
+depth/surface anchors, a discovered-connection atlas, and a GRIM-compatible
+DUSK art catalog. These routes preserve the existing Hall order and Gull
+Isle sea crossing; they do not replace the surface world or stream two
+world layers simultaneously. The current save remains version 7, with
+regional-ID rebasing and safe recovery of invalid terrain positions.
+
+## 13. Biome journeys and settlements
+
+[BIOMES.md](BIOMES.md) documents the twelve-map biome expansion: Mistfall/Mistbell,
+Rootcoil/Canopy Hearth, Saffron/Sunwell, Coralhook Reef, Rimewind Tundra and
+Sporelight Hollow. Each new village has a distinct custom and persistent quest;
+existing story gates and the connected cave networks remain intact. Dedicated
+DESERT and JUNGLE catalogs are appended after DUSK. Region-local `biomes/`
+fragments append content within the owning region, and the save-layout generator
+expands local includes so saved IDs and satchel indices retain compiler order.
+The approved design and baseline evidence are in
+[plan 13](plans/13_biome_world.md).

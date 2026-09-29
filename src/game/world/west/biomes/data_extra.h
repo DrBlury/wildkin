@@ -1,0 +1,16 @@
+static const DecorPlace CORALHOOK_REEF_DECOR[] = {
+    DP(SIGNPOST, 5, 15), DP(DRIFTWOOD, 15, 9), DP(SHELLS, 12, 12),
+    DP(SEAWEED, 24, 20), DP(COAST_CORAL_CLUSTER, 21, 17),
+    DP(SEA_ROCK, 28, 23), DP(DRIFTWOOD, 30, 18), DP(ROWBOAT, 31, 22),
+};
+static const MapObj CORALHOOK_REEF_OBJS[] = {
+    OBJ(LADDER, 3, 15, 0), OBJ(CHEST, 20, 24, ITEM_TIDE_LANTERN),
+};
+static const WildSlot WILD_CORALHOOK_SAND[] = {
+    { SP_CRANICRAB, 40, 24, 28 }, { SP_PEBBOTTER, 32, 24, 28 },
+    { SP_TORRENTTER, 28, 26, 29 },
+};
+static const WildSlot WILD_CORALHOOK_SURF[] = {
+    { SP_JELLUME, 45, 24, 28 }, { SP_MEDUSHOCK, 30, 26, 30 },
+    { SP_KELPYRE, 10, 30, 33, WHEN_NIGHT }, { SP_ABYSSLURE, 15, 28, 31, WHEN_NIGHT },
+};

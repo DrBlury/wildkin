@@ -35,7 +35,7 @@
 /* ---------------- OBJ VRAM tile layout ---------------- */
 
 #define OT_PLAYER       0
-#define OT_NPC(i)       (8 + (i) * 8)     /* 15 people */
+#define OT_NPC(i)       (8 + (i) * 8)     /* 7 field people; higher slots are emotes */
 #define OT_ITEM_BALL    128
 #define OT_ICON(i)      (132 + (i) * 16)  /* 6 party icons, 32x32 */
 #define OT_MON_A        256
@@ -525,9 +525,11 @@ static int spr_shape_bits(int shape, u16 *a0, u16 *a1)
 static void spr_push(int x, int y, int tile, int shape, int bank, int prio, int flags)
 {
     if (oam_count >= 128) return;
-    if (x <= -64 || x >= SCREEN_WIDTH || y <= -64 || y >= SCREEN_HEIGHT) return;
     u16 a0 = (u16)(y & 0xFF), a1 = (u16)(x & 0x1FF);
-    spr_shape_bits(shape, &a0, &a1);
+    int size = spr_shape_bits(shape, &a0, &a1);
+    int width = shape == TALL16x32 ? 16 : size;
+    int height = shape == WIDE32x16 ? 16 : size;
+    if (x <= -width || x >= SCREEN_WIDTH || y <= -height || y >= SCREEN_HEIGHT) return;
     a1 |= (u16)(flags & (ATTR1_HFLIP | ATTR1_VFLIP));
     if (flags & ATTR0_BLEND) a0 |= ATTR0_BLEND;
     if (flags & SPR_MOSAIC) a0 |= ATTR0_MOSAIC;

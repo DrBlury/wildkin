@@ -7,3 +7,5 @@
     FLAG_BROOK_LIGHT_CACHE,
     FLAG_MINE_LIGHT_CACHE,
     FLAG_RIVET_BUNDLE, /* Vex gives virtual bundle; ITEM_RIVET_BUNDLE needs items/east.inc owner */
+
+#include "biomes/flag_ids.inc"

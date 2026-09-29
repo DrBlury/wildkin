@@ -362,3 +362,5 @@ static void scr_fen_hermit(int npc)
     dlg_ask("I'll teach your first healthy kin SLIPSTREAM for two SALT. Learn?",
             YES_NO, 2, fen_tutor_answer);
 }
+
+#include "biomes/scripts.c"

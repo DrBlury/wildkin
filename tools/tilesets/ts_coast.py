@@ -463,13 +463,15 @@ def coast_water_quads(gf, f):
     lap = (0.0, 0.7, 1.2)[f]
 
     def color_at(d, X, Y, c, v, lx, ly):
-        if d < 0:
+        if d < -1.0:
             return SAND_TEX.p[Y][X]
+        if d < 0:
+            return 'sw_dk' if (X + Y) % 4 else 'sw_lt'  # continuous wet-sand seam
         if d < 0.9 + lap * 0.6:
             return 'sw_lt'
         if d < 1.9 + lap:
-            h = hash2(X, Y, 3 + f) & 7
-            return 'white' if h else 'w_hi'
+            # Broken scallops follow the water edge rather than random foam noise.
+            return 'white' if (X // 3 + Y // 2 + f) % 5 != 0 else 'w_hi'
         if d < 2.8 + lap:
             return 'w_hi' if (X + Y + f) % 3 == 0 else 'w_lt'
         if d < 4.2:

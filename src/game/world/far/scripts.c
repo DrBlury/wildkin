@@ -296,3 +296,32 @@ static void scr_far_greta(int npc)
      * bridge has already been rebuilt. */
     dlg_say("GRETA: You have the ANVIL CREST! Bring ore to our town project board when the bridge works begin.");
 }
+
+/* Both marked controls are reachable from the south bank. The solved basalt
+ * patch is permanent, so returning from the north can never strand a warden. */
+static void scr_ember_intake(int npc)
+{
+    (void)npc;
+    if (flag(FLAG_EMBER_COOLED)) {
+        dlg_say("INTAKE VALVE: The basalt seam has set. The crossing is safe.");
+        return;
+    }
+    flag_set(FLAG_EMBER_PRIMED);
+    dlg_say("You open the intake. Cool air roars beneath the lava. Now release the sluice.");
+}
+
+static void scr_ember_release(int npc)
+{
+    (void)npc;
+    if (flag(FLAG_EMBER_COOLED)) {
+        dlg_say("RELEASE VALVE: The cooled basalt will hold.");
+        return;
+    }
+    if (!flag(FLAG_EMBER_PRIMED)) {
+        dlg_say("The release wheel will not turn. The intake must open first.");
+        return;
+    }
+    flag_set(FLAG_EMBER_COOLED);
+    map_patches_reapply();
+    dlg_say("The sluice hisses. A pair of basalt stones sets across the molten seam!");
+}

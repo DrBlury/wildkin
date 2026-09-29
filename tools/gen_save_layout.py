@@ -4,6 +4,7 @@ import json
 import re
 import sys
 from pathlib import Path
+from world_includes import read_world_source
 
 ROOT = Path(__file__).resolve().parents[1]
 WORLD = ROOT / 'src/game/world'
@@ -20,7 +21,7 @@ def clean(source):
 
 
 def ids(region, kind, prefix):
-    text = clean((WORLD / region / (kind + '.inc')).read_text())
+    text = clean(read_world_source(WORLD / region / (kind + '.inc'), WORLD))
     if kind == 'satchels':
         return [f'{region}:{i}' for i in range(len(re.findall(r'\{\s*MAP_', text)))]
     return re.findall(r'\b' + prefix + r'[A-Z0-9_]+\b', text)

@@ -14,3 +14,16 @@
     { MAP_BROOKMILL, 6, 26, MAP_BROOKMILL_HOUSE, 5, 8 },
     { MAP_COPPERLINE, 25, 7, MAP_COPPER_MINE, 15, 2 },
     { MAP_COPPERLINE, 20, 34, MAP_ACCORD_GATE, 6, 8 }, /* G5 / plan 07 */
+    { MAP_ROOTWOOD_PATH, 2, 7, MAP_WOOD, 17, 6, .required_flag = FLAG_VOLT_CREST },
+    { MAP_ROOTWOOD_PATH, 17, 3, MAP_ROOTWAYS, 3, 8, .required_flag = FLAG_VOLT_CREST },
+    { MAP_ROOTWAYS, 2, 8, MAP_ROOTWOOD_PATH, 16, 3, .required_flag = FLAG_VOLT_CREST },
+    { MAP_ROOTWAYS, 21, 3, MAP_MILL_CELLAR, 6, 3, .required_flag = FLAG_VOLT_CREST },
+    { MAP_MILL_CELLAR, 6, 2, MAP_ROOTWAYS, 20, 3, .required_flag = FLAG_VOLT_CREST },
+    { MAP_MILL_CELLAR, 6, 7, MAP_BROOKMILL_MILL, 6, 5, .required_flag = FLAG_VOLT_CREST },
+    { MAP_BROOKMILL_MILL, 6, 6, MAP_MILL_CELLAR, 6, 6, .required_flag = FLAG_VOLT_CREST },
+    { MAP_ROOTWAYS, 21, 14, MAP_COPPER_MINE, 4, 18, .required_flag = FLAG_VOLT_CREST },
+    { MAP_COPPER_MINE, 3, 18, MAP_ROOTWAYS, 20, 14, .required_flag = FLAG_VOLT_CREST },
+    { MAP_COPPER_MINE, 8, 18, MAP_RAILHEAD_SHAFT, 4, 10, .required_flag = FLAG_CREST_ANVIL },
+    { MAP_ROOTWAYS, 19, 11, MAP_TIDAL_UNDERFLOW, 11, 3, .required_flag = FLAG_TIDE_CREST },
+
+#include "biomes/warps.inc"

@@ -70,3 +70,5 @@
     [TR_N_SCREE] = { "SCREE GUARD", 1, { SP_FLURRABBIT }, { 32 }, 1950, "The cache is behind me!", "You earned it." },
     [TR_N_LOGGER_1] = { "LOGGER FINN", 1, { SP_GNAWLORD }, { 31 }, 1800, "Logs are heavy. Our kin are stronger!", "They need a rest." },
     [TR_N_LOGGER_2] = { "LOGGER SVEA", 1, { SP_RAMBLET }, { 31 }, 1750, "The mill never sleeps!", "I will." },
+
+#include "biomes/trainers.inc"

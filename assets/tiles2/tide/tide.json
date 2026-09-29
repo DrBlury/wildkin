@@ -1,0 +1,856 @@
+{
+ "name": "tide",
+ "title": "Tide - the drowned temple",
+ "doc": "TIDE - the drowned Tidal Temple and its halls.\n\nReplaces the old `tide` tileset (Tidal Temple shore/hall/dark, Current\nHall, Drowned Bell, Reed Tunnel). Wet blue-green masonry, barnacled floor\nslabs, tide pools, current floors that carry you (animated chevrons in\nfour directions), coral pillars, kelp, the drowned bell, shell lamps and a\nwhale carving.\n",
+ "cell": 16,
+ "cols": 16,
+ "rows": 20,
+ "palette": {
+  "ts0": "#081018",
+  "ts1": "#102931",
+  "ts2": "#21394a",
+  "ts3": "#31525a",
+  "ts4": "#4a7373",
+  "ts5": "#6b948c",
+  "tf0": "#081821",
+  "tf1": "#182931",
+  "tf2": "#29424a",
+  "tf3": "#395a5a",
+  "tf4": "#527373",
+  "tw0": "#082142",
+  "tw1": "#10426b",
+  "tw2": "#185a8c",
+  "tw3": "#2984b5",
+  "tw4": "#63bdde",
+  "tw5": "#c6eff7",
+  "co0": "#6b2142",
+  "co1": "#b54a6b",
+  "co2": "#ef8ca5",
+  "gc": "#8cf7e7",
+  "kp0": "#183121",
+  "kp1": "#295231",
+  "kp2": "#427b42",
+  "br0": "#5a4a29",
+  "br1": "#9c7b42",
+  "br2": "#d6b563",
+  "br3": "#f7e7a5",
+  "sh0": "#8c7b73",
+  "sh1": "#d6c6b5",
+  "sh2": "#fff7ef",
+  "v0": "#000808"
+ },
+ "variants": {
+  "biolume": {
+   "ts3": "#184a5a",
+   "ts4": "#216b7b",
+   "ts5": "#31949c",
+   "tf3": "#184a52",
+   "tf4": "#296b73"
+  }
+ },
+ "banks": [
+  [
+   "ts0",
+   "ts1",
+   "ts2",
+   "tf0",
+   "tf1",
+   "tf2",
+   "tf3",
+   "tf4",
+   "kp0",
+   "kp1",
+   "kp2",
+   "sh0",
+   "sh1",
+   "sh2",
+   "v0"
+  ],
+  [
+   "ts0",
+   "ts1",
+   "ts2",
+   "ts3",
+   "ts4",
+   "ts5",
+   "tf1",
+   "tf2",
+   "tf3",
+   "tf4",
+   "kp1",
+   "kp2",
+   "v0"
+  ],
+  [
+   "ts0",
+   "tf0",
+   "tf1",
+   "tf2",
+   "tf3",
+   "tf4",
+   "tw0",
+   "tw1",
+   "tw2",
+   "tw3",
+   "tw4",
+   "tw5",
+   "co1",
+   "sh1",
+   "sh2"
+  ],
+  [
+   "ts0",
+   "ts1",
+   "ts2",
+   "ts3",
+   "tw3",
+   "tw4",
+   "tw5",
+   "co0",
+   "co1",
+   "co2",
+   "gc",
+   "kp0",
+   "kp1",
+   "kp2"
+  ],
+  [
+   "ts0",
+   "ts1",
+   "ts2",
+   "ts3",
+   "ts4",
+   "tw4",
+   "tw5",
+   "gc",
+   "br0",
+   "br1",
+   "br2",
+   "br3",
+   "sh0",
+   "sh1",
+   "sh2"
+  ]
+ ],
+ "stats": {
+  "unique_tiles8": 435,
+  "by_kind": {
+   "tile": 21,
+   "autotile": 190,
+   "patch9": 28,
+   "block": 15,
+   "object": 181
+  },
+  "entries": 37,
+  "colours": 32
+ },
+ "sections": [
+  "floors",
+  "walls and water",
+  "temple"
+ ],
+ "entries": [
+  {
+   "name": "floor",
+   "kind": "tile",
+   "section": "floors",
+   "x": 0,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "floor",
+   "weight": 6,
+   "doc": "wet slabs",
+   "tiles8": 1
+  },
+  {
+   "name": "floor_barnacles",
+   "kind": "tile",
+   "section": "floors",
+   "x": 1,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "floor",
+   "weight": 2,
+   "doc": "barnacled slabs",
+   "tiles8": 4
+  },
+  {
+   "name": "floor_kelp",
+   "kind": "tile",
+   "section": "floors",
+   "x": 2,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "floor",
+   "weight": 1,
+   "doc": "kelp-grown slabs",
+   "tiles8": 4
+  },
+  {
+   "name": "wall_top",
+   "kind": "tile",
+   "section": "floors",
+   "x": 3,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "doc": "top of a wall mass",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 4
+  },
+  {
+   "name": "current_n",
+   "kind": "tile",
+   "section": "floors",
+   "x": 4,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "frames": [
+    [
+     4,
+     1
+    ],
+    [
+     5,
+     1
+    ],
+    [
+     6,
+     1
+    ],
+    [
+     7,
+     1
+    ]
+   ],
+   "period": 6,
+   "doc": "current carrying you north",
+   "attrs": [
+    "WATER",
+    "CURRENT"
+   ],
+   "dir": "N",
+   "tiles8": 4
+  },
+  {
+   "name": "current_e",
+   "kind": "tile",
+   "section": "floors",
+   "x": 8,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "frames": [
+    [
+     8,
+     1
+    ],
+    [
+     9,
+     1
+    ],
+    [
+     10,
+     1
+    ],
+    [
+     11,
+     1
+    ]
+   ],
+   "period": 6,
+   "doc": "current carrying you east",
+   "attrs": [
+    "WATER",
+    "CURRENT"
+   ],
+   "dir": "E",
+   "tiles8": 4
+  },
+  {
+   "name": "current_s",
+   "kind": "tile",
+   "section": "floors",
+   "x": 12,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "frames": [
+    [
+     12,
+     1
+    ],
+    [
+     13,
+     1
+    ],
+    [
+     14,
+     1
+    ],
+    [
+     15,
+     1
+    ]
+   ],
+   "period": 6,
+   "doc": "current carrying you south",
+   "attrs": [
+    "WATER",
+    "CURRENT"
+   ],
+   "dir": "S",
+   "tiles8": 4
+  },
+  {
+   "name": "current_w",
+   "kind": "tile",
+   "section": "floors",
+   "x": 0,
+   "y": 2,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "frames": [
+    [
+     0,
+     2
+    ],
+    [
+     1,
+     2
+    ],
+    [
+     2,
+     2
+    ],
+    [
+     3,
+     2
+    ]
+   ],
+   "period": 6,
+   "doc": "current carrying you west",
+   "attrs": [
+    "WATER",
+    "CURRENT"
+   ],
+   "dir": "W",
+   "tiles8": 4
+  },
+  {
+   "name": "cliff_top",
+   "kind": "autotile",
+   "section": "walls and water",
+   "x": 0,
+   "y": 4,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "format": "rmxp16",
+   "doc": "upper level of a plateau; its south side flows into cliff_face",
+   "tiles8": 20
+  },
+  {
+   "name": "cliff_face",
+   "kind": "patch9",
+   "section": "walls and water",
+   "x": 3,
+   "y": 4,
+   "w": 5,
+   "h": 3,
+   "layer": "ground",
+   "format": "patch9",
+   "doc": "temple wall face (>= 2 rows)",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 28
+  },
+  {
+   "name": "cliff_face_single",
+   "kind": "block",
+   "section": "walls and water",
+   "x": 8,
+   "y": 4,
+   "w": 4,
+   "h": 1,
+   "layer": "ground",
+   "format": "strip4",
+   "doc": "one-row face (a single level of drop): [W end][mid][E end][lone]",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 8
+  },
+  {
+   "name": "ledge",
+   "kind": "block",
+   "section": "walls and water",
+   "x": 12,
+   "y": 4,
+   "w": 4,
+   "h": 3,
+   "layer": "ground",
+   "format": "ledge",
+   "doc": "one-way ledges: row 0 south [W end][mid][E end][single], row 1 east-facing [N end][mid][S end][SE corner], row 2 west-facing",
+   "attrs": [
+    "LEDGE"
+   ],
+   "tiles8": 12
+  },
+  {
+   "name": "stairs",
+   "kind": "object",
+   "section": "walls and water",
+   "x": 8,
+   "y": 5,
+   "w": 1,
+   "h": 2,
+   "layer": "ground",
+   "doc": "steps cut into a 2-row face",
+   "solid": "./.",
+   "top": "./.",
+   "tiles8": 8
+  },
+  {
+   "name": "stairs_wide",
+   "kind": "object",
+   "section": "walls and water",
+   "x": 9,
+   "y": 5,
+   "w": 2,
+   "h": 2,
+   "layer": "ground",
+   "doc": "wide steps",
+   "solid": "../..",
+   "top": "../..",
+   "tiles8": 13
+  },
+  {
+   "name": "pool",
+   "kind": "autotile",
+   "section": "walls and water",
+   "x": 3,
+   "y": 7,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "frames": [
+    [
+     3,
+     7
+    ],
+    [
+     6,
+     7
+    ],
+    [
+     9,
+     7
+    ],
+    [
+     12,
+     7
+    ]
+   ],
+   "period": 20,
+   "format": "rmxp16",
+   "over": "floor",
+   "doc": "flooded channel over slabs",
+   "attrs": [
+    "WATER"
+   ],
+   "tiles8": 77
+  },
+  {
+   "name": "deep_pool",
+   "kind": "autotile",
+   "section": "walls and water",
+   "x": 0,
+   "y": 11,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "frames": [
+    [
+     0,
+     11
+    ],
+    [
+     3,
+     11
+    ],
+    [
+     6,
+     11
+    ],
+    [
+     9,
+     11
+    ]
+   ],
+   "period": 20,
+   "format": "rmxp16",
+   "over": "pool",
+   "doc": "deep channel inside pool",
+   "attrs": [
+    "WATER",
+    "DEEP"
+   ],
+   "tiles8": 80
+  },
+  {
+   "name": "abyss",
+   "kind": "autotile",
+   "section": "walls and water",
+   "x": 12,
+   "y": 11,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "format": "rmxp16",
+   "over": "floor",
+   "doc": "drop into the dark water below",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 17
+  },
+  {
+   "name": "drowned_bell",
+   "kind": "object",
+   "section": "temple",
+   "x": 0,
+   "y": 16,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "the drowned bell 2x2",
+   "solid": "../XX",
+   "top": "XX/..",
+   "tiles8": 13
+  },
+  {
+   "name": "coral_pillar",
+   "kind": "object",
+   "section": "temple",
+   "x": 2,
+   "y": 16,
+   "w": 1,
+   "h": 3,
+   "layer": "mid",
+   "doc": "coral-crusted pillar 1x3",
+   "solid": "./X/X",
+   "top": "X/./.",
+   "tiles8": 12
+  },
+  {
+   "name": "column",
+   "kind": "object",
+   "section": "temple",
+   "x": 3,
+   "y": 16,
+   "w": 1,
+   "h": 3,
+   "layer": "mid",
+   "doc": "temple column 1x3",
+   "solid": "./X/X",
+   "top": "X/./.",
+   "tiles8": 6
+  },
+  {
+   "name": "shell_lamp",
+   "kind": "object",
+   "section": "temple",
+   "x": 4,
+   "y": 16,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "shell lamp 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "glow_coral",
+   "kind": "object",
+   "section": "temple",
+   "x": 5,
+   "y": 16,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "frames": [
+    [
+     5,
+     16
+    ],
+    [
+     6,
+     16
+    ],
+    [
+     7,
+     16
+    ]
+   ],
+   "period": 20,
+   "doc": "glowing coral (animated)",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 10
+  },
+  {
+   "name": "coral_branch",
+   "kind": "object",
+   "section": "temple",
+   "x": 8,
+   "y": 16,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "branch coral",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "coral_brain",
+   "kind": "object",
+   "section": "temple",
+   "x": 9,
+   "y": 16,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "brain coral",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "kelp",
+   "kind": "object",
+   "section": "temple",
+   "x": 10,
+   "y": 16,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "frames": [
+    [
+     10,
+     16
+    ],
+    [
+     11,
+     16
+    ],
+    [
+     12,
+     16
+    ]
+   ],
+   "period": 24,
+   "doc": "swaying kelp",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 12
+  },
+  {
+   "name": "shells",
+   "kind": "object",
+   "section": "temple",
+   "x": 13,
+   "y": 16,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "shells",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 3
+  },
+  {
+   "name": "urn",
+   "kind": "object",
+   "section": "temple",
+   "x": 14,
+   "y": 16,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "sunken urn",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "chains",
+   "kind": "object",
+   "section": "temple",
+   "x": 15,
+   "y": 16,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "anchor chains 1x2",
+   "solid": "./.",
+   "top": "./.",
+   "tiles8": 5
+  },
+  {
+   "name": "whale_carving",
+   "kind": "object",
+   "section": "temple",
+   "x": 5,
+   "y": 17,
+   "w": 3,
+   "h": 3,
+   "layer": "mid",
+   "doc": "whale-bone gate 3x3",
+   "solid": ".../X.X/X.X",
+   "top": "XXX/.../...",
+   "tiles8": 26
+  },
+  {
+   "name": "statue",
+   "kind": "object",
+   "section": "temple",
+   "x": 8,
+   "y": 17,
+   "w": 2,
+   "h": 3,
+   "layer": "mid",
+   "doc": "tide-warden statue 2x3",
+   "solid": "../XX/XX",
+   "top": "XX/../..",
+   "tiles8": 18
+  },
+  {
+   "name": "plaque",
+   "kind": "object",
+   "section": "temple",
+   "x": 10,
+   "y": 17,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "bronze plaque",
+   "attrs": [
+    "SIGN"
+   ],
+   "solid": "X",
+   "top": ".",
+   "tiles8": 3
+  },
+  {
+   "name": "rock",
+   "kind": "object",
+   "section": "temple",
+   "x": 11,
+   "y": 17,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "small rock",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "boulder",
+   "kind": "object",
+   "section": "temple",
+   "x": 12,
+   "y": 17,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "push boulder (strength)",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "rock_cracked",
+   "kind": "object",
+   "section": "temple",
+   "x": 13,
+   "y": 17,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "breakable rock",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "rock_big",
+   "kind": "object",
+   "section": "temple",
+   "x": 0,
+   "y": 18,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "crag 2x2",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 16
+  },
+  {
+   "name": "pebbles",
+   "kind": "object",
+   "section": "temple",
+   "x": 14,
+   "y": 17,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "pebbles (decor)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "standing_stone",
+   "kind": "object",
+   "section": "temple",
+   "x": 4,
+   "y": 18,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "menhir 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  }
+ ],
+ "scenes": [
+  {
+   "key": "current_hall",
+   "title": "Current Hall (sample)",
+   "w": 30,
+   "h": 22,
+   "doc": "A flooded temple hall: channels, current floors that sweep you around the drowned bell, coral pillars, glowing coral and shell lamps."
+  }
+ ]
+}

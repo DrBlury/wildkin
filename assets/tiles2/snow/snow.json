@@ -1,0 +1,1316 @@
+{
+ "name": "snow",
+ "title": "Snow - alpine, tundra, frozen villages",
+ "doc": "SNOW - alpine forests, frozen lakes, tundra and snowbound villages.\n\nReplaces the old `snow` tileset (Frostpine Pass, Timberline, Frosthollow,\nAurora Ridge 1/2, Whitecrown, Rimewind Tundra, Hot Spring, Sky Isle, Rime\nHall, Karst Frost). Snow with wind ripples, ice floors (slide), a cold\nlake, blue-grey rock, snow-laden pines, log cabins with warm windows,\nhot springs with steam and aurora stones.\n",
+ "cell": 16,
+ "cols": 16,
+ "rows": 51,
+ "palette": {
+  "p0": "#082929",
+  "p1": "#104239",
+  "p2": "#215a4a",
+  "p3": "#297b52",
+  "p4": "#4aa563",
+  "k0": "#291818",
+  "k1": "#523129",
+  "k2": "#7b5231",
+  "k3": "#ad734a",
+  "k4": "#ce9c63",
+  "sn0": "#31426b",
+  "sn1": "#7b8cbd",
+  "sn2": "#adbdde",
+  "sn3": "#d6def7",
+  "sn4": "#eff7ff",
+  "sn5": "#ffffff",
+  "ic0": "#397bb5",
+  "ic1": "#6bb5e7",
+  "ic2": "#addef7",
+  "ic3": "#e7ffff",
+  "cw0": "#18396b",
+  "cw1": "#295a9c",
+  "cw2": "#397bbd",
+  "cw3": "#63a5de",
+  "cw4": "#a5ceef",
+  "b0": "#182131",
+  "b1": "#313952",
+  "b2": "#4a5a73",
+  "b3": "#6b7b94",
+  "b4": "#94a5b5",
+  "b5": "#c6ced6",
+  "mo1": "#4a6b52",
+  "mo2": "#6b8c63",
+  "mo3": "#94ad7b",
+  "gw0": "#8c4a18",
+  "gw1": "#f7ad39",
+  "gw2": "#fff7a5",
+  "hs0": "#186b73",
+  "hs1": "#31a5a5",
+  "hs2": "#8cded6",
+  "au1": "#5ae7a5",
+  "au2": "#b5ffde",
+  "mg": "#c673e7",
+  "fr": "#de3939",
+  "fo": "#f79442"
+ },
+ "variants": {
+  "night": {
+   "p3": "#184a4a",
+   "p4": "#29634a",
+   "sn1": "#293163",
+   "sn2": "#394a84",
+   "sn3": "#52639c",
+   "sn4": "#6b7bb5",
+   "sn5": "#8c9cd6",
+   "ic2": "#6b9cd6",
+   "ic3": "#9cc6ef",
+   "b3": "#394a6b",
+   "b4": "#52638c",
+   "b5": "#6b7ba5"
+  }
+ },
+ "banks": [
+  [
+   "sn0",
+   "sn1",
+   "sn2",
+   "sn3",
+   "sn4",
+   "sn5",
+   "ic0",
+   "ic1",
+   "ic2",
+   "ic3",
+   "mo1",
+   "mo2",
+   "mo3"
+  ],
+  [
+   "sn0",
+   "sn1",
+   "sn2",
+   "sn3",
+   "sn4",
+   "sn5",
+   "ic0",
+   "ic1",
+   "ic2",
+   "ic3",
+   "cw0",
+   "cw1",
+   "cw2",
+   "cw3",
+   "cw4"
+  ],
+  [
+   "sn2",
+   "sn3",
+   "sn4",
+   "sn5",
+   "b0",
+   "b1",
+   "b2",
+   "b3",
+   "b4",
+   "b5",
+   "mo1",
+   "mo2",
+   "mo3"
+  ],
+  [
+   "p0",
+   "p1",
+   "p2",
+   "p3",
+   "p4",
+   "k0",
+   "k1",
+   "k2",
+   "k3",
+   "sn2",
+   "sn3",
+   "sn4",
+   "sn5"
+  ],
+  [
+   "k0",
+   "k1",
+   "k2",
+   "k3",
+   "k4",
+   "sn0",
+   "sn1",
+   "sn2",
+   "sn3",
+   "sn4",
+   "sn5",
+   "gw0",
+   "gw1",
+   "gw2",
+   "fr"
+  ],
+  [
+   "k0",
+   "k1",
+   "k2",
+   "k3",
+   "k4",
+   "sn4",
+   "sn5",
+   "b0",
+   "b1",
+   "b2",
+   "b3",
+   "b4",
+   "b5",
+   "fr",
+   "fo"
+  ],
+  [
+   "sn3",
+   "sn4",
+   "sn5",
+   "b0",
+   "b1",
+   "b2",
+   "b3",
+   "b4",
+   "hs0",
+   "hs1",
+   "hs2"
+  ],
+  [
+   "sn4",
+   "sn5",
+   "ic0",
+   "ic1",
+   "ic2",
+   "ic3",
+   "b0",
+   "b1",
+   "b2",
+   "b3",
+   "b4",
+   "au1",
+   "au2",
+   "mg"
+  ]
+ ],
+ "stats": {
+  "unique_tiles8": 1157,
+  "by_kind": {
+   "tile": 38,
+   "autotile": 284,
+   "patch9": 84,
+   "block": 43,
+   "object": 708
+  },
+  "entries": 67,
+  "colours": 45
+ },
+ "sections": [
+  "ground",
+  "autotiles",
+  "trees",
+  "village",
+  "wild"
+ ],
+ "entries": [
+  {
+   "name": "snow",
+   "kind": "tile",
+   "section": "ground",
+   "x": 0,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "snow",
+   "weight": 8,
+   "doc": "wind-rippled snow",
+   "tiles8": 4
+  },
+  {
+   "name": "snow_b",
+   "kind": "tile",
+   "section": "ground",
+   "x": 1,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "snow",
+   "weight": 4,
+   "tiles8": 4
+  },
+  {
+   "name": "snow_c",
+   "kind": "tile",
+   "section": "ground",
+   "x": 2,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "snow",
+   "weight": 3,
+   "tiles8": 4
+  },
+  {
+   "name": "snow_d",
+   "kind": "tile",
+   "section": "ground",
+   "x": 3,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "snow",
+   "weight": 2,
+   "tiles8": 3
+  },
+  {
+   "name": "snow_deep",
+   "kind": "tile",
+   "section": "ground",
+   "x": 4,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "doc": "deep powder (encounters, slow)",
+   "attrs": [
+    "GRASS"
+   ],
+   "tiles8": 3
+  },
+  {
+   "name": "tundra",
+   "kind": "tile",
+   "section": "ground",
+   "x": 5,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "tundra",
+   "weight": 9,
+   "doc": "tundra moss",
+   "tiles8": 4
+  },
+  {
+   "name": "tundra_b",
+   "kind": "tile",
+   "section": "ground",
+   "x": 6,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "tundra",
+   "weight": 4,
+   "tiles8": 4
+  },
+  {
+   "name": "tundra_c",
+   "kind": "tile",
+   "section": "ground",
+   "x": 7,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "tundra",
+   "weight": 3,
+   "tiles8": 4
+  },
+  {
+   "name": "tundra_d",
+   "kind": "tile",
+   "section": "ground",
+   "x": 8,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "tundra",
+   "weight": 3,
+   "tiles8": 4
+  },
+  {
+   "name": "ice",
+   "kind": "tile",
+   "section": "ground",
+   "x": 9,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "doc": "slippery ice (slide until stopped)",
+   "attrs": [
+    "ICE"
+   ],
+   "tiles8": 4
+  },
+  {
+   "name": "ice_b",
+   "kind": "tile",
+   "section": "ground",
+   "x": 10,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "attrs": [
+    "ICE"
+   ],
+   "tiles8": 4
+  },
+  {
+   "name": "ice_patch",
+   "kind": "autotile",
+   "section": "autotiles",
+   "x": 0,
+   "y": 3,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "format": "rmxp16",
+   "over": "snow",
+   "doc": "ice sheet over snow",
+   "attrs": [
+    "ICE"
+   ],
+   "tiles8": 20
+  },
+  {
+   "name": "tundra_patch",
+   "kind": "autotile",
+   "section": "autotiles",
+   "x": 3,
+   "y": 3,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "format": "rmxp16",
+   "over": "snow",
+   "doc": "moss showing through snow",
+   "tiles8": 20
+  },
+  {
+   "name": "trail",
+   "kind": "autotile",
+   "section": "autotiles",
+   "x": 6,
+   "y": 3,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "format": "rmxp16",
+   "over": "snow",
+   "doc": "trodden trail through snow",
+   "tiles8": 19
+  },
+  {
+   "name": "lake",
+   "kind": "autotile",
+   "section": "autotiles",
+   "x": 0,
+   "y": 7,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "frames": [
+    [
+     0,
+     7
+    ],
+    [
+     3,
+     7
+    ],
+    [
+     6,
+     7
+    ],
+    [
+     9,
+     7
+    ]
+   ],
+   "period": 20,
+   "format": "rmxp16",
+   "over": "snow",
+   "doc": "cold lake over snow (ice-rimmed)",
+   "attrs": [
+    "WATER"
+   ],
+   "tiles8": 77
+  },
+  {
+   "name": "deep_lake",
+   "kind": "autotile",
+   "section": "autotiles",
+   "x": 0,
+   "y": 11,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "frames": [
+    [
+     0,
+     11
+    ],
+    [
+     3,
+     11
+    ],
+    [
+     6,
+     11
+    ],
+    [
+     9,
+     11
+    ]
+   ],
+   "period": 20,
+   "format": "rmxp16",
+   "over": "lake",
+   "doc": "deep channel inside lake",
+   "attrs": [
+    "WATER",
+    "DEEP"
+   ],
+   "tiles8": 80
+  },
+  {
+   "name": "ice_hole",
+   "kind": "autotile",
+   "section": "autotiles",
+   "x": 0,
+   "y": 15,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "frames": [
+    [
+     0,
+     15
+    ],
+    [
+     3,
+     15
+    ],
+    [
+     6,
+     15
+    ],
+    [
+     9,
+     15
+    ]
+   ],
+   "period": 20,
+   "format": "rmxp16",
+   "over": "ice_patch",
+   "doc": "open water in an ice sheet",
+   "attrs": [
+    "WATER"
+   ],
+   "tiles8": 77
+  },
+  {
+   "name": "cliff_top",
+   "kind": "autotile",
+   "section": "autotiles",
+   "x": 9,
+   "y": 3,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "format": "rmxp16",
+   "doc": "upper level of a plateau; its south side flows into cliff_face",
+   "tiles8": 20
+  },
+  {
+   "name": "cliff_face",
+   "kind": "patch9",
+   "section": "autotiles",
+   "x": 0,
+   "y": 19,
+   "w": 5,
+   "h": 3,
+   "layer": "ground",
+   "format": "patch9",
+   "doc": "cliff face (>= 2 rows: top, middle..., foot)",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 37
+  },
+  {
+   "name": "cliff_face_single",
+   "kind": "block",
+   "section": "autotiles",
+   "x": 12,
+   "y": 3,
+   "w": 4,
+   "h": 1,
+   "layer": "ground",
+   "format": "strip4",
+   "doc": "one-row face (a single level of drop): [W end][mid][E end][lone]",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 12
+  },
+  {
+   "name": "ledge",
+   "kind": "block",
+   "section": "autotiles",
+   "x": 12,
+   "y": 4,
+   "w": 4,
+   "h": 3,
+   "layer": "ground",
+   "format": "ledge",
+   "doc": "one-way ledges: row 0 south [W end][mid][E end][single], row 1 east-facing [N end][mid][S end][SE corner], row 2 west-facing",
+   "attrs": [
+    "LEDGE"
+   ],
+   "tiles8": 15
+  },
+  {
+   "name": "stairs",
+   "kind": "object",
+   "section": "autotiles",
+   "x": 12,
+   "y": 7,
+   "w": 1,
+   "h": 2,
+   "layer": "ground",
+   "doc": "steps cut into a 2-row face",
+   "solid": "./.",
+   "top": "./.",
+   "tiles8": 8
+  },
+  {
+   "name": "stairs_wide",
+   "kind": "object",
+   "section": "autotiles",
+   "x": 13,
+   "y": 7,
+   "w": 2,
+   "h": 2,
+   "layer": "ground",
+   "doc": "wide steps",
+   "solid": "../..",
+   "top": "../..",
+   "tiles8": 13
+  },
+  {
+   "name": "snowbank",
+   "kind": "patch9",
+   "section": "autotiles",
+   "x": 5,
+   "y": 19,
+   "w": 5,
+   "h": 3,
+   "layer": "mid",
+   "format": "patch9",
+   "doc": "packed snowbank wall",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 25
+  },
+  {
+   "name": "pine",
+   "kind": "object",
+   "section": "trees",
+   "x": 0,
+   "y": 23,
+   "w": 2,
+   "h": 3,
+   "layer": "mid",
+   "doc": "tall snowy pine 2x3",
+   "solid": "../../XX",
+   "top": "XX/XX/..",
+   "tiles8": 22
+  },
+  {
+   "name": "pine_small",
+   "kind": "object",
+   "section": "trees",
+   "x": 2,
+   "y": 23,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "young snowy pine 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "pine_forest",
+   "kind": "patch9",
+   "section": "trees",
+   "x": 3,
+   "y": 23,
+   "w": 5,
+   "h": 3,
+   "layer": "mid",
+   "format": "patch9",
+   "doc": "dense snowy pine woods",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 22
+  },
+  {
+   "name": "pine_bare",
+   "kind": "object",
+   "section": "trees",
+   "x": 8,
+   "y": 23,
+   "w": 2,
+   "h": 3,
+   "layer": "mid",
+   "doc": "pine without snow",
+   "solid": "../../XX",
+   "top": "XX/XX/..",
+   "tiles8": 22
+  },
+  {
+   "name": "dead_tree",
+   "kind": "object",
+   "section": "trees",
+   "x": 10,
+   "y": 23,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "frost-killed tree 2x2",
+   "solid": "../XX",
+   "top": "XX/..",
+   "tiles8": 11
+  },
+  {
+   "name": "shrub",
+   "kind": "object",
+   "section": "trees",
+   "x": 12,
+   "y": 23,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "juniper shrub",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "cabin",
+   "kind": "object",
+   "section": "village",
+   "x": 0,
+   "y": 27,
+   "w": 4,
+   "h": 4,
+   "layer": "mid",
+   "doc": "log cabin 4x4, snow roof, lit window",
+   "solid": "XXXX/XXXX/XXXX/XXXX",
+   "top": "..../..../..../....",
+   "door": [
+    2,
+    3
+   ],
+   "tiles8": 52
+  },
+  {
+   "name": "lodge",
+   "kind": "object",
+   "section": "village",
+   "x": 4,
+   "y": 27,
+   "w": 6,
+   "h": 5,
+   "layer": "mid",
+   "doc": "mountain lodge 6x5",
+   "solid": "XXXXXX/XXXXXX/XXXXXX/XXXXXX/XXXXXX",
+   "top": "....../....../....../....../......",
+   "door": [
+    3,
+    4
+   ],
+   "tiles8": 76
+  },
+  {
+   "name": "cabin_gable",
+   "kind": "object",
+   "section": "village",
+   "x": 10,
+   "y": 27,
+   "w": 4,
+   "h": 4,
+   "layer": "mid",
+   "doc": "gabled cabin 4x4",
+   "solid": "XXXX/XXXX/XXXX/XXXX",
+   "top": "..../..../..../....",
+   "door": [
+    2,
+    3
+   ],
+   "tiles8": 33
+  },
+  {
+   "name": "icicles",
+   "kind": "object",
+   "section": "village",
+   "x": 14,
+   "y": 27,
+   "w": 1,
+   "h": 1,
+   "layer": "top",
+   "doc": "icicles (hang from eaves and lips)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 2
+  },
+  {
+   "name": "woodpile",
+   "kind": "object",
+   "section": "village",
+   "x": 14,
+   "y": 28,
+   "w": 2,
+   "h": 1,
+   "layer": "mid",
+   "doc": "firewood 2x1",
+   "solid": "XX",
+   "top": "..",
+   "tiles8": 8
+  },
+  {
+   "name": "sled",
+   "kind": "object",
+   "section": "village",
+   "x": 14,
+   "y": 29,
+   "w": 2,
+   "h": 1,
+   "layer": "mid",
+   "doc": "sled 2x1",
+   "solid": "XX",
+   "top": "..",
+   "tiles8": 8
+  },
+  {
+   "name": "lamp",
+   "kind": "object",
+   "section": "village",
+   "x": 14,
+   "y": 30,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "lantern post",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "signpost",
+   "kind": "object",
+   "section": "village",
+   "x": 15,
+   "y": 27,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "trail sign",
+   "attrs": [
+    "SIGN"
+   ],
+   "solid": "X",
+   "top": ".",
+   "tiles8": 3
+  },
+  {
+   "name": "barrel",
+   "kind": "object",
+   "section": "village",
+   "x": 15,
+   "y": 30,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "barrel",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "crate",
+   "kind": "object",
+   "section": "village",
+   "x": 0,
+   "y": 31,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "crate",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "fence",
+   "kind": "block",
+   "section": "village",
+   "x": 10,
+   "y": 31,
+   "w": 4,
+   "h": 2,
+   "layer": "mid",
+   "format": "fence",
+   "doc": "snow-capped rail fence",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 22
+  },
+  {
+   "name": "hearth_hall",
+   "kind": "object",
+   "section": "village",
+   "x": 0,
+   "y": 32,
+   "w": 6,
+   "h": 5,
+   "layer": "mid",
+   "doc": "Hearth Hall 6x5 (flame plate over the door)",
+   "solid": "XXXXXX/XXXXXX/XXXXXX/XXXXXX/XXXXXX",
+   "top": "....../....../....../....../......",
+   "door": [
+    3,
+    4
+   ],
+   "tiles8": 79
+  },
+  {
+   "name": "shop",
+   "kind": "object",
+   "section": "village",
+   "x": 6,
+   "y": 33,
+   "w": 5,
+   "h": 4,
+   "layer": "mid",
+   "doc": "provisions shop 5x4 (awning)",
+   "solid": "XXXXX/XXXXX/XXXXX/XXXXX",
+   "top": "...../...../...../.....",
+   "door": [
+    2,
+    3
+   ],
+   "tiles8": 57
+  },
+  {
+   "name": "inn",
+   "kind": "object",
+   "section": "village",
+   "x": 0,
+   "y": 37,
+   "w": 7,
+   "h": 5,
+   "layer": "mid",
+   "doc": "inn 7x5",
+   "solid": "XXXXXXX/XXXXXXX/XXXXXXX/XXXXXXX/XXXXXXX",
+   "top": "......./......./......./......./.......",
+   "door": [
+    2,
+    4
+   ],
+   "tiles8": 101
+  },
+  {
+   "name": "hall",
+   "kind": "object",
+   "section": "village",
+   "x": 7,
+   "y": 37,
+   "w": 8,
+   "h": 6,
+   "layer": "mid",
+   "doc": "town hall / guild hall 8x6",
+   "solid": "XXXXXXXX/XXXXXXXX/XXXXXXXX/XXXXXXXX/XXXXXXXX/XXXXXXXX",
+   "top": "......../......../......../......../......../........",
+   "door": [
+    4,
+    5
+   ],
+   "tiles8": 93
+  },
+  {
+   "name": "bathhouse",
+   "kind": "object",
+   "section": "village",
+   "x": 11,
+   "y": 33,
+   "w": 5,
+   "h": 4,
+   "layer": "mid",
+   "doc": "bathhouse 5x4 (by the hot spring)",
+   "solid": ".XXX./XXXXX/XXXXX/XXXXX",
+   "top": "...../...../...../.....",
+   "door": [
+    2,
+    3
+   ],
+   "tiles8": 47
+  },
+  {
+   "name": "frost_banner",
+   "kind": "object",
+   "section": "village",
+   "x": 15,
+   "y": 31,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "frost banner 1x2 (on a wall or post)",
+   "solid": "./.",
+   "top": "./.",
+   "tiles8": 8
+  },
+  {
+   "name": "cave_mouth",
+   "kind": "object",
+   "section": "wild",
+   "x": 0,
+   "y": 44,
+   "w": 3,
+   "h": 3,
+   "layer": "mid",
+   "doc": "ice cave entrance 3x3",
+   "solid": ".../XXX/X.X",
+   "top": "XXX/.../...",
+   "door": [
+    1,
+    2
+   ],
+   "tiles8": 33
+  },
+  {
+   "name": "ice_blocks",
+   "kind": "object",
+   "section": "wild",
+   "x": 3,
+   "y": 44,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "ice blocks",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "wolf_statue",
+   "kind": "object",
+   "section": "wild",
+   "x": 4,
+   "y": 44,
+   "w": 2,
+   "h": 3,
+   "layer": "mid",
+   "doc": "wolf kin statue 2x3",
+   "solid": "../XX/XX",
+   "top": "XX/../..",
+   "tiles8": 12
+  },
+  {
+   "name": "ice_statue",
+   "kind": "object",
+   "section": "wild",
+   "x": 6,
+   "y": 44,
+   "w": 2,
+   "h": 3,
+   "layer": "mid",
+   "doc": "ice sculpture 2x3",
+   "solid": "../XX/XX",
+   "top": "XX/../..",
+   "tiles8": 12
+  },
+  {
+   "name": "rime_pillar",
+   "kind": "object",
+   "section": "wild",
+   "x": 8,
+   "y": 44,
+   "w": 1,
+   "h": 3,
+   "layer": "mid",
+   "doc": "rime-crusted pillar 1x3",
+   "solid": "./X/X",
+   "top": "X/./.",
+   "tiles8": 12
+  },
+  {
+   "name": "sky_arch",
+   "kind": "object",
+   "section": "wild",
+   "x": 9,
+   "y": 44,
+   "w": 3,
+   "h": 3,
+   "layer": "mid",
+   "doc": "sky arch 3x3 (Sky Isle)",
+   "solid": ".../X.X/X.X",
+   "top": "XXX/.../...",
+   "tiles8": 18
+  },
+  {
+   "name": "ski_rack",
+   "kind": "object",
+   "section": "wild",
+   "x": 12,
+   "y": 44,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "ski rack 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "wash_bucket",
+   "kind": "object",
+   "section": "wild",
+   "x": 13,
+   "y": 44,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "wash bucket",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 3
+  },
+  {
+   "name": "snowman",
+   "kind": "object",
+   "section": "wild",
+   "x": 14,
+   "y": 44,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "snowman 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "cairn",
+   "kind": "object",
+   "section": "wild",
+   "x": 15,
+   "y": 44,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "trail cairn 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "ice_crystal",
+   "kind": "object",
+   "section": "wild",
+   "x": 3,
+   "y": 45,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "ice crystal 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "aurora_stone",
+   "kind": "object",
+   "section": "wild",
+   "x": 13,
+   "y": 45,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "aurora stone 1x2 (glowing rune)",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "rock",
+   "kind": "object",
+   "section": "wild",
+   "x": 12,
+   "y": 46,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "small rock",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "boulder",
+   "kind": "object",
+   "section": "wild",
+   "x": 14,
+   "y": 46,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "push boulder (strength)",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "rock_cracked",
+   "kind": "object",
+   "section": "wild",
+   "x": 15,
+   "y": 46,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "breakable rock",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "rock_big",
+   "kind": "object",
+   "section": "wild",
+   "x": 0,
+   "y": 47,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "crag 2x2",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 16
+  },
+  {
+   "name": "pebbles",
+   "kind": "object",
+   "section": "wild",
+   "x": 2,
+   "y": 47,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "pebbles (decor)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "standing_stone",
+   "kind": "object",
+   "section": "wild",
+   "x": 3,
+   "y": 47,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "menhir 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "steam",
+   "kind": "object",
+   "section": "wild",
+   "x": 4,
+   "y": 47,
+   "w": 1,
+   "h": 2,
+   "layer": "top",
+   "frames": [
+    [
+     4,
+     47
+    ],
+    [
+     5,
+     47
+    ],
+    [
+     6,
+     47
+    ],
+    [
+     7,
+     47
+    ]
+   ],
+   "period": 12,
+   "doc": "rising steam 1x2 (animated)",
+   "solid": "./.",
+   "top": "./.",
+   "tiles8": 26
+  },
+  {
+   "name": "hot_spring",
+   "kind": "object",
+   "section": "wild",
+   "x": 0,
+   "y": 49,
+   "w": 3,
+   "h": 2,
+   "layer": "mid",
+   "frames": [
+    [
+     0,
+     49
+    ],
+    [
+     3,
+     49
+    ],
+    [
+     6,
+     49
+    ]
+   ],
+   "period": 16,
+   "doc": "hot spring pool 3x2",
+   "solid": "XXX/XXX",
+   "top": ".../...",
+   "tiles8": 39
+  }
+ ],
+ "scenes": [
+  {
+   "key": "frosthollow",
+   "title": "Frosthollow (sample)",
+   "w": 36,
+   "h": 26,
+   "doc": "A snowbound village: cabins with lit windows, a lodge, a frozen lake with an ice sheet, a steaming hot spring under the cliffs, cairns and snowbanks."
+  }
+ ]
+}

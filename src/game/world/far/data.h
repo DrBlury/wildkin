@@ -110,9 +110,9 @@ static const char *const CINDERMOOR_ROWS[] = {
     "t:..........=======...:j==:::::::::::::::.456ttt", /*  7 */
     "T:..........=.....=...:j==:::::#######:::7q56TTT", /*  8 */
     "t:................=...:j==:::::####======4556ttt", /*  9 */
-    "T..=======........=...:j==...............4556TTT", /* 10 */
-    "t........=........=...:j==...............4556ttt", /* 11 */
-    "..................=...:j==............=..4556TTT", /* 12 */
+    "T..=======........=...:j==.===...........4556TTT", /* 10 */
+    "t........=........=...:j==...===.........4556ttt", /* 11 */
+    "..................=...:j==.....===....=..4556TTT", /* 12 */
     "...............######.:j==............=D.1b56ttt", /* 13 */
     "TT.......=....########:j==............=d..45p9TT", /* 14 */
     "tt.......=...D########:j==............=...4556tt", /* 15 */
@@ -304,13 +304,13 @@ static const char *const EMBER_TUNNEL_ROWS[] = {
     "MMMM_____;;;;;_____________MMM", /*  6 */
     "MMMM___________MM__________MMM", /*  7 */
     "MMMM___________MMMMMMmmmmmMMMM", /*  8 */
-    "MMMM__j__mmmmmmmmmmmm_____MMMM", /*  9 */
+    "MMMM__j_____mmmmmmmmm_____MMMM", /*  9 */
     "MMMM__j___________________MMMM", /* 10 */
     "MMMM__j__M__7888889_______MMMM", /* 11 */
     "MMMM__j__M__1222223__M;;;;MMMM", /* 12 */
     "MMMM__j__M___________M;;;;MMMM", /* 13 */
     "MMMM__j__mmmmmmmmmmmmm;;;;MMMM", /* 14 */
-    "MMMM______________________MMMM", /* 15 */
+    "MMMM_____:::______________MMMM", /* 15 */
     "MMMM_;;;;;_________;;;;;;_MMMM", /* 16 */
     "MMMM_;;;;;_________;;;;;;_MMMM", /* 17 */
     "MMMM_;;;;;_________;;;;;;_MMMM", /* 18 */
@@ -332,7 +332,7 @@ static const DecorPlace EMBER_TUNNEL_DECOR[] = {
 };
 /* STRENGTH boulders (arg 0): the one in the gap guards the Caldera arch */
 static const MapObj EMBER_TUNNEL_OBJS[] = {
-    OBJ(BOULDER, 15, 6, 0), OBJ(BOULDER, 24, 10, 0),
+    OBJ(BOULDER, 15, 6, 0), OBJ(BOULDER, 24, 10, 0), OBJ(LADDER, 5, 9, 0),
 };
 
 /* ================================================================ */
@@ -343,7 +343,7 @@ static const char *const CALDERA_ROWS[] = {
     "MMMMMMMMMMMMMMMMMMMM", /*  0 */
     "MMMMMMMMMMMMMMMMMMMM", /*  1 */
     "MMmmmmmmmmmmmmmmmmMM", /*  2 */
-    "MMyy::::::::::::::MM", /*  3 */
+    "MMyyyyy:yyy:::::::MM", /*  3 */
     "MMyy788888888889::MM", /*  4 */
     "MM::455555555556::MM", /*  5 */
     "MM::455n2222b556::MM", /*  6 */
@@ -391,11 +391,11 @@ static const char *const MOONVEIL_ROWS[] = {
     "tt.fffff..==..................................tt", /* 17 */
     "TT........==..........................CCCCCCCCTT", /* 18 */
     "tt........==..,,,,,,,,................cccccccctt", /* 19 */
-    "TT........==..,,,,,,,,......,,,,,,,,..........TT", /* 20 */
-    "tt........==..,,,,,,,,......,,,,,,,,..........tt", /* 21 */
-    "TT.T......==..,,,,,,,,......,,,,,,,,........T.TT", /* 22 */
-    "tt.t......==..,,,,,,,,......,,,,,,,,........t.tt", /* 23 */
-    "TT........==..,,,,,,,,......,,,,,,,,....T.....TT", /* 24 */
+    "TT........==..,,fff,,,..TT..,,,,,,,,..........TT", /* 20 */
+    "tt........==..,,,,fff,..tt..,,,,,,,,..........tt", /* 21 */
+    "TT.T......==..,,,,,,fff.....,,,,,,,,........T.TT", /* 22 */
+    "tt.t......==..,,,,,,,,fff...,,,,,,,,........t.tt", /* 23 */
+    "TT........==..,,,,,,fff.....,,,,,,,,....T.....TT", /* 24 */
     "tt.....T..==..,,,,,,,,......,,,,,,,,....t.....tt", /* 25 */
     "TT.....t..==..........T.....,,,,,,,,..........TT", /* 26 */
     "tt........==..........t.......................tt", /* 27 */
@@ -413,6 +413,7 @@ static const char *const MOONVEIL_ROWS[] = {
     "tttttttttttttttttttttttt==tttttttttttttttttttttt", /* 39 */
 };
 static const DecorPlace MOONVEIL_DECOR[] = {
+    DP(MOON_LANTERN, 21, 20), DP(MOON_LANTERN, 28, 24), /* moon-grove edges */
     DP(SIGNPOST, 22, 36), DP(SIGNPOST, 22, 3), DP(DREAM_STATUE, 16, 13), DP(MOONSTONE, 21, 9),
     DP(MOON_LANTERN, 23, 28), DP(MOON_LANTERN, 12, 17), DP(MOON_LANTERN, 35, 13), DP(MOON_LANTERN, 26, 3),
     DP(PETALS, 19, 5), DP(PETALS, 41, 26), DP(PETALS, 7, 27), DP(MOONSTONE, 45, 20),
@@ -465,9 +466,9 @@ static const char *const DREAMSPIRE_ROWS[] = {
     "t...........=....##########...............=..ttt", /* 21 */
     "TT...=......=.....########...=====........=..TTT", /* 22 */
     "tt...========......######..........==========ttt", /* 23 */
-    "TT.....................##................=....TT", /* 24 */
-    "tt.......................................=....tt", /* 25 */
-    "T.ffff..........=.............ffff...=...=.....T", /* 26 */
+    "TT.....................##fff.............=....TT", /* 24 */
+    "tt........................fff............=....tt", /* 25 */
+    "T.ffff..........=........fff..ffff...=...=.....T", /* 26 */
     "t.ffff..........=...##########ffff...=...=......", /* 27 */
     "T.ffff...=......=...##########ffff.......=....TT", /* 28 */
     ".......=======..=....########............=....tt", /* 29 */
@@ -827,10 +828,10 @@ static const char *const RAILHEAD_ROWS[] = {
     "t......................................t", /* 19 */
     "========================================", /* 20 */
     "========================================", /* 21 */
-    "T......................................T", /* 22 */
-    "t......................................t", /* 23 */
-    "T......................................T", /* 24 */
-    "t......................................t", /* 25 */
+    "T............===.......................T", /* 22 */
+    "t..............===.....................t", /* 23 */
+    "T................===...................T", /* 24 */
+    "t..................===.................t", /* 25 */
     "T......................................T", /* 26 */
     "t......................................t", /* 27 */
     "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT", /* 28 */
@@ -968,7 +969,9 @@ static const MapObj CINDER_CROSSING_OBJS[] = { OBJ(BERRY, 45, 29, 0) };
 static const MapObj RAILHEAD_OBJS[] = { OBJ(BOULDER, 32, 9, 0), OBJ(LADDER, 32, 8, 0),
     OBJ(LADDER, 8, 12, 0), OBJ(LADDER, 26, 12, 0), OBJ(BERRY, 7, 23, 1) };
 static const MapObj MISTFEN_OBJS[] = { OBJ(BERRY, 40, 29, 2), OBJ(LADDER, 30, 40, 0) };
-static const MapObj RAILHEAD_SHAFT_OBJS[] = { OBJ(LEGEND, 10, 5, SP_FOUNDRAKE) };
+static const DecorPlace RAILHEAD_SHAFT_DECOR[] = { DP(SIGNPOST, 8, 2), DP(SIGNPOST, 2, 9) };
+static const MapObj RAILHEAD_SHAFT_OBJS[] = { OBJ(LEGEND, 10, 5, SP_FOUNDRAKE),
+    OBJ(LADDER, 11, 3, 0), OBJ(LADDER, 4, 9, 0) };
 
 /* The bridge project restores a walkable deck across the river. */
 static const char *const CINDER_BRIDGE_REPAIRED[] = { "====", "====" };
@@ -1007,3 +1010,81 @@ static const WildSlot WILD_MISTFEN[] = {
 };
 
 static const MapObj CINDER_ROAD_ROUTE_OBJS[] = { OBJ(BERRY, 33, 27, 3) };
+
+/* The elevated iron span rides one level above real impassable lava. */
+static const char *const EMBER_SPAN_ROWS[] = {
+    "MMMMMMMMMMMMMMMMMMMMMMMM", /*  0 */
+    "MMMMMMMMM______MMMMMMMMM", /*  1 */
+    "MMMMMMM__________MMMMMMM", /*  2 */
+    "MMMMM_;__________;_MMMMM", /*  3 */
+    "MMMM__;__________;__MMMM", /*  4 */
+    "MMMMM______________MMMMM", /*  5 */
+    "MMMMMMMM________MMMMMMMM", /*  6 */
+    "M5555555555555555555555M", /*  7 */
+    "M5555555555555555555555M", /*  8 */
+    "M5555555555555555555555M", /*  9 */
+    "MMMMMMMM________MMMMMMMM", /* 10 */
+    "MMMMM______________MMMMM", /* 11 */
+    "MMMM__;__________;__MMMM", /* 12 */
+    "MMMMM_;__________;_MMMMM", /* 13 */
+    "MMMMMMM__________MMMMMMM", /* 14 */
+    "MMMMMMMMM______MMMMMMMMM", /* 15 */
+    "MMMMMMMMMM____MMMMMMMMMM", /* 16 */
+    "MMMMMMMMMMMMMMMMMMMMMMMM", /* 17 */
+};
+static const char *const EMBER_SPAN_ELEV[] = {
+    "111111111111111111111111", /*  0 */
+    "111111111111111111111111", /*  1 */
+    "111111111111111111111111", /*  2 */
+    "111111111111111111111111", /*  3 */
+    "111111111111111111111111", /*  4 */
+    "111111111111111111111111", /*  5 */
+    "111111111111111111111111", /*  6 */
+    "000000000000000000000000", /*  7 */
+    "000000000000000000000000", /*  8 */
+    "000000000000000000000000", /*  9 */
+    "111111111111111111111111", /* 10 */
+    "111111111111111111111111", /* 11 */
+    "111111111111111111111111", /* 12 */
+    "111111111111111111111111", /* 13 */
+    "111111111111111111111111", /* 14 */
+    "111111111111111111111111", /* 15 */
+    "111111111111111111111111", /* 16 */
+    "111111111111111111111111", /* 17 */
+};
+static const ElevFeat EMBER_SPAN_FEATS[] = { EF(BRIDGE_V, 11, 7, 2, 3) };
+
+static const char *const COOLING_CHAMBER_ROWS[] = {
+    "MMMMMMMMMMMMMMMMMMMM", /*  0 */
+    "MMMMMMMM____MMMMMMMM", /*  1 */
+    "MMMMMM________MMMMMM", /*  2 */
+    "MMMMM__________MMMMM", /*  3 */
+    "MMMM;___________MMMM", /*  4 */
+    "MMM____________;_MMM", /*  5 */
+    "MMM______________MMM", /*  6 */
+    "M555555555555555555M", /*  7 */
+    "MMM______________MMM", /*  8 */
+    "MMM______________MMM", /*  9 */
+    "MMM______________MMM", /* 10 */
+    "MMMM_;________;_MMMM", /* 11 */
+    "MMMMMM________MMMMMM", /* 12 */
+    "MMMMMMMM____MMMMMMMM", /* 13 */
+    "MMMMMMMMMMMMMMMMMMMM", /* 14 */
+};
+/* The only crossing is basalt after both sluices are set; molten tiles stay solid. */
+static const DecorPlace COOLING_CHAMBER_DECOR[] = {
+    DP(FORGE_ANVIL, 5, 10), DP(TOOL_RACK, 14, 10), DP(OBSIDIAN, 4, 4),
+    DP(SIGNPOST, 7, 11), DP(SIGNPOST, 16, 5),
+};
+static const char *const COOLING_CROSSING[] = { "##" };
+static const MapPatch COOLING_CHAMBER_PATCHES[] = {
+    { .flag = FLAG_EMBER_COOLED, .x = 9, .y = 7, .w = 2, .h = 1, .rows = COOLING_CROSSING },
+};
+
+static const DecorPlace EMBER_SPAN_DECOR[] = { DP(SIGNPOST, 8, 12) };
+static const MapObj EMBER_SPAN_OBJS[] = {
+    OBJ(LADDER, 11, 1, 0), OBJ(LADDER, 11, 16, 0),
+};
+static const MapObj COOLING_CHAMBER_OBJS[] = {
+    OBJ(LADDER, 9, 1, 0), OBJ(LADDER, 9, 13, 0), OBJ(LADDER, 15, 3, 0),
+};

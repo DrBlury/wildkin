@@ -23,3 +23,5 @@
     { MAP_FOOTHILLS, 16, 42, ITEM_SPARK_SHARD, 1 },
     { MAP_FOOTHILLS, 32, 36, ITEM_STAR_LANTERN, 1 },
     { MAP_STORM_CAVE, 16, 5, ITEM_SPARK_SHARD, 1 },
+
+#include "biomes/satchels.inc"

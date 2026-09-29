@@ -1,0 +1,1217 @@
+{
+ "name": "volcanic",
+ "title": "Volcanic - calderas, forges, railway",
+ "doc": "VOLCANIC - calderas, ash fields, forges and the railway.\n\nReplaces the old `volcanic` tileset (Caldera, Cindermoor, Cinder Crossing,\nCinder Road, Ember Tunnel/Span, Railhead + shaft, Scorchwaste 1, Forge,\nAnvil Hall, Cooling Chamber). Ash ground, basalt cliffs, flowing lava\nwith a crust rim, fumaroles, obsidian, charred trees, a ballast railway,\nbrick forge buildings with smoking stacks.\n",
+ "cell": 16,
+ "cols": 16,
+ "rows": 43,
+ "palette": {
+  "k0": "#291818",
+  "k1": "#523129",
+  "k2": "#7b5231",
+  "k3": "#ad734a",
+  "k4": "#ce9c63",
+  "bk0": "#6b2929",
+  "bk1": "#a54a39",
+  "bk2": "#ce735a",
+  "a0": "#292121",
+  "a1": "#4a3939",
+  "a2": "#6b5a52",
+  "a3": "#8c7363",
+  "a4": "#ad947b",
+  "a5": "#ceb59c",
+  "bs0": "#101018",
+  "bs1": "#292129",
+  "bs2": "#393142",
+  "bs3": "#5a4a5a",
+  "bs4": "#736373",
+  "bs5": "#9c8c9c",
+  "lv0": "#6b1010",
+  "lv1": "#b52910",
+  "lv2": "#ef5a18",
+  "lv3": "#ffa531",
+  "lv4": "#fff784",
+  "ob0": "#181029",
+  "ob1": "#39295a",
+  "ob2": "#7b63b5",
+  "su1": "#ceb531",
+  "su2": "#f7e773",
+  "sm0": "#5a5263",
+  "sm1": "#8c8494",
+  "sm2": "#bdb5bd",
+  "sl0": "#293142",
+  "sl1": "#4a526b",
+  "sl2": "#6b7b8c",
+  "sl3": "#94a5b5",
+  "gw0": "#8c4a18",
+  "gw1": "#f7ad39",
+  "gw2": "#fff7a5",
+  "sc1": "#5a5a39",
+  "sc2": "#7b7b4a"
+ },
+ "variants": {
+  "eruption": {
+   "a2": "#5a3939",
+   "a3": "#734a42",
+   "a4": "#945a4a",
+   "a5": "#b5735a",
+   "bs3": "#5a3142",
+   "bs4": "#7b4252",
+   "sm1": "#8c5a52",
+   "sm2": "#c68c73"
+  }
+ },
+ "banks": [
+  [
+   "a0",
+   "a1",
+   "a2",
+   "a3",
+   "a4",
+   "a5",
+   "bs0",
+   "bs1",
+   "bs2",
+   "lv2",
+   "lv3",
+   "su1",
+   "su2",
+   "sc1",
+   "sc2"
+  ],
+  [
+   "a1",
+   "a2",
+   "a3",
+   "a4",
+   "a5",
+   "bs0",
+   "bs1",
+   "bs2",
+   "lv0",
+   "lv1",
+   "lv2",
+   "lv3",
+   "lv4",
+   "sl1",
+   "sl3"
+  ],
+  [
+   "a1",
+   "a2",
+   "a3",
+   "a4",
+   "a5",
+   "bs0",
+   "bs1",
+   "bs2",
+   "bs3",
+   "bs4",
+   "bs5",
+   "lv2",
+   "lv3",
+   "lv4",
+   "sl0"
+  ],
+  [
+   "bs0",
+   "bs1",
+   "bs2",
+   "bs3",
+   "bs4",
+   "lv1",
+   "lv2",
+   "lv3",
+   "lv4",
+   "ob0",
+   "ob1",
+   "ob2",
+   "sm0",
+   "sm1",
+   "sm2"
+  ],
+  [
+   "k0",
+   "k1",
+   "k2",
+   "k3",
+   "bk0",
+   "bk1",
+   "bk2",
+   "bs0",
+   "sl0",
+   "sl1",
+   "sl2",
+   "sl3",
+   "gw0",
+   "gw1",
+   "gw2"
+  ],
+  [
+   "k0",
+   "k1",
+   "k2",
+   "k3",
+   "k4",
+   "a2",
+   "a3",
+   "a4",
+   "lv2",
+   "lv3",
+   "lv4",
+   "sl0",
+   "sl1",
+   "sl2",
+   "sl3"
+  ],
+  [
+   "k1",
+   "k2",
+   "k3",
+   "bk0",
+   "bk1",
+   "a1",
+   "a2",
+   "a3",
+   "bs0",
+   "lv0",
+   "lv1",
+   "lv3",
+   "lv4",
+   "sl0",
+   "sl3"
+  ],
+  [
+   "k0",
+   "k2",
+   "k3",
+   "bs0",
+   "bs1",
+   "bs3",
+   "lv1",
+   "lv2",
+   "sl0",
+   "sl1",
+   "sl3"
+  ]
+ ],
+ "stats": {
+  "unique_tiles8": 1073,
+  "by_kind": {
+   "tile": 36,
+   "autotile": 127,
+   "patch9": 37,
+   "block": 78,
+   "object": 795
+  },
+  "entries": 59,
+  "colours": 42
+ },
+ "sections": [
+  "ground",
+  "lava and rock",
+  "railway",
+  "forge town"
+ ],
+ "entries": [
+  {
+   "name": "ash",
+   "kind": "tile",
+   "section": "ground",
+   "x": 0,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "ash",
+   "weight": 6,
+   "doc": "ash",
+   "tiles8": 4
+  },
+  {
+   "name": "ash_b",
+   "kind": "tile",
+   "section": "ground",
+   "x": 1,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "ash",
+   "weight": 3,
+   "tiles8": 4
+  },
+  {
+   "name": "ash_c",
+   "kind": "tile",
+   "section": "ground",
+   "x": 2,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "ash",
+   "weight": 1,
+   "tiles8": 4
+  },
+  {
+   "name": "scorch",
+   "kind": "tile",
+   "section": "ground",
+   "x": 3,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "scorch",
+   "weight": 9,
+   "doc": "scorched scrub (encounters)",
+   "attrs": [
+    "GRASS"
+   ],
+   "tiles8": 4
+  },
+  {
+   "name": "scorch_b",
+   "kind": "tile",
+   "section": "ground",
+   "x": 4,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "scorch",
+   "weight": 4,
+   "attrs": [
+    "GRASS"
+   ],
+   "tiles8": 4
+  },
+  {
+   "name": "scorch_c",
+   "kind": "tile",
+   "section": "ground",
+   "x": 5,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "scorch",
+   "weight": 3,
+   "attrs": [
+    "GRASS"
+   ],
+   "tiles8": 4
+  },
+  {
+   "name": "scorch_d",
+   "kind": "tile",
+   "section": "ground",
+   "x": 6,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "scorch",
+   "weight": 3,
+   "attrs": [
+    "GRASS"
+   ],
+   "tiles8": 4
+  },
+  {
+   "name": "sulfur",
+   "kind": "tile",
+   "section": "ground",
+   "x": 7,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "doc": "sulfur crust",
+   "tiles8": 4
+  },
+  {
+   "name": "crust",
+   "kind": "tile",
+   "section": "ground",
+   "x": 8,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "doc": "cooling crust (walkable, hot)",
+   "tiles8": 4
+  },
+  {
+   "name": "lava",
+   "kind": "autotile",
+   "section": "lava and rock",
+   "x": 0,
+   "y": 3,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "frames": [
+    [
+     0,
+     3
+    ],
+    [
+     3,
+     3
+    ],
+    [
+     6,
+     3
+    ],
+    [
+     9,
+     3
+    ]
+   ],
+   "period": 14,
+   "format": "rmxp16",
+   "over": "ash",
+   "doc": "flowing lava over ash (animated)",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 79
+  },
+  {
+   "name": "crust_patch",
+   "kind": "autotile",
+   "section": "lava and rock",
+   "x": 12,
+   "y": 3,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "format": "rmxp16",
+   "over": "ash",
+   "doc": "cooled flow over ash",
+   "tiles8": 20
+  },
+  {
+   "name": "scorch_patch",
+   "kind": "autotile",
+   "section": "lava and rock",
+   "x": 0,
+   "y": 7,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "format": "rmxp16",
+   "over": "ash",
+   "doc": "scrub over ash",
+   "attrs": [
+    "GRASS"
+   ],
+   "tiles8": 20
+  },
+  {
+   "name": "cliff_top",
+   "kind": "autotile",
+   "section": "lava and rock",
+   "x": 3,
+   "y": 7,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "format": "rmxp16",
+   "doc": "upper level of a plateau; its south side flows into cliff_face",
+   "tiles8": 20
+  },
+  {
+   "name": "cliff_face",
+   "kind": "patch9",
+   "section": "lava and rock",
+   "x": 6,
+   "y": 7,
+   "w": 5,
+   "h": 3,
+   "layer": "ground",
+   "format": "patch9",
+   "doc": "cliff face (>= 2 rows: top, middle..., foot)",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 37
+  },
+  {
+   "name": "cliff_face_single",
+   "kind": "block",
+   "section": "lava and rock",
+   "x": 11,
+   "y": 7,
+   "w": 4,
+   "h": 1,
+   "layer": "ground",
+   "format": "strip4",
+   "doc": "one-row face (a single level of drop): [W end][mid][E end][lone]",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 12
+  },
+  {
+   "name": "ledge",
+   "kind": "block",
+   "section": "lava and rock",
+   "x": 11,
+   "y": 8,
+   "w": 4,
+   "h": 3,
+   "layer": "ground",
+   "format": "ledge",
+   "doc": "one-way ledges: row 0 south [W end][mid][E end][single], row 1 east-facing [N end][mid][S end][SE corner], row 2 west-facing",
+   "attrs": [
+    "LEDGE"
+   ],
+   "tiles8": 18
+  },
+  {
+   "name": "stairs",
+   "kind": "object",
+   "section": "lava and rock",
+   "x": 15,
+   "y": 3,
+   "w": 1,
+   "h": 2,
+   "layer": "ground",
+   "doc": "steps cut into a 2-row face",
+   "solid": "./.",
+   "top": "./.",
+   "tiles8": 8
+  },
+  {
+   "name": "stairs_wide",
+   "kind": "object",
+   "section": "lava and rock",
+   "x": 6,
+   "y": 10,
+   "w": 2,
+   "h": 2,
+   "layer": "ground",
+   "doc": "wide steps",
+   "solid": "../..",
+   "top": "../..",
+   "tiles8": 13
+  },
+  {
+   "name": "vent",
+   "kind": "object",
+   "section": "lava and rock",
+   "x": 0,
+   "y": 11,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "frames": [
+    [
+     0,
+     11
+    ],
+    [
+     1,
+     11
+    ],
+    [
+     2,
+     11
+    ],
+    [
+     3,
+     11
+    ]
+   ],
+   "period": 10,
+   "doc": "steam vent 1x2 (animated)",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 24
+  },
+  {
+   "name": "ember_rock",
+   "kind": "object",
+   "section": "lava and rock",
+   "x": 8,
+   "y": 10,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "frames": [
+    [
+     8,
+     10
+    ],
+    [
+     9,
+     10
+    ],
+    [
+     10,
+     10
+    ]
+   ],
+   "period": 18,
+   "doc": "basalt with glowing cracks",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 9
+  },
+  {
+   "name": "obsidian",
+   "kind": "object",
+   "section": "lava and rock",
+   "x": 15,
+   "y": 5,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "obsidian shard",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "cinder_cone",
+   "kind": "object",
+   "section": "lava and rock",
+   "x": 4,
+   "y": 11,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "cinder cone 2x2",
+   "solid": "../XX",
+   "top": "XX/..",
+   "tiles8": 14
+  },
+  {
+   "name": "rock",
+   "kind": "object",
+   "section": "lava and rock",
+   "x": 15,
+   "y": 6,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "small rock",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "boulder",
+   "kind": "object",
+   "section": "lava and rock",
+   "x": 15,
+   "y": 7,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "push boulder (strength)",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "rock_cracked",
+   "kind": "object",
+   "section": "lava and rock",
+   "x": 15,
+   "y": 8,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "breakable rock",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "rock_big",
+   "kind": "object",
+   "section": "lava and rock",
+   "x": 8,
+   "y": 11,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "crag 2x2",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 16
+  },
+  {
+   "name": "pebbles",
+   "kind": "object",
+   "section": "lava and rock",
+   "x": 15,
+   "y": 9,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "pebbles (decor)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "standing_stone",
+   "kind": "object",
+   "section": "lava and rock",
+   "x": 15,
+   "y": 10,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "menhir 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "charred_tree",
+   "kind": "object",
+   "section": "lava and rock",
+   "x": 10,
+   "y": 11,
+   "w": 2,
+   "h": 3,
+   "layer": "mid",
+   "doc": "charred tree 2x3",
+   "solid": "../../XX",
+   "top": "XX/XX/..",
+   "tiles8": 17
+  },
+  {
+   "name": "charred_small",
+   "kind": "object",
+   "section": "lava and rock",
+   "x": 12,
+   "y": 11,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "charred sapling 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "railway",
+   "kind": "block",
+   "section": "railway",
+   "x": 0,
+   "y": 15,
+   "w": 4,
+   "h": 2,
+   "layer": "ground",
+   "format": "railway",
+   "doc": "ballast track: row 0 [E-W][N-S][W end][E end], row 1 [N end][S end][cross][buffer]",
+   "tiles8": 32
+  },
+  {
+   "name": "water_tower",
+   "kind": "object",
+   "section": "railway",
+   "x": 4,
+   "y": 15,
+   "w": 2,
+   "h": 4,
+   "layer": "mid",
+   "doc": "locomotive water tower 2x4",
+   "solid": "../../XX/XX",
+   "top": "XX/XX/../..",
+   "tiles8": 28
+  },
+  {
+   "name": "coal_pile",
+   "kind": "object",
+   "section": "railway",
+   "x": 6,
+   "y": 15,
+   "w": 2,
+   "h": 1,
+   "layer": "mid",
+   "doc": "coal heap 2x1",
+   "solid": "XX",
+   "top": "..",
+   "tiles8": 8
+  },
+  {
+   "name": "mine_cart",
+   "kind": "object",
+   "section": "railway",
+   "x": 8,
+   "y": 15,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "coal tub",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 3
+  },
+  {
+   "name": "signal",
+   "kind": "object",
+   "section": "railway",
+   "x": 9,
+   "y": 15,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "rail signal lamp 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "forge",
+   "kind": "object",
+   "section": "forge town",
+   "x": 0,
+   "y": 20,
+   "w": 6,
+   "h": 5,
+   "layer": "mid",
+   "doc": "forge hall 6x5",
+   "solid": "XXXXXX/XXXXXX/XXXXXX/XXXXXX/XXXXXX",
+   "top": "....../....../....../....../......",
+   "door": [
+    3,
+    4
+   ],
+   "tiles8": 73
+  },
+  {
+   "name": "depot",
+   "kind": "object",
+   "section": "forge town",
+   "x": 6,
+   "y": 20,
+   "w": 5,
+   "h": 4,
+   "layer": "mid",
+   "doc": "rail depot 5x4",
+   "solid": "XXXXX/XXXXX/XXXXX/XXXXX",
+   "top": "...../...../...../.....",
+   "door": [
+    1,
+    3
+   ],
+   "tiles8": 51
+  },
+  {
+   "name": "bunkhouse",
+   "kind": "object",
+   "section": "forge town",
+   "x": 11,
+   "y": 20,
+   "w": 4,
+   "h": 4,
+   "layer": "mid",
+   "doc": "bunkhouse 4x4",
+   "solid": "XXXX/XXXX/XXXX/XXXX",
+   "top": "..../..../..../....",
+   "door": [
+    2,
+    3
+   ],
+   "tiles8": 36
+  },
+  {
+   "name": "smokestack",
+   "kind": "object",
+   "section": "forge town",
+   "x": 15,
+   "y": 20,
+   "w": 1,
+   "h": 3,
+   "layer": "mid",
+   "doc": "smokestack 1x3 (pair with smoke)",
+   "solid": "./X/X",
+   "top": "X/X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "smoke",
+   "kind": "object",
+   "section": "forge town",
+   "x": 6,
+   "y": 24,
+   "w": 1,
+   "h": 2,
+   "layer": "top",
+   "frames": [
+    [
+     6,
+     24
+    ],
+    [
+     7,
+     24
+    ],
+    [
+     8,
+     24
+    ],
+    [
+     9,
+     24
+    ]
+   ],
+   "period": 10,
+   "doc": "drifting smoke 1x2 (animated)",
+   "solid": "./.",
+   "top": "./.",
+   "tiles8": 26
+  },
+  {
+   "name": "brazier",
+   "kind": "object",
+   "section": "forge town",
+   "x": 10,
+   "y": 24,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "frames": [
+    [
+     10,
+     24
+    ],
+    [
+     11,
+     24
+    ],
+    [
+     12,
+     24
+    ]
+   ],
+   "period": 8,
+   "doc": "brazier 1x2 (animated)",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 12
+  },
+  {
+   "name": "anvil",
+   "kind": "object",
+   "section": "forge town",
+   "x": 15,
+   "y": 23,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "anvil",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 3
+  },
+  {
+   "name": "salamander_statue",
+   "kind": "object",
+   "section": "forge town",
+   "x": 13,
+   "y": 24,
+   "w": 2,
+   "h": 3,
+   "layer": "mid",
+   "doc": "salamander kin statue 2x3",
+   "solid": "../XX/XX",
+   "top": "XX/../..",
+   "tiles8": 13
+  },
+  {
+   "name": "hearth_hall",
+   "kind": "object",
+   "section": "forge town",
+   "x": 0,
+   "y": 25,
+   "w": 6,
+   "h": 5,
+   "layer": "mid",
+   "doc": "Hearth Hall 6x5 (flame plate over the door)",
+   "solid": "XXXXXX/XXXXXX/XXXXXX/XXXXXX/XXXXXX",
+   "top": "....../....../....../....../......",
+   "door": [
+    3,
+    4
+   ],
+   "tiles8": 74
+  },
+  {
+   "name": "shop",
+   "kind": "object",
+   "section": "forge town",
+   "x": 6,
+   "y": 26,
+   "w": 5,
+   "h": 4,
+   "layer": "mid",
+   "doc": "provisions shop 5x4 (awning)",
+   "solid": "XXXXX/XXXXX/XXXXX/XXXXX",
+   "top": "...../...../...../.....",
+   "door": [
+    2,
+    3
+   ],
+   "tiles8": 46
+  },
+  {
+   "name": "inn",
+   "kind": "object",
+   "section": "forge town",
+   "x": 0,
+   "y": 30,
+   "w": 7,
+   "h": 5,
+   "layer": "mid",
+   "doc": "inn 7x5",
+   "solid": "XXXXXXX/XXXXXXX/XXXXXXX/XXXXXXX/XXXXXXX",
+   "top": "......./......./......./......./.......",
+   "door": [
+    2,
+    4
+   ],
+   "tiles8": 84
+  },
+  {
+   "name": "hall",
+   "kind": "object",
+   "section": "forge town",
+   "x": 7,
+   "y": 30,
+   "w": 8,
+   "h": 6,
+   "layer": "mid",
+   "doc": "town hall / guild hall 8x6",
+   "solid": "XXXXXXXX/XXXXXXXX/XXXXXXXX/XXXXXXXX/XXXXXXXX/XXXXXXXX",
+   "top": "......../......../......../......../......../........",
+   "door": [
+    4,
+    5
+   ],
+   "tiles8": 99
+  },
+  {
+   "name": "house_rust",
+   "kind": "object",
+   "section": "forge town",
+   "x": 0,
+   "y": 35,
+   "w": 4,
+   "h": 4,
+   "layer": "mid",
+   "doc": "rust-roofed house 4x4",
+   "solid": "XXXX/XXXX/XXXX/XXXX",
+   "top": "..../..../..../....",
+   "door": [
+    2,
+    3
+   ],
+   "tiles8": 32
+  },
+  {
+   "name": "anvil_hall",
+   "kind": "object",
+   "section": "forge town",
+   "x": 4,
+   "y": 36,
+   "w": 7,
+   "h": 5,
+   "layer": "mid",
+   "doc": "Anvil Hall 7x5",
+   "solid": "XXXXXXX/XXXXXXX/XXXXXXX/XXXXXXX/XXXXXXX",
+   "top": "......./......./......./......./.......",
+   "door": [
+    3,
+    4
+   ],
+   "tiles8": 70
+  },
+  {
+   "name": "cave_mouth",
+   "kind": "object",
+   "section": "forge town",
+   "x": 11,
+   "y": 27,
+   "w": 3,
+   "h": 3,
+   "layer": "mid",
+   "doc": "cave mouth 3x3",
+   "solid": ".../XXX/X.X",
+   "top": "XXX/.../...",
+   "door": [
+    1,
+    2
+   ],
+   "tiles8": 33
+  },
+  {
+   "name": "tunnel_arch",
+   "kind": "object",
+   "section": "forge town",
+   "x": 11,
+   "y": 36,
+   "w": 3,
+   "h": 3,
+   "layer": "mid",
+   "doc": "brick tunnel arch 3x3 (railway / Ember Tunnel)",
+   "solid": ".../XXX/X.X",
+   "top": "XXX/.../...",
+   "door": [
+    1,
+    2
+   ],
+   "tiles8": 20
+  },
+  {
+   "name": "furnace",
+   "kind": "object",
+   "section": "forge town",
+   "x": 0,
+   "y": 41,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "frames": [
+    [
+     0,
+     41
+    ],
+    [
+     2,
+     41
+    ],
+    [
+     4,
+     41
+    ]
+   ],
+   "period": 8,
+   "doc": "furnace 2x2 (animated)",
+   "solid": "../XX",
+   "top": "XX/..",
+   "tiles8": 16
+  },
+  {
+   "name": "big_bell",
+   "kind": "object",
+   "section": "forge town",
+   "x": 14,
+   "y": 27,
+   "w": 2,
+   "h": 3,
+   "layer": "mid",
+   "doc": "great bell 2x3",
+   "solid": "../../XX",
+   "top": "XX/XX/..",
+   "tiles8": 20
+  },
+  {
+   "name": "tool_rack",
+   "kind": "object",
+   "section": "forge town",
+   "x": 14,
+   "y": 36,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "tool rack 2x2",
+   "solid": "../XX",
+   "top": "XX/..",
+   "tiles8": 14
+  },
+  {
+   "name": "hall_banner",
+   "kind": "object",
+   "section": "forge town",
+   "x": 15,
+   "y": 24,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "hall banner 1x2",
+   "solid": "./.",
+   "top": "./.",
+   "tiles8": 8
+  },
+  {
+   "name": "crate",
+   "kind": "object",
+   "section": "forge town",
+   "x": 11,
+   "y": 26,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "crate",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "barrel",
+   "kind": "object",
+   "section": "forge town",
+   "x": 12,
+   "y": 26,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "barrel",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "signpost",
+   "kind": "object",
+   "section": "forge town",
+   "x": 15,
+   "y": 26,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "sign",
+   "attrs": [
+    "SIGN"
+   ],
+   "solid": "X",
+   "top": ".",
+   "tiles8": 3
+  },
+  {
+   "name": "fence",
+   "kind": "block",
+   "section": "forge town",
+   "x": 0,
+   "y": 39,
+   "w": 4,
+   "h": 2,
+   "layer": "mid",
+   "format": "fence",
+   "doc": "rail fence",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 22
+  }
+ ],
+ "scenes": [
+  {
+   "key": "caldera",
+   "title": "Cinder Road and Caldera rim (sample)",
+   "w": 38,
+   "h": 26,
+   "doc": "A railway town on the ash plain beside a lava river crossed by a stone causeway; basalt cliffs, fumaroles, charred trees and obsidian."
+  }
+ ]
+}

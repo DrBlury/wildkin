@@ -6,3 +6,5 @@
     [QUEST_ISLE_SALT] = { "SALT FOR THE ISLE",
         "ODA on GULL ISLE needs 3 SALT to cure the catch. The pans on SALTWIND TRAIL are full of it." },
     [QUEST_REED_ROOF] = { "REEDS FOR THE ROOF", "Help the REEDWICK roofers: gather five TIDEBERRIES from the fen and return to NELL." },
+
+#include "biomes/quests.inc"

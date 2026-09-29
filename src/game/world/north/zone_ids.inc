@@ -6,3 +6,5 @@
     ZONE_GLIMMER_LAKE,
     ZONE_FOOTHILLS_LOW,
     ZONE_FOOTHILLS_SNOW,
+
+#include "biomes/zone_ids.inc"

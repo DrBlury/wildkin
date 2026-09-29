@@ -9,3 +9,5 @@
     SCR_GROVE,        /* Elderwood's grove keeper: lore + a gift */
     SCR_CLOCKMAKER,   /* the Spire's clockmaker: lore */
     SCR_HOLT, SCR_MILLER, SCR_KOIRIN_KID, SCR_BROOK_SHOP, SCR_BROOK_SECRET, SCR_MINE_GALLERY,
+
+#include "biomes/script_ids.inc"

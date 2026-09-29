@@ -7,3 +7,4 @@
     { MAP_TOWN, 33, 24, MAP_GARDEN, 5, 8 },
     { MAP_WOOD, 36, 8, MAP_CABIN, 5, 8 },
     { MAP_LAKE, 29, 6, MAP_STATION, 6, 8 },
+    { MAP_WOOD, 17, 5, MAP_ROOTWOOD_PATH, 3, 7, .required_flag = FLAG_VOLT_CREST },

@@ -469,6 +469,15 @@ def gnarl_img():
     return tree_from_limbs(limbs, seed=3)
 
 
+def dusk_canopy(tree, clumps, seed):
+    """Leaf masses over existing branches and roots, without moving the trunk."""
+    crown, _ = shade_clumps(16, 32, clumps,
+                            ['grm_leaf_hi', 'grm_leaf', 'grm_leaf', 'grm_leaf_dk', 'grm_bark_dk'],
+                            'grm_out', seed=seed, clip=lambda x, y: y < 19)
+    tree.paste(crown, 0, 0)
+    return tree
+
+
 def snag_img():
     limbs = [
         ([(7.6, 31.5), (7.8, 20), (7.4, 8), (7.8, 2.2)], 2.3, 1.1),       # trunk
@@ -1146,7 +1155,7 @@ def fit_stamp(gf, img, prefs):
                         img.p[y][x] = near
     return img
 
-def build(gf, name):
+def build(gf, name, leafy=False):
     gf.register_colors(dg.ALL_COLORS)
     gf.check_banks(name, dg.GRIM_BANKS)
     ts = gf.TileSet(name, dg.GRIM_BANKS)
@@ -1157,6 +1166,11 @@ def build(gf, name):
     gb_b, gb_t = grave_brush_layers()
     mr_b, mr_t = mire_reeds_layers()
     gn, sn, cy = gnarl_img(), snag_img(), cypress_img()
+    if leafy:
+        gn = dusk_canopy(gn, [(7.5, 3, 4.3, 3.1), (3.5, 8, 4.0, 3.9),
+                              (11.8, 8, 4.1, 4.0), (7.5, 12.5, 5.8, 4.2)], 19)
+        sn = dusk_canopy(sn, [(7.5, 3, 3.0, 3.4), (4.5, 8, 3.5, 3.8),
+                              (10.8, 8, 3.6, 4.0), (7.5, 13, 4.7, 3.6)], 27)
     imgs = {
         'ASH': (ASH_A, None), 'ASH2': (ash_img(1, 1), None), 'ASH3': (ash_img(0, 2), None),
         'ASH_GRASS': (ag_b, ag_t), 'SCORCH': (scorch_img(), None), 'COBBLE': (cobble_img(), None),

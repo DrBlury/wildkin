@@ -1016,6 +1016,15 @@ static int field_try_interact(void)
         }
         return examine_cell(fx, fy);
     }
+    int portal = warp_at(cur_map, fx, fy);
+    if (portal >= 0 && (cell_attr(fx, fy) & A_DOOR) && !warp_is_open(&WARPS[portal])) {
+        char hint[96];
+        str_copy(hint, "This passage is sealed. ");
+        str_put(hint, warp_gate_name(&WARPS[portal]));
+        str_put(hint, " opens the way.");
+        dlg_say(hint);
+        return 1;
+    }
     int n = map_elevated ? npc_at_lv(fx, fy, nl) : npc_at(fx, fy);
     if (n < 0 && (cell_attr(fx, fy) & A_COUNTER))
         n = npc_at(fx + DIR_DX[player.facing], fy + DIR_DY[player.facing]);

@@ -13,7 +13,7 @@
            "Mackerel for the inn, sprats for the gulls, and the crab stays."),
     PERSON(MAP_PORT_BRINE, 6, 27, HERMIT, LEFT, LOOK, LIGHTKEEPER, LSRC_LIGHTKEEPER, "LIGHTKEEPER", 0),
     PERSON(MAP_PORT_BRINE, 34, 20, VILLAGER, DOWN, WANDER, TALK, NO_LORE, "NET MENDER",
-           "The Hall Master MAREN was a fisher's girl. Now look at her. Still smells of the sea, though."),
+           "Our nets dry beside the quay every morning. Maren still mends one when the Hall goes quiet."),
     PERSON(MAP_PORT_BRINE, 20, 8, KID, DOWN, WANDER, TALK, NO_LORE, "KID",
            "I rode the current in the Hall all the way back to the door. Six times! It's the best."),
     PERSON_KIN(MAP_PORT_BRINE, 35, 25, VILLAGER, LEFT, LOOK, TALK, NO_LORE, SP_TORRENTTER, "DOCKHAND",
@@ -52,7 +52,7 @@
     PERSON(MAP_GULL_ISLE, 16, 12, KID_B, DOWN, WANDER, TALK, NO_LORE, "ISLAND KID",
            "The bell rang last night! Gran says don't go in the cave. I didn't. Much."),
     PERSON(MAP_GULL_ISLE, 13, 12, FISHER, LEFT, LOOK, TALK, NO_LORE, "FISHER",
-           "Salted, dried, sold in Brine. That's island life. Could do with more SALT, mind."),
+           "We plant beans in the shell grit behind Oda's house, then trade the catch for salt in Brine."),
     WARDEN(MAP_GULL_ISLE, 34, 24, WARDEN_A, LEFT, 3, TR_WEST_TANSY, SP_CRYPTCLAW, "Grandmother Oda says the bell only rings for people who listen."),
     WARDEN(MAP_GULL_ISLE, 22, 9, WARDEN_B, DOWN, 2, TR_WEST_OKE, NO_KIN, "See you next ferry, warden."),
     PERSON(MAP_GULL_HOUSE, 6, 4, HERMIT, DOWN, LOOK, TALK, LSRC_ISLE_ELDER, "ISLE ELDER",
@@ -80,7 +80,7 @@
     PERSON(MAP_REEDWICK, 10, 14, GRAN, DOWN, LOOK, REED_NELL, LSRC_REEDWICK,
            "SMOKER NELL", 0),
     PERSON(MAP_REEDWICK, 22, 15, ELDER, LEFT, LOOK, TALK, LSRC_FEN_WISPS,
-           "REED CUTTER", "The DUSK kin drink starlight on this fen."),
+           "REED CUTTER", "We cut reeds at low water, soak them overnight, and weave the walk boards at first light."),
     WARDEN(MAP_REEDWICK, 26, 19, WARDEN_A, LEFT, 2, TR_REED_BOAT, NO_KIN,
            "The wreck waits beyond the slip."),
     WARDEN(MAP_REEDWICK, 5, 20, WARDEN_B, UP, 2, TR_REED_SMOKER, NO_KIN,
@@ -95,3 +95,5 @@
            "FEN HERMIT", 0),
     PERSON(MAP_SALTWIND, 39, 11, HERMIT, DOWN, LOOK, TALK, LSRC_SALT_CACHE,
            "LIGHTKEEPER", "The last thunderclap rolled this stone over our cliff cache."),
+
+#include "biomes/npcs.inc"

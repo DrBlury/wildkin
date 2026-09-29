@@ -195,6 +195,11 @@ def wall_face():
         img.p[2][x] = 'cw_dk'
         if x != 9:
             img.p[3][x] = 'cw_out'
+    # Thin wet mineral trails stop above the contact shadow at the floor.
+    for x, y0, length in ((4, 5, 5), (12, 6, 4)):
+        for i in range(length):
+            img.p[y0 + i][x] = 'cw_hi' if i % 3 == 0 else 'cw_lt'
+        img.p[y0 + length][x] = 'cw_dk'
     # the foot of the wall: a shadow on the floor
     for x in range(16):
         img.p[15][x] = 'cv_dkr'

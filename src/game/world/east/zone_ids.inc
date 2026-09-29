@@ -6,3 +6,5 @@
     ZONE_BROOK_REEDS,
     ZONE_BROOK_POND,
     ZONE_COPPER_MINE,
+
+#include "biomes/zone_ids.inc"

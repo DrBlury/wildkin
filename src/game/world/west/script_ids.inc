@@ -12,3 +12,5 @@
     SCR_FEN_CARPENTER,
     SCR_REED_NELL,
     SCR_FEN_HERMIT,
+
+#include "biomes/script_ids.inc"

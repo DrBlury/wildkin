@@ -1,0 +1,1096 @@
+{
+ "name": "dream",
+ "title": "Dream - Mistfen, Moonveil, Dreamspire",
+ "doc": "DREAM - Mistfen, Moonveil, Dreamspire and the Dust Library.\n\nReplaces the old `dream` tileset (Mistfen, Moonveil Path, Dreamspire, Dust\nLibrary, Mirror Hall). Twilight grass dusted with stars, moonstone paths,\na lavender mist-lake that mirrors the sky, glowing moon lilies, crystal\ntrees, marble spires with gold bands, mirrors, moon orbs and drifting\npages.\n",
+ "cell": 16,
+ "cols": 16,
+ "rows": 38,
+ "palette": {
+  "dg0": "#101029",
+  "dg1": "#182942",
+  "dg2": "#29425a",
+  "dg3": "#395a6b",
+  "dg4": "#528484",
+  "dg5": "#7bad9c",
+  "mp0": "#39395a",
+  "mp1": "#5a5a84",
+  "mp2": "#8484ad",
+  "mp3": "#adadce",
+  "mp4": "#d6d6ef",
+  "mw0": "#101031",
+  "mw1": "#212152",
+  "mw2": "#393973",
+  "mw3": "#5a5a9c",
+  "mw4": "#9494ce",
+  "mw5": "#dedeff",
+  "ct0": "#18395a",
+  "ct1": "#296384",
+  "ct2": "#4aa5b5",
+  "ct3": "#84d6de",
+  "ct4": "#d6ffff",
+  "cp0": "#5a296b",
+  "cp1": "#9c4a9c",
+  "cp2": "#de8cd6",
+  "cp3": "#ffdef7",
+  "mb0": "#4a4a6b",
+  "mb1": "#8c8cad",
+  "mb2": "#c6c6de",
+  "mb3": "#efefff",
+  "au0": "#8c6321",
+  "au1": "#dead42",
+  "au2": "#fff7a5",
+  "ml1": "#bdceff",
+  "ml2": "#f7f7ff",
+  "st": "#ffffc6",
+  "bk1": "#292139",
+  "bk2": "#42395a",
+  "bk3": "#5a4a7b"
+ },
+ "variants": {
+  "dawn": {
+   "dg2": "#4a425a",
+   "dg3": "#6b5a6b",
+   "dg4": "#947b84",
+   "dg5": "#c6a59c",
+   "mp2": "#ad8cad",
+   "mp3": "#ceb5c6",
+   "mw2": "#6b4a7b",
+   "mw3": "#9c6b94",
+   "mw4": "#d69cbd"
+  }
+ },
+ "banks": [
+  [
+   "dg0",
+   "dg1",
+   "dg2",
+   "dg3",
+   "dg4",
+   "dg5",
+   "mp0",
+   "mp1",
+   "mp2",
+   "mp3",
+   "mp4",
+   "mw4",
+   "ml1",
+   "ml2",
+   "st"
+  ],
+  [
+   "dg0",
+   "dg1",
+   "dg2",
+   "dg3",
+   "dg4",
+   "dg5",
+   "mw0",
+   "mw1",
+   "mw2",
+   "mw3",
+   "mw4",
+   "mw5",
+   "mb0",
+   "au1",
+   "st"
+  ],
+  [
+   "dg0",
+   "mp1",
+   "mp2",
+   "ct0",
+   "ct1",
+   "ct2",
+   "ct3",
+   "ct4",
+   "cp0",
+   "cp1",
+   "cp2",
+   "cp3",
+   "bk1",
+   "bk2",
+   "bk3"
+  ],
+  [
+   "mp0",
+   "mp1",
+   "mp2",
+   "mw1",
+   "mw2",
+   "mw3",
+   "mw4",
+   "mb0",
+   "mb1",
+   "mb2",
+   "mb3",
+   "au0",
+   "au1",
+   "au2",
+   "ml2"
+  ],
+  [
+   "dg0",
+   "dg1",
+   "dg2",
+   "dg3",
+   "dg4",
+   "dg5",
+   "mp0",
+   "mp1",
+   "mp2",
+   "mp3",
+   "mp4",
+   "mb0",
+   "mb1",
+   "mb2",
+   "mb3"
+  ],
+  [
+   "mw1",
+   "mw2",
+   "mw3",
+   "cp0",
+   "cp1",
+   "cp2",
+   "cp3",
+   "mb0",
+   "mb1",
+   "mb2",
+   "mb3",
+   "au0",
+   "au1",
+   "au2",
+   "ml2"
+  ],
+  [
+   "mw0",
+   "mw3",
+   "mw4",
+   "mw5",
+   "mb0",
+   "mb1",
+   "mb2",
+   "mb3",
+   "au0",
+   "au1"
+  ]
+ ],
+ "stats": {
+  "unique_tiles8": 866,
+  "by_kind": {
+   "tile": 37,
+   "autotile": 205,
+   "patch9": 71,
+   "block": 18,
+   "object": 535
+  },
+  "entries": 53,
+  "colours": 39
+ },
+ "sections": [
+  "ground",
+  "autotiles",
+  "flora",
+  "architecture"
+ ],
+ "entries": [
+  {
+   "name": "grass",
+   "kind": "tile",
+   "section": "ground",
+   "x": 0,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "grass",
+   "weight": 9,
+   "doc": "twilight grass",
+   "tiles8": 4
+  },
+  {
+   "name": "grass_b",
+   "kind": "tile",
+   "section": "ground",
+   "x": 1,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "grass",
+   "weight": 4,
+   "tiles8": 4
+  },
+  {
+   "name": "grass_c",
+   "kind": "tile",
+   "section": "ground",
+   "x": 2,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "grass",
+   "weight": 3,
+   "tiles8": 4
+  },
+  {
+   "name": "grass_d",
+   "kind": "tile",
+   "section": "ground",
+   "x": 3,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "grass",
+   "weight": 3,
+   "tiles8": 4
+  },
+  {
+   "name": "grass_stars",
+   "kind": "tile",
+   "section": "ground",
+   "x": 4,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "grass",
+   "weight": 2,
+   "doc": "grass with star-dust",
+   "tiles8": 4
+  },
+  {
+   "name": "grass_stars_b",
+   "kind": "tile",
+   "section": "ground",
+   "x": 5,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "group": "grass",
+   "weight": 2,
+   "tiles8": 4
+  },
+  {
+   "name": "moonstone",
+   "kind": "tile",
+   "section": "ground",
+   "x": 6,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "doc": "moonstone flags",
+   "tiles8": 4
+  },
+  {
+   "name": "tallgrass",
+   "kind": "tile",
+   "section": "ground",
+   "x": 7,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "doc": "mist reeds (encounters)",
+   "attrs": [
+    "GRASS"
+   ],
+   "tiles8": 4
+  },
+  {
+   "name": "moon_lilies",
+   "kind": "tile",
+   "section": "ground",
+   "x": 8,
+   "y": 1,
+   "w": 1,
+   "h": 1,
+   "layer": "ground",
+   "frames": [
+    [
+     8,
+     1
+    ],
+    [
+     9,
+     1
+    ],
+    [
+     10,
+     1
+    ]
+   ],
+   "period": 24,
+   "doc": "glowing moon lilies",
+   "tiles8": 7
+  },
+  {
+   "name": "path",
+   "kind": "autotile",
+   "section": "autotiles",
+   "x": 0,
+   "y": 3,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "format": "rmxp16",
+   "over": "grass",
+   "doc": "moonstone path over grass",
+   "tiles8": 20
+  },
+  {
+   "name": "reeds_patch",
+   "kind": "autotile",
+   "section": "autotiles",
+   "x": 3,
+   "y": 3,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "format": "rmxp16",
+   "over": "grass",
+   "doc": "mist reeds",
+   "attrs": [
+    "GRASS"
+   ],
+   "tiles8": 20
+  },
+  {
+   "name": "mistlake",
+   "kind": "autotile",
+   "section": "autotiles",
+   "x": 0,
+   "y": 7,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "frames": [
+    [
+     0,
+     7
+    ],
+    [
+     3,
+     7
+    ],
+    [
+     6,
+     7
+    ],
+    [
+     9,
+     7
+    ]
+   ],
+   "period": 20,
+   "format": "rmxp16",
+   "over": "grass",
+   "doc": "star-reflecting mist lake over grass",
+   "attrs": [
+    "WATER"
+   ],
+   "tiles8": 77
+  },
+  {
+   "name": "deep_mistlake",
+   "kind": "autotile",
+   "section": "autotiles",
+   "x": 0,
+   "y": 11,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "frames": [
+    [
+     0,
+     11
+    ],
+    [
+     3,
+     11
+    ],
+    [
+     6,
+     11
+    ],
+    [
+     9,
+     11
+    ]
+   ],
+   "period": 20,
+   "format": "rmxp16",
+   "over": "mistlake",
+   "doc": "deep channel inside mistlake",
+   "attrs": [
+    "WATER",
+    "DEEP"
+   ],
+   "tiles8": 80
+  },
+  {
+   "name": "cliff_top",
+   "kind": "autotile",
+   "section": "autotiles",
+   "x": 6,
+   "y": 3,
+   "w": 3,
+   "h": 4,
+   "layer": "ground",
+   "format": "rmxp16",
+   "doc": "upper level of a plateau; its south side flows into cliff_face",
+   "tiles8": 20
+  },
+  {
+   "name": "cliff_face",
+   "kind": "patch9",
+   "section": "autotiles",
+   "x": 9,
+   "y": 3,
+   "w": 5,
+   "h": 3,
+   "layer": "ground",
+   "format": "patch9",
+   "doc": "cliff face (>= 2 rows: top, middle..., foot)",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 37
+  },
+  {
+   "name": "cliff_face_single",
+   "kind": "block",
+   "section": "autotiles",
+   "x": 9,
+   "y": 6,
+   "w": 4,
+   "h": 1,
+   "layer": "ground",
+   "format": "strip4",
+   "doc": "one-row face (a single level of drop): [W end][mid][E end][lone]",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 12
+  },
+  {
+   "name": "ledge",
+   "kind": "block",
+   "section": "autotiles",
+   "x": 12,
+   "y": 7,
+   "w": 4,
+   "h": 3,
+   "layer": "ground",
+   "format": "ledge",
+   "doc": "one-way ledges: row 0 south [W end][mid][E end][single], row 1 east-facing [N end][mid][S end][SE corner], row 2 west-facing",
+   "attrs": [
+    "LEDGE"
+   ],
+   "tiles8": 12
+  },
+  {
+   "name": "stairs",
+   "kind": "object",
+   "section": "autotiles",
+   "x": 14,
+   "y": 3,
+   "w": 1,
+   "h": 2,
+   "layer": "ground",
+   "doc": "steps cut into a 2-row face",
+   "solid": "./.",
+   "top": "./.",
+   "tiles8": 8
+  },
+  {
+   "name": "stairs_wide",
+   "kind": "object",
+   "section": "autotiles",
+   "x": 14,
+   "y": 5,
+   "w": 2,
+   "h": 2,
+   "layer": "ground",
+   "doc": "wide steps",
+   "solid": "../..",
+   "top": "../..",
+   "tiles8": 13
+  },
+  {
+   "name": "crystal_tree",
+   "kind": "object",
+   "section": "flora",
+   "x": 0,
+   "y": 16,
+   "w": 2,
+   "h": 3,
+   "layer": "mid",
+   "doc": "crystal tree 2x3 (teal)",
+   "solid": "../../XX",
+   "top": "XX/XX/..",
+   "tiles8": 17
+  },
+  {
+   "name": "crystal_tree_rose",
+   "kind": "object",
+   "section": "flora",
+   "x": 2,
+   "y": 16,
+   "w": 2,
+   "h": 3,
+   "layer": "mid",
+   "doc": "crystal tree 2x3 (rose)",
+   "solid": "../../XX",
+   "top": "XX/XX/..",
+   "tiles8": 17
+  },
+  {
+   "name": "dream_tree",
+   "kind": "object",
+   "section": "flora",
+   "x": 4,
+   "y": 16,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "mist willow 2x2",
+   "solid": "../XX",
+   "top": "XX/..",
+   "tiles8": 14
+  },
+  {
+   "name": "forest",
+   "kind": "patch9",
+   "section": "flora",
+   "x": 6,
+   "y": 16,
+   "w": 5,
+   "h": 3,
+   "layer": "mid",
+   "format": "patch9",
+   "doc": "dreamwood mass",
+   "attrs": [
+    "SOLID"
+   ],
+   "tiles8": 34
+  },
+  {
+   "name": "shrub",
+   "kind": "object",
+   "section": "flora",
+   "x": 11,
+   "y": 16,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "rose-crystal shrub",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "reeds",
+   "kind": "object",
+   "section": "flora",
+   "x": 12,
+   "y": 16,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "mist reeds",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "spire",
+   "kind": "object",
+   "section": "architecture",
+   "x": 0,
+   "y": 20,
+   "w": 3,
+   "h": 6,
+   "layer": "mid",
+   "doc": "Dreamspire tower 3x6",
+   "solid": ".../.../.../XXX/XXX/XXX",
+   "top": "XXX/XXX/XXX/.../.../...",
+   "door": [
+    1,
+    5
+   ],
+   "tiles8": 51
+  },
+  {
+   "name": "house",
+   "kind": "object",
+   "section": "architecture",
+   "x": 3,
+   "y": 20,
+   "w": 4,
+   "h": 4,
+   "layer": "mid",
+   "doc": "marble house 4x4",
+   "solid": "XXXX/XXXX/XXXX/XXXX",
+   "top": "..../..../..../....",
+   "door": [
+    2,
+    3
+   ],
+   "tiles8": 33
+  },
+  {
+   "name": "house_rose",
+   "kind": "object",
+   "section": "architecture",
+   "x": 7,
+   "y": 20,
+   "w": 4,
+   "h": 4,
+   "layer": "mid",
+   "doc": "rose-roofed house 4x4",
+   "solid": "XXXX/XXXX/XXXX/XXXX",
+   "top": "..../..../..../....",
+   "door": [
+    1,
+    3
+   ],
+   "tiles8": 36
+  },
+  {
+   "name": "hearth_hall",
+   "kind": "object",
+   "section": "architecture",
+   "x": 3,
+   "y": 24,
+   "w": 6,
+   "h": 5,
+   "layer": "mid",
+   "doc": "Hearth Hall 6x5 (flame plate over the door)",
+   "solid": "XXXXXX/XXXXXX/XXXXXX/XXXXXX/XXXXXX",
+   "top": "....../....../....../....../......",
+   "door": [
+    3,
+    4
+   ],
+   "tiles8": 45
+  },
+  {
+   "name": "shop",
+   "kind": "object",
+   "section": "architecture",
+   "x": 11,
+   "y": 20,
+   "w": 5,
+   "h": 4,
+   "layer": "mid",
+   "doc": "provisions shop 5x4 (awning)",
+   "solid": "XXXXX/XXXXX/XXXXX/XXXXX",
+   "top": "...../...../...../.....",
+   "door": [
+    2,
+    3
+   ],
+   "tiles8": 37
+  },
+  {
+   "name": "spire_rose",
+   "kind": "object",
+   "section": "architecture",
+   "x": 9,
+   "y": 24,
+   "w": 3,
+   "h": 6,
+   "layer": "mid",
+   "doc": "rose spire 3x6",
+   "solid": ".../.../.../XXX/XXX/XXX",
+   "top": "XXX/XXX/XXX/.../.../...",
+   "door": [
+    1,
+    5
+   ],
+   "tiles8": 51
+  },
+  {
+   "name": "mirror_hall",
+   "kind": "object",
+   "section": "architecture",
+   "x": 0,
+   "y": 29,
+   "w": 7,
+   "h": 5,
+   "layer": "mid",
+   "doc": "Mirror Hall 7x5",
+   "solid": "XXXXXXX/XXXXXXX/XXXXXXX/XXXXXXX/XXXXXXX",
+   "top": "......./......./......./......./.......",
+   "door": [
+    3,
+    4
+   ],
+   "tiles8": 74
+  },
+  {
+   "name": "library",
+   "kind": "object",
+   "section": "architecture",
+   "x": 7,
+   "y": 30,
+   "w": 8,
+   "h": 6,
+   "layer": "mid",
+   "doc": "Dust Library 8x6",
+   "solid": "XXXXXXXX/XXXXXXXX/XXXXXXXX/XXXXXXXX/XXXXXXXX/XXXXXXXX",
+   "top": "......../......../......../......../......../........",
+   "door": [
+    4,
+    5
+   ],
+   "tiles8": 71
+  },
+  {
+   "name": "book_pile",
+   "kind": "object",
+   "section": "architecture",
+   "x": 12,
+   "y": 24,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "pile of books",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "reading_desk",
+   "kind": "object",
+   "section": "architecture",
+   "x": 13,
+   "y": 24,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "reading desk 2x2",
+   "solid": "../XX",
+   "top": "XX/..",
+   "tiles8": 12
+  },
+  {
+   "name": "bookcase",
+   "kind": "object",
+   "section": "architecture",
+   "x": 0,
+   "y": 26,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "bookcase 2x2",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 16
+  },
+  {
+   "name": "petals",
+   "kind": "object",
+   "section": "architecture",
+   "x": 15,
+   "y": 24,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "drifting petals (decor)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "script_pedestal",
+   "kind": "object",
+   "section": "architecture",
+   "x": 12,
+   "y": 25,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "script pedestal 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "column",
+   "kind": "object",
+   "section": "architecture",
+   "x": 15,
+   "y": 25,
+   "w": 1,
+   "h": 3,
+   "layer": "mid",
+   "doc": "marble column 1x3",
+   "solid": "./X/X",
+   "top": "X/./.",
+   "tiles8": 6
+  },
+  {
+   "name": "column_broken",
+   "kind": "object",
+   "section": "architecture",
+   "x": 2,
+   "y": 26,
+   "w": 1,
+   "h": 3,
+   "layer": "mid",
+   "doc": "fallen column 1x3",
+   "solid": "./X/X",
+   "top": "X/./.",
+   "tiles8": 8
+  },
+  {
+   "name": "mirror",
+   "kind": "object",
+   "section": "architecture",
+   "x": 13,
+   "y": 26,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "standing mirror 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 6
+  },
+  {
+   "name": "moon_orb",
+   "kind": "object",
+   "section": "architecture",
+   "x": 12,
+   "y": 28,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "frames": [
+    [
+     12,
+     28
+    ],
+    [
+     13,
+     28
+    ]
+   ],
+   "period": 30,
+   "doc": "moon orb pedestal 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 12
+  },
+  {
+   "name": "moon_lantern",
+   "kind": "object",
+   "section": "architecture",
+   "x": 14,
+   "y": 26,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "moon lantern 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  },
+  {
+   "name": "pages",
+   "kind": "object",
+   "section": "architecture",
+   "x": 0,
+   "y": 34,
+   "w": 1,
+   "h": 1,
+   "layer": "top",
+   "frames": [
+    [
+     0,
+     34
+    ],
+    [
+     1,
+     34
+    ],
+    [
+     2,
+     34
+    ],
+    [
+     3,
+     34
+    ]
+   ],
+   "period": 14,
+   "doc": "drifting pages (animated)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 12
+  },
+  {
+   "name": "statue",
+   "kind": "object",
+   "section": "architecture",
+   "x": 4,
+   "y": 34,
+   "w": 2,
+   "h": 3,
+   "layer": "mid",
+   "doc": "dreamer statue 2x3",
+   "solid": "../XX/XX",
+   "top": "XX/../..",
+   "tiles8": 18
+  },
+  {
+   "name": "mote",
+   "kind": "object",
+   "section": "architecture",
+   "x": 0,
+   "y": 35,
+   "w": 1,
+   "h": 1,
+   "layer": "top",
+   "frames": [
+    [
+     0,
+     35
+    ],
+    [
+     1,
+     35
+    ],
+    [
+     2,
+     35
+    ],
+    [
+     3,
+     35
+    ]
+   ],
+   "period": 14,
+   "doc": "floating light mote",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 11
+  },
+  {
+   "name": "signpost",
+   "kind": "object",
+   "section": "architecture",
+   "x": 12,
+   "y": 27,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "marble plaque",
+   "attrs": [
+    "SIGN"
+   ],
+   "solid": "X",
+   "top": ".",
+   "tiles8": 3
+  },
+  {
+   "name": "rock",
+   "kind": "object",
+   "section": "architecture",
+   "x": 0,
+   "y": 28,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "small rock",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "boulder",
+   "kind": "object",
+   "section": "architecture",
+   "x": 1,
+   "y": 28,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "push boulder (strength)",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "rock_cracked",
+   "kind": "object",
+   "section": "architecture",
+   "x": 14,
+   "y": 28,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "breakable rock",
+   "solid": "X",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "rock_big",
+   "kind": "object",
+   "section": "architecture",
+   "x": 0,
+   "y": 36,
+   "w": 2,
+   "h": 2,
+   "layer": "mid",
+   "doc": "crag 2x2",
+   "solid": "XX/XX",
+   "top": "../..",
+   "tiles8": 16
+  },
+  {
+   "name": "pebbles",
+   "kind": "object",
+   "section": "architecture",
+   "x": 15,
+   "y": 28,
+   "w": 1,
+   "h": 1,
+   "layer": "mid",
+   "doc": "pebbles (decor)",
+   "solid": ".",
+   "top": ".",
+   "tiles8": 4
+  },
+  {
+   "name": "standing_stone",
+   "kind": "object",
+   "section": "architecture",
+   "x": 15,
+   "y": 29,
+   "w": 1,
+   "h": 2,
+   "layer": "mid",
+   "doc": "menhir 1x2",
+   "solid": "./X",
+   "top": "X/.",
+   "tiles8": 8
+  }
+ ],
+ "scenes": [
+  {
+   "key": "moonveil",
+   "title": "Moonveil to Dreamspire (sample)",
+   "w": 36,
+   "h": 26,
+   "doc": "A moonstone path winding past the star-reflecting mist lake, moon lilies and crystal trees, to the marble Dreamspire with its columns and orbs."
+  }
+ ]
+}

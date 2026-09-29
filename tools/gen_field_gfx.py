@@ -173,6 +173,7 @@ class TileSet:
         self.tiles = [tuple([0] * 64)]
         self.lookup = {self.tiles[0]: (0, 0, 0)}
         self.opaque = True
+        self.palette_colors = None  # optional per-set RGB overrides without remapping tile indices
 
     def bank_for(self, colors, prefer):
         order = list(prefer) + [b for b in range(len(self.banks)) if b not in prefer]
@@ -232,7 +233,7 @@ class TileSet:
             row = [0] * 16
             if b < len(self.banks):
                 for i, cn in enumerate(self.banks[b]):
-                    row[i + 1] = c15(C[cn])
+                    row[i + 1] = c15(self.palette_colors.get(cn, C[cn]) if self.palette_colors else C[cn])
             out.append(row)
         return out
 
@@ -814,7 +815,7 @@ INTERIOR_BANKS = [
 TS_NAMES = list(SETS)
 TS_TAGS = {'town': 'T', 'wild': 'W', 'interior': 'I', 'city': 'CY', 'coast': 'CO', 'snow': 'SN',
            'cave': 'CV', 'grim': 'GR', 'crypt': 'CR', 'volcanic': 'VO', 'dream': 'DR', 'farm': 'FA',
-           'tide': 'TD'}
+           'tide': 'TD', 'dusk': 'DU', 'desert': 'DE', 'jungle': 'JU'}
 QUADS = ((0, 0), (8, 0), (0, 8), (8, 8))
 
 
@@ -1276,6 +1277,7 @@ def all_decor():
     items = items + __import__('decor_east').EAST_DECOR  # W-EAST (city, Copperline, Elderwood)
     items = items + __import__('decor_west').WEST_DECOR  # W-WEST (coast, harbour interiors)
     items = items + __import__('decor_far').FAR_DECOR  # W-FAR (volcanic, dream)
+    items = items + __import__('decor_biomes').DECOR  # biome-native landmarks and wayfinding
     seen = set()
     for d in items:
         if d.name in seen:

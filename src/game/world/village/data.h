@@ -341,6 +341,7 @@ static const DecorPlace RISE_DECOR[] = {
 static const Stamp WOOD_STAMPS[] = { STAMP(W, CABIN, 34, 5) };
 static const DecorPlace WOOD_DECOR[] = {
     DP(SIGNPOST, 2, 16), DP(SIGNPOST, 33, 10),
+    DP(STUMP, 17, 4), DP(SIGNPOST, 16, 5), /* hollow-tree approach */
     /* bridges over the creek */
     DP(BRIDGE_H, 22, 7), DP(BRIDGE_H, 23, 7), DP(BRIDGE_H, 22, 8), DP(BRIDGE_H, 23, 8),
     DP(BRIDGE_H, 22, 23), DP(BRIDGE_H, 23, 23), DP(BRIDGE_H, 22, 24), DP(BRIDGE_H, 23, 24),

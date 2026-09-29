@@ -2,3 +2,5 @@
     QUEST_HARBOR_POST,    /* 1 = three letters to deliver, 255 = FERRY PASS earned */
     QUEST_ISLE_SALT,      /* 1 = Oda wants 3 SALT, 255 = done */
     QUEST_REED_ROOF,
+
+#include "biomes/quest_ids.inc"

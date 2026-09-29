@@ -1,0 +1,1 @@
+/* Frontier routes use the existing nearby town flypoints. */

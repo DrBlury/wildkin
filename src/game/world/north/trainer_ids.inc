@@ -22,3 +22,5 @@
     TR_N_SIGRUN,   /* HALL MASTER SIGRUN (scripts.c: scr_rime_master, TT_MASTER) */
     TR_N_HIKER_1, TR_N_HIKER_2, TR_N_GUIDE, TR_N_CLIMBER_1, TR_N_CLIMBER_2,
     TR_N_WATCHER, TR_N_SCREE, TR_N_LOGGER_1, TR_N_LOGGER_2,
+
+#include "biomes/trainer_ids.inc"

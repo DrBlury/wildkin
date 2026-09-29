@@ -15,3 +15,5 @@
     [SCR_RAIL_COOK] = scr_rail_cook,
     [SCR_FAR_GRETA] = scr_far_greta,
     [SCR_PILGRIM_TENDER] = scr_pilgrim_tender,
+    [SCR_EMBER_INTAKE] = scr_ember_intake,
+    [SCR_EMBER_RELEASE] = scr_ember_release,

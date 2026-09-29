@@ -18,3 +18,12 @@
     { MAP_COPPERLINE, 24, 8, "COPPERLINE MINE\fDark but passable. LIGHT reveals its lost side gallery." },
     { MAP_ELDERWOOD, 29, 2, "THE ELDER'S PROMISE\fThe grove waits until the March is healed. Come back after OSSUREX." },
     { MAP_LUMEN, 43, 9, "SPIRE CROWN\fThe great clock awaits the end of the March. STRENGTH alone is not enough." },
+    { MAP_ROOTWOOD_PATH, 4, 7, "ROOTWOOD PATH\fWest: Bramblewood hollow. East: ROOTWAYS beneath the pines. Volt Crest needed." },
+    { MAP_ROOTWAYS, 4, 7, "ROOTWAYS\fWest: hollow tree. Upper east: mill cellar; lower east: Copperline Mine." },
+    { MAP_ROOTWAYS, 8, 7, "PUMICE LOCK\fPush the light stone EAST one step onto the plate. The center gate stays open for good." },
+    { MAP_ROOTWAYS, 19, 4, "MILL ROOT\fThe upper ladder reaches Brookmill's mill cellar. Volt Crest needed." },
+    { MAP_ROOTWAYS, 19, 13, "ROOT JUNCTION\fSouth: Copperline Mine, Volt Crest. North: Tidal Underflow, Tide Crest. Its deep channel needs SURF." },
+    { MAP_COPPER_MINE, 8, 17, "OLD ORE PASSAGE\fDown to Railhead's shaft and the Ember Conduits. The Anvil Crest opens both ends." },
+    { MAP_MILL_CELLAR, 4, 5, "MILL CELLAR\fNorth: ROOTWAYS. South: Brookmill Mill. Both ladders require the Volt Crest." },
+
+#include "biomes/signs.inc"

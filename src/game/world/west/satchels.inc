@@ -21,3 +21,5 @@
     { MAP_REED_TUNNEL, 15, 5, ITEM_DUSK_SHARD, 1 }, /* LIGHT */
     { MAP_REEDWICK, 31, 28, ITEM_GLOW_LANTERN, 2 }, /* SURF wreck */
     { MAP_SALTWIND, 40, 11, ITEM_TIDE_LANTERN, 3 }, /* STRENGTH cliff */
+
+#include "biomes/satchels.inc"

@@ -60,3 +60,5 @@
         "The guild builds strong things. Let's test your team!", "Strong as oak!" },
     [TR_MINE_BOSS] = { "MINE BOSS", 3, { SP_DIGGET, SP_MAGNITICK, SP_QUARTZLING },
         { 18, 18, 19 }, 880, "It's dark down here. Keep your footing!", "You know the way now." },
+
+#include "biomes/trainers.inc"
