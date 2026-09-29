@@ -382,8 +382,18 @@ static void map_decode(int id)
     for (int i = 0; i < m->stamp_count; i++) {
         const Stamp *s = &m->stamps[i];
         for (int dy = 0; dy < s->h; dy++)
-            for (int dx = 0; dx < s->w; dx++)
-                map_cells[(s->y + dy) * m->w + s->x + dx] = (u16)(s->base + dy * s->w + dx);
+            for (int dx = 0; dx < s->w; dx++) {
+                int x = s->x + dx, y = s->y + dy, i = y * m->w + x;
+                u16 v = (u16)(s->base + dy * s->w + dx), under = map_cells[i];
+                /* an overlay stamp (a building over the map's own ground)
+                 * keeps the ground that was there */
+                if (t->mflags[v] & MTF_OVERLAY) {
+                    if (under < CELL_PATH && (t->mflags[under] & MTF_GROUND)) map_ground[i] = under;
+                    else if (!(under < CELL_PATH && (t->mflags[under] & MTF_OVERLAY)))
+                        map_ground[i] = m->ground ? m->ground[i] : map_infer_ground(m, x, y);
+                }
+                map_cells[i] = v;
+            }
     }
     map_apply_patches(m, t);
     for (int i = 0; i < m->decor_count; i++) {
@@ -510,10 +520,23 @@ static int same_kind(int v, int x, int y)
     return n == v || (v == CELL_PATH && (is_door_cell(n) || elev_found(x, y)));
 }
 
+/* Whether the ground at (x, y) takes the tileset's second path drawing
+ * (a path through sand or cobbles). A tree counts as its ground. */
+static int path_alt_at(int x, int y)
+{
+    const TilesetDef *t = tset();
+    if (x < 0 || y < 0 || x >= map_w || y >= map_h) return 0;
+    unsigned n = map_cells[y * map_w + x];
+    if (n >= t->meta_count) return 0;
+    if (t->mflags[n] & MTF_OVERLAY) n = map_ground[y * map_w + x];
+    return t->path_alt_of[n];
+}
+
 /* 8x8 autotile quadrants for a path/water cell. */
 static void autotile_quads(int v, int x, int y, u16 out[4])
 {
-    const u16 (*q)[5] = v == CELL_PATH ? tset()->path_q : tset()->water_q;
+    const TilesetDef *t = tset();
+    const u16 (*q)[5] = v == CELL_PATH ? t->path_q : t->water_q;
     static const s8 qdx[4] = { -1, 1, -1, 1 }, qdy[4] = { -1, -1, 1, 1 };
     for (int c = 0; c < 4; c++) {
         if (!q) {
@@ -525,6 +548,11 @@ static void autotile_quads(int v, int x, int y, u16 out[4])
         int ds = same_kind(v, x + qdx[c], y + qdy[c]);
         int variant = vs && hs ? (ds ? 0 : 1) : (vs ? 2 : (hs ? 3 : 4));
         out[c] = q[c][variant];
+        if (v == CELL_PATH && variant && t->path_alt_q) {
+            /* the neighbour this quadrant's edge shows */
+            int nx = x + (variant == 3 ? 0 : qdx[c]), ny = y + (variant == 2 || variant == 4 ? 0 : qdy[c]);
+            if (path_alt_at(nx, ny)) out[c] = t->path_alt_q[c][variant];
+        }
     }
 }
 
@@ -564,6 +592,29 @@ static void blend_quads(int v, int x, int y, u16 q[4])
     }
 }
 
+/* Masses: overlay cells of one group (a forest of TREE_TOP / TREE_BOTTOM)
+ * are drawn as one canopy. Each cell takes the piece its eight neighbours
+ * select (gfx_field.h mass_pick; tools/tiles2/engine/assemble.py renders
+ * every neighbourhood). Beyond the map the out-of-bounds cell counts. */
+static int mass_same(int g, int x, int y)
+{
+    const TilesetDef *t = tset();
+    unsigned n = (x < 0 || y < 0 || x >= map_w || y >= map_h) ? t->oob : map_cells[y * map_w + x];
+    return n < t->meta_count && t->mass_of[n] == g;
+}
+
+static const u16 *mass_piece(int v, int x, int y)
+{
+    const TilesetDef *t = tset();
+    if (!t->mass_of || v >= t->meta_count || !t->mass_of[v]) return 0;
+    int g = t->mass_of[v];
+    static const s8 ndx[8] = { 0, 1, 1, 1, 0, -1, -1, -1 }, ndy[8] = { -1, -1, 0, 1, 1, 1, 0, -1 };
+    int m = 0;
+    for (int i = 0; i < 8; i++)
+        if (mass_same(g, x + ndx[i], y + ndy[i])) m |= 1 << i;
+    return t->mass_meta[t->mass_pick[g - 1][m]];
+}
+
 /* Resolve a decor entry (local tile + 1) against the kind's VRAM block. */
 static u16 decor_entry(u16 e, int kind)
 {
@@ -599,10 +650,12 @@ static void render_cell(int mx, int my)
     } else if (t->mflags[v] & MTF_OVERLAY) {
         /* a tree: ground beneath on BG0, trunk on BG2, crown on BG3 */
         int g = map_ground_at(mx, my);
+        const u16 *mp = mass_piece(v, mx, my);
+        int above = (t->meta_top[v][0] | t->meta_top[v][1] | t->meta_top[v][2] | t->meta_top[v][3]) != 0;
         for (int i = 0; i < 4; i++) {
             bottom[i] = t->meta_bottom[g][i];
-            mid[i] = t->meta_bottom[v][i];
-            top[i] = t->meta_top[v][i];
+            mid[i] = mp ? (above ? 0 : mp[i]) : t->meta_bottom[v][i];
+            top[i] = mp ? (above ? mp[i] : 0) : t->meta_top[v][i];
         }
         blend_quads(g, mx, my, bottom);
     } else {

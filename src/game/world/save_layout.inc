@@ -22,7 +22,7 @@ static const u16 SAVE_CURRENT_COUNTS[SAVE_REGION_COUNT][6] = {
     {8, 1, 15, 19, 1, 3},
     {0, 0, 0, 0, 0, 0},
     {0, 10, 0, 0, 13, 3},
-    {61, 0, 0, 0, 0, 0}
+    {20, 0, 0, 0, 0, 0}
 };
 static const u16 SAVE_V5_COUNTS[SAVE_V5_REGION_COUNT][6] = {
     {0, 0, 0, 0, 1, 75},

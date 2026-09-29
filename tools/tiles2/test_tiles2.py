@@ -126,6 +126,18 @@ class Legacy(unittest.TestCase):
         self.assertTrue(m['tilesets'])
 
 
+class Engine(unittest.TestCase):
+    def test_every_game_tileset_is_drawn_from_tiles2(self):
+        """tools/gen_field_gfx.py falls back to the old art for a tileset
+        missing from assemble.PORTED; every one must have an art module."""
+        sys.path.insert(0, os.path.dirname(HERE))
+        from pixelart import SETS as GAME_SETS
+        from engine import assemble
+        self.assertEqual(sorted(assemble.PORTED), sorted(GAME_SETS))
+        for n in GAME_SETS:
+            self.assertTrue(os.path.exists(os.path.join(HERE, 'engine', 'art_%s.py' % n)), n)
+
+
 @unittest.skipUnless(os.environ.get('TILES2_REBUILD'), 'set TILES2_REBUILD=1 to regenerate')
 class Rebuild(unittest.TestCase):
     def test_generator_matches_committed(self):

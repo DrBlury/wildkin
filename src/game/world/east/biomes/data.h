@@ -116,8 +116,8 @@ static const char *const CANOPY_HEARTH_ROWS[] = {
 };
 
 static const char *const MISTBELL_BELLHOUSE_ROWS[] = {
-    "WWWWWWWWWWW", /*  0 */
-    "wwwwwwwwwww", /*  1 */
+    "RRRRRRRRRRR", /*  0 */
+    "rrrrrrrrrrr", /*  1 */
     ":::::::::::", /*  2 */
     ":::::::::::", /*  3 */
     ":::::::::::", /*  4 */
@@ -128,8 +128,8 @@ static const char *const MISTBELL_BELLHOUSE_ROWS[] = {
 };
 
 static const char *const CANOPY_LODGE_ROWS[] = {
-    "WWWWWWWWWWW", /*  0 */
-    "wwwwwwwwwww", /*  1 */
+    "RRRRRRRRRRR", /*  0 */
+    "rrrrrrrrrrr", /*  1 */
     ":::::::::::", /*  2 */
     ":::::::::::", /*  3 */
     ":::::::::::", /*  4 */

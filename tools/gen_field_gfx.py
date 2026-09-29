@@ -24,6 +24,8 @@ import struct
 import sys
 import zlib
 
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tiles2'))
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT_H = os.path.join(ROOT, 'src', 'gfx_field.h')
 
@@ -1060,6 +1062,8 @@ def finish_tileset(out, name, tag, attrs, ground, overlay, legend, oob, default_
         else:
             if sum(w for (_, w) in spec) != 16:
                 raise ValueError('%s: legend %r weights must sum to 16' % (name, ch))
+            if len(spec) > 8:
+                raise ValueError('%s: legend %r has more than 8 variants' % (name, ch))
             leg[ch] = list(spec)
         if isinstance(leg[ch], list):
             for (t, w) in leg[ch]:
@@ -1247,18 +1251,24 @@ def build_tilesets():
     tools/tilesets/ts_<name>.py (build(gf, name) -> finished tileset)."""
     import importlib
     import tilesets  # noqa: F401  (tools/tilesets/__init__.py)
+    from engine import assemble   # tools/tiles2/engine: the tiles2 art (docs/TILES2.md 8)
     sets = {}
+    with assemble.Recorder(sys.modules[__name__]) as rec:
+        for name in SETS:
+            rec.current = name
+            if name == 'town':
+                sets[name] = build_town()
+            elif name == 'wild':
+                sets[name] = build_wild()
+            elif name == 'interior':
+                sets[name] = build_interior()
+            else:
+                mod = importlib.import_module('tilesets.ts_%s' % name)
+                sets[name] = mod.build(sys.modules[__name__], name)
+                sets[name]['uses_decor'] = list(getattr(mod, 'USES_DECOR', []))
     for name in SETS:
-        if name == 'town':
-            sets[name] = build_town()
-        elif name == 'wild':
-            sets[name] = build_wild()
-        elif name == 'interior':
-            sets[name] = build_interior()
-        else:
-            mod = importlib.import_module('tilesets.ts_%s' % name)
-            sets[name] = mod.build(sys.modules[__name__], name)
-            sets[name]['uses_decor'] = list(getattr(mod, 'USES_DECOR', []))
+        if name in assemble.PORTED:
+            sets[name] = assemble.build(sys.modules[__name__], name, rec.rec[name], sets[name])
         sets[name]['tag'] = TS_TAGS[name]
         sets[name]['name'] = name
     return sets
@@ -1348,13 +1358,21 @@ def build_decor(tilesets):
         for n in tilesets[sname].get('uses_decor', ()):
             if n not in names:
                 raise KeyError('%s: USES_DECOR names unknown decor %s' % (sname, n))
-    words, meta, defs = [], [], {}
+    words, meta, defs, art = [], [], {}, {}
     tile_total = 0
     for sname in TS_NAMES:
         ts = tilesets[sname]['ts']
         for d in kinds:
             if not decor_in_set(d, sname, tilesets):
                 continue
+            if 'art2' in tilesets[sname]:
+                # tiles2 art in the kind's own footprint and masks (tools/tiles2/engine)
+                from engine import assemble
+                import copy as _copy
+                frames, period = assemble.decor_frames(sname, tilesets[sname], d)
+                d = _copy.copy(d)
+                d.frames, d.period = frames, period
+            art[(sname, d.name)] = d
             tiles, cells = encode_decor(ts, d)
             first = tile_total
             nf = len(d.frames)
@@ -1367,7 +1385,7 @@ def build_decor(tilesets):
                                          meta_first=len(meta), solid=d.solid, top=d.top,
                                          floor=d.floor)
             meta.extend(cells)
-    return {'kinds': kinds, 'words': words, 'meta': meta, 'defs': defs, 'tiles': tile_total}
+    return {'kinds': kinds, 'words': words, 'meta': meta, 'defs': defs, 'tiles': tile_total, 'art': art}
 
 
 def decor_entry_abs(e, base):
@@ -2354,6 +2372,10 @@ def lint_objects(sets, dec):
         out = sets[sname]
         ts = out['ts']
         gids = [i for i, f in enumerate(out['mflags']) if f & MF_GROUND]
+        if 'art2' in out:
+            # tiles2 sets share material ramps between floors and props (a
+            # plank floor and a crate): lint against the default ground only
+            gids = [out['ground_default']]
         ground_cols = tile_colors(ts, [out['meta_b'][i] for i in gids])
         for i, n in enumerate(out['terrain']):
             if not (out['mflags'][i] & MF_OVERLAY):
@@ -2372,8 +2394,9 @@ def lint_objects(sets, dec):
                                 img.p[(q >> 1) * 8 + y][(q & 1) * 8 + x] = ts.banks[b][k - 1]
             lint_image(img, ground_cols, '%s overlay terrain %s' % (sname, n))
         for d in dec['kinds']:
-            if (sname, d.name) in dec['defs'] and not getattr(d, 'ground_ok', False):
-                lint_image(d.frames[0], ground_cols, '%s decor %s' % (sname, d.name))
+            if (sname, d.name) in dec['defs'] and not getattr(d, 'ground_ok', False) and \
+                    d.name not in out.get('art2', {}).get('ground_ok', ()):
+                lint_image(dec['art'][(sname, d.name)].frames[0], ground_cols, '%s decor %s' % (sname, d.name))
 
 
 def ground_meta(tsout, name):
@@ -2664,6 +2687,42 @@ def emit_tileset(o, out, docs):
                 o.append('        },')
             o.append('    },')
         o.append('};')
+    if out.get('masses'):
+        ids = {nm: i for i, nm in enumerate(out['terrain'])}
+        mass_of = [0] * len(out['meta_b'])
+        pieces, picks = [], []
+        for gi, m in enumerate(out['masses']):
+            for nm in m['members']:
+                mass_of[ids[nm]] = gi + 1
+            base = len(pieces)
+            pieces.extend(m['pieces'])
+            picks.append([base + p for p in m['pick']])
+        o.append('static const u8 %s_mass_of[MT_%s_COUNT] = {' % (prefix, PREFIX))
+        o.append('    ' + ', '.join(str(b) for b in mass_of) + ',')
+        o.append('};')
+        o.append('static const u16 %s_mass_pick[%d][256] = {' % (prefix, len(picks)))
+        for gi, pk in enumerate(picks):
+            o.append('    { /* %s */' % out['masses'][gi]['group'])
+            for r in range(0, 256, 16):
+                o.append('        ' + ', '.join(str(v) for v in pk[r:r + 16]) + ',')
+            o.append('    },')
+        o.append('};')
+        o.append('static const u16 %s_mass_meta[%d][4] = {' % (prefix, len(pieces)))
+        for e in pieces:
+            o.append('    {0x%04X, 0x%04X, 0x%04X, 0x%04X},' % tuple(e))
+        o.append('};')
+    if out.get('path_alt_q'):
+        o.append('static const u16 %s_path_alt_quads[4][5] = {' % prefix)
+        for c in range(4):
+            o.append('    {' + ', '.join('0x%04X' % v for v in out['path_alt_q'][c]) + '},')
+        o.append('};')
+        ids = {nm: i for i, nm in enumerate(out['terrain'])}
+        alt_of = [0] * len(out['meta_b'])
+        for nm in out['path_alt_names']:
+            alt_of[ids[nm]] = 1
+        o.append('static const u8 %s_path_alt_of[MT_%s_COUNT] = {' % (prefix, PREFIX))
+        o.append('    ' + ', '.join(str(b) for b in alt_of) + ',')
+        o.append('};')
     # tile animations: one flat block of frames x count tiles each
     anim_rows = []
     for k, (first, frames, period) in enumerate(out['anims']):
@@ -2727,9 +2786,17 @@ def emit_tileset_table(o, sets):
             n, len(out['anims']), n, out['legend_default'], out['oob'], out['ground_default'], bdc,
             ('&%s_elev' % n) if 'elev' in out else '0'))
         if out['blends']:
-            o.append('        %s_blend_of, %s_blend_outer, %s_blend_quads },' % (n, n, n))
+            o.append('        %s_blend_of, %s_blend_outer, %s_blend_quads,' % (n, n, n))
         else:
-            o.append('        0, 0, 0 },')
+            o.append('        0, 0, 0,')
+        if out.get('masses'):
+            o.append('        %s_mass_of, %s_mass_pick, %s_mass_meta,' % (n, n, n))
+        else:
+            o.append('        0, 0, 0,')
+        if out.get('path_alt_q'):
+            o.append('        %s_path_alt_quads, %s_path_alt_of },' % (n, n))
+        else:
+            o.append('        0, 0 },')
     o.append('};')
     o.append('')
 
@@ -2750,11 +2817,11 @@ def viewer_pages(sname, out, dec):
     """-> list of pages: dict(w, h, cells, ground, decor[(kind, x, y)], name)."""
     ids = out['ids']
     grounds = [i for i, f in enumerate(out['mflags']) if f & MF_GROUND][:3] or [out['ground_default']]
-    overlay = [i for i, f in enumerate(out['mflags']) if f & MF_OVERLAY]
+    overlay = [i for i, f in enumerate(out['mflags']) if f & MF_OVERLAY and i < len(out['terrain'])]
     plain = [i for i, n in enumerate(out['terrain'])
              if not (out['mflags'][i] & MF_OVERLAY)]
     kinds = [d for d in dec['kinds'] if (sname, d.name) in dec['defs']]
-    budget = 512 - len(out['ts'].tiles)
+    budget = 768 - min(len(out['ts'].tiles), 512)
     # split decor into pages that fit the scene tile budget
     decor_pages, cur, used = [], [], 0
     for d in kinds:
@@ -2896,7 +2963,7 @@ def write_header(sets, dec, chars, item, emotes, path):
     A('typedef struct { u16 tile, count; u8 frames, period; const u32 *data; } TileAnim;')
     A('/* Map character -> metatile: SIMPLE id[0]; VARIANT picks by cell hash % 16')
     A(' * through cumulative weights w[]; PATH / WATER are autotiled. */')
-    A('typedef struct { u8 kind, n; u8 w[4]; u16 id[4]; } LegendEntry;')
+    A('typedef struct { u8 kind, n; u8 w[8]; u16 id[8]; } LegendEntry;')
     A('/* Elevation art (tools/elevation.py, docs/ELEVATION.md): map entries per')
     A(' * 8x8 quadrant (TL, TR, BL, BR), autotiled by src/game/elev.c. */')
     A('typedef struct ElevArt {')
@@ -2932,6 +2999,19 @@ def write_header(sets, dec, chars, item, emotes, path):
     A('     * group the metatile is the surrounding ground of (edges fade into it) */')
     A('    const u8 *blend_of, *blend_outer;')
     A('    const u16 (*blend_q)[2][4][5];     /* [group][edge set][quadrant][variant], variant 0 unused */')
+    A('    /* masses (field.c mass_piece), 0 when the tileset has none: overlay')
+    A('     * cells of one group (a forest of TREE_TOP / TREE_BOTTOM) are drawn')
+    A('     * as one canopy: mass_of = group + 1 of each metatile; the piece of')
+    A('     * a cell comes from its eight neighbours (bits N NE E SE S SW W NW,')
+    A('     * set = same group or beyond the map) */')
+    A('    const u8 *mass_of;')
+    A('    const u16 (*mass_pick)[256];       /* [group][neighbour mask] -> piece */')
+    A('    const u16 (*mass_meta)[4];         /* piece -> overlay entries (TL, TR, BL, BR) */')
+    A('    /* a second path drawing for paths through one other ground (sand,')
+    A('     * cobbles): a path quadrant whose edge faces a cell of that ground')
+    A('     * (path_alt_of) takes path_alt_q (field.c autotile_quads); 0 = none */')
+    A('    const u16 (*path_alt_q)[5];')
+    A('    const u8 *path_alt_of;')
     A('} TilesetDef;')
     A('')
     DOCS = {'town': TOWN_TERRAIN_DOC, 'wild': terrain_wild.WILD_TERRAIN_DOC,

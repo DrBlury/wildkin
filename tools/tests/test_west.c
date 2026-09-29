@@ -131,8 +131,11 @@ int main(void)
     test_project_visuals();
 
     /* the outdoor art + tall grass + the elevation art; the Current Hall and the
-     * Drowned Bell are the 'tide' tileset, so the towns keep ~100 tiles for props */
-    CHECK(TILESETS[TS_COAST].tile_count <= 420, "the coast tileset stays under ~420 tiles");
+     * Drowned Bell are the 'tide' tileset. The catalog is area-local
+     * (docs/AREA_TILESETS.md): only the tiles a map draws are resident, so
+     * the catalog needs only fit the 10-bit tile ids; test_area_tiles checks
+     * every map's resident budget. */
+    CHECK(TILESETS[TS_COAST].tile_count <= 1024, "the coast tileset fits the 1024-tile catalog");
 
     /* budget, people and characters on every west map */
     int budget_ok = 1, people_ok = 1;

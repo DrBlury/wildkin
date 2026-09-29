@@ -511,8 +511,8 @@ static const DecorPlace BRINE_HEARTH_DECOR[] = {
 };
 
 static const char *const BRINE_SHOP_ROWS[] = {
-    "WWnWWkWWnWW",
-    "wwwwwwwwwww",
+    "BBNBBKBBNBB",
+    "bbbbbbbbbbb",
     ":::::::::::",
     "<==>:::::::",
     ":::::::::::",
@@ -529,8 +529,8 @@ static const DecorPlace BRINE_SHOP_DECOR[] = {
 };
 
 static const char *const HARBOR_OFFICE_ROWS[] = {
-    "WWnWWkWWnWWWW",
-    "wwwwwwwwwwwww",
+    "BBNBBKBBNBBBB",
+    "bbbbbbbbbbbbb",
     ".............",
     ".............",
     ".....<===>...",
@@ -547,8 +547,8 @@ static const DecorPlace HARBOR_OFFICE_DECOR[] = {
 };
 
 static const char *const BRINE_INN_ROWS[] = {
-    "WWnWWkWWnWWWW",
-    "wwwwwwwwwwwww",
+    "RRORRQRRORRRR",
+    "rrrrrrrrrrrrr",
     ".............",
     "<====>.......",
     ".............",
@@ -566,8 +566,8 @@ static const DecorPlace BRINE_INN_DECOR[] = {
 };
 
 static const char *const BRINE_HOUSE_ROWS[] = {
-    "WWnWWkWWnWW",
-    "wwwwwwwwwww",
+    "GGMGGCGGMGG",
+    "ggggggggggg",
     "...........",
     "...........",
     "...........",
@@ -583,8 +583,8 @@ static const DecorPlace BRINE_HOUSE_DECOR[] = {
 };
 
 static const char *const GULL_HOUSE_ROWS[] = {
-    "WWnWWWWWnWW",
-    "wwwwwwwwwww",
+    "GGMGGGGGMGG",
+    "ggggggggggg",
     "...........",
     "...........",
     "...........",
@@ -806,8 +806,8 @@ static const char *const REED_HEARTH_ROWS[] = {
     ".....D.....", /*  8 */
 };
 static const char *const REED_SHOP_ROWS[] = {
-    "WWnWWWWWnWW", /*  0 */
-    "wwwwwwwwwww", /*  1 */
+    "BBNBBBBBNBB", /*  0 */
+    "bbbbbbbbbbb", /*  1 */
     "...........", /*  2 */
     "...........", /*  3 */
     "...........", /*  4 */
@@ -831,8 +831,8 @@ static const char *const REED_TUNNEL_ROWS[] = {
     "GGGGGGGGGGGGGGGGGGGG", /* 11 */
 };
 static const char *const FEN_HERMIT_ROWS[] = {
-    "WWnWWWWWnWW", /*  0 */
-    "wwwwwwwwwww", /*  1 */
+    "GGMGGGGGMGG", /*  0 */
+    "ggggggggggg", /*  1 */
     "...........", /*  2 */
     "...........", /*  3 */
     "...........", /*  4 */

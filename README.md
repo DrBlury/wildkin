@@ -633,9 +633,12 @@ At Lumen's **Resonance Works**, Engineer Nell shows you four machines:
   the game's own movement rules and checks that nothing can trap you.
 - **A storm you can end**: until DRAKORA is answered the Vale is dark, rain
   falls and lightning flashes. Afterwards the sky clears.
-- **78 maps across twelve tilesets** (village, wild, interior, city, coast,
-  snow, cave, grim, crypt, volcanic, dream and farm), dressed with 264 kinds
-  of furniture and outdoor details. That includes fireplaces, pianos and
+- **139 maps across sixteen tilesets** (village, wild, interior, city,
+  coast, snow, cave, grim, crypt, volcanic, dream, farm, tide, dusk, desert
+  and jungle), all drawn in second-generation 16x16 pixel art: forests
+  drawn as one canopy, cliffs with lit faces, buildings, water and ground
+  that mixes in flowers, pebbles, shells and ferns. They are dressed with
+  288 kinds of furniture and outdoor details. That includes fireplaces, pianos and
   aquariums; lighthouses, boats and bell buoys; steam vents, forges and a
   great bell; gravestones and wisps; moon lanterns and floating pages. Many
   are animated, and most say something when you examine them.
@@ -786,16 +789,22 @@ That writes `game.gba`. Other targets:
   and bouts frame by frame.
 - **Generated art.** Every tile, sprite, palette and particle is drawn by
   Python scripts in `tools/`. There's a small 3D-primitive renderer for the
-  kin (one spec per kin in `tools/kin/`) and a pixel-art toolkit for terrain
-  and decor. Each of the 12 tilesets is its own module in `tools/tilesets/`.
+  kin (one spec per kin in `tools/kin/`). The overworld comes from the
+  second-generation tile sets in `tools/tiles2/`: 16 area sheets of 16x16
+  cells with manifests and sample maps ([docs/TILES2.md](docs/TILES2.md),
+  [assets/tiles2/](assets/tiles2/README.md)); `tools/tiles2/engine/` turns
+  them into the game's 16 field tilesets, keeping every map, warp and
+  puzzle as it was.
   An art lint fails the build if a tile has baked-in ground or its colours
   don't fit a palette bank. The output is deterministic 4bpp
   data in `src/gfx_*.h`, and CI checks that it is up to date.
 - **Graphics.** Mode 0 with four layers: ground, a transparent decor layer,
   a top layer that draws tree tops and roofs over the player, and a bitmap
-  canvas for text and menus with a variable-width font. Decor tiles are
-  loaded per map to fit the 512-tile budget. Trees and roofs are drawn as
-  overlays on real ground tiles.
+  canvas for text and menus with a variable-width font. Only the terrain
+  and decor tiles a map uses are resident (768 tiles,
+  [docs/AREA_TILESETS.md](docs/AREA_TILESETS.md)). Trees and buildings are
+  drawn as overlays on real ground tiles, and forest cells pick their piece
+  from their neighbours, so a wood reads as one canopy.
 - **World data.** Each region lives in `src/game/world/<region>/`, one file
   per registry (maps, warps, people, wardens, signs, satchels, zones, quests,
   lore, fly points and scripts). The shared `world.h` includes them all.
@@ -847,7 +856,9 @@ src/crt0.S, gba.ld      startup code and memory map
 src/gfx_*.h             GENERATED art
 tools/gen_*.py          art generators (UI, kin, field, bout, travel, craft, fusion)
 tools/kin/              the roster: one KinSpec per kin, in batches
-tools/tilesets/         the 12 tilesets
+tools/tiles2/           second-generation tile sheets (16 area sets) and
+                        engine/, which builds the field tilesets from them
+tools/tilesets/         the tilesets' structure (terrain names, legends, stamps)
 tools/decor_*.py        the decor catalogue (indoor, outdoor and one per region/system)
 tools/terrain_*.py      terrain tiles and autotiles
 tools/test_field.c      maps, reachability, movement, people, lore, menus, saves

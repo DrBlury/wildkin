@@ -68,15 +68,22 @@ farm art, and tests invalid-reference and overflow handling.
 restoration, clipping, rain placement, and OBJ ownership. Elevation and
 seamless-transition tests also exercise the packed representation.
 
-The current full-map traversal checks 172 maps: 169 use fewer tiles than
-loading the whole regional catalog. Examples (including declared decor):
+The field art comes from the second-generation sets (docs/TILES2.md,
+section 8). Two additions to the composition above: overlay cells of a
+*mass* group (forests, pines, crags, the jungle canopy) take the piece
+their eight neighbours select from `TilesetDef.mass_pick`, and building
+stamps are overlays drawn over the ground recorded under them at decode
+time. Both resolve through the same resident mapping.
 
-| Area | Previous tiles | Resident tiles |
+The current full-map traversal checks 159 maps: 156 use fewer tiles than
+loading the whole regional catalog; the busiest map needs 706 of the 768
+resident tiles. Examples (including declared decor):
+
+| Area | Whole catalog | Resident tiles |
 | --- | ---: | ---: |
-| Maple Village | 505 | 478 |
-| Your House | 187 | 174 |
-| Whisper Meadow | 432 | 230 |
+| Maple Village | 609 | 560 |
+| Your House | 203 | 166 |
+| Whisper Meadow | 503 | 260 |
 
 These are complete static-map traversal counts, not just one viewport.
-Dynamic farm states are checked separately; no new detailed art is
-included in these measurements.
+Dynamic farm states are checked separately.

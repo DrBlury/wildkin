@@ -335,8 +335,8 @@ static const char *const DUSK_HEARTH_ROWS[] = {
 };
 
 static const char *const DUSK_SHOP_ROWS[] = {
-    "WWnWWpWWnWW",
-    "wwwwwwwwwww",
+    "BBNBBPBBNBB",
+    "bbbbbbbbbbb",
     ":::::::::::",
     "<==>:::::::",
     ":::::::::::",
@@ -347,8 +347,8 @@ static const char *const DUSK_SHOP_ROWS[] = {
 };
 
 static const char *const APOTHECARY_ROWS[] = {
-    "WWnWWWWWnWW",
-    "wwwwwwwwwww",
+    "GGMGGGGGMGG",
+    "ggggggggggg",
     "...........",
     "...........",
     "...........",
@@ -359,8 +359,8 @@ static const char *const APOTHECARY_ROWS[] = {
 };
 
 static const char *const DUSK_HOUSE_ROWS[] = {
-    "WWnWWkWWnWW",
-    "wwwwwwwwwww",
+    "GGMGGCGGMGG",
+    "ggggggggggg",
     "...........",
     "...........",
     "...........",
@@ -529,8 +529,8 @@ static const MapObj BONE_THRONE_OBJS[] = { OBJ(LEGEND, 8, 3, SP_OSSUREX) };
 
 /* Accord gate and the chalk downs. The two southern edge cells match Ashen x20-21. */
 static const char *const ACCORD_GATE_ROWS[] = {
-    "WWWWWWWWWWWWW",
-    "wwwwwwDwwwwww",
+    "RRRRRRRRRRRRR",
+    "rrrrrrDrrrrrr",
     "####......###",
     "####......###",
     "######.######",

@@ -279,8 +279,8 @@ static const WildSlot WILD_COPPER_MINE[] = {
 };
 
 static const char *const BROOKMILL_MILL_ROWS[] = {
-    "WWWWWWWWWWWWW", /*  0 */
-    "wwwwwwwwwwwww", /*  1 */
+    "RRRRRRRRRRRRR", /*  0 */
+    "rrrrrrrrrrrrr", /*  1 */
     ":::::::::::::", /*  2 */
     ":::::::::::::", /*  3 */
     ":::::::::::::", /*  4 */
@@ -292,8 +292,8 @@ static const char *const BROOKMILL_MILL_ROWS[] = {
 };
 
 static const char *const BROOKMILL_HOUSE_ROWS[] = {
-    "WWWWWWWWWWW", /*  0 */
-    "wwwwwwwwwww", /*  1 */
+    "GGGGGGGGGGG", /*  0 */
+    "ggggggggggg", /*  1 */
     ":::::::::::", /*  2 */
     ":::::::::::", /*  3 */
     ":::::::::::", /*  4 */
@@ -796,8 +796,8 @@ static const MapObj COPPER_MINE_ROOT_OBJS[] = {
 
 /* LAND OFFICE (Maple Village): REEVE sells the FARM DEED (farm.c). */
 static const char *const LAND_OFFICE_ROWS[] = {
-    "WWnWWkWWnWW",
-    "wwwwwwwwwww",
+    "BBNBBKBBNBB",
+    "bbbbbbbbbbb",
     ":::::::::::",
     "<===>::::::",
     ":::::::::::",
@@ -834,8 +834,8 @@ static const DecorPlace LUMEN_HEARTH_DECOR[] = {
 
 /* LUMEN MARKET */
 static const char *const LUMEN_MARKET_ROWS[] = {
-    "WWnWWkWWnWW",
-    "wwwwwwwwwww",
+    "BBNBBKBBNBB",
+    "bbbbbbbbbbb",
     ":::::::::::",
     "<==>:::::::",
     ":::::::::::",
@@ -860,8 +860,8 @@ static const DecorPlace LUMEN_MARKET_DECOR[] = {
  *   rows 8-10: a pylon column at x 7
  *   row 11: pylons, barrier a at x 2, barrier b at x 12 */
 static const char *const VOLT_HALL_ROWS[] = {
-    "WWWWWWnWnWWWWWW",
-    "wwwwwwwwwwwwwww",
+    "RRRRRRORORRRRRR",
+    "rrrrrrrrrrrrrrr",
     ":::::::::::::::",
     ":::::::::::::::",
     ":::::::::::::::",
@@ -914,8 +914,8 @@ static const MapObj VOLT_HALL_OBJS[] = {
 /* RESONANCE WORKS: the front desk hosts SCR_FUSION_DESK (fusion.c); the
  * floor in front of it is left open for the fusion machines' decor. */
 static const char *const RESONANCE_WORKS_ROWS[] = {
-    "WWnWWWkWWWnWW",
-    "wwwwwwwwwwwww",
+    "RRORRRQRRRORR",
+    "rrrrrrrrrrrrr",
     ":::::::::::::",
     "::::<===>::::",
     ":::::::::::::",
@@ -935,8 +935,8 @@ static const DecorPlace RESONANCE_WORKS_DECOR[] = {
 
 /* BIKE SHOP */
 static const char *const BIKE_SHOP_ROWS[] = {
-    "WWnWWkWWnWW",
-    "wwwwwwwwwww",
+    "BBNBBKBBNBB",
+    "bbbbbbbbbbb",
     "...........",
     ".......<==>",
     "...........",
@@ -954,8 +954,8 @@ static const DecorPlace BIKE_SHOP_DECOR[] = {
 /* COPPER KETTLE INN: the innkeeper lets rooms; the cook (SCR_CHEF, craft.c)
  * works the stove. */
 static const char *const LUMEN_INN_ROWS[] = {
-    "WWnWWpWWnWW",
-    "wwwwwwwwwww",
+    "RRORRZRRORR",
+    "rrrrrrrrrrr",
     "...........",
     "<==>.......",
     "...........",
@@ -973,8 +973,8 @@ static const DecorPlace LUMEN_INN_DECOR[] = {
 
 /* LUMEN HOUSE (canal row, west): a family */
 static const char *const LUMEN_HOUSE_ROWS[] = {
-    "WWnWWkWWnWW",
-    "wwwwwwwwwww",
+    "GGMGGCGGMGG",
+    "ggggggggggg",
     "...........",
     "...........",
     "...........",
@@ -992,8 +992,8 @@ static const DecorPlace LUMEN_HOUSE_DECOR[] = {
 
 /* LUMEN HOUSE (canal row, east): the tinker's workshop */
 static const char *const LUMEN_HOUSE_B_ROWS[] = {
-    "WWnWWkWWnWW",
-    "wwwwwwwwwww",
+    "RRORRQRRORR",
+    "rrrrrrrrrrr",
     ":::::::::::",
     ":::::::::::",
     ":::::::::::",
@@ -1011,15 +1011,15 @@ static const DecorPlace LUMEN_HOUSE_B_DECOR[] = {
 /* CLOCKWORK SPIRE: the gear hall below, the Crown above. The stair up is
  * sealed by a boulder (STRENGTH); HOROLOGOS waits in the Crown. */
 static const char *const CLOCKWORK_SPIRE_ROWS[] = {
-    "WWWWWWkWWWWWW", /*  0 */
-    "wwwwwwwwwwwww", /*  1 */
+    "RRRRRRQRRRRRR", /*  0 */
+    "rrrrrrrrrrrrr", /*  1 */
     ":::::::::::::", /*  2  the Crown */
     ":::::::::::::", /*  3 */
     ":::::::::::::", /*  4 */
     ":::::::::::::", /*  5 */
     ":::::::::::::", /*  6 */
-    "WWWWWW:WWWWWW", /*  7  the stair */
-    "wwwwww:wwwwww", /*  8 */
+    "RRRRRR:RRRRRR", /*  7  the stair */
+    "rrrrrr:rrrrrr", /*  8 */
     ":::::::::::::", /*  9  the gear hall */
     ":::::::::::::", /* 10 */
     ":::::::::::::", /* 11 */

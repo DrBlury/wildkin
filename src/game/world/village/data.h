@@ -381,8 +381,8 @@ static const DecorPlace LAKE_DECOR[] = {
 /* ================================================================ */
 
 static const char *const HOME_ROWS[] = {
-    "WWnWWkWWnWW",
-    "wwwwwwwwwww",
+    "GGMGGCGGMGG",
+    "ggggggggggg",
     "...........",
     "...........",
     "...........",
@@ -403,8 +403,8 @@ static const DecorPlace HOME_DECOR[] = {
 };
 
 static const char *const BAKERY_ROWS[] = {
-    "WWnWWpWWnWW",
-    "wwwwwwwwwww",
+    "BBNBBPBBNBB",
+    "bbbbbbbbbbb",
     "...........",
     "...........",
     "...........",
@@ -424,8 +424,8 @@ static const DecorPlace BAKERY_DECOR[] = {
 };
 
 static const char *const LAB_ROWS[] = {
-    "WWnWWkWWWnWWW",
-    "wwwwwwwwwwwww",
+    "RRORRQRRRORRR",
+    "rrrrrrrrrrrrr",
     ":::::::::::::",
     ":::::::::::::",
     ":::::::::::::",
@@ -446,8 +446,8 @@ static const DecorPlace LAB_DECOR[] = {
 };
 
 static const char *const SHOP_ROWS[] = {
-    "WWnWWkWWnWW",
-    "wwwwwwwwwww",
+    "BBNBBKBBNBB",
+    "bbbbbbbbbbb",
     ":::::::::::",
     "<==>:::::::",
     ":::::::::::",
@@ -485,8 +485,8 @@ static const DecorPlace REST_DECOR[] = {
 };
 
 static const char *const GARDEN_ROWS[] = {
-    "WWnWWpWWnWW",
-    "wwwwwwwwwww",
+    "GGMGGYGGMGG",
+    "ggggggggggg",
     "...........",
     "...........",
     "...........",
@@ -503,8 +503,8 @@ static const DecorPlace GARDEN_DECOR[] = {
 };
 
 static const char *const CABIN_ROWS[] = {
-    "WWnWWkWWnWW",
-    "wwwwwwwwwww",
+    "GGMGGCGGMGG",
+    "ggggggggggg",
     "...........",
     "...........",
     "...........",
@@ -521,8 +521,8 @@ static const DecorPlace CABIN_DECOR[] = {
 };
 
 static const char *const STATION_ROWS[] = {
-    "WWnWWkWWWnWWW",
-    "wwwwwwwwwwwww",
+    "BBNBBKBBBNBBB",
+    "bbbbbbbbbbbbb",
     ":::::::::::::",
     ":::::::::::::",
     ":::::::::::::",

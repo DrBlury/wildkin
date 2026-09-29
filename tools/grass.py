@@ -591,6 +591,15 @@ def compact(out, candidates):
             for row in out.get(key) or []:
                 for e in row:
                     yield e
+        for bl in out.get('blends', []):
+            for q in bl['q']:
+                for row in q:
+                    for e in row:
+                        yield e
+        for m in out.get('masses', []):
+            for e4 in m['pieces']:
+                for e in e4:
+                    yield e
     for e in ents():
         used.add(e & 1023)
     for (first, frames, period) in out.get('anims', []):
@@ -620,6 +629,10 @@ def compact(out, candidates):
     for key in ('path_q', 'water_q'):
         if out.get(key):
             out[key] = [[fix(e) for e in row] for row in out[key]]
+    for bl in out.get('blends', []):
+        bl['q'] = [[[fix(e) for e in row] for row in q] for q in bl['q']]
+    for m in out.get('masses', []):
+        m['pieces'] = [[fix(e) for e in e4] for e4 in m['pieces']]
     out['anims'] = [(remap[f], fr, p) for (f, fr, p) in out.get('anims', [])]
     for key in ('water_first', 'flower_first'):
         if key in out:

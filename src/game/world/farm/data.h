@@ -71,8 +71,8 @@ static const MapObj WILLOW_ACRE_OBJS[] = {
 };
 
 static const char *const FARMHOUSE_ROWS[] = {
-    "WWnWWkWWnWW",
-    "wwwwwwwwwww",
+    "GGMGGCGGMGG",
+    "ggggggggggg",
     "...........",
     "...........",
     "...........",

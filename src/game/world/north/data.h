@@ -554,8 +554,8 @@ static const DecorPlace FROST_HEARTH_DECOR[] = {
 
 /* FROST SHOP (11 x 9) */
 static const char *const FROST_SHOP_ROWS[] = {
-    "WWnWWkWWnWW", /*  0 */
-    "wwwwwwwwwww", /*  1 */
+    "BBNBBKBBNBB", /*  0 */
+    "bbbbbbbbbbb", /*  1 */
     ":::::::::::", /*  2 */
     "<==>:::::::", /*  3 */
     ":::::::::::", /*  4 */
@@ -572,8 +572,8 @@ static const DecorPlace FROST_SHOP_DECOR[] = {
 
 /* THE ALDER HOUSE (11 x 9) */
 static const char *const FROST_HOUSE_ROWS[] = {
-    "WWnWWkWWnWW", /*  0 */
-    "wwwwwwwwwww", /*  1 */
+    "GGMGGCGGMGG", /*  0 */
+    "ggggggggggg", /*  1 */
     "...........", /*  2 */
     "...........", /*  3 */
     "...........", /*  4 */
@@ -593,8 +593,8 @@ static const DecorPlace FROST_HOUSE_DECOR[] = {
 
 /* STARGAZER'S HOUSE (11 x 9) */
 static const char *const STARGAZER_ROWS[] = {
-    "WWnWWpWWnWW", /*  0 */
-    "wwwwwwwwwww", /*  1 */
+    "GGMGGYGGMGG", /*  0 */
+    "ggggggggggg", /*  1 */
     "...........", /*  2 */
     "...........", /*  3 */
     "...........", /*  4 */
@@ -738,11 +738,11 @@ static const char *const TIMBERLINE_ROWS[] = {
     "PpPpPpPpPpPpPpPpPpP==pPpPpPpPpPpPpPpPpPp", /* 35 */
 };
 static const char *const TIMBER_LODGE_ROWS[] = {
-    "WWnWWkWWnWWWW", "wwwwwwwwwwwww", ":::::::::::::", ":::<=====>:::",
+    "RRORRQRRORRRR", "rrrrrrrrrrrrr", ":::::::::::::", ":::<=====>:::",
     ":::::::::::::", ":::::::::::::", ":::::::::::::", ":::::::::::::", "::::::D::::::",
 };
 static const char *const TIMBER_SAWMILL_ROWS[] = {
-    "WWnWWkWWnWWWW", "wwwwwwwwwwwww", ":::::::::::::", ":::<=====>:::",
+    "RRORRQRRORRRR", "rrrrrrrrrrrrr", ":::::::::::::", ":::<=====>:::",
     ":::::::::::::", ":::::::::::::", ":::::::::::::", ":::::::::::::", "::::::D::::::",
 };
 static const char *const STORM_CAVE_ROWS[] = {

@@ -678,8 +678,8 @@ static const DecorPlace CINDER_HEARTH_DECOR[] = {
 };
 
 static const char *const CINDER_SHOP_ROWS[] = {
-    "WWnWWkWWnWW",
-    "wwwwwwwwwww",
+    "BBNBBKBBNBB",
+    "bbbbbbbbbbb",
     ":::::::::::",
     "<==>:::::::",
     ":::::::::::",
@@ -715,8 +715,8 @@ static const DecorPlace DREAM_HEARTH_DECOR[] = {
 };
 
 static const char *const DREAM_SHOP_ROWS[] = {
-    "WWnWWkWWnWW",
-    "wwwwwwwwwww",
+    "BBNBBKBBNBB",
+    "bbbbbbbbbbb",
     ":::::::::::",
     "<==>:::::::",
     ":::::::::::",
@@ -920,8 +920,8 @@ static const char *const RAILHEAD_SHAFT_ROWS[] = {
 };
 
 static const char *const RAILHEAD_BUNK_ROWS[] = {
-    "WWnWWkWWnWW",
-    "wwwwwwwwwww",
+    "RRORRQRRORR",
+    "rrrrrrrrrrr",
     ":::::::::::",
     ":::::::::::",
     ":::::::::::",
@@ -931,8 +931,8 @@ static const char *const RAILHEAD_BUNK_ROWS[] = {
     ":::::D:::::",
 };
 static const char *const RAILHEAD_OFFICE_ROWS[] = {
-    "WWnWWkWWnWW",
-    "wwwwwwwwwww",
+    "BBNBBKBBNBB",
+    "bbbbbbbbbbb",
     ":::::::::::",
     ":::::::::::",
     ":::::::::::",

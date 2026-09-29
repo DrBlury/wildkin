@@ -6,11 +6,11 @@ and animations) with GBA-exact palettes, a JSON manifest per set, sample
 maps for every area and an old→new name map for every decor kind and
 building the current maps use.
 
-**Status:** the art, manifests, validation and handoff tooling are done.
-The game does **not** use them yet: the engine and the maps still run on
-the old `tools/gen_field_gfx.py` art. Switching over is a separate task
-(section 8 is its plan). Nothing under `src/` or the old generators was
-changed.
+**Status:** the game draws every field map with this art. All 16 of
+`src/gfx_field.h`'s tilesets are built from these sheets by
+`tools/tiles2/engine/` (section 8 describes how), so the maps, warps,
+puzzles and scripts are unchanged while the terrain, trees, water, cliffs,
+buildings and all 502 decor kinds come from tiles2.
 
 - Sheets, manifests and sample maps: [`assets/tiles2/`](../assets/tiles2/README.md)
   (the README there has the per-set budget table and links every sheet)
@@ -104,6 +104,10 @@ tools/tiles2/
   gba.py       loads a committed PNG + manifest and encodes it for the GBA
   legacy.py    old decor kinds / stamps -> new entries, checked against src/game/world
   test_tiles2.py
+  engine/      the game's tilesets drawn from these sheets (section 8):
+               assemble.py (recorder + builder), load.py (sheets as images),
+               common.py (masses, cliffs, buildings, decor tables),
+               art_<old set>.py (one per game tileset)
 ```
 
 ## 4. Formats
@@ -316,56 +320,79 @@ Per area:
 The generator is deterministic (integer hashes, no `random`), so a rebuild
 produces identical bytes.
 
-## 8. Switching the game over (plan for the integration task)
+## 8. How the game uses them
 
-The pieces map cleanly onto the engine; what is missing is plumbing.
+`python3 tools/gen_field_gfx.py` (part of `make art`) still writes
+`src/gfx_field.h`, but every tileset's art now comes from these sheets:
 
-1. **Load manifests in the generator.** Add a builder to
-   `tools/gen_field_gfx.py` (or a new `gen_field_gfx2.py`) that calls
-   `tools/tiles2/gba.py` (`load` + `encode`): it returns 4bpp tiles,
-   8x16 BGR555 palettes and, per entry and frame, the four screen entries of
-   every cell. Emit them in the existing `TilesetDef` / `DecorDef` shapes:
-   `tile` entries become metatiles (`meta_bottom`), objects become decor
-   kinds (masks from `solid`/`top`/`floor`), animated entries become
-   `TileAnim`s (frames are separate cells in the sheet; `period` uses
-   the same unit as `TileAnim.period`: `field_anim_frame` ticks per step).
-2. **Generalise autotiles.** The engine autotiles exactly two kinds per
-   tileset (`path_q`, `water_q`) plus up to 8 ground blends. The new sets
-   have several rmxp16 autotiles each (path, water, deep water, patches,
-   plaza, fields, lava, carpets...). Either map each extra one onto a blend
-   group (`blend_q` has the same 4x5 quadrant shape; it already fades a
-   ground into its surroundings) or extend `LegendEntry` with an
-   `LG_AUTO` kind that carries its own `q[4][5]` table. The quadrant table
-   in section 4.3 is the conversion.
-3. **Mass layer and patch9.** Forests, hedges, walls and snowbanks need a
-   per-cell nine-slice lookup (section 4.4). The simplest route is an extra
-   byte grid like `map_ground` (`map_mass`) rendered into the mid layer by
-   `render_cell`, with the piece chosen from the four neighbours; the old
-   `TREE_TOP`/`TREE_BOTTOM` overlay path shows where it slots in.
-4. **Elevation art.** Fill `ElevArt` from `cliff_top` (rim), `cliff_face`
-   and `cliff_face_single` (face variants: top/middle/foot/single rows and
-   ends), `stairs`, `bridge_h`/`bridge_v`, the mouths and the `ledge`
-   block (section 4.6), instead of `tools/elevation.py`'s recolouring.
-5. **Map data.** `assets/tiles2/legacy_map.json` lists, per old tileset,
-   the replacement set, its maps and every decor kind those maps use with
-   its new entry (502 kinds, 0 unresolved), plus all 67 building stamps and
-   the old terrain names. Convert `DP(...)` lists and stamps with it first
-   (a mechanical pass), then redesign maps area by area using section 6.
-6. **Palette variants.** Seasons (`farm`), night/dusk variants and weather
-   become a per-map (or per-time) choice of palette only: same tile data,
-   swap the 8 banks. `gba.encode(ts, variant)` produces them.
-7. **Budgets per map.** The resident budget (768) is per map; the sample
-   maps show typical usage (about 130 for a room, 200-730 outdoors). Keep the scene counter
-   (`Scene.resident`) or the engine's own `test_area_tiles.c` in the loop
-   while redesigning.
-8. **Old art.** Remove `tools/gen_field_gfx.py`'s tile art only after every
-   map is converted and `make test` passes; the tiles2 generator is
-   independent of it.
+1. **Structure from the old builders, art from tiles2.** The old builders
+   (`build_town`, `tools/tilesets/ts_*.py`) still run first; a recorder
+   (`tools/tiles2/engine/assemble.py`, `Recorder`) captures what each one
+   hands to `finish_tileset`: terrain names and order (the `MT_*` ids),
+   legends, attributes, doors, stamps with their sizes, blend groups and
+   the decor kinds the set offers. Maps and game code depend on all of
+   that, so it stays exactly as it was. `assemble.build()` then rebuilds
+   the tileset from an art module `tools/tiles2/engine/art_<set>.py`, which
+   says, per old name, which tiles2 entry (or painter call, in the set's
+   own colour roles) draws it.
+2. **Colours.** Sheet pixels become colour names `T2:rrggbb` (the exact
+   GBA colour), so the old encoder takes them as they are; a set's banks
+   are its manifest banks. Composites that bake an object into a ground
+   cell (a door mat on floorboards, a window in wallpaper) and blend edges
+   use nearest-colour fitting (`('fit', img)`, `fit_bank_pix`).
+3. **Forest masses** (`TilesetDef.mass_of / mass_pick / mass_meta`,
+   `field.c mass_piece`). `TREE_TOP`/`TREE_BOTTOM` bands (and pines,
+   gnarled trees, blossoms, jungle canopy, volcanic crags) are drawn as one
+   canopy: each cell takes the piece its eight neighbours select, rendered
+   ahead of time for every neighbourhood with the tiles2 forest painter
+   (`common.forest_render`), deduplicated. A lone crown-over-trunk pair
+   draws a young tree.
+4. **Overlay stamps** (`field.c map_decode`). Buildings are transparent
+   and drawn over whatever ground the map has under the stamp, like trees;
+   only opaque stamps (a ring floor) are ground.
+5. **Autotiles.** Paths, water (animated) and ground blends come from the
+   sets' rmxp16 blocks (section 4.3 is the conversion); hand-placed 9-slice
+   pieces the old maps use (`POOL_N`, `ICE_SE`, `LAVA_INW`...) are cut from
+   the same blocks (`common.rmxp_piece`).
+6. **Elevation** (`ElevArt`) is cut from `cliff_top` (rim = the block minus
+   the plain ground), `cliff_face`, `cliff_face_single`, the `ledge` block
+   and the bridges; sets without cliffs (`farm` has none, `city` paints
+   them with the same cliff painters in paving stone).
+7. **Tall grass** stays procedural (`tools/grass.py`), its styles remapped
+   to each set's roles (`grass_colors`).
+8. **Richer ground.** Legend entries hold up to 8 variants now; the main
+   ground characters mix extra variants and baked-in details (flowers,
+   pebbles, shells, ferns, dry tufts) at low density, so every map gains
+   detail without any change to its data. New variants count wherever the
+   ground they vary does (blends, ground flags: `variant_of`).
+9. **Decor** keeps each kind's footprint and masks (collision and the
+   over-people cells are unchanged); the art modules paint a version at
+   the old size where the tiles2 entry is larger (`common.decor_table`).
+10. **Paths through another ground.** A tileset may give a second path
+    drawing for one other ground (`path_alt`: coast paths through sand,
+    village lanes meeting the cobbled square); each path quadrant picks it
+    when the neighbour its edge shows is that ground (`field.c
+    autotile_quads`, `TilesetDef.path_alt_q / path_alt_of`).
+11. **Interior wallpapers.** Rooms use four wallpapers: `W w n k p` (cream
+    top, low wall, window, clock, picture), `B b N K P` (blue), `G g M C Y`
+    (green), `R r O Q Z` (brick); `_` is a stone floor. Shops and offices
+    are blue, homes green, workshops, inns and halls brick, Hearth Halls
+    cream.
+12. **Farm.** Soil and watered-soil quadrants come from the old
+    `add_soil_quads` over tiles2 soil textures; crops tiles2 draws
+    (turnip, carrot, pumpkin, tomato) use them, the others keep their old
+    two-cell shapes recoloured into the farm's crop bank.
 
-Risks to watch: the engine's per-tileset catalogue is 1024 terrain ids.
-The largest sets are well below (`verdant` 507 terrain tiles) but objects
-count separately per decor kind; very large buildings (8x6) cost 50-150
-tiles each, so city and village maps should not mix every building type.
+Budgets after the switch (`make test`, `test_area_tiles.c`): every map fits
+its 768 resident tiles (peak 706); catalogues range from 55 (`tide`) to 606
+(`city`) of the 1024 ids.
+
+Not done yet: palette variants (seasons, night) are sheets only, the game
+still tints with its own `field_tint`; outdoor map layouts are the old
+ones (the art, the ground mixes and the interior wallpapers make them
+richer; the full redesign in section 6 is still open); the old
+generators keep owning the structure, so their art code cannot be deleted
+until that structure moves into the art modules.
 
 ## 9. Validation
 
